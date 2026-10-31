@@ -35,6 +35,29 @@ theorem ov_flag' (n : Nat) :
   have := ov_flag n
   simpa using this
 
+/-- the low byte of `RAX` after `SETG AL` when the flag is zero -/
+theorem lowbyte0 (z : BitVec 64) : (z &&& 18446744073709551360#64 ||| 0#64).toNat % 256 = 0 := by
+  rw [BitVec.or_zero, BitVec.toNat_and]
+  have h : (18446744073709551360#64).toNat = 2^64 - 2^8 := by decide
+  rw [h]
+  show (z.toNat &&& (2^64 - 2^8)) % 2^8 = 0
+  apply Nat.eq_of_testBit_eq
+  intro i
+  rw [Nat.testBit_mod_two_pow, Nat.testBit_and]
+  by_cases hi : i < 8
+  · have : (2^64 - 2^8 : Nat).testBit i = false := by
+      rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 ∨ i = 7) with h|h|h|h|h|h|h|h <;> subst h <;> decide
+    simp [this]
+  · simp [hi]
+
+theorem ov8 (n : Nat) :
+    (if 4 < (n : Int) then (1#8 : BitVec 8) else 0#8).toNat = (fromBigOv n).toNat := by
+  by_cases h : 4 < n
+  · have h2 : 4 < (n : Int) := by omega
+    simp [h2, fromBigOv, h]
+  · have h2 : ¬ 4 < (n : Int) := by omega
+    simp [h2, fromBigOv, h]
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,
@@ -51,6 +74,10 @@ def bigTable : List (Nat × Nat) :=
 
 def bigMem : Memory :=
   ⟨fun a => BitVec.ofNat 8 ((bigTable.lookup a).getD 0), Janus.Contracts.EqHashModel.wmem.regions⟩
+
+def bigMem64 : Memory :=
+  ⟨fun a => BitVec.ofNat 8 ((((Janus.Contracts.IfaceModel.wsp + 2, 0x20) :: bigTable).lookup a).getD 0),
+    Janus.Contracts.EqHashModel.wmem.regions⟩
 
 end Wit
 
