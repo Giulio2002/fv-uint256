@@ -27,8 +27,8 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).SetFromDecimal` | (b) | todo | todo | as FromDecimal |
 | `(*uint256.Int).SetFromHex` | (a) | todo | todo | fromHex loop; error returns are interface values loaded from globals ErrXxx (writable .data: precondition must supply) |
 | `(*uint256.Int).MarshalJSON` | (d) | todo | todo | Dec + concatbyte3 + string/slice runtime |
-| `(*uint256.Int).MarshalSSZ` | (b) | todo | todo | makeslice(32) / inlined append, error nil |
-| `(*uint256.Int).MarshalSSZAppend` | (b) | todo | todo | growslice contract (8-byte pointer-free elements only; here []byte: element size 1, outside the pinned growslice contract?) to be checked |
+| `(*uint256.Int).MarshalSSZ` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MarshalSSZ.lean; runtime.makeslice contract (growslice calls are inlined away: capacity is known); allocator witness inside |
+| `(*uint256.Int).MarshalSSZAppend` | (b) | blocked | blocked | the code calls runtime.growslice with et=uint8 (element size 1, num=8); the pinned GrowsliceContract covers only 8-byte pointer-free elements (growCap8). Needs a growslice contract for 1-byte elements (roundupsize(nextslicecap*1)); asked main |
 | `(*uint256.Int).MarshalSSZInto` | (d) | todo | todo | error path calls fmt.Errorf (not extractable: sync.Pool, interfaces); success path only provable if a contract for fmt.Errorf is permitted |
 | `(*uint256.Int).MarshalText` | (d) | todo | todo | Dec + stringtoslicebyte |
 | `(*uint256.Int).UnmarshalJSON` | (b) | todo | todo | SetFromDecimal / UnmarshalText |
