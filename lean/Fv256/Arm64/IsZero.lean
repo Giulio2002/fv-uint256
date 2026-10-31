@@ -22,7 +22,19 @@ theorem correctness (x : BitVec 64) :
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.isZero (val256 s.mem x.toNat)).toNat) := by
   intro ret hret s hs ⟨hx, hx'⟩
   janus_intro hs
-  sorry
+  janus_run
+  simp only [Spec.isZero, Nat.or_eq_zero_iff]
+  generalize s.mem.readLE x.toNat 8 = a
+  generalize s.mem.readLE (x.toNat + 8) 8 = b
+  generalize s.mem.readLE (x.toNat + 16) 8 = c
+  generalize s.mem.readLE (x.toNat + 24) 8 = d
+  by_cases h : ((a = 0 ∧ b = 0) ∧ c = 0) ∧ d = 0
+  · have h2 : a + 18446744073709551616 * b + 340282366920938463463374607431768211456 * c +
+        6277101735386680763835789423207666416102355444464034512896 * d = 0 := by omega
+    rw [if_pos h, (beq_iff_eq).2 h2]; decide
+  · have h2 : ¬ (a + 18446744073709551616 * b + 340282366920938463463374607431768211456 * c +
+        6277101735386680763835789423207666416102355444464034512896 * d = 0) := by omega
+    rw [if_neg h, beq_eq_false_iff_ne.2 h2]; decide
 
 namespace Witness
 
@@ -43,7 +55,7 @@ def s0 : State :=
 theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s0 :=
   ⟨rfl, rfl, by intro i h; simp at h; subst h; rfl⟩
 
-theorem hpre : Ptr32 s0.mem x false := ⟨by decide, by decide, by decide⟩
+theorem hpre : Ptr32 s0.mem x false := ⟨by decide, by decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ Ptr32 s.mem x false :=
