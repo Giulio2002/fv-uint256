@@ -886,6 +886,13 @@ theorem rc4_val (v : Nat) :
 theorem rev4_rev4 (x : Nat) (hx : x < 4294967296) : revBytesNat 4 (revBytesNat 4 x) = x :=
   rev_rev 4 x (by simpa using hx)
 
+theorem chunk2n (m : Janus.Arm64.Memory) (a : Nat) :
+    (BitVec.setWidth 64 (BitVec.ofNat 32
+      (revContainersNat 2 2 (BitVec.setWidth 32 (BitVec.ofNat 64 (m.readLE a 2))).toNat))).toNat % 65536 =
+      Spec.fromBE (fun i => m.readLE (a + i) 1) 2 := by
+  have := chunk2 m a
+  simpa [rot0] using this
+
 end BEsec
 
 theorem byte_val (N y0 y1 y2 y3 : Nat) (hN : N < 32) (h0 : y0 < 18446744073709551616) (h1 : y1 < 18446744073709551616)
@@ -1292,5 +1299,21 @@ theorem shl_or_nat0' (a b t : Nat) (ht1 : 1 ≤ t) (ht : t < 64) (ha : a < 18446
     (b / 2 ^ (64 - t) ||| a * 2 ^ t % 18446744073709551616) =
       a * 2 ^ t % 18446744073709551616 + b / 2 ^ (64 - t) := by
   rw [Nat.or_comm]; exact shl_or_nat0 a b t ht1 ht ha hb
+
+@[simp] theorem rd4mod (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 4 % 4294967296 = m.readLE a 4 := by
+  exact Nat.mod_eq_of_lt (by simpa using Janus.Arm64.Memory.readLE_lt m a 4)
+@[simp] theorem rd2mod (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 2 % 65536 = m.readLE a 2 := by
+  exact Nat.mod_eq_of_lt (by simpa using Janus.Arm64.Memory.readLE_lt m a 2)
+@[simp] theorem rd1mod (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 1 % 256 = m.readLE a 1 := by
+  exact Nat.mod_eq_of_lt (by simpa using Janus.Arm64.Memory.readLE_lt m a 1)
+
+theorem or_hi_comm (a c k : Nat) (ha : a < 2 ^ k) : c * 2 ^ k ||| a = a + c * 2 ^ k := by
+  rw [Nat.or_comm]; exact or_hi a c k ha
+theorem orc_hi16 (a c : Nat) (ha : a < 65536) : c * 65536 ||| a = a + c * 65536 := or_hi_comm a c 16 ha
+theorem orc_hi24 (a c : Nat) (ha : a < 16777216) : c * 16777216 ||| a = a + c * 16777216 := or_hi_comm a c 24 ha
+theorem orc_hi32 (a c : Nat) (ha : a < 4294967296) : c * 4294967296 ||| a = a + c * 4294967296 := or_hi_comm a c 32 ha
+theorem orc_hi40 (a c : Nat) (ha : a < 1099511627776) : c * 1099511627776 ||| a = a + c * 1099511627776 := or_hi_comm a c 40 ha
+theorem orc_hi48 (a c : Nat) (ha : a < 281474976710656) : c * 281474976710656 ||| a = a + c * 281474976710656 := or_hi_comm a c 48 ha
+theorem orc_hi56 (a c : Nat) (ha : a < 72057594037927936) : c * 72057594037927936 ||| a = a + c * 72057594037927936 := or_hi_comm a c 56 ha
 
 end Fv256.Util
