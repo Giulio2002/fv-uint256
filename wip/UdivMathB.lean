@@ -103,4 +103,31 @@ theorem shr_vec (M N : Janus.Arm64.Memory) (s : Nat) (hs : s < 64) :
       rw [Nat.mul_comm (2 ^ (64 - s)) x]
       grind
 
+theorem funnel_mach (a b s : Nat) (hs1 : 1 ≤ s) (hs : s ≤ 63) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    ((BitVec.ofNat 64 b >>> ((18446744073709551616 - s) % 64) &&& (if 63 - s + 1 < 64 then 18446744073709551615#64 else 0#64)) |||
+      (BitVec.ofNat 64 a <<< ((18446744073709551616 - (64 - s)) % 64) &&& (if s < 64 then 18446744073709551615#64 else 0#64))).toNat =
+      a * 2 ^ s % 2 ^ 64 + b / 2 ^ (64 - s) := by
+  have c1 : (18446744073709551616 - s) % 64 = 64 - s := by omega
+  have c2 : (18446744073709551616 - (64 - s)) % 64 = s := by omega
+  have m1 : 63 - s + 1 < 64 := by omega
+  have m2 : s < 64 := by omega
+  rw [c1, c2, if_pos m1, if_pos m2, and_mask, and_mask]
+  have := shld_toNat b a s hs1 (by omega) hb ha
+  exact this
+
+theorem shl_carry_lt (a b s : Nat) (hs : s < 64) (hb : b < 2 ^ 64) :
+    a * 2 ^ s % 2 ^ 64 + b / 2 ^ (64 - s) < 2 ^ 64 := by
+  have e64 : 2 ^ 64 = 2 ^ s * 2 ^ (64 - s) := by rw [← Nat.pow_add]; congr 1; omega
+  have h1 : a * 2 ^ s % 2 ^ 64 = 2 ^ s * (a % 2 ^ (64 - s)) := by
+    rw [e64, Nat.mul_comm a, Nat.mul_mod_mul_left]
+  have h2 : a % 2 ^ (64 - s) < 2 ^ (64 - s) := Nat.mod_lt _ (Nat.two_pow_pos _)
+  have h3 : b / 2 ^ (64 - s) < 2 ^ s := by
+    apply Nat.div_lt_of_lt_mul
+    rw [Nat.mul_comm, ← e64]; exact hb
+  rw [h1]
+  have h4 : a % 2 ^ (64 - s) + 1 ≤ 2 ^ (64 - s) := h2
+  have h5 := Nat.mul_le_mul_left (2 ^ s) h4
+  rw [Nat.mul_add, ← e64] at h5
+  omega
+
 end Fv256.B
