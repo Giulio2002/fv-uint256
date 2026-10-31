@@ -44,7 +44,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Hex` | todo | todo | |
 | `(*uint256.Int).IntoBig` | todo | todo | |
 | `(*uint256.Int).IsUint64` | todo | todo | |
-| `(*uint256.Int).IsZero` | todo | todo | |
+| `(*uint256.Int).IsZero` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | todo | todo | |
 | `(*uint256.Int).Lsh` | todo | todo | |
 | `(*uint256.Int).Lt` | todo | todo | |
