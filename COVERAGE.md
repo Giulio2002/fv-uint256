@@ -15,7 +15,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Abs` | todo | todo | |
 | `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
 | `(*uint256.Int).AddMod` | todo | todo | |
-| `(*uint256.Int).AddOverflow` | todo | todo | |
+| `(*uint256.Int).AddOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddOverflow.lean |
 | `(*uint256.Int).AddUint64` | todo | todo | |
 | `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
 | `(*uint256.Int).BitLen` | todo | todo | |
@@ -55,7 +55,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).MarshalSSZInto` | todo | todo | |
 | `(*uint256.Int).MarshalText` | todo | todo | |
 | `(*uint256.Int).Mod` | todo | todo | |
-| `(*uint256.Int).Mul` | todo | todo | |
+| `(*uint256.Int).Mul` | verified | todo | arm64: lean/Fv256/Arm64/Mul.lean; amd64: statement in lean/Fv256/Amd64/Mul.lean, arithmetic proof running |
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
@@ -118,7 +118,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Sqrt` | todo | todo | |
 | `(*uint256.Int).String` | todo | todo | |
 | `(*uint256.Int).Sub` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
-| `(*uint256.Int).SubOverflow` | todo | todo | |
+| `(*uint256.Int).SubOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/SubOverflow.lean |
 | `(*uint256.Int).SubUint64` | todo | todo | |
 | `(*uint256.Int).ToBig` | todo | todo | |
 | `(*uint256.Int).Uint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |

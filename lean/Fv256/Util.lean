@@ -244,7 +244,9 @@ open Lean Elab Tactic Meta in
 /-- For every `(decide p).toNat` in the goal add the fact `dec_toNat p` (the value is 1 and `p`, or 0 and `¬p`), so that
 `omega` can reason about carries without a case split. -/
 elab "dec_facts" : tactic => withMainContext do
-  let ps := collectDecToNat (← instantiateMVars (← getMainTarget)) #[]
+  let mut ps := collectDecToNat (← instantiateMVars (← getMainTarget)) #[]
+  for d in ← getLCtx do
+    if !d.isImplementationDetail then ps := collectDecToNat (← instantiateMVars d.type) ps
   for p in ps do
     evalTactic (← `(tactic| have := Fv256.Util.dec_toNat $(← Term.exprToSyntax p)))
 
@@ -404,5 +406,54 @@ theorem borrow4_dec' (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 1844674407370955
     have := borrow4_eq0 a0 a1 a2 a3 b0 b1 b2 b3 h0 h1 h2 h3 g0 g1 g2 g3 hc
     simpa [Nat.sub_sub, Nat.add_comm 1] using this
 
+
+
+theorem carry4 (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    (a3 + b3 + (a2 + b2 + (a1 + b1 + (a0 + b0) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616 =
+    if 115792089237316195423570985008687907853269984665640564039457584007913129639936 ≤
+      (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3) +
+      (b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3) then 1 else 0 := by
+  obtain ⟨k0, hk0⟩ : ∃ k, k = (a0 + b0) / 18446744073709551616 := ⟨_, rfl⟩
+  obtain ⟨k1, hk1⟩ : ∃ k, k = (a1 + b1 + k0) / 18446744073709551616 := ⟨_, rfl⟩
+  obtain ⟨k2, hk2⟩ : ∃ k, k = (a2 + b2 + k1) / 18446744073709551616 := ⟨_, rfl⟩
+  rw [← hk0, ← hk1, ← hk2]
+  split <;> omega
+
+
+theorem add_out_iff (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    (18446744073709551616 ≤ a3 + b3 + (decide (18446744073709551616 ≤ a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat)).toNat) ↔
+    (115792089237316195423570985008687907853269984665640564039457584007913129639936 ≤
+      (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3) +
+      (b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3)) := by
+  have e0 := dec_toNat (18446744073709551616 ≤ a0 + b0)
+  have e1 := dec_toNat (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)
+  have e2 := dec_toNat (18446744073709551616 ≤ a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat)
+  omega
+
+open Lean Elab Tactic Meta in
+/-- Like `dec_facts` but only for the goal (not the hypotheses). -/
+elab "dec_goal" : tactic => withMainContext do
+  let ps := collectDecToNat (← instantiateMVars (← getMainTarget)) #[]
+  for p in ps do
+    evalTactic (← `(tactic| have := Fv256.Util.dec_toNat $(← Term.exprToSyntax p)))
+
+theorem lt_out_iff (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    (a3 < b3 + (decide (a2 < b2 + (decide (a1 < b1 + (decide (a0 < b0)).toNat)).toNat)).toNat) ↔
+    (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3 <
+      b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3) := by
+  have := lt_chain a0 a1 a2 a3 b0 b1 b2 b3 h0 h1 h2 h3 g0 g1 g2 g3
+  simpa [decide_eq_decide] using this
 
 end Fv256.Util

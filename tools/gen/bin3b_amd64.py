@@ -2,6 +2,13 @@ import sys
 fn,op=sys.argv[1],sys.argv[2]
 tail=sys.argv[3] if len(sys.argv)>3 else 'done'
 sym=sys.argv[4] if len(sys.argv)>4 else op
+F=int(sys.argv[5]) if len(sys.argv)>5 else 0
+XD=('' if F==0 else ' ∧ (x.toNat + 32 ≤ (s.regs regSP).toNat - %d ∨ (s.regs regSP).toNat ≤ x.toNat) ∧ (y.toNat + 32 ≤ (s.regs regSP).toNat - %d ∨ (s.regs regSP).toNat ≤ y.toNat)'%(F,F))
+XP=('' if F==0 else ', hdx, hdy')
+XW=('' if F==0 else ' ∧ (x.toNat + 32 ≤ (s0.regs regSP).toNat - %d ∨ (s0.regs regSP).toNat ≤ x.toNat) ∧ (x.toNat + 32 ≤ (s0.regs regSP).toNat - %d ∨ (s0.regs regSP).toNat ≤ x.toNat)'%(F,F))
+XS=('' if F==0 else ' ∧ (x.toNat + 32 ≤ (s.regs regSP).toNat - %d ∨ (s.regs regSP).toNat ≤ x.toNat) ∧ (y.toNat + 32 ≤ (s.regs regSP).toNat - %d ∨ (s.regs regSP).toNat ≤ y.toNat)'%(F,F))
+XPS=('' if F==0 else ' hdx hdy')
+XH=('' if F==0 else ', by decide, by decide')
 print(f'''import Extracted
 import Fv256.Spec
 import Fv256.Util
@@ -27,14 +34,14 @@ def Alias (p q : BitVec 64) : Prop := p = q ∨ Disjoint p 32 q 32
 
 theorem correctness (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
-      (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
-        Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x ∧ Alias z y ∧ Alias x y)
+      (fun s => StackWritable s {F} 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
+        (z.toNat + 32 ≤ (s.regs regSP).toNat - {F} ∨ (s.regs regSP).toNat + 8 ≤ z.toNat) ∧ Alias z x ∧ Alias z y ∧ Alias x y{XD})
       (fun s s' => s'.regs 0 = z ∧
         valueAt s' z 32 = Spec.{op} (valueAt s x 32) (valueAt s y 32) ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32) := by
-  intro ret hret s hs ⟨⟨_, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hds, hzx, hzy, hxy⟩
+  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hds, hzx, hzy, hxy{XP}⟩
   janus64_intro hs
-  simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw hds
+  simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw hds hlow{XPS}
   simp only [valueAt, Spec.{op}, Disjoint, Alias] at *
   rcases hzx with rfl | hzx <;> rcases hzy with rfl | hzy <;> rcases hxy with h | hxy
   all_goals try subst h
@@ -62,15 +69,15 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x
     intro i h; simp at h
     rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2) with rfl | rfl | rfl <;> rfl, rfl⟩
 
-theorem hpre : StackWritable s0 0 8 ∧ Buffer s0 z 32 true ∧ Buffer s0 x 32 false ∧ Buffer s0 x 32 false ∧
-    Disjoint z 32 (s0.regs regSP) 8 ∧ Alias z x ∧ Alias z x ∧ Alias x x :=
+theorem hpre : StackWritable s0 {F} 8 ∧ Buffer s0 z 32 true ∧ Buffer s0 x 32 false ∧ Buffer s0 x 32 false ∧
+    (z.toNat + 32 ≤ (s0.regs regSP).toNat - {F} ∨ (s0.regs regSP).toNat + 8 ≤ z.toNat) ∧ Alias z x ∧ Alias z x ∧ Alias x x{XW} :=
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩,
-    by unfold Disjoint; decide, Or.inr (by unfold Disjoint; decide), Or.inr (by unfold Disjoint; decide), Or.inl rfl⟩
+    by decide, Or.inr (by unfold Disjoint; decide), Or.inr (by unfold Disjoint; decide), Or.inl rfl{XH}⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y] s ∧
-    (StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
-      Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x ∧ Alias z y ∧ Alias x y) :=
+    (StackWritable s {F} 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
+      (z.toNat + 32 ≤ (s.regs regSP).toNat - {F} ∨ (s.regs regSP).toNat + 8 ≤ z.toNat) ∧ Alias z x ∧ Alias z y ∧ Alias x y{XS}) :=
   ⟨ret, s0, z, x, x, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

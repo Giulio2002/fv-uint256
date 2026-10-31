@@ -69,4 +69,11 @@ def allOne : Nat := W - 1
 /-- `z.Set(x)`. -/
 def set (x : Nat) : Nat := x
 
+/-- `z.AddOverflow(x, y)` overflow flag: the true sum does not fit in 256 bits. -/
+def addOv (x y : Nat) : Bool := decide (W ≤ x + y)
+/-- `z.SubOverflow(x, y)` overflow flag: `x < y`. -/
+def subOv (x y : Nat) : Bool := decide (x < y)
+/-- `z.MulOverflow(x, y)` overflow flag: the true product does not fit in 256 bits. -/
+def mulOv (x y : Nat) : Bool := decide (W ≤ x * y)
+
 end Fv256.Spec
