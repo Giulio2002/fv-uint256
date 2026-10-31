@@ -1205,3 +1205,81 @@ theorem div64_core (b yn1 yn0 un32 un10 un1 un0 q1 un21 q0 y' N' : Nat) (hy1 : 2
     rw [Nat.add_mul] at this; omega
 
 end Fv256.B
+
+namespace Fv256.B
+open Fv256
+
+theorem rot32_and (Y : BitVec 64) :
+    (Y.rotateRight 32 &&& 18446744073709551615#64 &&& 4294967295#64).toNat = Y.toNat / 2 ^ 32 := by
+  have h := Y.isLt
+  simp only [BitVec.toNat_and, BitVec.toNat_rotateRight]
+  have e1 : (18446744073709551615#64).toNat = 2 ^ 64 - 1 := by decide
+  have e2 : (4294967295#64).toNat = 2 ^ 32 - 1 := by decide
+  rw [e1, e2, Nat.and_two_pow_sub_one_eq_mod, Nat.and_two_pow_sub_one_eq_mod]
+  simp only [Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, Nat.reduceMod, Nat.reduceSub]
+  obtain ⟨A, hA⟩ : ∃ A, A = Y.toNat % 2 ^ 32 := ⟨_, rfl⟩
+  obtain ⟨H, hH⟩ : ∃ H, H = Y.toNat / 2 ^ 32 := ⟨_, rfl⟩
+  have hY : Y.toNat = A + 2 ^ 32 * H := by rw [hA, hH]; omega
+  have hHlt : H < 2 ^ 32 := by rw [hH]; omega
+  have hAlt : A < 2 ^ 32 := by rw [hA]; omega
+  have hB : Y.toNat * 2 ^ 32 % 2 ^ 64 = A * 2 ^ 32 := by
+    rw [hY]
+    have : (A + 2 ^ 32 * H) * 2 ^ 32 = A * 2 ^ 32 + 2 ^ 64 * H := by
+      have : (2:Nat) ^ 64 = 2 ^ 32 * 2 ^ 32 := by decide
+      rw [this]; grind
+    rw [this]
+    simp only [Nat.reducePow] at *
+    omega
+  rw [← hH, hB]
+  have hor : H ||| A * 2 ^ 32 = H + A * 2 ^ 32 := Util.or_hi H A 32 hHlt
+  rw [hor]
+  simp only [Nat.reducePow] at *
+  omega
+
+
+end Fv256.B
+
+namespace Fv256.B
+open Fv256
+
+theorem wv_snoc (m : Janus.Arm64.Memory) (p n : Nat) :
+    wv m p (n + 1) = wv m p n + 2 ^ (64 * n) * m.readLE (p + 8 * n) 8 := by
+  induction n generalizing p with
+  | zero => simp [wv]
+  | succ n ih =>
+    rw [wv_succ, ih (p + 8)]
+    rw [wv_succ]
+    have e1 : p + 8 + 8 * n = p + 8 * (n + 1) := by omega
+    have e2 : 2 ^ (64 * (n + 1)) = 2 ^ 64 * 2 ^ (64 * n) := by
+      rw [show 64 * (n + 1) = 64 + 64 * n by omega, Nat.pow_add]
+    rw [e1, e2]
+    grind
+
+/-- Writing word `i < n` replaces its contribution to the number. -/
+theorem wv_write_word (m : Janus.Arm64.Memory) (p n i v : Nat) (hi : i < n) :
+    wv (m.writeLE (p + 8 * i) 8 v) p n + m.readLE (p + 8 * i) 8 * 2 ^ (64 * i) =
+      wv m p n + (v % 2 ^ 64) * 2 ^ (64 * i) := by
+  induction n generalizing p i with
+  | zero => omega
+  | succ n ih =>
+    rw [wv_succ, wv_succ]
+    by_cases h0 : i = 0
+    · subst h0
+      simp only [Nat.mul_zero, Nat.add_zero, Nat.pow_zero, Nat.mul_one]
+      rw [wv_writeLE_outside m p 8 v (p + 8) n (Or.inl (by omega))]
+      rw [Janus.Arm64.Memory.readLE_writeLE_self]
+      simp only [Nat.reducePow]
+      omega
+    · obtain ⟨i', rfl⟩ : ∃ i', i = i' + 1 := ⟨i - 1, by omega⟩
+      have hr : (m.writeLE (p + 8 * (i' + 1)) 8 v).readLE p 8 = m.readLE p 8 :=
+        Janus.Arm64.Memory.readLE_writeLE_of_disjoint m v (Or.inl (by omega))
+      have e : p + 8 * (i' + 1) = (p + 8) + 8 * i' := by omega
+      have ih' := ih (p + 8) i' (by omega)
+      rw [hr, e]
+      have e2 : 2 ^ (64 * (i' + 1)) = 2 ^ 64 * 2 ^ (64 * i') := by
+        rw [show 64 * (i' + 1) = 64 + 64 * i' by omega, Nat.pow_add]
+      rw [e2]
+      grind
+
+
+end Fv256.B
