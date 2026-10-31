@@ -287,6 +287,51 @@ theorem ovTrue_of (n : Nat) (h : 4 < n) : fromBigOv n = true := by
 
 theorem ovF_of (n : Nat) (h : fromBigOv n = false) : n ≤ 4 := ovF n h
 
+/-! ## the pointer mask of `dst[32:]` -/
+
+theorem mask32_pos (t : BitVec 64) (hm : (0#64 - t).getLsbD 63 = true) :
+    (((if (0#64 - t).getLsbD 63 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551614#64 |||
+        (0#64 - t).rotateRight 63 &&& 18446744073709551615#64 &&& 1#64) &&& 32#64) = 32#64 := by
+  rw [if_pos hm]
+  apply BitVec.eq_of_getLsbD_eq
+  intro i hi
+  simp only [BitVec.getLsbD_and, BitVec.getLsbD_or, BitVec.getLsbD_rotateRight]
+  have key : ∀ j, j < 64 → ((18446744073709551615#64).getLsbD j && (18446744073709551614#64).getLsbD j) = decide (j ≠ 0) := by
+    decide
+  have k32 : ∀ j, j < 64 → (32#64).getLsbD j = decide (j = 5) := by decide
+  rw [key i hi, k32 i hi]
+  by_cases h5 : i = 5
+  · subst h5; simp
+  · simp [h5]
+
+theorem mask32 (cap : BitVec 64) (h1 : 32 ≤ cap.toNat) (h2 : cap.toNat < 2 ^ 48) :
+    (((if (0#64 - (cap - 32#64)).getLsbD 63 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551614#64 |||
+        (0#64 - (cap - 32#64)).rotateRight 63 &&& 18446744073709551615#64 &&& 1#64) &&& 32#64) =
+      if 32 < cap.toNat then 32#64 else 0#64 := by
+  have hlt := cap.isLt
+  have ht : (cap - 32#64).toNat = cap.toNat - 32 := by
+    simp only [BitVec.toNat_sub]
+    simp only [Nat.reducePow, BitVec.toNat_ofNat, Nat.reduceMod]
+    omega
+  by_cases h : cap.toNat = 32
+  · have h0 : cap - 32#64 = 0#64 := by
+      apply BitVec.eq_of_toNat_eq
+      rw [ht]; simp [h]
+    have hn : ¬ (32 < cap.toNat) := by omega
+    rw [h0, if_neg hn]
+    decide
+  · have hp : 32 < cap.toNat := by omega
+    rw [if_pos hp]
+    apply mask32_pos
+    have hx : (0#64 - (cap - 32#64)).toNat = 2 ^ 64 - (cap.toNat - 32) := by
+      simp only [BitVec.toNat_sub, ht]
+      simp only [Nat.reducePow, BitVec.toNat_ofNat, Nat.reduceMod]
+      omega
+    simp only [BitVec.getLsbD, hx]
+    rw [Nat.testBit_eq_decide_div_mod_eq]
+    simp only [decide_eq_true_eq]
+    omega
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,
