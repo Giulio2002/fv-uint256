@@ -1,0 +1,13 @@
+# A Lake package of proofs about compiled Go, checked by janus verify.
+name = "fv256"
+defaultTargets = ["Fv256"]
+
+[[require]]
+name = "janus"
+path = "/srv/janus-fv-uint256-janus2"
+
+# Fv256.lean imports the modules that do not depend on an extraction (specifications and
+# lemmas), so lake build builds and checks them. Theorem modules import Extracted, which
+# janus verify supplies from an artifact directory: check those with janus verify.
+[[lean_lib]]
+name = "Fv256"
