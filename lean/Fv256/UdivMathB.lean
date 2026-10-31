@@ -130,4 +130,14 @@ theorem shl_carry_lt (a b s : Nat) (hs : s < 64) (hb : b < 2 ^ 64) :
   rw [Nat.mul_add, ← e64] at h5
   omega
 
+theorem funnel_mach' (a b s : Nat) (hs1 : 1 ≤ s) (hs : s ≤ 63) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    ((BitVec.ofNat 64 b >>> ((18446744073709551616 - s) % 64) &&& 18446744073709551615#64) |||
+      (BitVec.ofNat 64 a <<< ((18446744073709551616 - (64 - s)) % 64) &&& 18446744073709551615#64)).toNat =
+      a * 2 ^ s % 2 ^ 64 + b / 2 ^ (64 - s) := by
+  have := funnel_mach a b s hs1 hs ha hb
+  have m1 : 63 - s + 1 < 64 := by omega
+  have m2 : s < 64 := by omega
+  rw [if_pos m1, if_pos m2] at this
+  exact this
+
 end Fv256.B
