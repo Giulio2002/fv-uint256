@@ -23,4 +23,10 @@ def fromBig (neg : Bool) (abs : Nat) : Nat := if neg then Spec.neg (abs % W) els
 /-- `z.SetFromBig(b)` overflow flag: the magnitude has more than `256/64 = 4` words. -/
 def fromBigOv (len : Nat) : Bool := decide (4 < len)
 
+/-- The integer value of a `big.Int` with sign flag `neg` and magnitude `abs`. -/
+def bigVal (neg : Bool) (abs : Nat) : Int := if neg then -(abs : Int) else (abs : Int)
+
+/-- `z.CmpBig(x)`: -1, 0 or +1 as the number `z` is smaller than, equal to, or larger than the integer `b`. -/
+def cmpBig (z : Nat) (b : Int) : Int := if (z : Int) < b then -1 else if (z : Int) = b then 0 else 1
+
 end Fv256.C

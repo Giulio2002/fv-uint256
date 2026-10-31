@@ -58,6 +58,147 @@ theorem ov8 (n : Nat) :
   · have h2 : ¬ 4 < (n : Int) := by omega
     simp [h2, fromBigOv, h]
 
+
+/-! ## `big.Int` magnitude facts -/
+
+theorem bigAbs_congr (w w' : Nat → Nat) (n : Nat) (h : ∀ i, i < n → w i = w' i) : bigAbs w n = bigAbs w' n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    simp only [bigAbs]
+    rw [ih (fun i hi => h i (by omega)), h n (by omega)]
+
+theorem bigAbs_lt (w : Nat → Nat) (hw : ∀ i, w i < 2 ^ 64) (n : Nat) : bigAbs w n < 2 ^ (64 * n) := by
+  induction n with
+  | zero => simp [bigAbs]
+  | succ n ih =>
+    simp only [bigAbs]
+    have h1 := hw n
+    have h2 : 2 ^ (64 * (n + 1)) = 2 ^ (64 * n) * 2 ^ 64 := by rw [← Nat.pow_add]; congr 1 <;> omega
+    rw [h2]
+    have h3 : w n * 2 ^ (64 * n) + 2 ^ (64 * n) ≤ 2 ^ (64 * n) * 2 ^ 64 := by
+      have : (w n + 1) * 2 ^ (64 * n) ≤ 2 ^ 64 * 2 ^ (64 * n) := Nat.mul_le_mul_right _ h1
+      rw [Nat.add_mul, Nat.one_mul, Nat.mul_comm (2 ^ 64)] at this
+      exact this
+    omega
+
+theorem bigAbs_ge (w : Nat → Nat) (n : Nat) (hn : 0 < n) (hlast : w (n - 1) ≠ 0) :
+    2 ^ (64 * (n - 1)) ≤ bigAbs w n := by
+  obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
+  simp only [bigAbs, Nat.add_sub_cancel] at *
+  have : 1 * 2 ^ (64 * m) ≤ w m * 2 ^ (64 * m) := Nat.mul_le_mul_right _ (by omega)
+  omega
+
+theorem bigAbs_pos (w : Nat → Nat) (n : Nat) (hn : 0 < n) (hlast : w (n - 1) ≠ 0) : 0 < bigAbs w n := by
+  have := bigAbs_ge w n hn hlast
+  have : 0 < 2 ^ (64 * (n - 1)) := Nat.two_pow_pos _
+  omega
+
+theorem bigAbs_big (w : Nat → Nat) (n : Nat) (hn : 4 < n) (hlast : w (n - 1) ≠ 0) :
+    2 ^ 256 ≤ bigAbs w n := by
+  have h := bigAbs_ge w n (by omega) hlast
+  have : 2 ^ 256 ≤ 2 ^ (64 * (n - 1)) := Nat.pow_le_pow_right (by omega) (by omega)
+  omega
+
+theorem bigAbs_small (w : Nat → Nat) (hw : ∀ i, w i < 2 ^ 64) (n : Nat) (hn : n ≤ 4) : bigAbs w n < 2 ^ 256 := by
+  have h := bigAbs_lt w hw n
+  have : 2 ^ (64 * n) ≤ 2 ^ 256 := Nat.pow_le_pow_right (by omega) (by omega)
+  omega
+
+/-! ## the specification of `CmpBig`, unfolded -/
+
+theorem cmpBig_neg (z abs : Nat) (h : 0 < abs) : cmpBig z (bigVal true abs) = 1 := by
+  simp only [cmpBig, bigVal, if_true]
+  have : ¬ ((z : Int) < -(abs : Int)) := by omega
+  have h2 : ¬ ((z : Int) = -(abs : Int)) := by omega
+  simp [this, h2]
+
+theorem cmpBig_big (z abs : Nat) (hz : z < abs) : cmpBig z (bigVal false abs) = -1 := by
+  simp only [cmpBig, bigVal]
+  have : (z : Int) < (abs : Int) := by omega
+  simp [this]
+
+theorem cmpBig_core (z abs len : Nat) (negb : Bool) (hz : z < 2 ^ 256) (hn : ¬ (negb = true ∧ len ≠ 0))
+    (hl : len ≤ 4) (hlt : abs < 2 ^ 256) (h0 : len = 0 → abs = 0) :
+    Spec.cmp z (fromBig negb abs) = cmpBig z (bigVal negb abs) := by
+  cases negb
+  · simp only [fromBig, bigVal, Bool.false_eq_true, if_false, cmpBig, Spec.cmp, Spec.W]
+    rw [Nat.mod_eq_of_lt hlt]
+    by_cases h1 : z < abs
+    · have : (z : Int) < abs := by omega
+      simp [h1, this]
+    · by_cases h2 : z = abs
+      · subst h2; simp
+      · have : ¬ (z : Int) < abs := by omega
+        have h3 : ¬ (z : Int) = abs := by omega
+        simp [h1, h2, this, h3]
+  · have hl0 : len = 0 := by
+      by_cases h : len = 0
+      · exact h
+      · exact absurd ⟨rfl, h⟩ hn
+    have ha := h0 hl0
+    subst ha
+    simp only [fromBig, bigVal, if_true, cmpBig, Spec.cmp, Spec.neg, Spec.W]
+    have e : (2 ^ 256 - 0 % 2 ^ 256) % 2 ^ 256 = 0 := by decide
+    rw [e]
+    by_cases h1 : z < 0
+    · omega
+    · by_cases h2 : z = 0
+      · subst h2; simp
+      · have : ¬ (z : Int) < -((0 : Nat) : Int) := by omega
+        have h3 : ¬ (z : Int) = -((0 : Nat) : Int) := by omega
+        simp [h1, h2, this, h3]
+
+
+theorem lsb0 (x : BitVec 64) : x.getLsbD 0 = decide (x.toNat % 2 = 1) := by
+  simp [BitVec.getLsbD, Nat.testBit_zero]
+
+theorem ofNat_sub8 (x : BitVec 64) (h : 8 ≤ x.toNat) : BitVec.ofNat 64 (x.toNat - 8) = x - 8#64 := by
+  apply BitVec.eq_of_toNat_eq
+  simp [BitVec.toNat_sub]
+  omega
+
+theorem bit1 (a : Nat) (h : a < 2) (h2 : a % 2 = 1) : a = 1 := by omega
+
+theorem noov_of (r : BitVec 64) (ov : Bool) (h : r.toNat = if ov = true then 1 else 0)
+    (hb : (r.getLsbD 0 == false) = true) : ov = false := by
+  cases ov
+  · rfl
+  · simp only [if_true] at h
+    rw [lsb0] at hb
+    simp [h] at hb
+
+theorem ov_of (r : BitVec 64) (ov : Bool) (h : r.toNat = if ov = true then 1 else 0)
+    (hb : ¬ (r.getLsbD 0 == false) = true) : ov = true := by
+  cases ov
+  · simp only [Bool.false_eq_true, if_false] at h
+    rw [lsb0] at hb
+    simp [h] at hb
+  · rfl
+
+theorem ovF (n : Nat) (h : fromBigOv n = false) : n ≤ 4 := by
+  simp only [fromBigOv] at h
+  simpa using h
+
+theorem ovT (n : Nat) (h : fromBigOv n = true) : 4 < n := by
+  simp only [fromBigOv] at h
+  simpa using h
+
+theorem bit0 (a : Nat) (h : a < 2) (h2 : ¬ a % 2 = 1) : (a == 1) = false := by
+  have : a ≠ 1 := by omega
+  simpa using this
+
+/-- the stack stores of `CmpBig`'s prologue and the zeroing of its local `Int` do not touch the words of the `big.Int` -/
+theorem bigAbs_stackframe (m : Janus.Arm64.Memory) (sp ret z pw len : Nat) (h1 : 72 ≤ sp)
+    (h2 : pw + 8 * len ≤ sp - 72 ∨ sp - 72 + 88 ≤ pw) :
+    bigAbs (fun i =>
+      (((((((m.writeLE (sp - 64) 8 ret).writeLE (sp - 72) 8 (sp - 8)).writeLE (sp + 8) 8 z).writeLE (sp - 40) 8 0).writeLE
+        (sp - 32) 8 0).writeLE (sp - 24) 8 0).writeLE (sp - 16) 8 0).readLE (pw + 8 * i) 8) len =
+    bigAbs (fun i => m.readLE (pw + 8 * i) 8) len := by
+  apply bigAbs_congr
+  intro i hi
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,
