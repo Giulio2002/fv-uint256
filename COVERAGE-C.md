@@ -35,5 +35,5 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).UnmarshalSSZ` | (d) | todo | todo | error path fmt.Errorf; success path pure |
 | `(*uint256.Int).UnmarshalText` | (b) | todo | todo | fromHex/SetFromDecimal + string(input) copies |
 | `(*uint256.Int).EncodeRLP` | (c) | todo | todo | dynamic call io.Writer.Write (ItabIs / interface model), []byte literals on stack |
-| `(*uint256.Int).HashTreeRoot` | (a) | todo | todo | arm64: no calls; amd64: memmove (MemmoveLive contract) |
+| `(*uint256.Int).HashTreeRoot` | (a) | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) |
 | `(*uint256.Int).Value` | (d) | todo | todo | Dec + convTstring (interface boxing) |
