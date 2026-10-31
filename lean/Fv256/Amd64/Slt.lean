@@ -3,29 +3,31 @@ import Fv256.Spec
 import Fv256.Util
 
 /-!
-# `(*uint256.Int).Sgt(x *Int) bool` (amd64)
+# `(*uint256.Int).Slt(x *Int) bool` (amd64)
 
 **Guarantee.** For all pointers `z` (receiver, `RAX`) and `x` (`RBX`) such that the return-address slot is writable and
 the 32 bytes at each are readable (below `2^48`; they may be equal or overlap arbitrarily) the call returns (no fault,
-no panic), obeys the ABI, and the `bool` result is `Fv256.Spec.sgt` of the number at the receiver and the number at `x` (`AL`, low byte of `RAX`), the numbers being read before the call.
+no panic), obeys the ABI, and the `bool` result is `Fv256.Spec.slt` of the number at the receiver and the number at `x` (`AL`, low byte of `RAX`), the numbers being read before the call.
 
 **Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
-namespace Fv256.Amd64.Sgt
+namespace Fv256.Amd64.Slt
 
+set_option maxHeartbeats 8000000 in
 theorem correctness (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false)
-      (fun s s' => (s'.regs 0).toNat % 256 = (Spec.sgt (valueAt s z 32) (valueAt s x 32)).toNat) := by
+      (fun s s' => (s'.regs 0).toNat % 256 = (Spec.slt (valueAt s z 32) (valueAt s x 32)).toNat) := by
   intro ret hret s hs ⟨⟨_, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩⟩
   janus64_intro hs
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw
   simp only [valueAt]
   janus64_run [Util.readLE_32]
-  done
+  all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)))
+  all_goals ((try simp only [Nat.or_eq_zero_iff, BitVec.toNat_or, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *); (try simp (disch := omega) only [Util.slt_toNat]); (try simp only [BitVec.toNat_or, BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Nat.zero_or]); (repeat' split) <;> (try janus_decide_split) <;> (try simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Util.msb_m1, Util.msb_0, Util.msb_1, Bool.false_eq_true, Bool.true_eq_false, Nat.reduceOr, Nat.reduceMod] at *) <;> first | (dec_facts; omega) | (simp only [not_true_eq_false] at *; done))
 
 namespace Witness
 
@@ -67,4 +69,4 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
 
 end Witness
 
-end Fv256.Amd64.Sgt
+end Fv256.Amd64.Slt

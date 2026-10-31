@@ -111,10 +111,10 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetFromHex` | todo | todo | |
 | `(*uint256.Int).SetOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetOne.lean |
 | `(*uint256.Int).SetUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetUint64.lean |
-| `(*uint256.Int).Sgt` | verified | todo | arm64: lean/Fv256/Arm64/Sgt.lean; amd64: proof attempt in wip/ times out (30 branch cases, omega on 256-bit constants) |
+| `(*uint256.Int).Sgt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sgt.lean |
 | `(*uint256.Int).Sign` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sign.lean |
 | `(*uint256.Int).SizeSSZ` | todo | todo | |
-| `(*uint256.Int).Slt` | verified | todo | arm64: lean/Fv256/Arm64/Slt.lean; amd64: proof attempt in wip/ times out (30 branch cases, omega on 256-bit constants) |
+| `(*uint256.Int).Slt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Slt.lean |
 | `(*uint256.Int).Sqrt` | todo | todo | |
 | `(*uint256.Int).String` | todo | todo | |
 | `(*uint256.Int).Sub` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
