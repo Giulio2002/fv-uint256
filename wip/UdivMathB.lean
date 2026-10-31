@@ -140,4 +140,23 @@ theorem funnel_mach' (a b s : Nat) (hs1 : 1 ≤ s) (hs : s ≤ 63) (ha : a < 2 ^
   rw [if_pos m1, if_pos m2] at this
   exact this
 
+theorem shr_mach (a b s : Nat) (hs1 : 1 ≤ s) (hs : s ≤ 63) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    ((BitVec.ofNat 64 a >>> ((18446744073709551616 - (64 - s)) % 64) &&& 18446744073709551615#64) |||
+      (BitVec.ofNat 64 b <<< ((18446744073709551616 - s) % 64) &&& 18446744073709551615#64)).toNat =
+      a / 2 ^ s + b * 2 ^ (64 - s) % 2 ^ 64 := by
+  have c1 : (18446744073709551616 - (64 - s)) % 64 = s := by omega
+  have c2 : (18446744073709551616 - s) % 64 = 64 - s := by omega
+  rw [c1, c2, and_mask, and_mask]
+  simp only [BitVec.toNat_or, BitVec.toNat_ushiftRight, BitVec.toNat_shiftLeft, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow,
+    Nat.shiftLeft_eq, Nat.reducePow]
+  rw [Nat.mod_eq_of_lt (show a < 18446744073709551616 by simpa using ha), Nat.mod_eq_of_lt (show b < 18446744073709551616 by simpa using hb)]
+  have e64 : 2 ^ 64 = 2 ^ s * 2 ^ (64 - s) := by rw [← Nat.pow_add]; congr 1; omega
+  have h1 : b * 2 ^ (64 - s) % 2 ^ 64 = (b % 2 ^ s) * 2 ^ (64 - s) := by
+    rw [e64, Nat.mul_mod_mul_right]
+  simp only [Nat.reducePow] at h1 e64 ⊢
+  have hx : a / 2 ^ s < 2 ^ (64 - s) := by
+    apply Nat.div_lt_of_lt_mul
+    rw [← e64]; exact ha
+  rw [h1, Fv256.Util.or_hi _ _ (64 - s) hx]
+
 end Fv256.B
