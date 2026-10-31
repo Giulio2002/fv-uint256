@@ -69,7 +69,48 @@ theorem submul_loop (s0 : State) (up dp n j qh : Nat) (v c u2 cap : W64) (M0 : M
     have hx1 := Util.readLE8_lt M0 (up + 8 * j + i * 8)
     have hy1 := Util.readLE8_lt M0 (dp + i * 8)
     janus64_run [e10, e11, e13, e3, e6, e9, e0, e1, e2, e8, h4, h7, hxi, hyi, hvs, hcs, hus2, hcaps] until [kn + 0x235]
-    all_goals trace_state
-    all_goals sorry
+    obtain ⟨hb1, hb2⟩ := Fv256.B.submul_step _ _ qh b hx1 hy1 hqh hbb
+    have hfr' : MemFrame M0 (Janus.Arm64.Memory.writeLE M (up + 8 * j + i * 8) 8
+        (18446744073709551616 - (b + qh * Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8) % 18446744073709551616 +
+          Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)) [(up + 8 * j, up + 8 * j + 8 * (i + 1))] :=
+      (hfr.mono (by intro a m h; simp [Outside] at h ⊢; omega)).writeLE _ (r := (up + 8 * j, up + 8 * j + 8 * (i + 1))) (by simp) (by simp <;> omega) (by simp <;> omega)
+    refine ih (i + 1) _ _ _ (by omega) e10 ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ hfr'
+    · simp [setRegF]
+    · simp [setRegF, e3]
+    · simp [setRegF, e6]
+    · simp [setRegF, e9]
+    · simp [setRegF]
+    · simp [setRegF]
+    · simp [setRegF]
+    · simp [setRegF]
+    · intro k hk
+      have hk' : k ≠ 0 ∧ k ≠ 1 ∧ k ≠ 2 ∧ k ≠ 8 ∧ k ≠ 11 ∧ k ≠ 13 := by simpa using hk
+      obtain ⟨k0, k1, k2, k8, k11, k13⟩ := hk'
+      simp [setRegF, k0, k1, k2, k8, k11, k13]
+      exact hRu k hk
+    · simp only [setRegF, if_true]
+      rw [BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by simpa using hb1)]
+      have e1 : Fv256.B.wv M0 (up + 8 * j) (i + 1) = Fv256.B.wv M0 (up + 8 * j) i + 2 ^ (64 * i) * Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 := by
+        rw [Fv256.B.wv_snoc, Nat.mul_comm i 8]
+      have e2 : Fv256.B.wv M0 dp (i + 1) = Fv256.B.wv M0 dp i + 2 ^ (64 * i) * Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 := by
+        rw [Fv256.B.wv_snoc, Nat.mul_comm i 8]
+      have e3' : Fv256.B.wv (Janus.Arm64.Memory.writeLE M (up + 8 * j + i * 8) 8
+          (18446744073709551616 - (b + qh * Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8) % 18446744073709551616 +
+            Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)) (up + 8 * j) (i + 1) =
+          Fv256.B.wv M (up + 8 * j) i + 2 ^ (64 * i) * ((18446744073709551616 - (b + qh * Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8) % 18446744073709551616 +
+            Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8) % 18446744073709551616) := by
+        rw [Fv256.B.wv_snoc, Nat.mul_comm i 8, Fv256.B.wv_writeLE_outside _ _ _ _ _ _ (by omega)]
+        have := Janus.Arm64.Memory.readLE_writeLE_self (m := M) (up + 8 * j + 8 * i) 8
+          (18446744073709551616 - (b + qh * Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8) % 18446744073709551616 +
+            Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)
+        rw [Nat.mul_comm i 8] at this
+        rw [this]
+      rw [e1, e2, e3', show 2 ^ (64 * (i + 1)) = 2 ^ (64 * i) * 2 ^ 64 by rw [Nat.mul_succ, Nat.pow_add]]
+      simp only [Nat.reducePow] at hb2 ⊢
+      have := congrArg (· * 2 ^ (64 * i)) hb2
+      generalize 2 ^ (64 * i) = T at *
+      generalize Fv256.B.wv M0 (up + 8 * j) i = W0 at *
+      rw [← hbd] at hI
+      grind
 
 end Fv256.Amd64.KnuthSub
