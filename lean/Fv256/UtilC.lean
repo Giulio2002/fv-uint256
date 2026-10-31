@@ -250,6 +250,19 @@ theorem bigAbs_stackframe64 (m : Janus.Arm64.Memory) (sp bp z v1 v2 c pw len : N
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
 
 
+theorem bigAbs_write (m : Janus.Arm64.Memory) (a v pw len : Nat) (h : pw + 8 * len ≤ a ∨ a + 8 ≤ pw) :
+    bigAbs (fun i => (m.writeLE a 8 v).readLE (pw + 8 * i) 8) len = bigAbs (fun i => m.readLE (pw + 8 * i) 8) len := by
+  apply bigAbs_congr
+  intro i hi
+  rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+
+theorem bigAbs_frame (m0 m1 : Janus.Arm64.Memory) (rs : List (Nat × Nat)) (pw len : Nat)
+    (hf : Janus.MemFrame m0 m1 rs) (ho : Janus.Outside pw (8 * len) rs) :
+    bigAbs (fun i => m1.readLE (pw + 8 * i) 8) len = bigAbs (fun i => m0.readLE (pw + 8 * i) 8) len := by
+  apply bigAbs_congr
+  intro i hi
+  exact hf.readLE _ _ (Janus.Outside.of_sub ho (by omega) (by omega))
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,
