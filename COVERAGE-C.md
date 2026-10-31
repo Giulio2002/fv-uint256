@@ -4,13 +4,15 @@ Classes: (a) no runtime call, verify now; (b) needs allocator/memmove/string run
 
 Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `blocked` (see reason).
 
+Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal, FromDecimal, MustFromDecimal, Scan, UnmarshalText, UnmarshalJSON need NO new contract: extract with --contract for newobject, mallocgc, memmove, memclrNoHeapPointers, gcWriteBarrier1/2/3, convTstring and ifaceeq (class (b)); full correctness incl. NumError paths is ~8-12 worker-days for SetFromDecimal, so a PARTIAL (valid-input precondition) theorem comes first and is labelled as such. U5 (UnmarshalSSZ/MarshalSSZInto) and U6 (Dec/String/Value/...) analysis pending upstream.
+
 | Symbol | class | arm64 | amd64 | Notes |
 |---|---|---|---|---|
 | `uint256.FromBig` | (b) | todo | todo | newobject + SetFromBig (callee extracted) |
-| `uint256.FromDecimal` | (d) | todo | todo | fromDecimal loop + mapaccess/ifaceeq, not extractable without contracts for runtime.mapaccess2_fast32/ifaceeq |
+| `uint256.FromDecimal` | (b) | todo | todo | fromDecimal loop + mapaccess/ifaceeq, not extractable without contracts for runtime.mapaccess2_fast32/ifaceeq |
 | `uint256.FromHex` | (b) | todo | todo | newobject (z escapes) + fromHex loop; error values are globals (ErrSyntax...) in .data |
 | `uint256.MustFromBig` | (b) | todo | todo | newobject + SetFromBig + gopanic on overflow |
-| `uint256.MustFromDecimal` | (d) | todo | todo | as FromDecimal |
+| `uint256.MustFromDecimal` | (b) | todo | todo | as FromDecimal |
 | `uint256.MustFromHex` | (b) | todo | todo | newobject + fromHex + gopanic(err) |
 | `(*uint256.Int).CmpBig` | (a) | todo | todo | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).Dec` | (d) | todo | todo | strconv.FormatUint/AppendUint/formatBits + udivrem(Knuth) loops + slicebytetostring (String contract exists); ~15 functions |
@@ -20,18 +22,18 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Format` | (d) | todo | todo | fmt.State interface + big.Int.Format (fmt machinery); not extractable: needs convT32, sync.Pool contracts |
 | `(*uint256.Int).IntoBig` | (b) | todo | todo | newobject, write barrier, big.Int.Bits/SetBits layout; needs a big.Int memory model |
 | `(*uint256.Int).ToBig` | (b) | todo | todo | IntoBig + newobject |
-| `(*uint256.Int).Scan` | (d) | todo | todo | type switch on interface{}, mapaccess2_fast32, ifaceeq, Exp, MulOverflow, SetFromDecimal |
-| `(*uint256.Int).SetFromBig` | (a) | todo | todo | reads big.Int {neg, abs nat} layout; no runtime call |
-| `(*uint256.Int).SetFromDecimal` | (d) | todo | todo | as FromDecimal |
+| `(*uint256.Int).Scan` | (b) | todo | todo | type switch on interface{}, mapaccess2_fast32, ifaceeq, Exp, MulOverflow, SetFromDecimal |
+| `(*uint256.Int).SetFromBig` | (a) | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
+| `(*uint256.Int).SetFromDecimal` | (b) | todo | todo | as FromDecimal |
 | `(*uint256.Int).SetFromHex` | (a) | todo | todo | fromHex loop; error returns are interface values loaded from globals ErrXxx (writable .data: precondition must supply) |
 | `(*uint256.Int).MarshalJSON` | (d) | todo | todo | Dec + concatbyte3 + string/slice runtime |
 | `(*uint256.Int).MarshalSSZ` | (b) | todo | todo | makeslice(32) / inlined append, error nil |
 | `(*uint256.Int).MarshalSSZAppend` | (b) | todo | todo | growslice contract (8-byte pointer-free elements only; here []byte: element size 1, outside the pinned growslice contract?) to be checked |
 | `(*uint256.Int).MarshalSSZInto` | (d) | todo | todo | error path calls fmt.Errorf (not extractable: sync.Pool, interfaces); success path only provable if a contract for fmt.Errorf is permitted |
 | `(*uint256.Int).MarshalText` | (d) | todo | todo | Dec + stringtoslicebyte |
-| `(*uint256.Int).UnmarshalJSON` | (d) | todo | todo | SetFromDecimal / UnmarshalText |
+| `(*uint256.Int).UnmarshalJSON` | (b) | todo | todo | SetFromDecimal / UnmarshalText |
 | `(*uint256.Int).UnmarshalSSZ` | (d) | todo | todo | error path fmt.Errorf; success path pure |
-| `(*uint256.Int).UnmarshalText` | (d) | todo | todo | fromHex/SetFromDecimal + string(input) copies |
+| `(*uint256.Int).UnmarshalText` | (b) | todo | todo | fromHex/SetFromDecimal + string(input) copies |
 | `(*uint256.Int).EncodeRLP` | (c) | todo | todo | dynamic call io.Writer.Write (ItabIs / interface model), []byte literals on stack |
 | `(*uint256.Int).HashTreeRoot` | (a) | todo | todo | arm64: no calls; amd64: memmove (MemmoveLive contract) |
 | `(*uint256.Int).Value` | (d) | todo | todo | Dec + convTstring (interface boxing) |
