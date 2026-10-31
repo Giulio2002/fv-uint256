@@ -35,7 +35,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).EncodeRLP` | todo | todo | |
 | `(*uint256.Int).Eq` | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | todo | todo | |
-| `(*uint256.Int).ExtendSign` | todo | todo | |
+| `(*uint256.Int).ExtendSign` | todo | todo | lean/Fv256/{Arm64,Amd64}/ExtendSign.lean |
 | `(*uint256.Int).Float64` | todo | todo | |
 | `(*uint256.Int).Format` | todo | todo | |
 | `(*uint256.Int).Gt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Gt.lean |
