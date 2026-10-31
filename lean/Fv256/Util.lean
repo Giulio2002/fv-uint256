@@ -811,6 +811,51 @@ theorem or_hi56 (a c : Nat) (ha : a < 72057594037927936) : a ||| (c * 7205759403
 
 theorem rd1_lt (m : Memory) (a : Nat) : m.readLE a 1 < 256 := by simpa using Memory.readLE_lt m a 1
 
+theorem rev_succ_top (k x : Nat) (hx : x < 256 ^ (k + 1)) :
+    revBytesNat (k + 1) x = x / 256 ^ k + 256 * revBytesNat k (x % 256 ^ k) := by
+  induction k generalizing x with
+  | zero =>
+    simp only [Nat.pow_zero, Nat.zero_add, Nat.pow_one] at hx
+    simp [revBytesNat, Nat.mod_eq_of_lt hx]
+  | succ k ih =>
+    have hx' : x / 256 < 256 ^ (k + 1) := by
+      rw [Nat.pow_succ] at hx
+      omega
+    rw [revBytesNat, ih (x / 256) hx']
+    rw [show revBytesNat (k + 1) (x % 256 ^ (k + 1)) = (x % 256 ^ (k + 1) % 256) * 256 ^ k + revBytesNat k (x % 256 ^ (k + 1) / 256) from rfl]
+    have e1 : x / 256 / 256 ^ k = x / 256 ^ (k + 1) := by
+      rw [Nat.div_div_eq_div_mul, Nat.pow_succ, Nat.mul_comm]
+    have e2 : x % 256 ^ (k + 1) % 256 = x % 256 := by
+      rw [Nat.mod_mod_of_dvd]; exact ⟨256 ^ k, by rw [Nat.pow_succ, Nat.mul_comm]⟩
+    have e3 : x % 256 ^ (k + 1) / 256 = x / 256 % 256 ^ k := by
+      rw [Nat.pow_succ, Nat.mul_comm, Nat.mod_mul_right_div_self]
+    rw [e1, e2, e3]
+    have e4 : (x % 256) * 256 ^ (k + 1) = 256 * ((x % 256) * 256 ^ k) := by
+      rw [Nat.pow_succ]; rw [Nat.mul_comm (256 ^ k) 256, ← Nat.mul_assoc, Nat.mul_comm (x % 256) 256, Nat.mul_assoc]
+    rw [e4]
+    omega
+
+theorem rev_rev (k x : Nat) (hx : x < 256 ^ k) : revBytesNat k (revBytesNat k x) = x := by
+  induction k generalizing x with
+  | zero => simp at hx; simp [revBytesNat, hx]
+  | succ k ih =>
+    have hR := revBytes_lt k (x / 256)
+    have hy : (x % 256) * 256 ^ k + revBytesNat k (x / 256) < 256 ^ (k + 1) := by
+      have : (x % 256) * 256 ^ k ≤ 255 * 256 ^ k := Nat.mul_le_mul_right _ (by omega)
+      rw [Nat.pow_succ]; omega
+    have hxb : x / 256 < 256 ^ k := by rw [Nat.pow_succ] at hx; omega
+    rw [show revBytesNat (k + 1) x = (x % 256) * 256 ^ k + revBytesNat k (x / 256) from rfl]
+    rw [rev_succ_top k _ hy]
+    have e1 : ((x % 256) * 256 ^ k + revBytesNat k (x / 256)) / 256 ^ k = x % 256 := by
+      have hp : 0 < 256 ^ k := Nat.pos_of_ne_zero (fun h => by simp at h)
+      rw [Nat.add_comm, Nat.add_mul_div_right _ _ hp, Nat.div_eq_of_lt hR]; simp
+    have e2 : ((x % 256) * 256 ^ k + revBytesNat k (x / 256)) % 256 ^ k = revBytesNat k (x / 256) := by
+      rw [Nat.add_comm, Nat.add_mul_mod_self_right, Nat.mod_eq_of_lt hR]
+    rw [e1, e2, ih _ hxb]
+    omega
+theorem rev8_rev8 (x : Nat) (hx : x < 18446744073709551616) : revBytesNat 8 (revBytesNat 8 x) = x :=
+  rev_rev 8 x (by simpa using hx)
+
 end BEsec
 
 theorem byte_val (N y0 y1 y2 y3 : Nat) (hN : N < 32) (h0 : y0 < 18446744073709551616) (h1 : y1 < 18446744073709551616)

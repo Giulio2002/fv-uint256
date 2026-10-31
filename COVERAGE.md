@@ -128,7 +128,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).UnmarshalText` | todo | todo | |
 | `(*uint256.Int).Value` | todo | todo | |
 | `(*uint256.Int).WriteToArray20` | todo | todo | |
-| `(*uint256.Int).WriteToArray32` | todo | todo | |
+| `(*uint256.Int).WriteToArray32` | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray32.lean |
 | `(*uint256.Int).WriteToSlice` | todo | todo | |
 | `(*uint256.Int).Xor` | verified | verified | lean/Fv256/{Arm64,Amd64}/Xor.lean |
 
