@@ -992,3 +992,114 @@ theorem f64_bl1 (x0 x1 k : Nat) (h0 : x0 < 18446744073709551616) (h1 : x1 < 1844
 
 
 end Fv256.B
+
+namespace Fv256.B
+
+theorem or3_zero_iff (a b c : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) (hc : c < 2 ^ 64) :
+    (BitVec.ofNat 64 a ||| BitVec.ofNat 64 b ||| BitVec.ofNat 64 c).toNat = 0 ↔ a = 0 ∧ b = 0 ∧ c = 0 := by
+  simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.or_eq_zero_iff, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb,
+    Nat.mod_eq_of_lt hc, and_assoc]
+
+theorem or2_zero_iff (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    (BitVec.ofNat 64 a ||| BitVec.ofNat 64 b).toNat = 0 ↔ a = 0 ∧ b = 0 := by
+  simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.or_eq_zero_iff, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
+
+
+end Fv256.B
+
+namespace Fv256.B
+open Fv256
+
+theorem f64_asm_eq (F e : Nat) (hF : F < 2 ^ 64) (he : e < 2 ^ 11) :
+    (e * 2 ^ 64 + F) / 2 ^ 12 % 2 ^ 64 = e * 2 ^ 52 + F / 2 ^ 12 := by
+  have e64 : 2 ^ 64 = 2 ^ 12 * 2 ^ 52 := by rw [← Nat.pow_add]
+  have h12 : (e * 2 ^ 64 + F) / 2 ^ 12 = e * 2 ^ 52 + F / 2 ^ 12 := by
+    have : e * 2 ^ 64 = 2 ^ 12 * (e * 2 ^ 52) := by rw [e64]; grind
+    rw [this, Nat.mul_add_div (Nat.two_pow_pos 12)]
+  rw [h12]
+  apply Nat.mod_eq_of_lt
+  have h1 : F / 2 ^ 12 < 2 ^ 52 := by
+    rw [Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)]; omega
+  have h2 : (e + 1) * 2 ^ 52 ≤ 2 ^ 11 * 2 ^ 52 := Nat.mul_le_mul_right _ (by omega)
+  have h3 : 2 ^ 11 * 2 ^ 52 = 2 ^ 63 := by rw [← Nat.pow_add]
+  have h4 : 2 ^ 63 < 2 ^ 64 := by decide
+  rw [Nat.add_mul] at h2
+  omega
+
+theorem assemble_toNat (F e : Nat) (hF : F < 2 ^ 64) (he : e + 1022 < 2 ^ 11) :
+    (BitVec.ofNat 64 F >>> 12 ||| (BitVec.ofNat 64 e + 1022#64) <<< 52).toNat = (e + 1022) * 2 ^ 52 + F / 2 ^ 12 := by
+  simp only [BitVec.toNat_or, BitVec.toNat_ushiftRight, BitVec.toNat_shiftLeft, BitVec.toNat_add, BitVec.toNat_ofNat,
+    Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, Nat.mod_eq_of_lt hF]
+  have h1 : F / 2 ^ 12 < 2 ^ 52 := by
+    rw [Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)]; omega
+  have hm : (e % 2 ^ 64 + 1022) % 2 ^ 64 = e + 1022 := by
+    have : e < 2 ^ 64 := by omega
+    rw [Nat.mod_eq_of_lt this]; exact Nat.mod_eq_of_lt (by omega)
+  rw [hm]
+  have h2 : (e + 1022) * 2 ^ 52 < 2 ^ 64 := by
+    have : (e + 1022) * 2 ^ 52 ≤ 2 ^ 11 * 2 ^ 52 := Nat.mul_le_mul_right _ (by omega)
+    exact Nat.lt_of_le_of_lt this (by decide)
+  rw [Nat.mod_eq_of_lt h2, Util.or_hi _ _ 52 h1, Nat.add_comm]
+
+theorem funnel (a b t : Nat) (ht : t < 64) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    ((a * 2 ^ 64 + b) * 2 ^ t / 2 ^ 64) % 2 ^ 64 = a * 2 ^ t % 2 ^ 64 + b / 2 ^ (64 - t) := by
+  have e64 : 2 ^ 64 = 2 ^ t * 2 ^ (64 - t) := by rw [← Nat.pow_add]; congr 1; omega
+  have h1 : (a * 2 ^ 64 + b) * 2 ^ t = 2 ^ 64 * (a * 2 ^ t) + b * 2 ^ t := by grind
+  have h2 : b * 2 ^ t / 2 ^ 64 = b / 2 ^ (64 - t) := by
+    rw [e64, Nat.mul_comm b, Nat.mul_div_mul_left _ _ (Nat.two_pow_pos t)]
+  rw [h1, Nat.mul_add_div (Nat.two_pow_pos 64), h2]
+  have hlt := Util.lo_hi_lt a b t ht hb
+  simp only [Nat.reducePow] at hlt ⊢
+  have hc : b / 2 ^ (64 - t) < 18446744073709551616 := by omega
+  rw [Nat.add_mod, Nat.mod_eq_of_lt hc, Nat.mod_eq_of_lt hlt]
+
+
+end Fv256.B
+
+namespace Fv256.B
+open Fv256
+
+theorem assemble_bv (G : BitVec 64) (e : Nat) (he : e + 1022 < 2 ^ 11) :
+    (G >>> 12 ||| (BitVec.ofNat 64 e + 1022#64) <<< 52).toNat = (e + 1022) * 2 ^ 52 + G.toNat / 2 ^ 12 := by
+  have hF : G.toNat < 2 ^ 64 := G.isLt
+  simp only [BitVec.toNat_or, BitVec.toNat_ushiftRight, BitVec.toNat_shiftLeft, BitVec.toNat_add, BitVec.toNat_ofNat,
+    Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq]
+  have h1 : G.toNat / 2 ^ 12 < 2 ^ 52 := by
+    rw [Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)]; omega
+  have hm : (e % 2 ^ 64 + 1022) % 2 ^ 64 = e + 1022 := by
+    have : e < 2 ^ 64 := by omega
+    rw [Nat.mod_eq_of_lt this]; exact Nat.mod_eq_of_lt (by omega)
+  rw [hm]
+  have h2 : (e + 1022) * 2 ^ 52 < 2 ^ 64 := by
+    have : (e + 1022) * 2 ^ 52 ≤ 2 ^ 11 * 2 ^ 52 := Nat.mul_le_mul_right _ (by omega)
+    exact Nat.lt_of_le_of_lt this (by decide)
+  rw [Nat.mod_eq_of_lt h2, Util.or_hi _ _ 52 h1, Nat.add_comm]
+
+theorem mask_and (y : BitVec 64) : (18446744073709551615#64 &&& y) = y := by
+  apply BitVec.eq_of_toNat_eq
+  simp only [BitVec.toNat_and]
+  have := y.isLt
+  show 18446744073709551615 &&& y.toNat = y.toNat
+  rw [show (18446744073709551615 : Nat) = 2 ^ 64 - 1 by decide, Nat.and_comm, Nat.and_two_pow_sub_one_eq_mod, Nat.mod_eq_of_lt this]
+
+theorem shld_toNat (a b t : Nat) (ht1 : 1 ≤ t) (ht : t < 64) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    ((BitVec.ofNat 64 a >>> (64 - t)) ||| (BitVec.ofNat 64 b <<< t)).toNat = b * 2 ^ t % 2 ^ 64 + a / 2 ^ (64 - t) := by
+  have h := Util.shl_or b a t ht hb ha
+  simp only [BitVec.toNat_or, BitVec.toNat_ushiftRight, BitVec.toNat_shiftLeft, BitVec.toNat_ofNat,
+    Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
+  rw [Nat.or_comm]
+  simp only [Nat.reducePow] at h ⊢
+  have hor : (b * 2 ^ t % 18446744073709551616 ||| a / 2 ^ (64 - t)) < 18446744073709551616 :=
+    Nat.or_lt_two_pow (n := 64) (Nat.mod_lt _ (by decide)) (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) ha)
+  rw [Nat.mod_eq_of_lt hor] at h
+  exact h
+
+
+end Fv256.B
+
+namespace Fv256.B
+
+theorem and_mask (y : BitVec 64) : (y &&& 18446744073709551615#64) = y := by
+  rw [BitVec.and_comm]; exact mask_and y
+
+end Fv256.B
