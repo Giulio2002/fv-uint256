@@ -1327,3 +1327,57 @@ theorem submul_step (x y qh b : Nat) (hx : x < 2 ^ 64) (hy : y < 2 ^ 64) (hq : q
 
 
 end Fv256.B
+
+namespace Fv256.B
+
+theorem sshr63_msb (x : BitVec 64) (hm : x.msb = true) : x.sshiftRight 63 = (18446744073709551615#64) := by
+  have hx : 2 ^ 63 ≤ x.toNat := by
+    rw [BitVec.msb_eq_decide] at hm; simpa using hm
+  have h1 : (~~~x) >>> 63 = 0#64 := by
+    apply BitVec.eq_of_toNat_eq
+    simp only [BitVec.toNat_ushiftRight, BitVec.toNat_not, BitVec.toNat_ofNat]
+    have := x.isLt
+    rw [Nat.shiftRight_eq_div_pow]
+    apply Nat.div_eq_of_lt
+    omega
+  rw [BitVec.sshiftRight_eq_of_msb_true hm, h1]
+  decide
+
+/-- Go slice pointer arithmetic `p + ((i - cap) >> 63 & (i << 3))` for an in-range index. -/
+theorem slice_ptr (j up : Nat) (c : BitVec 64) (hj : j < c.toNat) (hc : c.toNat < 2 ^ 55) :
+    (((BitVec.ofNat 64 j - c).sshiftRight 63 &&& (BitVec.ofNat 64 j <<< 3)) + BitVec.ofNat 64 up) =
+      BitVec.ofNat 64 (up + 8 * j) := by
+  have hm : (BitVec.ofNat 64 j - c).msb = true := by
+    rw [BitVec.msb_eq_decide]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
+    have : j < 2 ^ 64 := by omega
+    rw [Nat.mod_eq_of_lt this]; simp; omega
+  rw [sshr63_msb _ hm]
+  have hmk : ∀ y : BitVec 64, (18446744073709551615#64 &&& y) = y := mask_and
+  rw [hmk]
+  apply BitVec.eq_of_toNat_eq
+  simp only [BitVec.toNat_add, BitVec.toNat_shiftLeft, BitVec.toNat_ofNat, Nat.reducePow]
+  have : j < 2 ^ 64 := by omega
+  rw [Nat.mod_eq_of_lt this]
+  omega
+
+end Fv256.B
+
+namespace Fv256.B
+
+/-- Weakening the postcondition of a `ReachesRet` run (amd64). -/
+theorem reachesRet_mono64 {p : Janus.Amd64.Program} {ret : Janus.Amd64.W64} {S : Janus.Amd64.State}
+    {Q Q' : Janus.Amd64.State → Prop}
+    (h : Janus.Amd64.Tactic.ReachesRet p ret S Q) (hQ : ∀ S', Q S' → Q' S') :
+    Janus.Amd64.Tactic.ReachesRet p ret S Q' := by
+  obtain ⟨k, s', hs, hr, hq⟩ := h
+  exact ⟨k, s', hs, hr, hQ s' hq⟩
+
+/-- Weakening the postcondition of a `ReachesRet` run (arm64). -/
+theorem reachesRet_mono {p : Janus.Program} {ret : Janus.Arm64.W64} {S : Janus.Arm64.State}
+    {Q Q' : Janus.Arm64.State → Prop}
+    (h : Janus.Tactic.ReachesRet p ret S Q) (hQ : ∀ S', Q S' → Q' S') :
+    Janus.Tactic.ReachesRet p ret S Q' := by
+  obtain ⟨k, s', hs, hr, hq⟩ := h
+  exact ⟨k, s', hs, hr, hQ s' hq⟩
+
+end Fv256.B
