@@ -11,7 +11,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `uint256.MustFromBig` | todo | todo | |
 | `uint256.MustFromDecimal` | todo | todo | |
 | `uint256.MustFromHex` | todo | todo | |
-| `uint256.NewInt` | verified (conditional, no witness) | verified (conditional, no witness) | lean/Fv256/{Arm64,Amd64}/NewInt.lean; uses the runtime.newobject allocation contract (hypothesis hnew); no concrete Witness state |
+| `uint256.NewInt` | verified | verified | lean/Fv256/{Arm64,Amd64}/NewInt.lean; uses the runtime.newobject allocation contract (hypothesis hnew); Witness with a toy allocator linked at runtime.newobject |
 | `(*uint256.Int).Abs` | verified | verified | lean/Fv256/{Arm64,Amd64}/Abs.lean |
 | `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
 | `(*uint256.Int).AddMod` | todo | todo | |
@@ -25,7 +25,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Bytes20` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes20.lean |
 | `(*uint256.Int).Bytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes32.lean |
 | `(*uint256.Int).Clear` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clear.lean |
-| `(*uint256.Int).Clone` | verified (conditional, no witness) | verified (conditional, no witness) | lean/Fv256/{Arm64,Amd64}/Clone.lean; uses the runtime.newobject allocation contract (hypothesis hnew); no concrete Witness state |
+| `(*uint256.Int).Clone` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clone.lean; uses the runtime.newobject allocation contract (hypothesis hnew); Witness with a toy allocator linked at runtime.newobject |
 | `(*uint256.Int).Cmp` | verified | verified | lean/Fv256/{Arm64,Amd64}/Cmp.lean |
 | `(*uint256.Int).CmpBig` | todo | todo | |
 | `(*uint256.Int).CmpUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
