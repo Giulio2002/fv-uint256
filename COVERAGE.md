@@ -1,14 +1,14 @@
 # Coverage: every exported symbol of github.com/holiman/uint256 v1.3.2 (a17fcfb6f8b0245533928fa96aace2cd4c2e9b18)
 
-Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `blocked` (see reason).
+Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated scope only, see Notes), `verified (conditional, no witness)`, `pending Janus pin` (verified against an unmerged Janus revision, see Notes), `blocked` (see Notes), `out of scope`.
 
 | Symbol | arm64 | amd64 | Notes |
 |---|---|---|---|
 | `uint256.Reciprocal` | todo | todo | |
-| `uint256.FromBig` | todo | todo | |
+| `uint256.FromBig` | verified | verified | lean/Fv256/{Arm64,Amd64}/FromBig.lean; runtime.newobject contract + SetFromBig as callee summary; `Witness`: toy allocator + concrete call, `example := correctness ...` fires (hnew and precondition jointly satisfiable) |
 | `uint256.FromDecimal` | todo | todo | |
 | `uint256.FromHex` | todo | todo | |
-| `uint256.MustFromBig` | todo | todo | |
+| `uint256.MustFromBig` | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromBig.lean; EnsuresGo with PanicRuntime P: returns when x=nil or len<=4, else panics with the \"overflow\" eface; same Witness pattern |
 | `uint256.MustFromDecimal` | todo | todo | |
 | `uint256.MustFromHex` | todo | todo | |
 | `uint256.NewInt` | verified | verified | lean/Fv256/{Arm64,Amd64}/NewInt.lean; uses the runtime.newobject allocation contract (hypothesis hnew); Witness with a toy allocator linked at runtime.newobject |
@@ -27,7 +27,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Clear` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clear.lean |
 | `(*uint256.Int).Clone` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clone.lean; uses the runtime.newobject allocation contract (hypothesis hnew); Witness with a toy allocator linked at runtime.newobject |
 | `(*uint256.Int).Cmp` | verified | verified | lean/Fv256/{Arm64,Amd64}/Cmp.lean |
-| `(*uint256.Int).CmpBig` | todo | todo | |
+| `(*uint256.Int).CmpBig` | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).CmpUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
 | `(*uint256.Int).Dec` | todo | todo | |
 | `(*uint256.Int).Div` | todo | todo | |
@@ -37,10 +37,10 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Exp` | todo | todo | |
 | `(*uint256.Int).ExtendSign` | verified | verified | lean/Fv256/{Arm64,Amd64}/ExtendSign.lean |
 | `(*uint256.Int).Float64` | todo | todo | |
-| `(*uint256.Int).Format` | todo | todo | |
+| `(*uint256.Int).Format` | out of scope | out of scope | math/big Format through a dynamic fmt.State (interface calls into fmt/strconv/big): not provable at reasonable cost (upstream analysis DESIGN-U5-U6) |
 | `(*uint256.Int).Gt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Gt.lean |
 | `(*uint256.Int).GtUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/GtUint64.lean |
-| `(*uint256.Int).HashTreeRoot` | todo | todo | |
+| `(*uint256.Int).HashTreeRoot` | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) |
 | `(*uint256.Int).Hex` | todo | todo | |
 | `(*uint256.Int).IntoBig` | todo | todo | |
 | `(*uint256.Int).IsUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
@@ -50,9 +50,9 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Lt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Lt.lean |
 | `(*uint256.Int).LtUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/LtUint64.lean |
 | `(*uint256.Int).MarshalJSON` | todo | todo | |
-| `(*uint256.Int).MarshalSSZ` | todo | todo | |
-| `(*uint256.Int).MarshalSSZAppend` | todo | todo | |
-| `(*uint256.Int).MarshalSSZInto` | todo | todo | |
+| `(*uint256.Int).MarshalSSZ` | verified | verified | lean/Fv256/{Arm64,Amd64}/MarshalSSZ.lean; runtime.makeslice contract (growslice calls are inlined away: capacity is known); allocator witness inside |
+| `(*uint256.Int).MarshalSSZAppend` | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
+| `(*uint256.Int).MarshalSSZInto` | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZInto.lean: PARTIAL, success path only (`32 <= len <= cap`); error path (fmt.Errorf) not covered |
 | `(*uint256.Int).MarshalText` | todo | todo | |
 | `(*uint256.Int).Mod` | todo | todo | |
 | `(*uint256.Int).Mul` | verified | verified | lean/Fv256/{Arm64,Amd64}/Mul.lean; amd64 post allows the 16-byte stack scratch slot (OnlyWrites2) |
@@ -106,7 +106,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetBytes7` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
 | `(*uint256.Int).SetBytes8` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
 | `(*uint256.Int).SetBytes9` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetFromBig` | todo | todo | |
+| `(*uint256.Int).SetFromBig` | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
 | `(*uint256.Int).SetFromDecimal` | todo | todo | |
 | `(*uint256.Int).SetFromHex` | todo | todo | |
 | `(*uint256.Int).SetOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetOne.lean |
@@ -124,7 +124,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Uint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |
 | `(*uint256.Int).Uint64WithOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64WithOverflow.lean |
 | `(*uint256.Int).UnmarshalJSON` | todo | todo | |
-| `(*uint256.Int).UnmarshalSSZ` | todo | todo | |
+| `(*uint256.Int).UnmarshalSSZ` | partial | partial | lean/Fv256/{Arm64,Amd64}/UnmarshalSSZ.lean: PARTIAL, success path only (`len(buf) = 32`); extracted with `--contract fmt.errorf --contract runtime.convT64 --contract runtime.newobject` (the error path is not covered: no fmt.Errorf contract exists) |
 | `(*uint256.Int).UnmarshalText` | todo | todo | |
 | `(*uint256.Int).Value` | todo | todo | |
 | `(*uint256.Int).WriteToArray20` | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray20.lean |

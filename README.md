@@ -18,6 +18,8 @@ Forms of guarantee beyond the plain `Ensures`:
 * **Memory frame**: `Fv256.Util.OnlyWrites2` says that the call changes no byte outside the result object and the callee's own stack window.
 * **Allocation** (`Clone`, `NewInt`): stated for every implementation of `runtime.newobject` satisfying Janus's pinned allocation contract
   (`NewobjectContract`); the result is a fresh object inside the runtime-owned ranges. Each has a `Witness` that links a toy allocator at the contract address.
+* **Partial theorems** (`MarshalSSZAppend`, `MarshalSSZInto`, `UnmarshalSSZ`): status `partial` in `COVERAGE.md`; the theorem is complete for the stated scope (e.g. `len + 32 <= cap`, the success path) and says nothing about the other paths.
+* **Omitted callees**: the `Runtime contracts assumed` banner line printed by `janus verify` also lists omitted UNPINNED callees (e.g. `fmt.errorf` passed with `--contract`). Those are not assumptions: no code is copied for them, the statement carries no hypothesis about them, and reaching one is a fault, so a proof that closes shows the precondition excludes that path.
 * **`BitLen` on amd64** is proved for a `GOAMD64=v3` build (`lzcnt`); the default `v1` code uses `BSR` of a possibly zero limb, which the Janus
   model does not accept (`COVERAGE.md`).
 

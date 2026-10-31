@@ -16,8 +16,8 @@ GO="${GO:-$(command -v go || true)}"
 [ -n "$GO" ] && [ -x "$GO" ] || { echo "error: no Go toolchain found: set GO=/path/to/go or put go on PATH (Go >= 1.21; it downloads go1.26.0 itself)"; exit 2; }
 # the proofs depend on the pinned Janus revision through lake (lean/lakefile.toml): fetch it once
 if [ ! -d lean/.lake/packages/janus ]; then (cd lean && lake update janus) || { echo "lake update janus failed"; exit 2; }; fi
-# functions whose code calls the Go allocator: extracted with the runtime.newobject contract (see their theorem statements)
-CONTRACT_FNS="Clone NewInt"
+# per-function extraction flags (runtime contracts); see scripts/contract-flags.sh
+. "$root/scripts/contract-flags.sh"
 for a in arm64 amd64; do
   (cd go && GOTOOLCHAIN=go1.26.0 CGO_ENABLED=0 GOOS=linux GOARCH=$a "$GO" build -trimpath -buildvcs=false -o ../build/harness-$a ./cmd/harness) || { echo "harness build failed ($a)"; exit 2; }
 done
@@ -33,9 +33,9 @@ for row in "${rows[@]}"; do
   case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
   for pair in "arm64:$st_arm:Arm64" "amd64:$st_amd:Amd64"; do
     IFS=: read -r isa st dir <<<"$pair"
-    case "$st" in verified*) ;; *) continue;; esac
+    case "$st" in verified*|partial*) ;; *) continue;; esac
     out="build/ex-$isa-$fn"
-    cflags=""; case " $CONTRACT_FNS " in *" $fn "*) cflags="--contract runtime.newobject";; esac
+    cflags="$(contract_flags "$fn")"
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
        timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$fn.lean" --proof-root lean \
          --theorem "Fv256.$dir.$fn.correctness" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi

@@ -7,7 +7,8 @@ FV_ROOT=${FV_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
 J=${FV_JANUS:-janus}
 cd "$FV_ROOT" || exit 2
 I=$1; F=$2; D=$(echo ${I:0:1}|tr a-z A-Z)${I:1}
-case "$F" in NewInt) full="github.com/holiman/uint256.$F";; *) full="github.com/holiman/uint256.(*Int).$F";; esac
-if [ ! -f build/ex-$I-$F/identity.json ]; then $J extract build/harness-$I "$full" build/ex-$I-$F $FV_CONTRACTS >/dev/null 2>&1; fi
+case "$F" in NewInt|FromBig|MustFromBig) full="github.com/holiman/uint256.$F";; *) full="github.com/holiman/uint256.(*Int).$F";; esac
+. "$FV_ROOT/scripts/contract-flags.sh"
+if [ ! -f build/ex-$I-$F/identity.json ]; then $J extract build/harness-$I "$full" build/ex-$I-$F $FV_CONTRACTS $(contract_flags $F) >/dev/null 2>&1; fi
 MC=""; command -v memcap >/dev/null && MC=memcap
 timeout 1800 $MC $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness
