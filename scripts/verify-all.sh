@@ -10,6 +10,8 @@ export LEAN_NUM_THREADS="${LEAN_NUM_THREADS:-4}" JANUS_JOBS="${JANUS_JOBS:-2}"
 TMO="${PER_FN_TIMEOUT:-1800}"
 MC=""; command -v memcap >/dev/null && MC=memcap
 mkdir -p build
+# functions whose code calls the Go allocator: extracted with the runtime.newobject contract (see their theorem statements)
+CONTRACT_FNS="Clone NewInt"
 for a in arm64 amd64; do
   (cd go && GOTOOLCHAIN=go1.26.0 CGO_ENABLED=0 GOOS=linux GOARCH=$a go build -trimpath -buildvcs=false -o ../build/harness-$a ./cmd/harness) || { echo "harness build failed ($a)"; exit 2; }
 done
@@ -27,7 +29,8 @@ for row in "${rows[@]}"; do
     IFS=: read -r isa st dir <<<"$pair"
     [ "$st" = verified ] || continue
     out="build/ex-$isa-$fn"
-    if $JANUS extract "build/harness-$isa" "$full" "$out" >"build/log-$isa-$fn" 2>&1 &&
+    cflags=""; case " $CONTRACT_FNS " in *" $fn "*) cflags="--contract runtime.newobject";; esac
+    if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
        timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$fn.lean" --proof-root lean \
          --theorem "Fv256.$dir.$fn.correctness" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
     table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "$r")"$'\n'
