@@ -17,3 +17,9 @@
 - Cmp: Util.cmp_ofInt, zero4_iff, ite01_eq*; Mul amd64 uses Util.OnlyWrites2 (result + scratch slot below SP).
 - BitLen amd64 (v1) blocked: Janus faults on BSR of zero (Exec.lean execCount) although Go relies on ZF after it. Needs a Janus model where BSR of 0 sets ZF=1 and leaves dst unchanged (AMD-documented), or another sound treatment. GOAMD64=v3 build verified instead (lean/Fv256/Amd64v3, extraction build/ex-amd64v3-*).
 - ByteLen: machine code does signed (BitLen+7)/8 with bit tricks (ASR/ORR/rotate); needs a small lemma, drafts in wip/*_ByteLen.lean (arm64 unsolved: omega cannot see through the &&&/||| shifts). Plan: generalise clz to q<=64, case split 65 values, evaluate with decide.
+
+## Checkpoint (shifts, bytes)
+- Lsh, Rsh verified on arm64 via Util limb lemmas (lsh0_t..lsh3_t, rsh0_t..rsh3_t, shl_or_bv, shr_or_bv, shr_or_nat). amd64 shifts use different idioms (probe: wip/Amd64_Lsh_probe.lean).
+- SetBytes32, PutUint256, WriteToArray32/20 verified on both ISAs (fromBE spec, rev_rev, chunk lemmas). SetBytesN for N<32: kernel deep recursion (reported to main).
+- Byte: draft in wip/Arm64_Byte.lean (Util.byte_val proven); tactic structure fragile (nested by-blocks swallowing `;`): write `(by omega)` in parentheses.
+- Lesson: `have h : P := by omega; rest` makes the by-block swallow `rest`; always parenthesise.

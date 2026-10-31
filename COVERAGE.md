@@ -46,7 +46,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).IsUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | todo | todo | |
-| `(*uint256.Int).Lsh` | verified | todo | lean/Fv256/{Arm64,Amd64}/Lsh.lean |
+| `(*uint256.Int).Lsh` | verified | todo | arm64: lean/Fv256/Arm64/Lsh.lean; amd64: machine code uses mask/SHLD idioms (`&&& (if .. then -1 else 0)`), proof not yet done (probe in wip/) |
 | `(*uint256.Int).Lt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Lt.lean |
 | `(*uint256.Int).LtUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/LtUint64.lean |
 | `(*uint256.Int).MarshalJSON` | todo | todo | |
@@ -66,7 +66,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).PaddedBytes` | todo | todo | |
 | `(*uint256.Int).PrettyDec` | todo | todo | |
 | `(*uint256.Int).PutUint256` | verified | verified | lean/Fv256/{Arm64,Amd64}/PutUint256.lean |
-| `(*uint256.Int).Rsh` | verified | todo | lean/Fv256/{Arm64,Amd64}/Rsh.lean |
+| `(*uint256.Int).Rsh` | verified | todo | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |
 | `(*uint256.Int).SDiv` | todo | todo | |
 | `(*uint256.Int).SMod` | todo | todo | |
 | `(*uint256.Int).SRsh` | todo | todo | |
@@ -74,38 +74,38 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Set` | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
 | `(*uint256.Int).SetAllOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetAllOne.lean |
 | `(*uint256.Int).SetBytes` | todo | todo | |
-| `(*uint256.Int).SetBytes1` | todo | todo | |
-| `(*uint256.Int).SetBytes10` | todo | todo | |
-| `(*uint256.Int).SetBytes11` | todo | todo | |
-| `(*uint256.Int).SetBytes12` | todo | todo | |
-| `(*uint256.Int).SetBytes13` | todo | todo | |
-| `(*uint256.Int).SetBytes14` | todo | todo | |
-| `(*uint256.Int).SetBytes15` | todo | todo | |
-| `(*uint256.Int).SetBytes16` | todo | todo | |
-| `(*uint256.Int).SetBytes17` | todo | todo | |
-| `(*uint256.Int).SetBytes18` | todo | todo | |
-| `(*uint256.Int).SetBytes19` | todo | todo | |
-| `(*uint256.Int).SetBytes2` | todo | todo | |
-| `(*uint256.Int).SetBytes20` | todo | todo | |
-| `(*uint256.Int).SetBytes21` | todo | todo | |
-| `(*uint256.Int).SetBytes22` | todo | todo | |
-| `(*uint256.Int).SetBytes23` | todo | todo | |
-| `(*uint256.Int).SetBytes24` | todo | todo | |
-| `(*uint256.Int).SetBytes25` | todo | todo | |
-| `(*uint256.Int).SetBytes26` | todo | todo | |
-| `(*uint256.Int).SetBytes27` | todo | todo | |
-| `(*uint256.Int).SetBytes28` | todo | todo | |
-| `(*uint256.Int).SetBytes29` | todo | todo | |
-| `(*uint256.Int).SetBytes3` | todo | todo | |
-| `(*uint256.Int).SetBytes30` | todo | todo | |
-| `(*uint256.Int).SetBytes31` | todo | todo | |
+| `(*uint256.Int).SetBytes1` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes10` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes11` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes12` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes13` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes14` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes15` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes16` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes17` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes18` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes19` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes2` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes20` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes21` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes22` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes23` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes24` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes25` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes26` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes27` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes28` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes29` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes3` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes30` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes31` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
 | `(*uint256.Int).SetBytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes32.lean |
-| `(*uint256.Int).SetBytes4` | todo | todo | |
-| `(*uint256.Int).SetBytes5` | todo | todo | |
-| `(*uint256.Int).SetBytes6` | todo | todo | |
-| `(*uint256.Int).SetBytes7` | todo | todo | |
-| `(*uint256.Int).SetBytes8` | todo | todo | |
-| `(*uint256.Int).SetBytes9` | todo | todo | |
+| `(*uint256.Int).SetBytes4` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes5` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes6` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes7` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes8` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes9` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
 | `(*uint256.Int).SetFromBig` | todo | todo | |
 | `(*uint256.Int).SetFromDecimal` | todo | todo | |
 | `(*uint256.Int).SetFromHex` | todo | todo | |
