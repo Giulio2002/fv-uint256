@@ -332,6 +332,48 @@ theorem mask32 (cap : BitVec 64) (h1 : 32 ≤ cap.toNat) (h2 : cap.toNat < 2 ^ 4
     simp only [decide_eq_true_eq]
     omega
 
+theorem mask32b_pos (X : BitVec 64) (hm : X.getLsbD 63 = true) :
+    BitVec.setWidth 64 (BitVec.setWidth 32 (X.sshiftRight 63) &&& 32#32) = 32#64 := by
+  apply BitVec.eq_of_getLsbD_eq
+  intro i hi
+  simp only [BitVec.getLsbD_setWidth, BitVec.getLsbD_and, BitVec.getLsbD_sshiftRight]
+  have hmsb : X.msb = true := by rw [BitVec.msb_eq_getLsbD_last]; simpa using hm
+  have k32 : ∀ j, j < 64 → (32#64).getLsbD j = decide (j = 5) := by decide
+  have k32' : ∀ j, j < 32 → (32#32).getLsbD j = decide (j = 5) := by decide
+  rw [k32 i hi]
+  by_cases h5 : i = 5
+  · subst h5; simp [hmsb, hm]
+  · by_cases hi32 : i < 32
+    · rw [k32' i hi32]; simp [h5]
+    · simp [hi32]; omega
+
+theorem mask32b (cap : BitVec 64) (h1 : 32 ≤ cap.toNat) (h2 : cap.toNat < 2 ^ 48) :
+    BitVec.setWidth 64 (BitVec.setWidth 32 ((0#64 - (cap - 32#64)).sshiftRight 63) &&& 32#32) =
+      if 32 < cap.toNat then 32#64 else 0#64 := by
+  have hlt := cap.isLt
+  have ht : (cap - 32#64).toNat = cap.toNat - 32 := by
+    simp only [BitVec.toNat_sub]
+    simp only [Nat.reducePow, BitVec.toNat_ofNat, Nat.reduceMod]
+    omega
+  by_cases h : cap.toNat = 32
+  · have h0 : cap - 32#64 = 0#64 := by
+      apply BitVec.eq_of_toNat_eq
+      rw [ht]; simp [h]
+    have hn : ¬ (32 < cap.toNat) := by omega
+    rw [h0, if_neg hn]
+    decide
+  · have hp : 32 < cap.toNat := by omega
+    rw [if_pos hp]
+    apply mask32b_pos
+    have hx : (0#64 - (cap - 32#64)).toNat = 2 ^ 64 - (cap.toNat - 32) := by
+      simp only [BitVec.toNat_sub, ht]
+      simp only [Nat.reducePow, BitVec.toNat_ofNat, Nat.reduceMod]
+      omega
+    simp only [BitVec.getLsbD, hx]
+    rw [Nat.testBit_eq_decide_div_mod_eq]
+    simp only [decide_eq_true_eq]
+    omega
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,

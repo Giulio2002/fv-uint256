@@ -19,7 +19,7 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).PrettyDec` | (d) | todo | todo | as Dec |
 | `(*uint256.Int).Hex` | (b) | todo | todo | makeslice(66) + slicebytetostring (RtLive string contracts) + 64-nibble table lookups |
 | `(*uint256.Int).String` | (d) | todo | todo | = Dec |
-| `(*uint256.Int).Format` | (d) | todo | todo | fmt.State interface + big.Int.Format (fmt machinery); not extractable: needs convT32, sync.Pool contracts |
+| `(*uint256.Int).Format` | (d) | out of scope | out of scope | math/big Format through a dynamic fmt.State (interface calls into fmt/strconv/big): not provable at reasonable cost (upstream analysis DESIGN-U5-U6) |
 | `(*uint256.Int).IntoBig` | (b) | todo | todo | newobject, write barrier, big.Int.Bits/SetBits layout; needs a big.Int memory model |
 | `(*uint256.Int).ToBig` | (b) | todo | todo | IntoBig + newobject |
 | `(*uint256.Int).Scan` | (b) | todo | todo | type switch on interface{}, mapaccess2_fast32, ifaceeq, Exp, MulOverflow, SetFromDecimal |
@@ -29,10 +29,10 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).MarshalJSON` | (d) | todo | todo | Dec + concatbyte3 + string/slice runtime |
 | `(*uint256.Int).MarshalSSZ` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MarshalSSZ.lean; runtime.makeslice contract (growslice calls are inlined away: capacity is known); allocator witness inside |
 | `(*uint256.Int).MarshalSSZAppend` | (b) | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
-| `(*uint256.Int).MarshalSSZInto` | (d) | todo | todo | error path calls fmt.Errorf (not extractable: sync.Pool, interfaces); success path only provable if a contract for fmt.Errorf is permitted |
+| `(*uint256.Int).MarshalSSZInto` | (d) | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZInto.lean: PARTIAL, success path only (`32 <= len <= cap`); error path (fmt.Errorf) not covered |
 | `(*uint256.Int).MarshalText` | (d) | todo | todo | Dec + stringtoslicebyte |
 | `(*uint256.Int).UnmarshalJSON` | (b) | todo | todo | SetFromDecimal / UnmarshalText |
-| `(*uint256.Int).UnmarshalSSZ` | (d) | todo | todo | error path fmt.Errorf; success path pure |
+| `(*uint256.Int).UnmarshalSSZ` | (d) | partial | partial | lean/Fv256/{Arm64,Amd64}/UnmarshalSSZ.lean: PARTIAL, success path only (`len(buf) = 32`); extracted with `--contract fmt.errorf --contract runtime.convT64 --contract runtime.newobject` (the error path is not covered: no fmt.Errorf contract exists) |
 | `(*uint256.Int).UnmarshalText` | (b) | todo | todo | fromHex/SetFromDecimal + string(input) copies |
 | `(*uint256.Int).EncodeRLP` | (c) | todo | todo | dynamic call io.Writer.Write (ItabIs / interface model), []byte literals on stack |
 | `(*uint256.Int).HashTreeRoot` | (a) | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) |
