@@ -20,9 +20,9 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
 | `(*uint256.Int).BitLen` | verified | blocked (GOAMD64=v1) | arm64: lean/Fv256/Arm64/BitLen.lean. amd64: the default GOAMD64=v1 build uses `bsr rax, rcx` on a possibly-zero limb; the Janus amd64 model faults (`undefinedResult`) for BSR of zero, so the proof cannot proceed (draft in wip/). Verified on a GOAMD64=v3 build (lzcnt): lean/Fv256/Amd64v3/BitLen.lean |
 | `(*uint256.Int).Byte` | verified | verified | lean/Fv256/{Arm64,Amd64}/Byte.lean |
-| `(*uint256.Int).ByteLen` | todo | todo | lean/Fv256/{Arm64,Amd64}/ByteLen.lean |
+| `(*uint256.Int).ByteLen` | verified | blocked | lean/Fv256/Arm64/ByteLen.lean; amd64 v1 blocked: Janus model faults on BSR of zero (U2) |
 | `(*uint256.Int).Bytes` | todo | todo | |
-| `(*uint256.Int).Bytes20` | todo | todo | lean/Fv256/{Arm64,Amd64}/Bytes20.lean |
+| `(*uint256.Int).Bytes20` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes20.lean |
 | `(*uint256.Int).Bytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes32.lean |
 | `(*uint256.Int).Clear` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clear.lean |
 | `(*uint256.Int).Clone` | verified (conditional, no witness) | verified (conditional, no witness) | lean/Fv256/{Arm64,Amd64}/Clone.lean; uses the runtime.newobject allocation contract (hypothesis hnew); no concrete Witness state |
@@ -35,7 +35,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).EncodeRLP` | todo | todo | |
 | `(*uint256.Int).Eq` | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | todo | todo | |
-| `(*uint256.Int).ExtendSign` | todo | todo | lean/Fv256/{Arm64,Amd64}/ExtendSign.lean |
+| `(*uint256.Int).ExtendSign` | verified | verified | lean/Fv256/{Arm64,Amd64}/ExtendSign.lean |
 | `(*uint256.Int).Float64` | todo | todo | |
 | `(*uint256.Int).Format` | todo | todo | |
 | `(*uint256.Int).Gt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Gt.lean |
@@ -69,7 +69,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Rsh` | verified | verified | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |
 | `(*uint256.Int).SDiv` | todo | todo | |
 | `(*uint256.Int).SMod` | todo | todo | |
-| `(*uint256.Int).SRsh` | todo | todo | lean/Fv256/{Arm64,Amd64}/SRsh.lean |
+| `(*uint256.Int).SRsh` | verified | verified | lean/Fv256/{Arm64,Amd64}/SRsh.lean |
 | `(*uint256.Int).Scan` | todo | todo | |
 | `(*uint256.Int).Set` | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
 | `(*uint256.Int).SetAllOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetAllOne.lean |

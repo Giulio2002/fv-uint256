@@ -29,7 +29,7 @@ for row in "${rows[@]}"; do
   case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
   for pair in "arm64:$st_arm:Arm64" "amd64:$st_amd:Amd64"; do
     IFS=: read -r isa st dir <<<"$pair"
-    [ "$st" = verified ] || continue
+    case "$st" in verified*) ;; *) continue;; esac
     out="build/ex-$isa-$fn"
     cflags=""; case " $CONTRACT_FNS " in *" $fn "*) cflags="--contract runtime.newobject";; esac
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
