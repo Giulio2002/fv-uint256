@@ -43,7 +43,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).HashTreeRoot` | todo | todo | |
 | `(*uint256.Int).Hex` | todo | todo | |
 | `(*uint256.Int).IntoBig` | todo | todo | |
-| `(*uint256.Int).IsUint64` | todo | todo | |
+| `(*uint256.Int).IsUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | todo | todo | |
 | `(*uint256.Int).Lsh` | todo | todo | |
@@ -112,7 +112,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetOne` | todo | todo | |
 | `(*uint256.Int).SetUint64` | todo | todo | |
 | `(*uint256.Int).Sgt` | todo | todo | |
-| `(*uint256.Int).Sign` | todo | todo | |
+| `(*uint256.Int).Sign` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sign.lean |
 | `(*uint256.Int).SizeSSZ` | todo | todo | |
 | `(*uint256.Int).Slt` | todo | todo | |
 | `(*uint256.Int).Sqrt` | todo | todo | |
@@ -121,7 +121,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SubOverflow` | todo | todo | |
 | `(*uint256.Int).SubUint64` | todo | todo | |
 | `(*uint256.Int).ToBig` | todo | todo | |
-| `(*uint256.Int).Uint64` | todo | todo | |
+| `(*uint256.Int).Uint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |
 | `(*uint256.Int).Uint64WithOverflow` | todo | todo | |
 | `(*uint256.Int).UnmarshalJSON` | todo | todo | |
 | `(*uint256.Int).UnmarshalSSZ` | todo | todo | |

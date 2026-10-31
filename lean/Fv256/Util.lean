@@ -1,4 +1,5 @@
 import Janus
+import Fv256.Spec
 
 open Lean Elab Tactic Meta in
 /-- collect the propositions `p` of every `(decide p).toNat` in an expression -/
@@ -246,5 +247,18 @@ elab "dec_facts" : tactic => withMainContext do
   let ps := collectDecToNat (← instantiateMVars (← getMainTarget)) #[]
   for p in ps do
     evalTactic (← `(tactic| have := Fv256.Util.dec_toNat $(← Term.exprToSyntax p)))
+
+
+theorem sign_zero (S : Nat) (h : S = 0) : BitVec.ofInt 64 (Spec.sign S) = 0#64 := by
+  simp [Spec.sign, h]
+
+theorem sign_pos (S : Nat) (h : S ≠ 0) (h2 : S < 2 ^ 255) : BitVec.ofInt 64 (Spec.sign S) = 1#64 := by
+  simp [Spec.sign, h, h2]
+
+theorem sign_neg (S : Nat) (h : 2 ^ 255 ≤ S) : BitVec.ofInt 64 (Spec.sign S) = 18446744073709551615#64 := by
+  have h0 : S ≠ 0 := by have : 0 < 2 ^ 255 := by decide
+                        omega
+  have h1 : ¬ S < 2 ^ 255 := by omega
+  simp [Spec.sign, h0, h1]
 
 end Fv256.Util

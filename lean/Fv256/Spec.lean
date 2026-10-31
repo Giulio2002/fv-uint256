@@ -46,4 +46,18 @@ def sub (x y : Nat) : Nat := (x + W - y) % W
 /-- `z.Mul(x, y)`. -/
 def mul (x y : Nat) : Nat := (x * y) % W
 
+/-- `x.Uint64()`: the low 64 bits. -/
+def uint64 (x : Nat) : Nat := x % 2 ^ 64
+/-- `x.IsUint64()`: the number fits in 64 bits. -/
+def isUint64 (x : Nat) : Bool := decide (x < 2 ^ 64)
+/-- `x.Sign()`: the sign of the two's-complement reading: 0, 1 (positive) or -1 (negative, top bit set). -/
+def sign (x : Nat) : Int := if x = 0 then 0 else if x < 2 ^ 255 then 1 else -1
+
+/-- The two's-complement reading of a 256-bit number. -/
+def signed (x : Nat) : Int := if x < 2 ^ 255 then (x : Int) else (x : Int) - 2 ^ 256
+/-- `z.Slt(x)`: signed less-than. -/
+def slt (x y : Nat) : Bool := decide (signed x < signed y)
+/-- `z.Sgt(x)`: signed greater-than. -/
+def sgt (x y : Nat) : Bool := decide (signed y < signed x)
+
 end Fv256.Spec
