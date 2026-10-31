@@ -19,4 +19,11 @@ abbrev W : Nat := 2 ^ 256
 /-- `x.IsZero()`. -/
 def isZero (x : Nat) : Bool := x == 0
 
+/-- `z.And(x, y)`: bitwise and of the two numbers. -/
+def and (x y : Nat) : Nat := x &&& y
+/-- `z.Or(x, y)`. -/
+def or (x y : Nat) : Nat := x ||| y
+/-- `z.Xor(x, y)`. -/
+def xor (x y : Nat) : Nat := x ^^^ y
+
 end Fv256.Spec

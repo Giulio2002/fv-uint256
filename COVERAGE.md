@@ -17,7 +17,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).AddMod` | todo | todo | |
 | `(*uint256.Int).AddOverflow` | todo | todo | |
 | `(*uint256.Int).AddUint64` | todo | todo | |
-| `(*uint256.Int).And` | todo | todo | |
+| `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
 | `(*uint256.Int).BitLen` | todo | todo | |
 | `(*uint256.Int).Byte` | todo | todo | |
 | `(*uint256.Int).ByteLen` | todo | todo | |
@@ -62,7 +62,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).MulOverflow` | todo | todo | |
 | `(*uint256.Int).Neg` | todo | todo | |
 | `(*uint256.Int).Not` | todo | todo | |
-| `(*uint256.Int).Or` | todo | todo | |
+| `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
 | `(*uint256.Int).PaddedBytes` | todo | todo | |
 | `(*uint256.Int).PrettyDec` | todo | todo | |
 | `(*uint256.Int).PutUint256` | todo | todo | |
@@ -130,7 +130,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).WriteToArray20` | todo | todo | |
 | `(*uint256.Int).WriteToArray32` | todo | todo | |
 | `(*uint256.Int).WriteToSlice` | todo | todo | |
-| `(*uint256.Int).Xor` | todo | todo | |
+| `(*uint256.Int).Xor` | verified | verified | lean/Fv256/{Arm64,Amd64}/Xor.lean |
 
 ## Exported variables (data, no code to verify)
 
