@@ -1962,4 +1962,43 @@ theorem or3l_iff (a b c : Nat) : (a ||| b ||| c = 0) ↔ (a = 0 ∧ b = 0 ∧ c 
     exact ⟨h2.1, h2.2, h1.2⟩
   · rintro ⟨rfl, rfl, rfl⟩; rfl
 
+-- ByteLen helpers
+def blS (u : BitVec 64) : BitVec 64 :=
+  ((if u.getLsbD 63 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551614#64 |||
+      u.rotateRight 63 &&& 18446744073709551615#64 &&& 1#64) >>> 61
+
+theorem blS_zero (u : BitVec 64) (hu : u.toNat < 2 ^ 63) : blS u = 0#64 := by
+  have hb : u.getLsbD 63 = false := by
+    rw [← BitVec.testBit_toNat]
+    exact Nat.testBit_lt_two_pow (by omega)
+  apply BitVec.eq_of_toNat_eq
+  unfold blS
+  simp only [hb, Bool.false_eq_true, ite_false, BitVec.toNat_ushiftRight, BitVec.toNat_or, BitVec.toNat_and, BitVec.toNat_rotateRight]
+  simp only [Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Nat.reduceSub]
+  have h1 : u.toNat / 9223372036854775808 = 0 := by omega
+  have h2 : u.toNat * 2 % 18446744073709551616 = u.toNat * 2 := Nat.mod_eq_of_lt (by omega)
+  rw [h1, h2, Nat.zero_or]
+  have h3 : u.toNat * 2 &&& 18446744073709551615 = u.toNat * 2 := Nat.and_two_pow_sub_one_of_lt_two_pow (n := 64) (by omega)
+  rw [h3, Nat.and_one_is_mod, Nat.zero_and, Nat.zero_or]
+  omega
+
+theorem bl_trick (v u : BitVec 64) (huv : u = v + 7#64) (hv : v.toNat ≤ 256) :
+    ((if (v + blS u + 7#64).getLsbD 63 = true then 18446744073709551615#64 else 0#64).toNat &&& 16140901064495857664 |||
+      ((v + blS u + 7#64).rotateRight 3).toNat % 2305843009213693952) = (v.toNat + 7) / 8 := by
+  have hu : u.toNat = v.toNat + 7 := by
+    rw [huv, BitVec.toNat_add]; simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
+  rw [blS_zero u (by omega)]
+  have hw : v + 0#64 + 7#64 = u := by rw [huv]; simp
+  rw [hw]
+  have hb : u.getLsbD 63 = false := by
+    rw [← BitVec.testBit_toNat]
+    exact Nat.testBit_lt_two_pow (by omega)
+  simp only [hb, Bool.false_eq_true, ite_false, BitVec.toNat_rotateRight, hu]
+  simp only [Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Nat.reduceSub]
+  have h4 : (v.toNat + 7) * 2305843009213693952 % 18446744073709551616 = ((v.toNat + 7) % 8) * 2305843009213693952 := by omega
+  have hor := Fv256.Util.or_hi ((v.toNat + 7) / 8) ((v.toNat + 7) % 8) 61 (by simp only [Nat.reducePow]; omega)
+  simp only [Nat.reducePow] at hor
+  rw [Nat.zero_and, Nat.zero_or, h4, hor]
+  omega
+
 end Fv256.Util
