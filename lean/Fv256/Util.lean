@@ -1632,4 +1632,201 @@ theorem top_amd (a n : Nat) (ha : a < 18446744073709551616) (hn : n % 64 ≠ 0) 
   rw [Nat.mod_eq_of_lt ha] at hv ⊢
   rw [Nat.or_comm, hm2, or_hi _ _ _ hv]
 
+theorem rot3_idx' (b : Nat) (hb : b < 18446744073709551616) :
+    ((BitVec.ofNat 64 b).rotateRight 3).toNat % 2305843009213693952 = b / 8 := by
+  rw [BitVec.toNat_rotateRight, BitVec.toNat_ofNat]
+  simp only [Nat.reducePow, Nat.reduceMod, Nat.reduceSub, Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq]
+  rw [Nat.mod_eq_of_lt hb]
+  have h := rot3_idx b hb
+  have hl : (b / 8 ||| b * 2305843009213693952 % 18446744073709551616) < 18446744073709551616 :=
+    Nat.or_lt_two_pow (n := 64) (by omega) (by omega)
+  rw [Nat.mod_eq_of_lt hl] at h
+  exact h
+
+
+-- ExtendSign helpers
+theorem rr0 (x : BitVec 64) : x.rotateRight 0 = x := by
+  simp [BitVec.rotateRight, BitVec.rotateRightAux]
+
+theorem es_neg_mask (sh : Nat) (h : sh < 64) :
+    (~~~(-BitVec.ofNat 64 (2 ^ sh))).toNat = 2 ^ sh - 1 := by
+  rw [BitVec.toNat_not, BitVec.toNat_neg, BitVec.toNat_ofNat]
+  have hP : 2 ^ sh < 18446744073709551616 := by
+    calc 2 ^ sh < 2 ^ 64 := Nat.pow_lt_pow_right (by decide) h
+      _ = 18446744073709551616 := by decide
+  have hP0 := Nat.two_pow_pos sh
+  have h64 : (2:Nat) ^ 64 = 18446744073709551616 := by decide
+  rw [h64]
+  generalize 2 ^ sh = P at *
+  omega
+
+theorem es_bit7 (L sh : Nat) (h : sh ≤ 56) :
+    (if (BitVec.ofNat 64 L >>> sh).getLsbD 7 = true then 18446744073709551615#64 else 0#64).toNat =
+      if L / 2 ^ (sh + 7) % 2 = 1 then 18446744073709551615 else 0 := by
+  have hb : (BitVec.ofNat 64 L >>> sh).getLsbD 7 = decide (L / 2 ^ (sh + 7) % 2 = 1) := by
+    rw [BitVec.getLsbD_ushiftRight, BitVec.getLsbD_ofNat, Nat.testBit_eq_decide_div_mod_eq]
+    have : sh + 7 < 64 := by omega
+    simp [this]
+  rw [hb]
+  by_cases hc : L / 2 ^ (sh + 7) % 2 = 1
+  · simp [hc]
+  · simp [hc]
+
+theorem es_rot0 (L sh : Nat) (hL : L < 18446744073709551616) :
+    ((BitVec.ofNat 64 L >>> sh).rotateRight 0).toNat = L / 2 ^ sh := by
+  rw [rr0, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat]
+  simp only [Nat.reducePow, Nat.shiftRight_eq_div_pow, Nat.mod_eq_of_lt hL]
+
+theorem es_E (L sh : Nat) (hL : L < 18446744073709551616) (h : sh ≤ 56) :
+    (L &&& (~~~(-BitVec.ofNat 64 (2 ^ sh))).toNat ||| 2 ^ sh * ((if (BitVec.ofNat 64 L >>> sh).getLsbD 7 = true then 18446744073709551615#64 else 0#64).toNat &&& 18446744073709551360 ||| ((BitVec.ofNat 64 L >>> sh).rotateRight 0).toNat % 256) % 18446744073709551616) % 18446744073709551616 =
+      L % 2 ^ (sh + 8) + (if L / 2 ^ (sh + 7) % 2 = 1 then 18446744073709551616 - 2 ^ (sh + 8) else 0) := by
+  rw [es_neg_mask sh (by omega), es_bit7 L sh h, es_rot0 L sh hL, Nat.and_two_pow_sub_one_eq_mod]
+  have hP0 := Nat.two_pow_pos sh
+  have hQ := pq_eq sh (by omega)
+  have hQ0 := Nat.two_pow_pos (64 - sh)
+  have hPow : 2 ^ (sh + 8) = 2 ^ sh * 256 := by rw [Nat.pow_add]
+  have hQ256 : 256 ≤ 2 ^ (64 - sh) := by
+    have : 2 ^ 8 ≤ 2 ^ (64 - sh) := Nat.pow_le_pow_right (by decide) (by omega)
+    simpa using this
+  have hmod : L % 2 ^ (sh + 8) = L % 2 ^ sh + 2 ^ sh * (L / 2 ^ sh % 256) := by
+    rw [hPow, Nat.mod_mul]
+  have hbyte : L / 2 ^ sh % 256 < 256 := Nat.mod_lt _ (by decide)
+  have hlo : L % 2 ^ sh < 2 ^ sh := Nat.mod_lt _ hP0
+  have hsb : L / 2 ^ (sh + 7) % 2 = L / 2 ^ sh / 128 % 2 := by
+    rw [Nat.pow_add, Nat.div_div_eq_div_mul]
+  have hmodsh := shl_lo
+  by_cases hs : L / 2 ^ (sh + 7) % 2 = 1
+  · simp only [hs, ite_true]
+    have e1 : (18446744073709551615 &&& 18446744073709551360) = 18446744073709551360 := by decide
+    have e2 : 18446744073709551360 ||| L / 2 ^ sh % 256 = 18446744073709551360 + L / 2 ^ sh % 256 := by
+      rw [Nat.or_comm, show (18446744073709551360 : Nat) = 72057594037927935 * 2 ^ 8 from rfl, or_hi _ _ _ (by simpa using hbyte)]
+      exact Nat.add_comm _ _
+    rw [e1, e2]
+    rw [Nat.mul_comm (2 ^ sh), shl_lo _ sh (by omega)]
+    obtain ⟨T, hT⟩ : ∃ T, 2 ^ sh = T + 1 := ⟨2 ^ sh - 1, by omega⟩
+    have hQT : 2 ^ (64 - sh) * T + 2 ^ (64 - sh) = 18446744073709551616 := by
+      rw [← hQ, hT, Nat.add_mul, Nat.one_mul, Nat.mul_comm (2 ^ (64 - sh)) T]
+    have hv : (18446744073709551360 + L / 2 ^ sh % 256) % 2 ^ (64 - sh) = 2 ^ (64 - sh) - 256 + L / 2 ^ sh % 256 := by
+      have : 18446744073709551360 + L / 2 ^ sh % 256 = (2 ^ (64 - sh) - 256 + L / 2 ^ sh % 256) + 2 ^ (64 - sh) * T := by
+        omega
+      rw [this, Nat.add_mul_mod_self_left]
+      apply Nat.mod_eq_of_lt
+      omega
+    rw [hv]
+    generalize hqq : 2 ^ (64 - sh) = Q at *
+    generalize hbb : L / 2 ^ sh % 256 = byte at *
+    generalize hlo' : L % 2 ^ sh = lo at *
+    rw [Nat.mul_comm (2 ^ sh) (Q - 256 + byte)]
+    rw [or_hi lo _ sh hlo]
+    have hmul : (Q - 256 + byte) * 2 ^ sh = 18446744073709551616 - 2 ^ sh * 256 + byte * 2 ^ sh := by
+      rw [Nat.add_mul, Nat.sub_mul, Nat.mul_comm Q, hQ, Nat.mul_comm 256]
+    rw [hmul, hmod, hPow, Nat.mul_comm byte]
+    have hP256 : 2 ^ sh * 256 ≤ 18446744073709551616 := by
+      have := Nat.mul_le_mul_left (2 ^ sh) hQ256
+      omega
+    have hBP : 2 ^ sh * byte + 2 ^ sh ≤ 2 ^ sh * 256 := by
+      have := Nat.mul_le_mul_left (2 ^ sh) (show byte + 1 ≤ 256 by omega)
+      rw [Nat.mul_add, Nat.mul_one] at this
+      exact this
+    generalize 2 ^ sh * byte = PB at *
+    generalize 2 ^ sh * 256 = P256 at *
+    generalize 2 ^ sh = P at *
+    omega
+  · simp only [hs, ite_false]
+    have e1 : (0 &&& 18446744073709551360) = 0 := by decide
+    rw [e1, Nat.zero_or]
+    have hBP : 2 ^ sh * (L / 2 ^ sh % 256) + 2 ^ sh ≤ 2 ^ sh * 256 := by
+      have := Nat.mul_le_mul_left (2 ^ sh) (show L / 2 ^ sh % 256 + 1 ≤ 256 by omega)
+      rw [Nat.mul_add, Nat.mul_one] at this
+      exact this
+    have hP256 : 2 ^ sh * 256 ≤ 18446744073709551616 := by
+      have := Nat.mul_le_mul_left (2 ^ sh) hQ256
+      omega
+    rw [Nat.mod_eq_of_lt (by omega : 2 ^ sh * (L / 2 ^ sh % 256) < 18446744073709551616)]
+    rw [Nat.mul_comm (2 ^ sh), or_hi _ _ _ hlo, Nat.mul_comm, hmod]
+    rw [Nat.mod_eq_of_lt (by omega)]
+    rfl
+
+theorem es_sb (L sh : Nat) (hL : L < 18446744073709551616) (h : sh ≤ 56) :
+    ((if (BitVec.ofNat 64 L >>> sh).getLsbD 7 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551360#64 |||
+      (BitVec.ofNat 64 L >>> sh).rotateRight 0 &&& 255#64 &&& 255#64).toNat =
+      (if L / 2 ^ (sh + 7) % 2 = 1 then 18446744073709551360 else 0) + L / 2 ^ sh % 256 := by
+  simp only [BitVec.toNat_or, BitVec.toNat_and]
+  rw [es_bit7 L sh h, es_rot0 L sh hL]
+  have e255 : 255 = 2 ^ 8 - 1 := by decide
+  have hb : L / 2 ^ sh % 256 < 256 := Nat.mod_lt _ (by decide)
+  have eb : L / 2 ^ sh &&& 255 &&& 255 = L / 2 ^ sh % 256 := by
+    rw [e255, Nat.and_two_pow_sub_one_eq_mod, Nat.and_two_pow_sub_one_eq_mod]
+    simp
+  simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]
+  rw [eb]
+  by_cases hs : L / 2 ^ (sh + 7) % 2 = 1
+  · simp only [hs, ite_true]
+    have e1 : (18446744073709551615 &&& 18446744073709551360) = 18446744073709551360 := by decide
+    rw [e1, Nat.or_comm, show (18446744073709551360 : Nat) = 72057594037927935 * 2 ^ 8 from rfl, or_hi _ _ _ (by simpa using hb)]
+    omega
+  · simp only [hs, ite_false]
+    have e1 : (0 &&& 18446744073709551360) = 0 := by decide
+    rw [e1, Nat.zero_or]
+    omega
+
+theorem es_fill (S : BitVec 64) (c : Prop) [Decidable c] (b : Nat) (hb : b < 256)
+    (hS : S.toNat = (if c then 18446744073709551360 else 0) + b) :
+    ((if S.getLsbD 63 = true then 18446744073709551615#64 else 0#64).toNat &&& 18374686479671623680 |||
+      (S.rotateRight 8).toNat % 72057594037927936) % 18446744073709551616 =
+      if c then 18446744073709551615 else 0 := by
+  have hbit : S.getLsbD 63 = decide (S.toNat / 2 ^ 63 % 2 = 1) := by
+    rw [← BitVec.testBit_toNat, Nat.testBit_eq_decide_div_mod_eq]
+  rw [BitVec.toNat_rotateRight]
+  simp only [Nat.reduceMod, Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, Nat.reducePow, Nat.reduceSub]
+  by_cases hc : c
+  · simp only [hc, ite_true] at hS ⊢
+    have hbt : S.getLsbD 63 = true := by
+      rw [hbit]; simp only [hS]; simp; omega
+    simp only [hbt, ite_true]
+    simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]
+    have e1 : (18446744073709551615 &&& 18374686479671623680) = 18374686479671623680 := by decide
+    rw [e1]
+    have h1 : S.toNat / 256 = 72057594037927935 := by omega
+    have h2 : S.toNat * 72057594037927936 % 18446744073709551616 = (b % 256) * 72057594037927936 := by omega
+    rw [h1, h2]
+    have hor : (72057594037927935 ||| (b % 256) * 72057594037927936) % 72057594037927936 = 72057594037927935 := by
+      have := or_hi 72057594037927935 (b % 256) 56 (by decide)
+      simp only [Nat.reducePow] at this
+      rw [this]; omega
+    rw [hor]
+    decide
+  · simp only [hc, ite_false] at hS ⊢
+    have hbt : S.getLsbD 63 = false := by
+      rw [hbit]; simp only [hS]; simp; omega
+    simp only [hbt]
+    simp only [Bool.false_eq_true, ite_false, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]
+    have h1 : S.toNat / 256 = 0 := by omega
+    have h2 : S.toNat * 72057594037927936 % 18446744073709551616 = (b % 256) * 72057594037927936 := by omega
+    rw [h1, h2]
+    have e1 : (0 &&& 18374686479671623680) = 0 := by decide
+    have hor : (0 ||| (b % 256) * 72057594037927936) % 72057594037927936 = 0 := by
+      rw [Nat.zero_or]; exact Nat.mul_mod_left _ _
+    simp only [Nat.zero_and, Nat.zero_or]
+    rw [Nat.mul_mod_left]
+
+theorem es_F (L sh : Nat) (hL : L < 18446744073709551616) (h : sh ≤ 56) :
+    ((if ((if (BitVec.ofNat 64 L >>> sh).getLsbD 7 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551360#64 ||| (BitVec.ofNat 64 L >>> sh).rotateRight 0 &&& 255#64 &&& 255#64).getLsbD 63 = true then 18446744073709551615#64 else 0#64).toNat &&& 18374686479671623680 ||| (((if (BitVec.ofNat 64 L >>> sh).getLsbD 7 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551360#64 ||| (BitVec.ofNat 64 L >>> sh).rotateRight 0 &&& 255#64 &&& 255#64).rotateRight 8).toNat % 72057594037927936) % 18446744073709551616 =
+      if L / 2 ^ (sh + 7) % 2 = 1 then 18446744073709551615 else 0 :=
+  es_fill _ (L / 2 ^ (sh + 7) % 2 = 1) (L / 2 ^ sh % 256) (Nat.mod_lt _ (by decide)) (es_sb L sh hL h)
+
+
+theorem or3_zero (a b c : Nat) (h : a ||| (b ||| c) = 0) : a = 0 ∧ b = 0 ∧ c = 0 := by
+  have h1 := Nat.or_eq_zero_iff.mp h
+  have h2 := Nat.or_eq_zero_iff.mp h1.2
+  exact ⟨h1.1, h2.1, h2.2⟩
+theorem or3_ne (a b c : Nat) (h : ¬ a ||| (b ||| c) = 0) : a ≠ 0 ∨ b ≠ 0 ∨ c ≠ 0 := by
+  by_cases ha : a = 0
+  · by_cases hb : b = 0
+    · by_cases hc : c = 0
+      · subst ha hb hc; exact absurd rfl h
+      · exact Or.inr (Or.inr hc)
+    · exact Or.inr (Or.inl hb)
+  · exact Or.inl ha
+
 end Fv256.Util
