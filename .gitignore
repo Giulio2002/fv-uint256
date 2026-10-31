@@ -2,5 +2,4 @@ scratch/
 *.o
 build/
 wip/
-tools/
 NOTES.md
