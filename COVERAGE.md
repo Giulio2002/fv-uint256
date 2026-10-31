@@ -66,7 +66,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).PaddedBytes` | todo | todo | |
 | `(*uint256.Int).PrettyDec` | todo | todo | |
 | `(*uint256.Int).PutUint256` | verified | verified | lean/Fv256/{Arm64,Amd64}/PutUint256.lean |
-| `(*uint256.Int).Rsh` | todo | todo | |
+| `(*uint256.Int).Rsh` | verified | todo | lean/Fv256/{Arm64,Amd64}/Rsh.lean |
 | `(*uint256.Int).SDiv` | todo | todo | |
 | `(*uint256.Int).SMod` | todo | todo | |
 | `(*uint256.Int).SRsh` | todo | todo | |

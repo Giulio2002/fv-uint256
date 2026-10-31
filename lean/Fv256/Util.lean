@@ -1065,4 +1065,133 @@ theorem lsh_big (X m : Nat) (hm : 256 ≤ m) : X * 2 ^ m % 115792089237316195423
   rw [this, ← Nat.mul_assoc]
   exact Nat.mul_mod_left _ _
 
+theorem shr_hi (x t : Nat) (ht : t < 64) : x * 2 ^ (64 - t) % 18446744073709551616 = 2 ^ (64 - t) * (x % 2 ^ t) := by
+  have := shl_lo x (64 - t) (by omega)
+  rw [show 64 - (64 - t) = t by omega] at this
+  exact this
+
+theorem rsh0_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    (x0 / 2 ^ t + x1 * 2 ^ (64 - t) % 18446744073709551616) +
+      18446744073709551616 * (x1 / 2 ^ t + x2 * 2 ^ (64 - t) % 18446744073709551616) +
+      340282366920938463463374607431768211456 * (x2 / 2 ^ t + x3 * 2 ^ (64 - t) % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 * (x3 / 2 ^ t) =
+    (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 +
+        6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ t := by
+  have hP : 0 < 2 ^ t := Nat.two_pow_pos t
+  have hpq := pq_eq t (by omega)
+  have d0 := Nat.div_add_mod x0 (2 ^ t)
+  have d1 := Nat.div_add_mod x1 (2 ^ t)
+  have d2 := Nat.div_add_mod x2 (2 ^ t)
+  have d3 := Nat.div_add_mod x3 (2 ^ t)
+  have rl0 := Nat.mod_lt x0 hP
+  have rl1 := Nat.mod_lt x1 hP
+  have rl2 := Nat.mod_lt x2 hP
+  have rl3 := Nat.mod_lt x3 hP
+  rw [shr_hi x1 t ht, shr_hi x2 t ht, shr_hi x3 t ht]
+  -- let P, Q, y_i, r_i
+  generalize hPdef : 2 ^ t = P at *
+  generalize hQdef : 2 ^ (64 - t) = Q at *
+  generalize x0 / P = y0 at *
+  generalize x1 / P = y1 at *
+  generalize x2 / P = y2 at *
+  generalize x3 / P = y3 at *
+  generalize x0 % P = r0 at *
+  generalize x1 % P = r1 at *
+  generalize x2 % P = r2 at *
+  generalize x3 % P = r3 at *
+  have k : ∀ r : Nat, Q * (P * r) = 18446744073709551616 * r := by
+    intro r; rw [← Nat.mul_assoc, Nat.mul_comm Q P, hpq]
+  have e : P * ((y0 + Q * r1) + 18446744073709551616 * (y1 + Q * r2) + 340282366920938463463374607431768211456 * (y2 + Q * r3) + 6277101735386680763835789423207666416102355444464034512896 * y3) =
+      P * y0 + Q * (P * r1) + 18446744073709551616 * (P * y1) + 18446744073709551616 * (Q * (P * r2)) + 340282366920938463463374607431768211456 * (P * y2) + 340282366920938463463374607431768211456 * (Q * (P * r3)) + 6277101735386680763835789423207666416102355444464034512896 * (P * y3) := by
+    simp only [Nat.mul_add, Nat.mul_left_comm P, Nat.mul_assoc]
+    omega
+  rw [k r1, k r2, k r3] at e
+  generalize (y0 + Q * r1 + 18446744073709551616 * (y1 + Q * r2) + 340282366920938463463374607431768211456 * (y2 + Q * r3) + 6277101735386680763835789423207666416102355444464034512896 * y3) = R at e ⊢
+  have hc := Nat.mul_comm R P
+  symm
+  apply Nat.div_eq_of_lt_le
+  · omega
+  · rw [Nat.add_mul, Nat.one_mul]; omega
+
+theorem div_shift (X k t : Nat) : X / 2 ^ (64 * k + t) = X / 2 ^ (64 * k) / 2 ^ t := by
+  rw [Nat.pow_add, Nat.div_div_eq_div_mul]
+
+theorem rsh1_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    (x1 / 2 ^ t + x2 * 2 ^ (64 - t) % 18446744073709551616) + 18446744073709551616 * (x2 / 2 ^ t + x3 * 2 ^ (64 - t) % 18446744073709551616) +
+      340282366920938463463374607431768211456 * (x3 / 2 ^ t) = (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ (64 + t) := by
+  have e := div_shift (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) 1 t
+  simp only [Nat.mul_one] at e
+  have e1 : (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ 64 = x1 + 18446744073709551616 * x2 + 340282366920938463463374607431768211456 * x3 := by
+    have : (2 : Nat) ^ 64 = 18446744073709551616 := by decide
+    rw [this]; omega
+  rw [e, e1]
+  have := rsh0_t x1 x2 x3 0 t ht h1 h2 h3 (by decide)
+  simp only [Nat.zero_mul, Nat.zero_mod, Nat.zero_div, Nat.add_zero, Nat.mul_zero] at this
+  exact this
+
+theorem rsh2_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    (x2 / 2 ^ t + x3 * 2 ^ (64 - t) % 18446744073709551616) + 18446744073709551616 * (x3 / 2 ^ t) = (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ (128 + t) := by
+  have e := div_shift (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) 2 t
+  simp only [show 64 * 2 = 128 from rfl] at e
+  have e1 : (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ 128 = x2 + 18446744073709551616 * x3 := by
+    have : (2 : Nat) ^ 128 = 340282366920938463463374607431768211456 := by decide
+    rw [this]; omega
+  rw [e, e1]
+  have := rsh0_t x2 x3 0 0 t ht h2 h3 (by decide) (by decide)
+  simp only [Nat.zero_mul, Nat.zero_mod, Nat.zero_div, Nat.add_zero, Nat.mul_zero] at this
+  exact this
+
+theorem rsh3_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    x3 / 2 ^ t = (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ (192 + t) := by
+  have e := div_shift (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) 3 t
+  simp only [show 64 * 3 = 192 from rfl] at e
+  have e1 : (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) / 2 ^ 192 = x3 := by
+    have : (2 : Nat) ^ 192 = 6277101735386680763835789423207666416102355444464034512896 := by decide
+    rw [this]; omega
+  rw [e, e1]
+
+theorem rsh_big (X m : Nat) (hX : X < 115792089237316195423570985008687907853269984665640564039457584007913129639936) (hm : 256 ≤ m) : X / 2 ^ m = 0 := by
+  apply Nat.div_eq_of_lt
+  calc X < 115792089237316195423570985008687907853269984665640564039457584007913129639936 := hX
+    _ = 2 ^ 256 := by decide
+    _ ≤ 2 ^ m := Nat.pow_le_pow_right (by decide) hm
+
+theorem shr_or_nat (a b t : Nat) (ht1 : 1 ≤ t) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (a * 2 ^ ((64 - t) % 64) % 18446744073709551616 ||| b / 2 ^ t) % 18446744073709551616 =
+      b / 2 ^ t + a * 2 ^ (64 - t) % 18446744073709551616 := by
+  have h := pq_eq t (by omega)
+  have hP : 0 < 2 ^ t := Nat.two_pow_pos t
+  have hS : 0 < 2 ^ (64 - t) := Nat.two_pow_pos _
+  rw [Nat.mod_eq_of_lt (by omega : 64 - t < 64), shr_hi a t ht]
+  have hv : b / 2 ^ t < 2 ^ (64 - t) := by
+    rw [Nat.div_lt_iff_lt_mul hP, Nat.mul_comm, h]; exact hb
+  have hc : a % 2 ^ t + 1 ≤ 2 ^ t := Nat.mod_lt _ hP
+  have h3 : 2 ^ (64 - t) * (a % 2 ^ t + 1) ≤ 2 ^ (64 - t) * 2 ^ t := Nat.mul_le_mul_left _ hc
+  rw [Nat.mul_add, Nat.mul_comm (2 ^ (64 - t)) (2 ^ t), h] at h3
+  rw [Nat.or_comm, show 2 ^ (64 - t) * (a % 2 ^ t) = (a % 2 ^ t) * 2 ^ (64 - t) from Nat.mul_comm _ _, or_hi _ _ _ hv]
+  rw [Nat.mod_eq_of_lt (by rw [Nat.mul_comm (a % 2 ^ t)] at *; omega)]
+
+theorem shr_or_bv (a b t : Nat) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    ((if 64 - t < 64 then BitVec.ofNat 64 (a * 2 ^ ((64 - t) % 64)) else 0#64).toNat ||| b / 2 ^ t) % 18446744073709551616 =
+      b / 2 ^ t + a * 2 ^ (64 - t) % 18446744073709551616 := by
+  by_cases h0 : t = 0
+  · subst h0
+    simp only [Nat.sub_zero, show ¬ (64 < 64) from by decide, if_false]
+    have : a * 2 ^ 64 % 18446744073709551616 = 0 := by
+      show a * 18446744073709551616 % 18446744073709551616 = 0
+      exact Nat.mul_mod_left _ _
+    simp only [this, Nat.pow_zero, Nat.div_one]
+    simp [Nat.mod_eq_of_lt hb]
+  · have hc : 64 - t < 64 := by omega
+    simp only [hc, if_true, BitVec.toNat_ofNat, Nat.reducePow]
+    have hlt : a * 2 ^ ((64 - t) % 64) < 18446744073709551616 ∨ True := Or.inr trivial
+    rw [Nat.mod_eq_of_lt (by omega : 64 - t < 64)]
+    have := shr_or_nat a b t (by omega) ht ha hb
+    rw [Nat.mod_eq_of_lt (by omega : 64 - t < 64)] at this
+    exact this
+
 end Fv256.Util
