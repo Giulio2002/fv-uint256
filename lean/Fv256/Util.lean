@@ -1316,4 +1316,162 @@ theorem orc_hi40 (a c : Nat) (ha : a < 1099511627776) : c * 1099511627776 ||| a 
 theorem orc_hi48 (a c : Nat) (ha : a < 281474976710656) : c * 281474976710656 ||| a = a + c * 281474976710656 := or_hi_comm a c 48 ha
 theorem orc_hi56 (a c : Nat) (ha : a < 72057594037927936) : c * 72057594037927936 ||| a = a + c * 72057594037927936 := or_hi_comm a c 56 ha
 
+theorem sb_val4 (m : Janus.Arm64.Memory) (p z : Nat) :
+    Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296 +
+        340282366920938463463374607431768211456 *
+          (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 *
+        (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
+  have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]; simp
+  have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]
+  have h3 : Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) = Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
+    rw [rd4mod]; exact revBytes_readLE m p 4
+  have h4 : Spec.fromBE (fun i => m.readLE (p + i) 1) 4 < 4294967296 := by
+    simp only [Spec.fromBE, Nat.add_zero, Nat.reducePow, Nat.reduceAdd, Nat.zero_add]
+    have := rd1_lt m p; have := rd1_lt m (p + 1); have := rd1_lt m (p + 2); have := rd1_lt m (p + 3)
+    omega
+  have h5 := Nat.mod_eq_of_lt h4
+  omega
+theorem sb_val8 (m : Janus.Arm64.Memory) (p z : Nat) :
+    Janus.Arm64.revBytesNat 8 (m.readLE p 8) % 18446744073709551616 +
+        340282366920938463463374607431768211456 *
+          (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 *
+        (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 8 := by
+  have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]; simp
+  have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]
+  have h3 : Janus.Arm64.revBytesNat 8 (m.readLE p 8) = Spec.fromBE (fun i => m.readLE (p + i) 1) 8 :=
+    revBytes_readLE m p 8
+  have h4 := revBytes_lt 8 (m.readLE p 8)
+  simp only [Nat.reducePow] at h4
+  omega
+
+theorem sb_val12 (m : Janus.Arm64.Memory) (p z : Nat) :
+    Janus.Arm64.revBytesNat 8 (m.readLE (p + 4) 8) % 18446744073709551616 +
+          18446744073709551616 * (Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296) +
+        340282366920938463463374607431768211456 *
+          (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 *
+        (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 12 := by
+  have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]; simp
+  have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]
+  have e : Spec.fromBE (fun i => m.readLE (p + i) 1) 12 =
+      Spec.fromBE (fun i => m.readLE (p + i) 1) 4 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (4 + i)) 1) 8 :=
+    fromBE_add _ 4 8
+  have h3 : Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) = Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
+    rw [rd4mod]; exact revBytes_readLE m p 4
+  have h3' : Janus.Arm64.revBytesNat 8 (m.readLE (p + 4) 8) = Spec.fromBE (fun i => m.readLE (p + (4 + i)) 1) 8 := by
+    rw [revBytes_readLE]; simp only [Nat.add_assoc]
+  have h4 := revBytes_lt 4 (m.readLE p 4 % 4294967296)
+  have h4' := revBytes_lt 8 (m.readLE (p + 4) 8)
+  simp only [Nat.reducePow] at h4 h4' e
+  omega
+
+theorem sb_val16 (m : Janus.Arm64.Memory) (p z : Nat) :
+    Janus.Arm64.revBytesNat 8 (m.readLE (p + 8) 8) % 18446744073709551616 +
+          18446744073709551616 * (Janus.Arm64.revBytesNat 8 (m.readLE p 8) % 18446744073709551616) +
+        340282366920938463463374607431768211456 *
+          (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 *
+        (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 16 := by
+  have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]; simp
+  have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
+    rw [bv128_zero_toNat]
+  have e : Spec.fromBE (fun i => m.readLE (p + i) 1) 16 =
+      Spec.fromBE (fun i => m.readLE (p + i) 1) 8 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (8 + i)) 1) 8 :=
+    fromBE_add _ 8 8
+  have h3 : Janus.Arm64.revBytesNat 8 (m.readLE p 8) = Spec.fromBE (fun i => m.readLE (p + i) 1) 8 :=
+    revBytes_readLE m p 8
+  have h3' : Janus.Arm64.revBytesNat 8 (m.readLE (p + 8) 8) = Spec.fromBE (fun i => m.readLE (p + (8 + i)) 1) 8 := by
+    rw [revBytes_readLE]; simp only [Nat.add_assoc]
+  have h4 := revBytes_lt 8 (m.readLE p 8)
+  have h4' := revBytes_lt 8 (m.readLE (p + 8) 8)
+  simp only [Nat.reducePow] at h4 h4' e
+  omega
+
+theorem bswap16 (v : Nat) (hv : v < 65536) :
+    ((BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v))) &&& 18446744073709486080#64 |||
+      BitVec.setWidth 64 ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8)).toNat
+      = v % 256 * 256 + v / 256 := by
+  simp [BitVec.toNat_or, BitVec.toNat_and, BitVec.rotateLeft, BitVec.rotateLeftAux]
+  have h0 : v % 65536 = v := Nat.mod_eq_of_lt hv
+  have h1 : v % 65536 % 18446744073709551616 = v := by omega
+  rw [h1, h0]
+  have hand : v &&& 18446744073709486080 = 0 := by
+    apply Nat.eq_of_testBit_eq
+    intro i
+    rw [Nat.testBit_and]
+    have hm : (18446744073709486080 : Nat) = 2 ^ 16 * 281474976710655 + 0 := by decide
+    by_cases hi : i < 16
+    · rw [hm, Nat.testBit_two_pow_mul_add _ (by decide : (0:Nat) < 2 ^ 16)]
+      simp [hi]
+    · have : v.testBit i = false := Nat.testBit_lt_two_pow (Nat.lt_of_lt_of_le (by simpa using hv : v < 2 ^ 16) (Nat.pow_le_pow_right (by decide : 2 > 0) (by omega : 16 ≤ i)))
+      simp [this]
+  rw [hand, Nat.zero_or]
+  have e1 : v <<< 8 % 65536 = v % 256 * 256 := by
+    simp only [Nat.shiftLeft_eq]; omega
+  have e2 : v >>> 8 = v / 256 := by rw [Nat.shiftRight_eq_div_pow]
+  rw [e1, e2, Nat.or_comm]
+  have e3 : v % 256 * 256 % 18446744073709551616 = v % 256 * 256 := by omega
+  rw [e3]
+  have := or_hi (v / 256) (v % 256) 8 (by omega)
+  simp only [Nat.reducePow] at this
+  omega
+theorem rd2_lt (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 2 < 65536 := by
+  simpa using Janus.Arm64.Memory.readLE_lt m a 2
+
+theorem rd2_bytes (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 2 = m.readLE a 1 + 256 * m.readLE (a + 1) 1 := by
+  rw [show 2 = 1 + 1 from rfl, Janus.Arm64.Memory.readLE_add]
+
+theorem bswap16n (v : Nat) (hv : v < 65536) :
+    (((BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v))) &&& 18446744073709486080#64).toNat |||
+      (BitVec.setWidth 64 ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8)).toNat)
+      = v % 256 * 256 + v / 256 := by
+  have := bswap16 v hv
+  rwa [BitVec.toNat_or] at this
+
+theorem bswap16m (v : Nat) (hv : v < 65536) :
+    (((BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v))) &&& 18446744073709486080#64).toNat |||
+      ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8).toNat)
+      = v % 256 * 256 + v / 256 := by
+  have := bswap16n v hv
+  have h : (BitVec.setWidth 64 ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8)).toNat =
+      ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8).toNat := by
+    rw [BitVec.toNat_setWidth]
+    exact Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le (BitVec.isLt _) (by decide))
+  rwa [h] at this
+
+theorem bswap16w (v : Nat) (hv : v < 65536) :
+    (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.setWidth 16
+      ((BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v))) &&& 18446744073709486080#64 |||
+        BitVec.setWidth 64 ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8))))).toNat
+      = v % 256 * 256 + v / 256 := by
+  have h := bswap16 v hv
+  have h2 : v % 256 * 256 + v / 256 < 65536 := by omega
+  have e1 : (v % 256 * 256 + v / 256) % 65536 = v % 256 * 256 + v / 256 := Nat.mod_eq_of_lt h2
+  have e2 : (v % 256 * 256 + v / 256) % 4294967296 = v % 256 * 256 + v / 256 := Nat.mod_eq_of_lt (Nat.lt_trans h2 (by decide))
+  have e3 : (v % 256 * 256 + v / 256) % 18446744073709551616 = v % 256 * 256 + v / 256 := Nat.mod_eq_of_lt (Nat.lt_trans h2 (by decide))
+  simp only [BitVec.toNat_setWidth, h, e1, e2, e3, Nat.reducePow]
+
+theorem bswap16x (v : Nat) (hv : v < 65536) :
+    (((BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v))) &&& 18446744073709486080#64).toNat |||
+      (((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8).toNat % 18446744073709551616))
+      = v % 256 * 256 + v / 256 := by
+  have := bswap16m v hv
+  have h : ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8).toNat % 18446744073709551616 =
+      ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8).toNat :=
+    Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le (BitVec.isLt _) (by decide))
+  rwa [← h] at this
+
 end Fv256.Util

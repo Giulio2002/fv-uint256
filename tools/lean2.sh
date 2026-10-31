@@ -5,7 +5,14 @@
 FV_ROOT=${FV_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
 I=$1; F=$2; D=$(echo ${I:0:1}|tr a-z A-Z)${I:1}
 C=${FV_CACHE:-$(ls -dt $HOME/.cache/janus/v1/consumer/*/ | head -1)}
-W=${3:-$C/$(ls -t $C | grep -v lock | head -1)}
+W=$3
+if [ -z "$W" ]; then
+  for d in $(ls -dt $HOME/.cache/janus/v1/consumer/*/*/ 2>/dev/null); do
+    o=$d/janus/.lake/build/lib/lean/Extracted.olean
+    if grep -qaP "\\(\\*Int\\)\\.$F\\x00" $o 2>/dev/null || grep -qaP "uint256\\.$F\\x00" $o 2>/dev/null; then W=${d%/}; break; fi
+  done
+fi
+[ -n "$W" ] || { echo "no workspace found for $F (run v.sh first)"; exit 2; }
 L=$(command -v lean || echo $HOME/.elan/bin/lean)
 MC=""; command -v memcap >/dev/null && MC=memcap
 cd "$FV_ROOT/lean"

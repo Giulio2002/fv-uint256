@@ -23,13 +23,17 @@ s = s.replace('(s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24', f'(s0.
 s = s.replace('((s.regs regSP).toNat - 8) 32)', f'((s.regs regSP).toNat - {below}) {below+above})').replace('((s0.regs regSP).toNat - 8) 32', f'((s0.regs regSP).toNat - {below}) {below+above}')
 s = s.replace('window `[RSP-8, RSP+24)`', f'window `[RSP-{below}, RSP+{above})`')
 if n != 32:
-    s = s.replace("(hpre : StackWritable s 16 24)", "(hpre : StackWritable s 16 24)")
+    s = s.replace("(hpre : StackWritable s 16 24) :", "(hpre : StackWritable s 16 24) (hzb : Buffer s z 32 true) :")
+    s = s.replace("  obtain ⟨hle, hnw, hacc⟩ := hpre\n", "  obtain ⟨hle, hnw, hacc⟩ := hpre\n  obtain ⟨hzw, hz⟩ := hzb\n")
 if mode == 'full':
     hv = ''.join(f"have := Util.rd1_lt s.mem (ptr.toNat{'' if i==0 else ' + '+str(i)}); " for i in range(n))
     BV = "BitVec.toNat_or, BitVec.toNat_shiftLeft, BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.shiftLeft_eq, Util.rd4mod, Util.rd2mod, Util.rd1mod, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod, Util.bv128_zero_toNat, Nat.sub_self, Nat.pow_zero, Nat.div_one, Nat.zero_mod, Nat.zero_div, Nat.mul_zero, Nat.add_zero, Util.revBytes_readLE"
     Z = "Util.bv128_zero_toNat, Nat.sub_self, Nat.pow_zero, Nat.div_one, Nat.zero_mod, Nat.zero_div, Nat.mul_zero, Nat.add_zero"
     BV = BV.replace(", Util.bv128_zero_toNat, Nat.sub_self, Nat.pow_zero, Nat.div_one, Nat.zero_mod, Nat.zero_div, Nat.mul_zero, Nat.add_zero", "")
-    T = ("  · " + hv + f"(try simp only [{Z}]); (try simp only [{BV}]); all_goals (simp only [Spec.fromBE, Nat.add_zero, Nat.reducePow, Nat.reduceAdd, Nat.add_assoc, Nat.zero_add]; "
+    h2 = ''.join(f"have := Util.rd2_lt s.mem (ptr.toNat{'' if i==0 else ' + '+str(i)}); " for i in range(max(n-1,1)))
+    def _a(i): return "ptr.toNat" + ('' if i == 0 else ' + ' + str(i))
+    h2 += ''.join(f"have h2b{i} : s.mem.readLE ({_a(i)}) 2 = s.mem.readLE ({_a(i)}) 1 + 256 * s.mem.readLE ({_a(i+1)}) 1 := Util.rd2_bytes s.mem ({_a(i)}); " for i in range(max(n-1,1)))
+    T = ("  · " + hv + h2 + f"(try simp only [{Z}]); (try simp (disch := omega) only [Util.bswap16w, Util.bswap16, Util.bswap16n, Util.bswap16m, Util.bswap16x]); (try simp only [{BV}]); (try simp (disch := omega) only [Util.bswap16w, Util.bswap16, Util.bswap16n, Util.bswap16m, Util.bswap16x]); all_goals (simp only [Spec.fromBE, Nat.add_zero, Nat.reducePow, Nat.reduceAdd, Nat.add_assoc, Nat.zero_add]; "
          "(try simp (disch := omega) only [Util.or_hi16, Util.or_hi24, Util.or_hi32, Util.or_hi40, Util.or_hi48, Util.or_hi56, Util.orc_hi16, Util.orc_hi24, Util.orc_hi32, Util.orc_hi40, Util.orc_hi48, Util.orc_hi56, Nat.mod_eq_of_lt]); (try omega))\n")
     i = s.index("  refine ⟨?_, ?_⟩\n  · rw [Util.be32_rev]")
     j = s.index("  · simp (disch := omega) only [Util.ow2_wl_iff")
