@@ -28,7 +28,7 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).SetFromHex` | (a) | todo | todo | fromHex loop; error returns are interface values loaded from globals ErrXxx (writable .data: precondition must supply) |
 | `(*uint256.Int).MarshalJSON` | (d) | todo | todo | Dec + concatbyte3 + string/slice runtime |
 | `(*uint256.Int).MarshalSSZ` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MarshalSSZ.lean; runtime.makeslice contract (growslice calls are inlined away: capacity is known); allocator witness inside |
-| `(*uint256.Int).MarshalSSZAppend` | (b) | blocked | blocked | the code calls runtime.growslice with et=uint8 (element size 1, num=8); the pinned GrowsliceContract covers only 8-byte pointer-free elements (growCap8). Needs a growslice contract for 1-byte elements (roundupsize(nextslicecap*1)); asked main |
+| `(*uint256.Int).MarshalSSZAppend` | (b) | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
 | `(*uint256.Int).MarshalSSZInto` | (d) | todo | todo | error path calls fmt.Errorf (not extractable: sync.Pool, interfaces); success path only provable if a contract for fmt.Errorf is permitted |
 | `(*uint256.Int).MarshalText` | (d) | todo | todo | Dec + stringtoslicebyte |
 | `(*uint256.Int).UnmarshalJSON` | (b) | todo | todo | SetFromDecimal / UnmarshalText |
