@@ -10,6 +10,8 @@ export LEAN_NUM_THREADS="${LEAN_NUM_THREADS:-4}" JANUS_JOBS="${JANUS_JOBS:-2}"
 TMO="${PER_FN_TIMEOUT:-1800}"
 MC=""; command -v memcap >/dev/null && MC=memcap
 mkdir -p build
+# the proofs depend on the pinned Janus revision through lake (lean/lakefile.toml): fetch it once
+if [ ! -d lean/.lake/packages/janus ]; then (cd lean && lake update janus) || { echo "lake update janus failed"; exit 2; }; fi
 # functions whose code calls the Go allocator: extracted with the runtime.newobject contract (see their theorem statements)
 CONTRACT_FNS="Clone NewInt"
 for a in arm64 amd64; do
