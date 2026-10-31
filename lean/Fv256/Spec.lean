@@ -101,6 +101,9 @@ def lsh (x n : Nat) : Nat := (x * 2 ^ n) % W
 /-- `z.Rsh(x, n)`: logical shift right by `n` bits (zero once `n ≥ 256`). -/
 def rsh (x n : Nat) : Nat := x / 2 ^ n
 
+/-- `z.SRsh(x, n)`: arithmetic shift right of the two's-complement reading of `x` by `n` bits (floor division), as `~(~x >> n)` for negative `x`. -/
+def srsh (x n : Nat) : Nat := if x < W / 2 then x / 2 ^ n else W - 1 - (W - 1 - x) / 2 ^ n
+
 /-- `x.Uint64WithOverflow()` overflow flag: the number does not fit in 64 bits. -/
 def uint64Ov (x : Nat) : Bool := decide (2 ^ 64 ≤ x)
 

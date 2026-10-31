@@ -69,7 +69,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Rsh` | verified | verified | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |
 | `(*uint256.Int).SDiv` | todo | todo | |
 | `(*uint256.Int).SMod` | todo | todo | |
-| `(*uint256.Int).SRsh` | todo | todo | |
+| `(*uint256.Int).SRsh` | todo | todo | lean/Fv256/{Arm64,Amd64}/SRsh.lean |
 | `(*uint256.Int).Scan` | todo | todo | |
 | `(*uint256.Int).Set` | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
 | `(*uint256.Int).SetAllOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetAllOne.lean |

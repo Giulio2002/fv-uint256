@@ -1324,9 +1324,9 @@ theorem sb_val4 (m : Janus.Arm64.Memory) (p z : Nat) :
         (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
     Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
   have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]; simp
+    simp [bv128_zero_toNat]
   have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]
+    simp [bv128_zero_toNat]
   have h3 : Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) = Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
     rw [rd4mod]; exact revBytes_readLE m p 4
   have h4 : Spec.fromBE (fun i => m.readLE (p + i) 1) 4 < 4294967296 := by
@@ -1343,9 +1343,9 @@ theorem sb_val8 (m : Janus.Arm64.Memory) (p z : Nat) :
         (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
     Spec.fromBE (fun i => m.readLE (p + i) 1) 8 := by
   have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]; simp
+    simp [bv128_zero_toNat]
   have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]
+    simp [bv128_zero_toNat]
   have h3 : Janus.Arm64.revBytesNat 8 (m.readLE p 8) = Spec.fromBE (fun i => m.readLE (p + i) 1) 8 :=
     revBytes_readLE m p 8
   have h4 := revBytes_lt 8 (m.readLE p 8)
@@ -1361,9 +1361,9 @@ theorem sb_val12 (m : Janus.Arm64.Memory) (p z : Nat) :
         (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
     Spec.fromBE (fun i => m.readLE (p + i) 1) 12 := by
   have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]; simp
+    simp [bv128_zero_toNat]
   have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]
+    simp [bv128_zero_toNat]
   have e : Spec.fromBE (fun i => m.readLE (p + i) 1) 12 =
       Spec.fromBE (fun i => m.readLE (p + i) 1) 4 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (4 + i)) 1) 8 :=
     fromBE_add _ 4 8
@@ -1385,9 +1385,9 @@ theorem sb_val16 (m : Janus.Arm64.Memory) (p z : Nat) :
         (BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616) =
     Spec.fromBE (fun i => m.readLE (p + i) 1) 16 := by
   have h1 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 256 ^ (z - z) % 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]; simp
+    simp [bv128_zero_toNat]
   have h2 : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) / 18446744073709551616 = 0 := by
-    rw [bv128_zero_toNat]
+    simp [bv128_zero_toNat]
   have e : Spec.fromBE (fun i => m.readLE (p + i) 1) 16 =
       Spec.fromBE (fun i => m.readLE (p + i) 1) 8 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (8 + i)) 1) 8 :=
     fromBE_add _ 8 8
@@ -1473,5 +1473,163 @@ theorem bswap16x (v : Nat) (hv : v < 65536) :
       ((BitVec.setWidth 16 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 16 v)))).rotateLeft 8).toNat :=
     Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le (BitVec.isLt _) (by decide))
   rwa [← h] at this
+
+
+-- SRsh helpers
+theorem srsh_core (X n : Nat) (hX : X < 2 ^ 256) (hn : n ≤ 256) :
+    2 ^ 256 - 1 - (2 ^ 256 - 1 - X) / 2 ^ n = X / 2 ^ n + (2 ^ 256 - 2 ^ (256 - n)) := by
+  have hd : 0 < 2 ^ n := Nat.two_pow_pos n
+  have hde : 2 ^ n * 2 ^ (256 - n) = 2 ^ 256 := by
+    rw [← Nat.pow_add, show n + (256 - n) = 256 by omega]
+  generalize hD : 2 ^ n = d at *
+  generalize hE : 2 ^ (256 - n) = e at *
+  generalize (2:Nat) ^ 256 = Wv at *
+  have hq : X / d < e := by
+    rw [Nat.div_lt_iff_lt_mul hd, Nat.mul_comm, hde]; exact hX
+  have h1 := Nat.div_add_mod X d
+  have h2 := Nat.mod_lt X hd
+  generalize X / d = q at *
+  generalize X % d = r at *
+  have heW : e ≤ Wv := by rw [← hde]; exact Nat.le_mul_of_pos_left e hd
+  obtain ⟨k, hk⟩ : ∃ k, e = q + 1 + k := ⟨e - q - 1, by omega⟩
+  subst hk
+  have hW : Wv = d * q + d + d * k := by rw [← hde, Nat.mul_add, Nat.mul_add, Nat.mul_one]
+  have : (Wv - 1 - X) / d = k := by
+    apply Nat.div_eq_of_lt_le
+    · rw [Nat.mul_comm]; omega
+    · rw [Nat.add_mul, Nat.one_mul, Nat.mul_comm]; omega
+  rw [this]
+  omega
+
+theorem srsh_pos (X n : Nat) (h : X < 2 ^ 255) : Spec.srsh X n = Spec.rsh X n := by
+  have : Spec.W / 2 = 2 ^ 255 := by decide
+  simp only [Spec.srsh, Spec.rsh, this, if_pos h]
+
+theorem srsh_pos' (X n : Nat) (h : X < 2 ^ 255) : Spec.srsh X n = X / 2 ^ n := srsh_pos X n h
+
+theorem srsh_neg_big (X n : Nat) (hX : X < 2 ^ 256) (hn : 256 ≤ n) (h : 2 ^ 255 ≤ X) : Spec.srsh X n = 2 ^ 256 - 1 := by
+  have : Spec.W / 2 = 2 ^ 255 := by decide
+  have hlt : (2 ^ 256 - 1 - X) / 2 ^ n = 0 := by
+    apply Nat.div_eq_of_lt
+    calc 2 ^ 256 - 1 - X < 2 ^ 256 := by omega
+      _ ≤ 2 ^ n := Nat.pow_le_pow_right (by decide) hn
+  simp only [Spec.srsh, this, show ¬ (X < 2 ^ 255) from by omega, if_false]
+  simp only [Spec.W]
+  rw [hlt]
+
+theorem srsh_neg (X n : Nat) (hX : X < 2 ^ 256) (hn : n ≤ 256) (h : 2 ^ 255 ≤ X) :
+    Spec.srsh X n = X / 2 ^ n + (2 ^ 256 - 2 ^ (256 - n)) := by
+  have : Spec.W / 2 = 2 ^ 255 := by decide
+  simp only [Spec.srsh, this, show ¬ (X < 2 ^ 255) from by omega, if_false]
+  exact srsh_core X n hX hn
+
+
+theorem sign_iff (a : Nat) (ha : a < 18446744073709551616) :
+    ((BitVec.ofNat 64 a).getLsbD 63 == false) = decide (a < 9223372036854775808) := by
+  rw [BitVec.getLsbD_ofNat, Nat.testBit_eq_decide_div_mod_eq]
+  have h : a / 2 ^ 63 < 2 := by omega
+  have h2 : a / 2 ^ 63 % 2 = a / 2 ^ 63 := Nat.mod_eq_of_lt h
+  by_cases hc : a < 9223372036854775808
+  · have : a / 2 ^ 63 = 0 := by omega
+    simp [this, hc]
+  · have : a / 2 ^ 63 = 1 := by omega
+    simp [this, hc]
+
+theorem msb_pos (a : Nat) (ha : a < 18446744073709551616) (h : ((BitVec.ofNat 64 a).getLsbD 63 == false) = true) : a < 9223372036854775808 := by
+  rw [sign_iff a ha] at h; simpa using h
+theorem msb_neg (a : Nat) (ha : a < 18446744073709551616) (h : ¬((BitVec.ofNat 64 a).getLsbD 63 == false) = true) : 9223372036854775808 ≤ a := by
+  rw [sign_iff a ha] at h; simpa using h
+
+theorem mask_val (r : Nat) (hr : 0 < r) (hr2 : r < 64) :
+    (if 64 - r < 64 then -BitVec.ofNat 64 (2 ^ ((64 - r) % 64)) else 0#64).toNat =
+      18446744073709551616 - 2 ^ (64 - r) := by
+  have hc : 64 - r < 64 := by omega
+  simp only [hc, if_true, BitVec.toNat_neg, BitVec.toNat_ofNat]
+  rw [Nat.mod_eq_of_lt (by omega : 64 - r < 64)]
+  have hp : 2 ^ (64 - r) < 18446744073709551616 := by
+    calc 2 ^ (64 - r) < 2 ^ 64 := Nat.pow_lt_pow_right (by decide) (by omega)
+      _ = 18446744073709551616 := by decide
+  have hq : 2 ^ (64 - r) % 18446744073709551616 = 2 ^ (64 - r) := Nat.mod_eq_of_lt hp
+  show (2 ^ 64 - 2 ^ (64 - r) % 2 ^ 64) % 2 ^ 64 = _
+  have h64 : (2:Nat) ^ 64 = 18446744073709551616 := by decide
+  rw [h64, hq]
+  have := Nat.two_pow_pos (64 - r)
+  omega
+
+theorem top_val (a r : Nat) (ha : a < 18446744073709551616) (hr : r < 64) :
+    (a / 2 ^ r ||| (if 64 - r < 64 then -BitVec.ofNat 64 (2 ^ ((64 - r) % 64)) else 0#64).toNat) % 18446744073709551616 =
+      a / 2 ^ r + (18446744073709551616 - 2 ^ (64 - r)) := by
+  by_cases h0 : r = 0
+  · subst h0
+    simp only [show ¬ (64 - 0 < 64) from by decide, if_false, BitVec.toNat_ofNat, Nat.pow_zero, Nat.div_one, if_true]
+    have e : (18446744073709551616 : Nat) - 2 ^ (64 - 0) = 0 := by decide
+    rw [e]
+    show (a ||| 0) % _ = a + 0
+    simp [Nat.mod_eq_of_lt ha]
+  · rw [mask_val r (by omega) hr]
+    have h := pq_eq r (by omega)
+    have hP : 0 < 2 ^ r := Nat.two_pow_pos r
+    have hS : 0 < 2 ^ (64 - r) := Nat.two_pow_pos _
+    have hv : a / 2 ^ r < 2 ^ (64 - r) := by
+      rw [Nat.div_lt_iff_lt_mul hP, Nat.mul_comm, h]; exact ha
+    have hm : 18446744073709551616 - 2 ^ (64 - r) = (2 ^ r - 1) * 2 ^ (64 - r) := by
+      rw [Nat.sub_mul, Nat.one_mul, h]
+    rw [hm, or_hi _ _ _ hv]
+    have : (2 ^ r - 1) * 2 ^ (64 - r) + 2 ^ (64 - r) = 18446744073709551616 := by
+      rw [← Nat.succ_mul, Nat.succ_eq_add_one, Nat.sub_add_cancel hP, h]
+    apply Nat.mod_eq_of_lt
+    omega
+
+theorem pw_le (t : Nat) (ht : t ≤ 64) : 2 ^ (64 - t) ≤ 18446744073709551616 := by
+  calc 2 ^ (64 - t) ≤ 2 ^ 64 := Nat.pow_le_pow_right (by decide) (by omega)
+    _ = 18446744073709551616 := by decide
+
+theorem sub_aux (lo t : Nat) (ht : t < 64) (hlo : lo ≤ 192) :
+    18446744073709551616 - (lo + t) - (18446744073709551616 - lo - 64) = 64 - t := by omega
+
+theorem sub_aux2 (t : Nat) (ht : t < 64) :
+    18446744073709551616 - t - 18446744073709551552 = 64 - t := by omega
+
+theorem msb_f (a : Nat) (ha : a < 18446744073709551616) (h : a < 9223372036854775808) :
+    (BitVec.ofNat 64 a).getLsbD 63 = false := by
+  have := sign_iff a ha
+  simp [h] at this
+  exact this
+
+theorem msb_t (a : Nat) (ha : a < 18446744073709551616) (h : 9223372036854775808 ≤ a) :
+    (BitVec.ofNat 64 a).getLsbD 63 = true := by
+  have := sign_iff a ha
+  have h2 : ¬ (a < 9223372036854775808) := by omega
+  simp [h2] at this
+  exact this
+
+theorem top_amd (a n : Nat) (ha : a < 18446744073709551616) (hn : n % 64 ≠ 0) (hn2 : n < 18446744073709551616) :
+    ((18446744073709551615#64 <<< ((18446744073709551616 - n) % 64) &&&
+        (if 18446744073709551616 - (18446744073709551552 + n % 64) < 64 then 18446744073709551615#64 else 0#64)) |||
+      BitVec.ofNat 64 a >>> (n % 64)).toNat = a / 2 ^ (n % 64) + (18446744073709551616 - 2 ^ (64 - n % 64)) := by
+  have hr1 : 1 ≤ n % 64 := by omega
+  have hr2 : n % 64 < 64 := by omega
+  generalize hr : n % 64 = r at *
+  have hs : (18446744073709551616 - n) % 64 = 64 - r := by omega
+  have hc : 18446744073709551616 - (18446744073709551552 + r) < 64 := by omega
+  rw [hs]
+  simp only [hc, ite_true]
+  rw [BitVec.toNat_or, BitVec.toNat_and, BitVec.toNat_shiftLeft, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat]
+  simp only [Nat.shiftLeft_eq, Nat.shiftRight_eq_div_pow]
+  have hP : 2 ^ (64 - r) ≤ 18446744073709551616 := pw_le r (by omega)
+  have h := pq_eq r (by omega)
+  have hP0 : 0 < 2 ^ r := Nat.two_pow_pos r
+  have hS0 : 0 < 2 ^ (64 - r) := Nat.two_pow_pos _
+  simp only [Nat.reducePow, Nat.reduceMod, BitVec.toNat_ofNat]
+  have hm : 18446744073709551615 * 2 ^ (64 - r) % 18446744073709551616 = 18446744073709551616 - 2 ^ (64 - r) := by
+    generalize 2 ^ (64 - r) = P at *
+    omega
+  rw [hm, and_ones_lt _ (by omega)]
+  have hv : a % 18446744073709551616 / 2 ^ r < 2 ^ (64 - r) := by
+    rw [Nat.mod_eq_of_lt ha, Nat.div_lt_iff_lt_mul hP0, Nat.mul_comm, h]; exact ha
+  have hm2 : 18446744073709551616 - 2 ^ (64 - r) = (2 ^ r - 1) * 2 ^ (64 - r) := by
+    rw [Nat.sub_mul, Nat.one_mul, h]
+  rw [Nat.mod_eq_of_lt ha] at hv ⊢
+  rw [Nat.or_comm, hm2, or_hi _ _ _ hv]
 
 end Fv256.Util
