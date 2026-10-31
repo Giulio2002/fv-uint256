@@ -51,6 +51,8 @@ as an *input*: we verify the produced binary, not the compiler. Single-threaded 
 ```sh
 git clone https://github.com/Giulio2002/Janus && git -C Janus checkout 8304911078076875d0007cf0dc03677a05e19c8a
 (cd Janus && go build -o bin/janus ./cmd/janus)
+# requirements: a Go toolchain (GO=/path/to/go, or `go` on PATH, or /usr/local/go/bin/go; the script pins GOTOOLCHAIN=go1.26.0),
+# the Janus binary (JANUS=), lake/Lean (via elan) and network access for the first `lake update janus`
 JANUS=$PWD/Janus/bin/janus scripts/verify-all.sh          # every function marked verified, both ISAs, summary table
 JANUS=... scripts/verify-all.sh IsZero And                 # a subset
 ```
