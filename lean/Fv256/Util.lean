@@ -2142,4 +2142,42 @@ theorem b20a_loc2 (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
   rw [h16, r1, r2]
 end B20
 
+-- MulOverflow helper
+set_option exponentiation.threshold 600 in
+theorem mo_flag (a b c d xv yv : Nat) (hx : xv < 2 ^ 256) (hy : yv < 2 ^ 256)
+    (ha : a = xv * yv / 2 ^ 256 % 2 ^ 64) (hb : b = xv * yv / 2 ^ 320 % 2 ^ 64)
+    (hc : c = xv * yv / 2 ^ 384 % 2 ^ 64) (hd : d = xv * yv / 2 ^ 448 % 2 ^ 64) :
+    (if a ||| b ||| c ||| d = 0 then 0#64 else 1#64).toNat =
+      if Spec.W ≤ xv * yv then 1 else 0 := by
+  have hP : xv * yv < 2 ^ 512 := by
+    calc xv * yv < 2 ^ 256 * 2 ^ 256 := Nat.mul_lt_mul'' hx hy
+      _ = 2 ^ 512 := by rw [← Nat.pow_add]
+  have hM : (18446744073709551616 : Nat) = 2 ^ 64 := by decide
+  have hor : a ||| b ||| c ||| d = 0 ↔ (a = 0 ∧ b = 0 ∧ c = 0 ∧ d = 0) := by
+    constructor
+    · intro h
+      have h1 := Nat.or_eq_zero_iff.mp h
+      have h2 := Nat.or_eq_zero_iff.mp h1.1
+      have h3 := Nat.or_eq_zero_iff.mp h2.1
+      exact ⟨h3.1, h3.2, h2.2, h1.2⟩
+    · rintro ⟨rfl, rfl, rfl, rfl⟩; rfl
+  have hW : Spec.W = 2 ^ 256 := rfl
+  by_cases h0 : xv * yv < 2 ^ 256
+  · have : a ||| b ||| c ||| d = 0 := by
+      rw [hor]
+      generalize xv * yv = P at *
+      simp only [Nat.reducePow] at *
+      omega
+    simp only [this, ite_true]
+    have : ¬ Spec.W ≤ xv * yv := by rw [hW]; omega
+    simp [this]
+  · have : ¬ a ||| b ||| c ||| d = 0 := by
+      rw [hor]
+      generalize xv * yv = P at *
+      simp only [Nat.reducePow] at *
+      omega
+    simp only [this, ite_false]
+    have : Spec.W ≤ xv * yv := by rw [hW]; omega
+    simp [this]
+
 end Fv256.Util
