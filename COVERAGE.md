@@ -23,7 +23,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).ByteLen` | todo | todo | |
 | `(*uint256.Int).Bytes` | todo | todo | |
 | `(*uint256.Int).Bytes20` | todo | todo | |
-| `(*uint256.Int).Bytes32` | todo | todo | |
+| `(*uint256.Int).Bytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes32.lean |
 | `(*uint256.Int).Clear` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clear.lean |
 | `(*uint256.Int).Clone` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clone.lean; uses the runtime.newobject allocation contract (hypothesis hnew); no concrete Witness state |
 | `(*uint256.Int).Cmp` | verified | verified | lean/Fv256/{Arm64,Amd64}/Cmp.lean |

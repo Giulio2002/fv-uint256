@@ -1194,4 +1194,32 @@ theorem shr_or_bv (a b t : Nat) (ht : t < 64) (ha : a < 18446744073709551616) (h
     rw [Nat.mod_eq_of_lt (by omega : 64 - t < 64)] at this
     exact this
 
+theorem rd16 (m : Janus.Arm64.Memory) (a : Nat) :
+    m.readLE a 16 = m.readLE a 8 + 18446744073709551616 * m.readLE (a + 8) 8 := by
+  rw [show 16 = 8 + 8 from rfl, Janus.Arm64.Memory.readLE_add]
+
+section W16sec
+open Janus.Arm64
+
+theorem w16_lo (m : Memory) (a v : Nat) : (m.writeLE a 16 v).readLE a 8 = v % 18446744073709551616 := by
+  have := Memory.readLE_writeLE_inside (m := m) (a := a) (n := 16) (b := a) (k := 8) v (Nat.le_refl _) (by omega)
+  rw [this]; simp
+
+theorem w16_hi (m : Memory) (a v : Nat) : (m.writeLE a 16 v).readLE (a + 8) 8 = v / 18446744073709551616 % 18446744073709551616 := by
+  have := Memory.readLE_writeLE_inside (m := m) (a := a) (n := 16) (b := a + 8) (k := 8) v (by omega) (by omega)
+  rw [this]; simp
+
+end W16sec
+
+theorem readLE_writeLE_eq (m : Janus.Arm64.Memory) {a b n : Nat} (v : Nat) (h : b = a) :
+    (m.writeLE a n v).readLE b n = v % 256 ^ n := by
+  subst h; exact Janus.Arm64.Memory.readLE_writeLE_self m b n v
+
+theorem lo16 (A B : Nat) (hA : A < 18446744073709551616) : (A + 18446744073709551616 * B) % 18446744073709551616 = A := by
+  omega
+
+theorem hi16 (A B : Nat) (hA : A < 18446744073709551616) (hB : B < 18446744073709551616) :
+    (A + 18446744073709551616 * B) / 18446744073709551616 % 18446744073709551616 = B := by
+  omega
+
 end Fv256.Util
