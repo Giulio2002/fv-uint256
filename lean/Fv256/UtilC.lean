@@ -374,6 +374,95 @@ theorem mask32b (cap : BitVec 64) (h1 : 32 ≤ cap.toNat) (h2 : cap.toNat < 2 ^ 
     simp only [decide_eq_true_eq]
     omega
 
+/-! ## hexadecimal sums -/
+
+theorem hexSum_add (b : Nat → Nat) (a m n : Nat) :
+    hexSum b a (m + n) = hexSum b a m * 16 ^ n + hexSum b (a + m) n := by
+  induction n with
+  | zero => simp [hexSum]
+  | succ n ih =>
+    rw [← Nat.add_assoc]
+    simp only [hexSum]
+    rw [ih, Nat.pow_succ]
+    have : a + (m + n) = a + m + n := by omega
+    rw [this]
+    simp only [Nat.add_mul, Nat.mul_assoc, Nat.mul_comm 16 (16 ^ n)]
+    omega
+
+theorem hexDigit_lt (b : Nat → Nat) (k : Nat) : hexDigit b k < 16 := by
+  unfold hexDigit hexNib
+  generalize b k = c
+  by_cases h1 : 48 ≤ c ∧ c ≤ 57
+  · simp [h1]; omega
+  · by_cases h2 : 97 ≤ c ∧ c ≤ 102
+    · simp [h1, h2]; omega
+    · by_cases h3 : 65 ≤ c ∧ c ≤ 70
+      · simp [h1, h2, h3]; omega
+      · simp [h1, h2, h3]
+
+theorem hexSum_lt (b : Nat → Nat) (a n : Nat) : hexSum b a n < 16 ^ n := by
+  induction n with
+  | zero => simp [hexSum]
+  | succ n ih =>
+    simp only [hexSum, Nat.pow_succ]
+    have : hexDigit b (a + n) < 16 := hexDigit_lt b _
+    omega
+
+/-- the end of limb `j`'s digits (from the least significant end): `max (len - 16 j) 2`. -/
+def hexEnd (len j : Nat) : Nat := max (len - 16 * j) 2
+
+/-- the value of limb `j`: the digits in `[hexEnd (j+1), hexEnd j)`. -/
+def hexLimb (b : Nat → Nat) (len j : Nat) : Nat := hexSum b (hexEnd len (j + 1)) (hexEnd len j - hexEnd len (j + 1))
+
+theorem hexLimb_lt (b : Nat → Nat) (len j : Nat) (h : hexEnd len j - hexEnd len (j + 1) ≤ 16) : hexLimb b len j < 2 ^ 64 := by
+  unfold hexLimb
+  have := hexSum_lt b (hexEnd len (j + 1)) (hexEnd len j - hexEnd len (j + 1))
+  have h2 : 16 ^ (hexEnd len j - hexEnd len (j + 1)) ≤ 16 ^ 16 := Nat.pow_le_pow_right (by omega) h
+  have h3 : (16 : Nat) ^ 16 = 2 ^ 64 := by decide
+  omega
+
+theorem hexEnd_ge (len j : Nat) : 2 ≤ hexEnd len j := by unfold hexEnd; omega
+
+theorem hexEnd_succ_le (len j : Nat) : hexEnd len (j + 1) ≤ hexEnd len j := by unfold hexEnd; omega
+
+theorem hexLimb_chunk (len j : Nat) : hexEnd len j - hexEnd len (j + 1) ≤ 16 := by unfold hexEnd; omega
+
+/-- the value of the lowest `j` limbs. -/
+def hexW (b : Nat → Nat) (len : Nat) : Nat → Nat
+  | 0 => 0
+  | j + 1 => hexW b len j + hexLimb b len j * 2 ^ (64 * j)
+
+/-- digits from `hexEnd j` to the end are the limbs below `j`. -/
+theorem hexSum_tail (b : Nat → Nat) (len : Nat) (hl : 2 ≤ len) :
+    ∀ j, hexSum b (hexEnd len j) (len - hexEnd len j) = hexW b len j := by
+  intro j
+  induction j with
+  | zero =>
+    have : hexEnd len 0 = len := by unfold hexEnd; omega
+    rw [this]; simp [hexSum, hexW]
+  | succ j ih =>
+    have e1 := hexEnd_succ_le len j
+    have e2 := hexEnd_ge len (j + 1)
+    have hle : hexEnd len j ≤ len := by unfold hexEnd; omega
+    have hsplit : len - hexEnd len (j + 1) = (hexEnd len j - hexEnd len (j + 1)) + (len - hexEnd len j) := by omega
+    rw [hsplit, hexSum_add]
+    have h2 : hexEnd len (j + 1) + (hexEnd len j - hexEnd len (j + 1)) = hexEnd len j := by omega
+    rw [h2, ih]
+    simp only [hexW]
+    by_cases hc : 16 * j + 2 ≤ len
+    · have : len - hexEnd len j = 16 * j := by unfold hexEnd; omega
+      rw [this]
+      have hp : (16 : Nat) ^ (16 * j) = 2 ^ (64 * j) := by
+        rw [show (16 : Nat) = 2 ^ 4 by rfl, ← Nat.pow_mul]; congr 1; omega
+      rw [hp]
+      unfold hexLimb
+      omega
+    · have h3 : hexEnd len j = 2 := by unfold hexEnd; omega
+      have h4 : hexEnd len (j + 1) = 2 := by unfold hexEnd; omega
+      unfold hexLimb
+      rw [h3, h4]
+      simp [hexSum]
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,
