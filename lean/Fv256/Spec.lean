@@ -84,4 +84,13 @@ def subU (x n : Nat) : Nat := (x + W - n) % W
 /-- `z.SetUint64(n)`. -/
 def setU (n : Nat) : Nat := n
 
+
+/-- `x.BitLen()`: the number of significant bits (`0` for zero, otherwise `⌊log₂ x⌋ + 1`). -/
+def bitLen (x : Nat) : Nat := if x = 0 then 0 else Nat.log2 x + 1
+/-- `x.ByteLen()`: the number of bytes needed to hold the significant bits. -/
+def byteLen (x : Nat) : Nat := (bitLen x + 7) / 8
+/-- `z.Byte(n)` on the number `x`: the `n`-th byte of `x` counted from the most significant end
+(`n = 0` is the top byte); `0` when `n ≥ 32`. -/
+def byte (n x : Nat) : Nat := if n < 32 then x / 2 ^ (8 * (31 - n)) % 256 else 0
+
 end Fv256.Spec

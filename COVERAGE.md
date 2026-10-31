@@ -55,7 +55,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).MarshalSSZInto` | todo | todo | |
 | `(*uint256.Int).MarshalText` | todo | todo | |
 | `(*uint256.Int).Mod` | todo | todo | |
-| `(*uint256.Int).Mul` | verified | todo | arm64: lean/Fv256/Arm64/Mul.lean; amd64: statement in lean/Fv256/Amd64/Mul.lean, arithmetic proof running |
+| `(*uint256.Int).Mul` | verified | verified | lean/Fv256/{Arm64,Amd64}/Mul.lean; amd64 post allows the 16-byte stack scratch slot (OnlyWrites2) |
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |

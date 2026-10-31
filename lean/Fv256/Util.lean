@@ -572,4 +572,104 @@ theorem msb_m1 : (18446744073709551615#64).msb = true := by decide
 theorem msb_0 : (0#64).msb = false := by decide
 theorem msb_1 : (1#64).msb = false := by decide
 
+
+/-- `m'` agrees with `m` and has the same regions outside two byte ranges `[p, p+n)` and `[q, q+k)`:
+the result object and a callee's scratch (spill) slots below the stack pointer. -/
+def OnlyWrites2 (m m' : Janus.Arm64.Memory) (p n q k : Nat) : Prop :=
+  m'.regions = m.regions ∧ ∀ a, (a < p ∨ p + n ≤ a) → (a < q ∨ q + k ≤ a) → m'.bytes a = m.bytes a
+
+theorem ow2_refl (m : Janus.Arm64.Memory) (p n q k : Nat) : OnlyWrites2 m m p n q k := ⟨rfl, fun _ _ _ => rfl⟩
+
+theorem ow2_wl {m m' : Janus.Arm64.Memory} {p n q k a j : Nat} (v : Nat) (h : OnlyWrites2 m m' p n q k)
+    (h1 : p ≤ a) (h2 : a + j ≤ p + n) : OnlyWrites2 m (m'.writeLE a j v) p n q k :=
+  ⟨by rw [Janus.Arm64.Memory.regions_writeLE]; exact h.1, fun b hb hb' => by
+    rw [Janus.Arm64.Memory.bytes_writeLE_outside _ (by omega)]; exact h.2 b hb hb'⟩
+
+theorem ow2_wr {m m' : Janus.Arm64.Memory} {p n q k a j : Nat} (v : Nat) (h : OnlyWrites2 m m' p n q k)
+    (h1 : q ≤ a) (h2 : a + j ≤ q + k) : OnlyWrites2 m (m'.writeLE a j v) p n q k :=
+  ⟨by rw [Janus.Arm64.Memory.regions_writeLE]; exact h.1, fun b hb hb' => by
+    rw [Janus.Arm64.Memory.bytes_writeLE_outside _ (by omega)]; exact h.2 b hb hb'⟩
+
+theorem ow2_wl_iff {m m' : Janus.Arm64.Memory} {p n q k a j : Nat} (v : Nat)
+    (h1 : p ≤ a) (h2 : a + j ≤ p + n) :
+    OnlyWrites2 m (m'.writeLE a j v) p n q k ↔ OnlyWrites2 m m' p n q k :=
+  ⟨fun h => ⟨by rw [← Janus.Arm64.Memory.regions_writeLE m' a j v]; exact h.1, fun b hb hb' => by
+      rw [← h.2 b hb hb', Janus.Arm64.Memory.bytes_writeLE_outside _ (by omega)]⟩,
+   fun h => ow2_wl v h h1 h2⟩
+
+theorem ow2_wr_iff {m m' : Janus.Arm64.Memory} {p n q k a j : Nat} (v : Nat)
+    (h1 : q ≤ a) (h2 : a + j ≤ q + k) :
+    OnlyWrites2 m (m'.writeLE a j v) p n q k ↔ OnlyWrites2 m m' p n q k :=
+  ⟨fun h => ⟨by rw [← Janus.Arm64.Memory.regions_writeLE m' a j v]; exact h.1, fun b hb hb' => by
+      rw [← h.2 b hb hb', Janus.Arm64.Memory.bytes_writeLE_outside _ (by omega)]⟩,
+   fun h => ow2_wr v h h1 h2⟩
+
+theorem ow2_self_iff (m : Janus.Arm64.Memory) (p n q k : Nat) : OnlyWrites2 m m p n q k ↔ True :=
+  ⟨fun _ => trivial, fun _ => ow2_refl m p n q k⟩
+
+theorem clz_bl (n x : Nat) (hx : x < 2 ^ n) : Janus.Arm64.clzNat n x + Spec.bitLen x = n := by
+  induction n generalizing x with
+  | zero =>
+    have : x = 0 := by simpa using hx
+    subst this; simp [Janus.Arm64.clzNat, Spec.bitLen]
+  | succ n ih =>
+    unfold Janus.Arm64.clzNat
+    by_cases hb : x.testBit n = true
+    · have h1 : 2 ^ n ≤ x := Nat.ge_two_pow_of_testBit hb
+      have h2 : Nat.log2 x = n := by
+        rw [Nat.log2_eq_iff (by omega)]; exact ⟨h1, by simpa [Nat.pow_succ] using hx⟩
+      simp [hb, Spec.bitLen, h2]; omega
+    · have hb' : x.testBit n = false := by simpa using hb
+      have h3 : x < 2 ^ n := by
+        refine Classical.byContradiction fun hc => ?_
+        have h1 : 2 ^ n ≤ x := by omega
+        apply hb
+        rw [Nat.testBit_eq_decide_div_mod_eq]
+        have hd : x / 2 ^ n = 1 := Nat.div_eq_of_lt_le (by omega) (by rw [Nat.pow_succ] at hx; omega)
+        simp [hd]
+      simp only [hb', Bool.false_eq_true, ite_false]
+      have := ih x h3
+      omega
+
+theorem bl_split (k a c : Nat) (ha : a < 2 ^ k) : Spec.bitLen (a + 2 ^ k * c) = if c = 0 then Spec.bitLen a else k + Spec.bitLen c := by
+  by_cases hc : c = 0
+  · simp [hc]
+  · have hP : 0 < 2 ^ k := Nat.two_pow_pos k
+    have hm := (Nat.log2_eq_iff hc).mp rfl
+    obtain ⟨m1, m2⟩ := hm
+    have e1 : 2 ^ k * 2 ^ Nat.log2 c ≤ 2 ^ k * c := Nat.mul_le_mul_left _ m1
+    have e2 : 2 ^ k * (c + 1) ≤ 2 ^ k * 2 ^ (Nat.log2 c + 1) := Nat.mul_le_mul_left _ m2
+    have hne : a + 2 ^ k * c ≠ 0 := by
+      have : 0 < 2 ^ k * c := Nat.mul_pos hP (Nat.pos_of_ne_zero hc)
+      omega
+    have : Nat.log2 (a + 2 ^ k * c) = k + Nat.log2 c := by
+      rw [Nat.log2_eq_iff hne]
+      constructor
+      · rw [Nat.pow_add]; omega
+      · rw [show k + Nat.log2 c + 1 = k + (Nat.log2 c + 1) from by omega, Nat.pow_add]
+        rw [Nat.mul_add] at e2; omega
+    unfold Spec.bitLen; rw [if_neg hne, if_neg hc, this]; rw [if_neg hc]; omega
+
+theorem bl_4 (a0 a1 a2 a3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) :
+    Spec.bitLen (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3) =
+    if a3 ≠ 0 then 192 + Spec.bitLen a3 else if a2 ≠ 0 then 128 + Spec.bitLen a2 else if a1 ≠ 0 then 64 + Spec.bitLen a1 else Spec.bitLen a0 := by
+  have e : a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3 =
+      (a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2) + 2 ^ 192 * a3 := by omega
+  have l1 : a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2 < 2 ^ 192 := by omega
+  have s1 := bl_split 192 _ a3 l1
+  have l2 : a0 + 2 ^ 64 * a1 < 2 ^ 128 := by omega
+  have s2 := bl_split 128 _ a2 l2
+  have s3 := bl_split 64 a0 a1 (by omega)
+  rw [e, s1]
+  by_cases c3 : a3 = 0
+  · simp only [c3, if_true]
+    rw [show a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2 = (a0 + 2 ^ 64 * a1) + 2 ^ 128 * a2 by omega, s2]
+    by_cases c2 : a2 = 0
+    · simp only [c2, if_true]; rw [s3]; simp
+    · simp [c2]
+  · simp [c3]
+
 end Fv256.Util
