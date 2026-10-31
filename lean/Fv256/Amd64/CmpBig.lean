@@ -63,6 +63,7 @@ theorem correctness (z x pw len : BitVec 64) :
       have hl4 := Fv256.C.ovF _ hnov
       have hd3' := hd3
       rw [hl] at hd3'
+      rw [Util.readLE_32 _ (BitVec.toNat (s.regs 4) - 40), hval]
       rw [Fv256.C.bigAbs_stackframe64 s.mem _ _ _ _ _ _ pw.toNat _ (Nat.le_trans (by decide) hlow) hd3']
       rw [hl] at hsmall h0
       exact congrArg (BitVec.ofInt 64) (Fv256.C.cmpBig_core _ _ 0 _ hzlt
@@ -79,6 +80,7 @@ theorem correctness (z x pw len : BitVec 64) :
       have hnov := Fv256.C.noov_of64 _ _ hflag hbr
       have hl4 := Fv256.C.ovF _ hnov
       have hb0 := Fv256.C.bit0_8 _ hneg hbit
+      rw [Util.readLE_32 _ (BitVec.toNat (s.regs 4) - 40), hval]
       rw [Fv256.C.bigAbs_stackframe64 s.mem _ _ _ _ _ _ pw.toNat _ (Nat.le_trans (by decide) hlow) hd3]
       exact congrArg (BitVec.ofInt 64) (Fv256.C.cmpBig_core _ _ len.toNat _ hzlt
         (fun ⟨h, _⟩ => by rw [hb0] at h; exact Bool.noConfusion h) hl4 (hsmall hl4) h0)

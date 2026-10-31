@@ -34,7 +34,8 @@ def SfbSummary64 (p : Janus.Amd64.Program) (entry : Nat) (z b pw len : BitVec 64
     (fun s s' => s'.rip = retAddrOf s ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
       s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.fsBase = s.fsBase ∧
       (s'.regs 0).toNat % 256 = (if fromBigOv len.toNat then 1 else 0) ∧
-      s'.mem.readLE z.toNat 32 =
+      s'.mem.readLE z.toNat 8 + 2 ^ 64 * s'.mem.readLE (z.toNat + 8) 8 + 2 ^ 128 * s'.mem.readLE (z.toNat + 16) 8 +
+          2 ^ 192 * s'.mem.readLE (z.toNat + 24) 8 =
         fromBig (s.mem.readLE b.toNat 1 == 1) (bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) len.toNat) ∧
       MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32)])
 
