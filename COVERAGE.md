@@ -11,7 +11,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `uint256.MustFromBig` | todo | todo | |
 | `uint256.MustFromDecimal` | todo | todo | |
 | `uint256.MustFromHex` | todo | todo | |
-| `uint256.NewInt` | todo | todo | |
+| `uint256.NewInt` | verified | verified | lean/Fv256/{Arm64,Amd64}/NewInt.lean; uses the runtime.newobject allocation contract (hypothesis hnew); no concrete Witness state |
 | `(*uint256.Int).Abs` | verified | verified | lean/Fv256/{Arm64,Amd64}/Abs.lean |
 | `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
 | `(*uint256.Int).AddMod` | todo | todo | |
