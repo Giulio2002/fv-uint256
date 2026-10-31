@@ -1283,3 +1283,47 @@ theorem wv_write_word (m : Janus.Arm64.Memory) (p n i v : Nat) (hi : i < n) :
 
 
 end Fv256.B
+
+namespace Fv256.B
+
+/-- Composition of two `ReachesRet` runs through an intermediate address (amd64). -/
+theorem reachesRet_trans64 {p : Janus.Amd64.Program} {ret mid : Janus.Amd64.W64} {S : Janus.Amd64.State}
+    {Q Qmid : Janus.Amd64.State → Prop}
+    (h1 : Janus.Amd64.Tactic.ReachesRet p mid S Qmid)
+    (h2 : ∀ S', S'.rip = mid → Qmid S' → Janus.Amd64.Tactic.ReachesRet p ret S' Q) :
+    Janus.Amd64.Tactic.ReachesRet p ret S Q := by
+  obtain ⟨k, s', hs, hr, hq⟩ := h1
+  obtain ⟨j, s'', hs2, hr2, hq2⟩ := h2 s' hr hq
+  exact ⟨k + j, s'', hs.trans hs2, hr2, hq2⟩
+
+/-- Composition of two `ReachesRet` runs through an intermediate address (arm64). -/
+theorem reachesRet_trans {p : Janus.Program} {ret mid : Janus.Arm64.W64} {S : Janus.Arm64.State}
+    {Q Qmid : Janus.Arm64.State → Prop}
+    (h1 : Janus.Tactic.ReachesRet p mid S Qmid)
+    (h2 : ∀ S', S'.pc = mid → Qmid S' → Janus.Tactic.ReachesRet p ret S' Q) :
+    Janus.Tactic.ReachesRet p ret S Q := by
+  obtain ⟨k, s', hs, hr, hq⟩ := h1
+  obtain ⟨j, s'', hs2, hr2, hq2⟩ := h2 s' hr hq
+  exact ⟨k + j, s'', hs.trans hs2, hr2, hq2⟩
+
+end Fv256.B
+
+namespace Fv256.B
+open Fv256
+
+theorem submul_step (x y qh b : Nat) (hx : x < 2 ^ 64) (hy : y < 2 ^ 64) (hq : qh < 2 ^ 64) (hb : b < 2 ^ 64) :
+    qh * y / 2 ^ 64 + (decide (x < b)).toNat + (decide ((2 ^ 64 - b + x) % 2 ^ 64 < qh * y % 2 ^ 64)).toNat < 2 ^ 64 ∧
+    x + (qh * y / 2 ^ 64 + (decide (x < b)).toNat + (decide ((2 ^ 64 - b + x) % 2 ^ 64 < qh * y % 2 ^ 64)).toNat) * 2 ^ 64 =
+      (2 ^ 64 - (b + qh * y) % 2 ^ 64 + x) % 2 ^ 64 + qh * y + b := by
+  have hP : qh * y ≤ (2 ^ 64 - 1) * (2 ^ 64 - 1) :=
+    Nat.mul_le_mul (by omega) (by omega)
+  obtain ⟨P, hPd⟩ : ∃ P, P = qh * y := ⟨_, rfl⟩
+  rw [← hPd] at hP ⊢
+  have hP' : P ≤ 340282366920938463426481119284349108225 := by
+    simpa using hP
+  simp only [Nat.reducePow] at *
+  by_cases h1 : x < b <;> by_cases h2 : (18446744073709551616 - b + x) % 18446744073709551616 < P % 18446744073709551616 <;>
+    simp only [h1, h2, decide_true, decide_false, Bool.toNat_true, Bool.toNat_false] <;> omega
+
+
+end Fv256.B
