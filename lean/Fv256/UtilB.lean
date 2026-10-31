@@ -1103,3 +1103,105 @@ theorem and_mask (y : BitVec 64) : (y &&& 18446744073709551615#64) = y := by
   rw [BitVec.and_comm]; exact mask_and y
 
 end Fv256.B
+
+namespace Fv256.B
+open Fv256
+
+/-- The two half-digit steps of `bits.Div64`, mathematically: for a normalised divisor `y'` and a numerator
+`N' < y' * 2^64`, the correction loops return the digits of the quotient and the final remainder. -/
+theorem div64_core (b yn1 yn0 un32 un10 un1 un0 q1 un21 q0 y' N' : Nat) (hy1 : 2 ^ 63 ≤ y') (hy2 : y' < 2 ^ 64)
+    (hN : N' < y' * 2 ^ 64) (hbd : b = 2 ^ 32) (hyn1d : yn1 = y' / b) (hyn0d : yn0 = y' % b)
+    (hun32 : un32 = N' / 2 ^ 64) (hun10 : un10 = N' % 2 ^ 64) (hun1 : un1 = un10 / b) (hun0 : un0 = un10 % b)
+    (hq1 : q1 = hloop b yn1 yn0 un1 (un32 / yn1) (un32 % yn1)) (hun21 : un21 = un32 * b + un1 - q1 * y')
+    (hq0 : q0 = hloop b yn1 yn0 un0 (un21 / yn1) (un21 % yn1)) :
+    q1 * b + q0 = N' / y' ∧ un21 * b + un0 - q0 * y' = N' % y' ∧ q1 < b ∧ q0 < b ∧ un21 < y' := by
+  have hb : 0 < b := by rw [hbd]; exact Nat.two_pow_pos 32
+  have hbb : (2:Nat) ^ 64 = b * b := by rw [hbd]
+  have hy : y' = yn1 * b + yn0 := by
+    have := Nat.div_add_mod y' b
+    rw [hyn1d, hyn0d, Nat.mul_comm]; omega
+  have hyn0 : yn0 < b := by rw [hyn0d]; exact Nat.mod_lt _ hb
+  have hyn1 : yn1 < b := by
+    rw [hyn1d]
+    refine Nat.div_lt_of_lt_mul ?_
+    rw [hbb] at hy2; exact hy2
+  have hyn1' : b ≤ 2 * yn1 := by
+    have : 2 ^ 63 ≤ yn1 * b + yn0 := by omega
+    have h2 : yn1 * b + yn0 < (yn1 + 1) * b := by rw [Nat.add_mul]; omega
+    have h3 : 2 ^ 63 < (yn1 + 1) * b := by omega
+    have : 2 ^ 63 = 2 ^ 31 * b := by rw [hbd]
+    have h4 : 2 ^ 31 * b < (yn1 + 1) * b := by omega
+    have := Nat.lt_of_mul_lt_mul_right h4
+    have e : (2:Nat) ^ 31 * 2 = b := by rw [hbd]
+    omega
+  have hN2 : un32 * b + un1 < y' * b := by
+    have h1 : un32 < y' := by
+      rw [hun32]
+      refine Nat.div_lt_of_lt_mul ?_
+      rw [Nat.mul_comm] at hN; exact hN
+    have h2 : un1 < b := by
+      rw [hun1]
+      refine Nat.div_lt_of_lt_mul ?_
+      rw [hun10, ← hbb]; exact Nat.mod_lt _ (by decide)
+    have : (un32 + 1) * b ≤ y' * b := Nat.mul_le_mul_right _ h1
+    rw [Nat.add_mul] at this; omega
+  have hy0 : 0 < y' := by omega
+  have hun32lt : un32 < y' := by
+    rw [hun32]; refine Nat.div_lt_of_lt_mul ?_
+    rw [Nat.mul_comm] at hN; exact hN
+  have hun1lt : un1 < b := by
+    rw [hun1]; refine Nat.div_lt_of_lt_mul ?_
+    rw [hun10, ← hbb]; exact Nat.mod_lt _ (by decide)
+  have hun0lt : un0 < b := by rw [hun0]; exact Nat.mod_lt _ hb
+  have step : ∀ (u lo_ : Nat), u < y' → lo_ < b → hloop b yn1 yn0 lo_ (u / yn1) (u % yn1) = (u * b + lo_) / y' := by
+    intro u lo_ hu hl
+    have hpos : 0 < yn1 := by omega
+    have h := hloop_correct b yn1 yn0 u lo_ hb hyn1' hyn1 hyn0 hl (by rw [← hy]; exact hu) (u / yn1) (u % yn1)
+      (by have := Nat.div_add_mod u yn1; rw [Nat.mul_comm] at this; omega)
+      (by
+        rw [← hy]
+        have h1 : (u * b + lo_) / y' ≤ (u * b + lo_) / (yn1 * b) := Nat.div_le_div_left (by omega) (by
+          exact Nat.mul_pos hpos hb)
+        have h2 : (u * b + lo_) / (yn1 * b) = u / yn1 := by
+          rw [Nat.mul_comm yn1 b, ← Nat.div_div_eq_div_mul]
+          congr 1
+          rw [Nat.mul_comm u b, Nat.mul_add_div hb, Nat.div_eq_of_lt hl]; simp
+        omega)
+      (by
+        have : u / yn1 < b + 2 := by
+          refine Nat.div_lt_of_lt_mul ?_
+          have : y' < yn1 * (b + 2) := by rw [hy]; grind
+          omega
+        omega)
+    rw [← hy] at h; exact h
+  have hq1' : q1 = (un32 * b + un1) / y' := by rw [hq1]; exact step un32 un1 hun32lt hun1lt
+  have hun21' : un21 = (un32 * b + un1) % y' := by
+    have := Nat.div_add_mod (un32 * b + un1) y'
+    rw [Nat.mul_comm y'] at this
+    rw [hun21, hq1']; omega
+  have hun21lt : un21 < y' := by rw [hun21']; exact Nat.mod_lt _ hy0
+  have hq0' : q0 = (un21 * b + un0) / y' := by rw [hq0]; exact step un21 un0 hun21lt hun0lt
+  have hN' : N' = (un32 * b + un1) * b + un0 := by
+    have h1 := Nat.div_add_mod N' (2 ^ 64)
+    have h2 := Nat.div_add_mod un10 b
+    rw [← hun32, ← hun10] at h1
+    rw [← hun1, ← hun0] at h2
+    rw [hbb] at h1
+    grind
+  have hsplit : (un32 * b + un1) * b + un0 = y' * ((un32 * b + un1) / y' * b) + (un21 * b + un0) := by
+    have := Nat.div_add_mod (un32 * b + un1) y'
+    rw [hun21']
+    grind
+  refine ⟨?_, ?_, ?_, ?_, hun21lt⟩
+  · rw [hN', hsplit, Nat.mul_add_div hy0, ← hq1', ← hq0']
+  · have hd := Nat.div_add_mod (un21 * b + un0) y'
+    rw [hN', hsplit, Nat.mul_add_mod]
+    rw [← hq0'] at hd
+    rw [Nat.mul_comm y' q0] at hd
+    omega
+  · rw [hq1']; exact Nat.div_lt_of_lt_mul hN2
+  · rw [hq0']; refine Nat.div_lt_of_lt_mul ?_
+    have : (un21 + 1) * b ≤ y' * b := Nat.mul_le_mul_right _ hun21lt
+    rw [Nat.add_mul] at this; omega
+
+end Fv256.B
