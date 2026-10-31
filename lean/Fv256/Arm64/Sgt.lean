@@ -23,7 +23,7 @@ theorem correctness (z x : BitVec 64) :
   intro ret hret s hs ⟨⟨hz, hz'⟩, ⟨hx, hx'⟩⟩
   janus_intro hs
   janus_run
-  done
+  all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try simp only [Nat.or_eq_zero_iff] at *); simp only [Spec.sgt, Spec.signed, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod, Int.reducePow]; (try simp (disch := omega) only [Util.borrow4_dec]); (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]) <;> (try janus_decide_split) <;> first | omega | simp_all)
 
 namespace Witness
 

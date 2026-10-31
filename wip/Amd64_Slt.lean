@@ -16,6 +16,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Slt
 
+set_option maxHeartbeats 8000000 in
 theorem correctness (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false)
@@ -25,7 +26,7 @@ theorem correctness (z x : BitVec 64) :
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw
   simp only [valueAt]
   janus64_run [Util.readLE_32]
-  done
+  all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try simp only [Nat.or_eq_zero_iff, BitVec.toNat_or, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *); simp only [Spec.slt, Spec.signed, Int.reducePow, Nat.reducePow]; (try simp (disch := omega) only [Util.lt_chain] at *); (repeat' split) <;> (try janus_decide_split) <;> first | omega | simp_all)
 
 namespace Witness
 
