@@ -93,4 +93,24 @@ theorem iter_core (P D X Z u2 qh b r : Nat) (hD : D < P) (hD0 : 0 < D) (hZ : Z <
     refine ⟨hb, h1, ?_⟩
     omega
 
+open Janus in
+theorem outside_sub (a n a' n' : Nat) (rs : List (Nat × Nat)) (h : Outside a n rs) (h1 : a ≤ a') (h2 : a' + n' ≤ a + n) :
+    Outside a' n' rs := by
+  induction rs with
+  | nil => trivial
+  | cons r rs ih =>
+    obtain ⟨lo, hi⟩ := r
+    simp only [outside_cons] at h ⊢
+    obtain ⟨h3, h4⟩ := h
+    exact ⟨by omega, ih h4⟩
+
+open Janus in
+theorem wv_of_frame (M M' : Janus.Arm64.Memory) (rs : List (Nat × Nat)) (h : MemFrame M M' rs) (p n : Nat)
+    (hout : Outside p (8 * n) rs) : wv M' p n = wv M p n := by
+  induction n generalizing p with
+  | zero => rfl
+  | succ n ih =>
+    rw [wv_succ, wv_succ, ih (p + 8) (outside_sub _ _ _ _ _ hout (by omega) (by omega)),
+      h.readLE p 8 (outside_sub _ _ _ _ _ hout (by omega) (by omega))]
+
 end Fv256.B
