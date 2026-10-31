@@ -8,10 +8,10 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 
 | Symbol | class | arm64 | amd64 | Notes |
 |---|---|---|---|---|
-| `uint256.FromBig` | (b) | verified | verified | newobject + SetFromBig (callee extracted) |
+| `uint256.FromBig` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/FromBig.lean; runtime.newobject contract + SetFromBig as callee summary; `Witness`: toy allocator + concrete call, `example := correctness ...` fires (hnew and precondition jointly satisfiable) |
 | `uint256.FromDecimal` | (b) | todo | todo | fromDecimal loop + mapaccess/ifaceeq, not extractable without contracts for runtime.mapaccess2_fast32/ifaceeq |
 | `uint256.FromHex` | (b) | todo | todo | newobject (z escapes) + fromHex loop; error values are globals (ErrSyntax...) in .data |
-| `uint256.MustFromBig` | (b) | verified | todo | newobject + SetFromBig + gopanic on overflow |
+| `uint256.MustFromBig` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromBig.lean; EnsuresGo with PanicRuntime P: returns when x=nil or len<=4, else panics with the \"overflow\" eface; same Witness pattern |
 | `uint256.MustFromDecimal` | (b) | todo | todo | as FromDecimal |
 | `uint256.MustFromHex` | (b) | todo | todo | newobject + fromHex + gopanic(err) |
 | `(*uint256.Int).CmpBig` | (a) | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
