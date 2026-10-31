@@ -26,4 +26,4 @@ if mode == 'probe':
     i = s.index("  refine ⟨?_, ?_⟩")
     j = s.index("\n/-- Out of bounds")
     s = s[:i] + "  trace_state\n  all_goals sorry\n" + s[j:]
-open(fROOT+'/lean/Fv256/Amd64/SetBytes{n}.lean', 'w').write(s)
+open((ROOT+f'/lean/Fv256/Amd64/SetBytes{n}.lean'), 'w').write(s)

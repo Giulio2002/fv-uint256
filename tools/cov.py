@@ -8,7 +8,7 @@ s=open(p).read()
 for fn in sys.argv[1:]:
     st={}
     for isa in ('arm64','amd64'):
-        try: st[isa]=open(fROOT+'/build/log-{isa}-{fn}').readline().startswith('Verified')
+        try: st[isa]=open((ROOT+f'/build/log-{isa}-{fn}')).readline().startswith('Verified')
         except OSError: st[isa]=False
     pat=re.compile(r'(\| `\(\*uint256\.Int\)\.%s` \| )([^|]*)\|([^|]*)\|([^\n]*)'%re.escape(fn))
     m=pat.search(s)

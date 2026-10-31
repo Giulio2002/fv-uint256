@@ -31,4 +31,4 @@ if mode == 'probe':
     s = s[:i] + "    refine ⟨?_, ?_⟩\n    · trace_state; sorry\n    · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]\n" + s[j:]
     k = s.index("\nnamespace Witness")
     s = s[:k] + "\nend Fv256.Arm64.SetBytes%d\n" % n
-open(fROOT+'/lean/Fv256/Arm64/SetBytes{n}.lean', 'w').write(s)
+open((ROOT+f'/lean/Fv256/Arm64/SetBytes{n}.lean'), 'w').write(s)
