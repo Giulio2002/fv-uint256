@@ -62,7 +62,64 @@ theorem addback_loop (s0 : State) (up dp n j : Nat) (v cap : W64) (M0 : Memory)
     have hy1 := Util.readLE8_lt M0 (dp + i * 8)
     have hib : (BitVec.ofNat 64 i).toNat = i := by rw [BitVec.toNat_ofNat]; omega
     janus64_run [e10, e2, e11, e6, e9, e0, e8, h4, hxi, hyi, hvs, hcaps, hib] until [kn + 0x2a2]
-    all_goals trace_state
-    all_goals sorry
+    have hcz : (!decide (BitVec.setWidth 32 (BitVec.ofNat 64 c) = 0#32)) = decide (c = 1) := by
+      obtain rfl | rfl : c = 0 ∨ c = 1 := by omega
+      · decide
+      · decide
+    simp only [hcz]
+    have hfr' : MemFrame M0 (Janus.Arm64.Memory.writeLE M (up + 8 * j + i * 8) 8
+        (addFlags (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8))
+          (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)) (decide (c = 1))).fst.toNat)
+        [(up + 8 * j, up + 8 * j + 8 * (i + 1))] :=
+      (hfr.mono (by intro a m h; simp [Outside] at h ⊢; omega)).writeLE _ (r := (up + 8 * j, up + 8 * j + 8 * (i + 1))) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have hcN : (decide (c = 1)).toNat = c := by
+      obtain rfl | rfl : c = 0 ∨ c = 1 := by omega
+      · decide
+      · decide
+    refine ih (i + 1) ((Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 + Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 + c) / 2 ^ 64) _ _ _
+      (by omega) (by omega) e10 ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ hfr'
+    · simp [setRegF]
+    · simp (config := { decide := true }) only [setRegF, ↓reduceIte, hcN]
+      split
+      · apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_ofNat]; omega
+      · apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_ofNat, BitVec.toNat_zero]; omega
+    · simp [setRegF, e6]
+    · simp [setRegF, e9]
+    · simp [setRegF]
+    · simp [setRegF]
+    · intro k hk
+      have hk' : k ≠ 0 ∧ k ≠ 2 ∧ k ≠ 8 ∧ k ≠ 11 ∧ k ≠ 13 := by simpa using hk
+      obtain ⟨k0, k2, k8, k11, k13⟩ := hk'
+      simp [setRegF, k0, k2, k8, k11, k13]
+      exact hRu k hk
+    · have e1 : Fv256.B.wv M0 (up + 8 * j) (i + 1) = Fv256.B.wv M0 (up + 8 * j) i + 2 ^ (64 * i) * Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 := by
+        rw [Fv256.B.wv_snoc, Nat.mul_comm i 8]
+      have e2 : Fv256.B.wv M0 dp (i + 1) = Fv256.B.wv M0 dp i + 2 ^ (64 * i) * Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 := by
+        rw [Fv256.B.wv_snoc, Nat.mul_comm i 8]
+      have hV : (addFlags (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8))
+          (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)) (decide (c = 1))).fst.toNat =
+          (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 + Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 + c) % 2 ^ 64 := by
+        rw [addFlags_fst]
+        simp only [BitVec.toNat_add, BitVec.toNat_ofNat, hcN]
+        have := hx1; have := hy1
+        omega
+      have e3 : Fv256.B.wv (Janus.Arm64.Memory.writeLE M (up + 8 * j + i * 8) 8
+          (addFlags (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8))
+            (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)) (decide (c = 1))).fst.toNat) (up + 8 * j) (i + 1) =
+          Fv256.B.wv M (up + 8 * j) i + 2 ^ (64 * i) * ((Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 + Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 + c) % 2 ^ 64) := by
+        rw [Fv256.B.wv_snoc, Nat.mul_comm i 8, Fv256.B.wv_writeLE_outside _ _ _ _ _ _ (by omega)]
+        have := Janus.Arm64.Memory.readLE_writeLE_self (m := M) (up + 8 * j + 8 * i) 8
+          (addFlags (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8))
+            (BitVec.ofNat 64 (Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8)) (decide (c = 1))).fst.toNat
+        rw [Nat.mul_comm i 8] at this hV
+        rw [this, hV]
+        simp only [Nat.reducePow, Nat.mod_mod]
+      rw [e1, e2, e3, show 2 ^ (64 * (i + 1)) = 2 ^ (64 * i) * 2 ^ 64 by rw [Nat.mul_succ, Nat.pow_add]]
+      simp only [Nat.reducePow] at hI ⊢
+      have hdm := Nat.div_add_mod (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 + Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 + c) 18446744073709551616
+      generalize 2 ^ (64 * i) = T at *
+      generalize (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 + Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 + c) / 18446744073709551616 = q at *
+      generalize (Janus.Arm64.Memory.readLE M0 (dp + i * 8) 8 + Janus.Arm64.Memory.readLE M0 (up + 8 * j + i * 8) 8 + c) % 18446744073709551616 = r at *
+      grind
 
 end Fv256.Amd64.KnuthAdd
