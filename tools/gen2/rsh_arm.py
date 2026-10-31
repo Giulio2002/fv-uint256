@@ -1,5 +1,7 @@
 #!/usr/bin/env python3 -I
 # rsh_arm.py : writes lean/Fv256/Arm64/Rsh.lean (derived from lsh_arm.py output structure)
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 M = '18446744073709551616'
 def lim(v, i):
     return f"(Util.readLE8_lt s.mem ({v}.toNat + {8*i}))" if i else f"(Util.readLE8_lt s.mem {v}.toNat)"
@@ -49,9 +51,9 @@ def block(v):
     for h in (h4, h3, h2, h0, h1):
         out += "    · " + lim_ + h[0] + "\n" + "".join("      " + l + "\n" for l in h[1:])
     return out
-t = open('/srv/fv-uint256/lean/Fv256/Arm64/Lsh.lean').read()
+t = open(ROOT+'/lean/Fv256/Arm64/Lsh.lean').read()
 k = t.index("  rcases hzx with rfl | hzx")
 k2 = t.index("\nnamespace Witness")
 t = t[:k] + "  rcases hzx with rfl | hzx\n  · " + block('z').lstrip() + "  · " + block('x').lstrip() + t[k2:]
 t = t.replace('Lsh', 'Rsh').replace('Spec.lsh', 'Spec.rsh').replace('x << n', 'x >> n').replace('Fv256.Spec.rsh` of the number at `x`, shifted by `n`,', 'Fv256.Spec.rsh` of the number at `x`, shifted right by `n`,').replace('holding the shifted value of `x`', 'holding the shifted value of `x`')
-open('/srv/fv-uint256/lean/Fv256/Arm64/Rsh.lean', 'w').write(t)
+open(ROOT+'/lean/Fv256/Arm64/Rsh.lean', 'w').write(t)

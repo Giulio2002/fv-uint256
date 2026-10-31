@@ -1,10 +1,12 @@
 #!/usr/bin/env python3 -I
 # setbytes_amd.py N [probe|full] [below above]
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 n = int(sys.argv[1]); mode = sys.argv[2] if len(sys.argv) > 2 else 'probe'
 below = int(sys.argv[3]) if len(sys.argv) > 3 else 8
 above = int(sys.argv[4]) if len(sys.argv) > 4 else 24
-s = open('/srv/fv-uint256/lean/Fv256/Amd64/SetBytes32.lean').read()
+s = open(ROOT+'/lean/Fv256/Amd64/SetBytes32.lean').read()
 s = s.replace('SetBytes32', f'SetBytes{n}').replace('32 ≤ len.toNat', f'{n} ≤ len.toNat').replace('len.toNat < 32', f'len.toNat < {n}')
 s = s.replace('Buffer s ptr 32 false', f'Buffer s ptr {n} false').replace('Buffer s0 ptr 32 false', f'Buffer s0 ptr {n} false')
 s = s.replace('(z.toNat + 32 ≤ ptr.toNat ∨ ptr.toNat + 32 ≤ z.toNat)', f'(z.toNat + 32 ≤ ptr.toNat ∨ ptr.toNat + {n} ≤ z.toNat)')
@@ -24,4 +26,4 @@ if mode == 'probe':
     i = s.index("  refine ⟨?_, ?_⟩")
     j = s.index("\n/-- Out of bounds")
     s = s[:i] + "  trace_state\n  all_goals sorry\n" + s[j:]
-open(f'/srv/fv-uint256/lean/Fv256/Amd64/SetBytes{n}.lean', 'w').write(s)
+open((ROOT+f'/lean/Fv256/Amd64/SetBytes{n}.lean'), 'w').write(s)

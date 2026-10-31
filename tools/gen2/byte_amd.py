@@ -1,4 +1,6 @@
 #!/usr/bin/env python3 -I
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 M='18446744073709551616'; M2='340282366920938463463374607431768211456'; M3='6277101735386680763835789423207666416102355444464034512896'
 def blkA(v, div):
     xs=f"{v}.toNat"
@@ -31,7 +33,7 @@ def side(v, kinds):
         out+="    · refine ⟨?_, ?_⟩\n      · "+lim+pre+body[0]+"\n"+"".join("        "+l+"\n" for l in body[1:])
         out+="      · simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self]\n"
     return out
-t=open('/srv/fv-uint256/lean/Fv256/Amd64/Neg.lean').read()
+t=open(ROOT+'/lean/Fv256/Amd64/Neg.lean').read()
 t=t.replace('Neg','Byte')
 t=t.replace('Spec.neg (valueAt s x 32)','Spec.byte (valueAt s x 32) (valueAt s z 32)')
 k=t.index("  rcases hzx with rfl | hzx")
@@ -40,4 +42,4 @@ t=t[:k]+"  rcases hzx with rfl | hzx\n  · "+side('z',['A0','Adiv','C','C']).lst
 t=t.replace("set_option maxHeartbeats 8000000 in\n","")
 t=t.replace("theorem correctness","set_option maxHeartbeats 8000000 in\ntheorem correctness",1)
 t=t.replace('(*uint256.Int).Byte(x *Int) *Int` (amd64): `z = Fv256.Spec.neg x`','(*uint256.Int).Byte(n *Int) *Int` (amd64): `z = the n-th byte (from the most significant end) of z`').replace('is `Fv256.Spec.neg` of the number at `x` before the call','is `Fv256.Spec.byte` of the number at `x` (the index) and the number at `z` before the call')
-open('/srv/fv-uint256/lean/Fv256/Amd64/Byte.lean','w').write(t)
+open(ROOT+'/lean/Fv256/Amd64/Byte.lean','w').write(t)

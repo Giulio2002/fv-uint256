@@ -1,8 +1,12 @@
 #!/bin/bash
-# lean2.sh ISA Fn : run lean on a theorem module directly against the newest consumer workspace (needs a prior verify of that ISA/Fn for the matching Extracted)
+# usage: lean2.sh ISA Fn [workspace]  run lean directly on a theorem module against the newest janus verify workspace
+# (the workspace must come from a previous v.sh of the same function; needs util1.sh to have built build/olean).
+# env: FV_ROOT (default: parent of this script), FV_CACHE (janus consumer cache dir, default ~/.cache/janus/v1/consumer/*)
+FV_ROOT=${FV_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
 I=$1; F=$2; D=$(echo ${I:0:1}|tr a-z A-Z)${I:1}
-C=/root/.cache/janus/v1/consumer/442f4b5eed8ae9e166ebfa91
+C=${FV_CACHE:-$(ls -dt $HOME/.cache/janus/v1/consumer/*/ | head -1)}
 W=${3:-$C/$(ls -t $C | grep -v lock | head -1)}
-L=/root/.elan/toolchains/leanprover--lean4---v4.34.1/bin/lean
-cd /srv/fv-uint256/lean
-LEAN_PATH=$W/janus/.lake/build/lib/lean:/srv/fv-uint256/build/olean LEAN_NUM_THREADS=4 timeout 1500 memcap $L Fv256/$D/$F.lean
+L=$(command -v lean || echo $HOME/.elan/bin/lean)
+MC=""; command -v memcap >/dev/null && MC=memcap
+cd "$FV_ROOT/lean"
+LEAN_PATH=$W/janus/.lake/build/lib/lean:$FV_ROOT/build/olean LEAN_NUM_THREADS=${LEAN_NUM_THREADS:-4} timeout 1500 $MC $L Fv256/$D/$F.lean

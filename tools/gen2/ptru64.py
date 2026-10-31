@@ -1,5 +1,7 @@
 #!/usr/bin/env python3 -I
 # ptru64.py isa Fn kind   -- kind in lt gt cmp : methods taking (z *Int, n uint64)
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 isa, fn, kind = sys.argv[1:4]
 D = isa[0].upper() + isa[1:]
@@ -116,4 +118,4 @@ end Witness
 
 end Fv256.{D}.{fn}
 """
-open(f'/srv/fv-uint256/lean/Fv256/{D}/{fn}.lean','w').write(out)
+open((ROOT+f'/lean/Fv256/{D}/{fn}.lean'),'w').write(out)
