@@ -13,7 +13,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `uint256.MustFromHex` | todo | todo | |
 | `uint256.NewInt` | todo | todo | |
 | `(*uint256.Int).Abs` | todo | todo | |
-| `(*uint256.Int).Add` | todo | todo | |
+| `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
 | `(*uint256.Int).AddMod` | todo | todo | |
 | `(*uint256.Int).AddOverflow` | todo | todo | |
 | `(*uint256.Int).AddUint64` | todo | todo | |
@@ -117,7 +117,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Slt` | todo | todo | |
 | `(*uint256.Int).Sqrt` | todo | todo | |
 | `(*uint256.Int).String` | todo | todo | |
-| `(*uint256.Int).Sub` | todo | todo | |
+| `(*uint256.Int).Sub` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
 | `(*uint256.Int).SubOverflow` | todo | todo | |
 | `(*uint256.Int).SubUint64` | todo | todo | |
 | `(*uint256.Int).ToBig` | todo | todo | |

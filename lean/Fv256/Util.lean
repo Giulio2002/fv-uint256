@@ -1,5 +1,20 @@
 import Janus
 
+open Lean Elab Tactic Meta in
+/-- collect the propositions `p` of every `(decide p).toNat` in an expression -/
+partial def collectDecToNat (e : Expr) (acc : Array Expr) : Array Expr :=
+  match e with
+  | .app f a =>
+    let acc := collectDecToNat f (collectDecToNat a acc)
+    if e.isAppOfArity ``Bool.toNat 1 then
+      match a.getAppFnArgs with
+      | (``Decidable.decide, #[p, _]) => if acc.contains p then acc else acc.push p
+      | _ => acc
+    else acc
+  | .lam _ t b _ | .forallE _ t b _ => collectDecToNat b (collectDecToNat t acc)
+  | .mdata _ b => collectDecToNat b acc
+  | _ => acc
+
 /-! Shared lemmas: the 256-bit value at a pointer as four 64-bit limbs, and bitwise operations limb by limb. -/
 
 namespace Fv256.Util
@@ -204,5 +219,32 @@ theorem neg_chain (x0 x1 x2 x3 : Nat) (h0 : x0 < 18446744073709551616) (h1 : x1 
   simp only [subFlags_fst_toNat, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod,
     Nat.mod_eq_of_lt h1, Nat.mod_eq_of_lt h2, Nat.mod_eq_of_lt h3]
   omega
+
+
+theorem add_chain (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    (a0 + b0) % 18446744073709551616 +
+        18446744073709551616 * ((a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat) % 18446744073709551616) +
+      340282366920938463463374607431768211456 * ((a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat) % 18446744073709551616) +
+    6277101735386680763835789423207666416102355444464034512896 * ((a3 + b3 + (decide (18446744073709551616 ≤ a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat)).toNat) % 18446744073709551616) =
+    ((a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3) +
+     (b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3)) %
+      115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+  have e0 := dec_toNat (18446744073709551616 ≤ a0 + b0)
+  have e1 := dec_toNat (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)
+  have e2 := dec_toNat (18446744073709551616 ≤ a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat)
+  omega
+
+
+open Lean Elab Tactic Meta in
+/-- For every `(decide p).toNat` in the goal add the fact `dec_toNat p` (the value is 1 and `p`, or 0 and `¬p`), so that
+`omega` can reason about carries without a case split. -/
+elab "dec_facts" : tactic => withMainContext do
+  let ps := collectDecToNat (← instantiateMVars (← getMainTarget)) #[]
+  for p in ps do
+    evalTactic (← `(tactic| have := Fv256.Util.dec_toNat $(← Term.exprToSyntax p)))
 
 end Fv256.Util
