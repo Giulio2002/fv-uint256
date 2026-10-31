@@ -897,4 +897,172 @@ theorem byte_val (N y0 y1 y2 y3 : Nat) (hN : N < 32) (h0 : y0 < 1844674407370955
   rcases hc with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     (simp only [Spec.byte, Nat.reduceLT, ite_true, Nat.reduceDiv, Nat.reduceMod, Nat.reduceSub, Nat.reduceAdd, Nat.reduceMul, Nat.reducePow, Nat.reduceEqDiff, ite_false] <;> omega)
 
+theorem pq_eq (t : Nat) (ht : t ≤ 64) : 2 ^ t * 2 ^ (64 - t) = 18446744073709551616 := by
+  rw [← Nat.pow_add, show t + (64 - t) = 64 by omega]
+
+theorem shl_lo (x t : Nat) (ht : t ≤ 64) :
+    x * 2 ^ t % 18446744073709551616 = 2 ^ t * (x % 2 ^ (64 - t)) := by
+  have h := pq_eq t ht
+  have hP : 0 < 2 ^ t := Nat.two_pow_pos t
+  have hQ : 0 < 2 ^ (64 - t) := Nat.two_pow_pos _
+  have hd := Nat.div_add_mod x (2 ^ (64 - t))
+  have e1 : x * 2 ^ t = 2 ^ t * (2 ^ (64 - t) * (x / 2 ^ (64 - t))) + 2 ^ t * (x % 2 ^ (64 - t)) := by
+    calc x * 2 ^ t = 2 ^ t * x := Nat.mul_comm _ _
+      _ = 2 ^ t * (2 ^ (64 - t) * (x / 2 ^ (64 - t)) + x % 2 ^ (64 - t)) := by rw [hd]
+      _ = _ := Nat.mul_add _ _ _
+  have e2 : 2 ^ t * (2 ^ (64 - t) * (x / 2 ^ (64 - t))) = 18446744073709551616 * (x / 2 ^ (64 - t)) := by
+    rw [← Nat.mul_assoc, h]
+  have hlt : 2 ^ t * (x % 2 ^ (64 - t)) < 18446744073709551616 := by
+    rw [← h]
+    exact Nat.mul_lt_mul_of_pos_left (Nat.mod_lt _ hQ) hP
+  rw [e1, e2, Nat.add_comm, Nat.add_mul_mod_self_left, Nat.mod_eq_of_lt hlt]
+
+/-- `x * 2^t = 2^64 * (x / 2^(64-t)) + (x * 2^t % 2^64)`. -/
+theorem shl_split (x t : Nat) (ht : t ≤ 64) :
+    x * 2 ^ t = 18446744073709551616 * (x / 2 ^ (64 - t)) + x * 2 ^ t % 18446744073709551616 := by
+  have h := pq_eq t ht
+  have hQ : 0 < 2 ^ (64 - t) := Nat.two_pow_pos _
+  have hd := Nat.div_add_mod x (2 ^ (64 - t))
+  have e1 : x * 2 ^ t = 2 ^ t * (2 ^ (64 - t) * (x / 2 ^ (64 - t))) + 2 ^ t * (x % 2 ^ (64 - t)) := by
+    calc x * 2 ^ t = 2 ^ t * x := Nat.mul_comm _ _
+      _ = 2 ^ t * (2 ^ (64 - t) * (x / 2 ^ (64 - t)) + x % 2 ^ (64 - t)) := by rw [hd]
+      _ = _ := Nat.mul_add _ _ _
+  have e2 : 2 ^ t * (2 ^ (64 - t) * (x / 2 ^ (64 - t))) = 18446744073709551616 * (x / 2 ^ (64 - t)) := by
+    rw [← Nat.mul_assoc, h]
+  rw [shl_lo x t ht]
+  omega
+
+theorem lo_hi_lt (x y t : Nat) (ht : t < 64) (hy : y < 18446744073709551616) :
+    x * 2 ^ t % 18446744073709551616 + y / 2 ^ (64 - t) < 18446744073709551616 := by
+  have h := pq_eq t (by omega)
+  have hP : 0 < 2 ^ t := Nat.two_pow_pos t
+  have hQ : 0 < 2 ^ (64 - t) := Nat.two_pow_pos _
+  rw [shl_lo x t (by omega)]
+  have h1 : y / 2 ^ (64 - t) < 2 ^ t := by
+    rw [Nat.div_lt_iff_lt_mul hQ]
+    rw [h]; exact hy
+  have h2 : x % 2 ^ (64 - t) + 1 ≤ 2 ^ (64 - t) := Nat.mod_lt _ hQ
+  have h3 : 2 ^ t * (x % 2 ^ (64 - t) + 1) ≤ 2 ^ t * 2 ^ (64 - t) := Nat.mul_le_mul_left _ h2
+  rw [Nat.mul_add, h] at h3
+  omega
+
+theorem lsh_expand (x0 x1 x2 x3 e : Nat) :
+    (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 +
+        6277101735386680763835789423207666416102355444464034512896 * x3) * e =
+      x0 * e + 18446744073709551616 * (x1 * e) + 340282366920938463463374607431768211456 * (x2 * e) +
+        6277101735386680763835789423207666416102355444464034512896 * (x3 * e) := by
+  simp only [Nat.add_mul, Nat.mul_assoc]
+
+theorem lsh0_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    x0 * 2 ^ t % 18446744073709551616 + 18446744073709551616 * (x1 * 2 ^ t % 18446744073709551616 + x0 / 2 ^ (64 - t)) +
+      340282366920938463463374607431768211456 * (x2 * 2 ^ t % 18446744073709551616 + x1 / 2 ^ (64 - t)) +
+      6277101735386680763835789423207666416102355444464034512896 * (x3 * 2 ^ t % 18446744073709551616 + x2 / 2 ^ (64 - t)) =
+    (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 +
+        6277101735386680763835789423207666416102355444464034512896 * x3) * 2 ^ t %
+      115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+  have s0 := shl_split x0 t (by omega)
+  have s1 := shl_split x1 t (by omega)
+  have s2 := shl_split x2 t (by omega)
+  have s3 := shl_split x3 t (by omega)
+  have l1 := lo_hi_lt x1 x0 t ht h0
+  have l2 := lo_hi_lt x2 x1 t ht h1
+  have l3 := lo_hi_lt x3 x2 t ht h2
+  have l0 : x0 * 2 ^ t % 18446744073709551616 < 18446744073709551616 := Nat.mod_lt _ (by decide)
+  rw [lsh_expand]
+  omega
+
+theorem pow_shift (X t k : Nat) : X * 2 ^ (64 * k + t) = 2 ^ (64 * k) * (X * 2 ^ t) := by
+  rw [Nat.pow_add]; ac_rfl
+
+theorem lsh1_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    18446744073709551616 * (x0 * 2 ^ t % 18446744073709551616) +
+      340282366920938463463374607431768211456 * (x1 * 2 ^ t % 18446744073709551616 + x0 / 2 ^ (64 - t)) +
+      6277101735386680763835789423207666416102355444464034512896 * (x2 * 2 ^ t % 18446744073709551616 + x1 / 2 ^ (64 - t)) =
+    (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) * 2 ^ (64 + t) % 115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+  have s0 := shl_split x0 t (by omega)
+  have s1 := shl_split x1 t (by omega)
+  have s2 := shl_split x2 t (by omega)
+  have s3 := shl_split x3 t (by omega)
+  have l1 := lo_hi_lt x1 x0 t ht h0
+  have l2 := lo_hi_lt x2 x1 t ht h1
+  have e := pow_shift (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) t 1
+  simp only [Nat.mul_one] at e
+  rw [e, lsh_expand]
+  have : (2 : Nat) ^ 64 = 18446744073709551616 := by decide
+  rw [this]
+  omega
+
+theorem lsh2_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    340282366920938463463374607431768211456 * (x0 * 2 ^ t % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 * (x1 * 2 ^ t % 18446744073709551616 + x0 / 2 ^ (64 - t)) =
+    (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) * 2 ^ (128 + t) % 115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+  have s0 := shl_split x0 t (by omega)
+  have s1 := shl_split x1 t (by omega)
+  have s2 := shl_split x2 t (by omega)
+  have s3 := shl_split x3 t (by omega)
+  have l1 := lo_hi_lt x1 x0 t ht h0
+  have e := pow_shift (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) t 2
+  simp only [show 64 * 2 = 128 from rfl] at e
+  rw [e, lsh_expand]
+  have : (2 : Nat) ^ 128 = 340282366920938463463374607431768211456 := by decide
+  rw [this]
+  omega
+
+theorem lsh3_t (x0 x1 x2 x3 t : Nat) (ht : t < 64) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    6277101735386680763835789423207666416102355444464034512896 * (x0 * 2 ^ t % 18446744073709551616) =
+    (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) * 2 ^ (192 + t) % 115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+  have s0 := shl_split x0 t (by omega)
+  have s1 := shl_split x1 t (by omega)
+  have s2 := shl_split x2 t (by omega)
+  have s3 := shl_split x3 t (by omega)
+  have e := pow_shift (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) t 3
+  simp only [show 64 * 3 = 192 from rfl] at e
+  rw [e, lsh_expand]
+  have : (2 : Nat) ^ 192 = 6277101735386680763835789423207666416102355444464034512896 := by decide
+  rw [this]
+  omega
+
+theorem shl_or (a b t : Nat) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (a * 2 ^ t % 18446744073709551616 ||| b / 2 ^ (64 - t)) % 18446744073709551616 =
+      a * 2 ^ t % 18446744073709551616 + b / 2 ^ (64 - t) := by
+  have h := pq_eq t (by omega)
+  have hQ : 0 < 2 ^ (64 - t) := Nat.two_pow_pos _
+  have hv : b / 2 ^ (64 - t) < 2 ^ t := by
+    rw [Nat.div_lt_iff_lt_mul hQ, h]; exact hb
+  have hlt := lo_hi_lt a b t ht hb
+  rw [shl_lo a t (by omega)]
+  rw [Nat.or_comm, show 2 ^ t * (a % 2 ^ (64 - t)) = (a % 2 ^ (64 - t)) * 2 ^ t from Nat.mul_comm _ _, or_hi _ _ _ hv]
+  rw [shl_lo a t (by omega)] at hlt
+  rw [Nat.mod_eq_of_lt (by rw [Nat.mul_comm] at hlt; omega)]
+  rw [Nat.mul_comm]; omega
+
+theorem shl_or_bv (a b t : Nat) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (a * 2 ^ t % 18446744073709551616 ||| (if 64 - t < 64 then BitVec.ofNat 64 b >>> ((64 - t) % 64) else 0#64).toNat) %
+      18446744073709551616 = a * 2 ^ t % 18446744073709551616 + b / 2 ^ (64 - t) := by
+  by_cases h0 : t = 0
+  · subst h0
+    simp only [Nat.sub_zero, show ¬ (64 < 64) from by decide, if_false]
+    have : b / 2 ^ 64 = 0 := Nat.div_eq_of_lt (by simpa using hb)
+    simp [this]
+  · have hc : 64 - t < 64 := by omega
+    simp only [hc, if_true, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Nat.reducePow]
+    rw [Nat.mod_eq_of_lt hb, Nat.mod_eq_of_lt (by omega : 64 - t < 64)] 
+    exact shl_or a b t ht ha hb
+
+
+theorem shl_or_bv0 (a b t : Nat) (ht : 1 ≤ t) (ht2 : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (a * 2 ^ t % 18446744073709551616 ||| b / 2 ^ ((64 - t) % 64)) % 18446744073709551616 =
+      a * 2 ^ t % 18446744073709551616 + b / 2 ^ (64 - t) := by
+  rw [Nat.mod_eq_of_lt (by omega : 64 - t < 64)]
+  exact shl_or a b t ht2 ha hb
+
+theorem lsh_big (X m : Nat) (hm : 256 ≤ m) : X * 2 ^ m % 115792089237316195423570985008687907853269984665640564039457584007913129639936 = 0 := by
+  have : 2 ^ m = 2 ^ (m - 256) * 2 ^ 256 := by rw [← Nat.pow_add]; congr 1; omega
+  rw [this, ← Nat.mul_assoc]
+  exact Nat.mul_mod_left _ _
+
 end Fv256.Util
