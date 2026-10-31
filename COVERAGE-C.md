@@ -8,10 +8,10 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 
 | Symbol | class | arm64 | amd64 | Notes |
 |---|---|---|---|---|
-| `uint256.FromBig` | (b) | todo | todo | newobject + SetFromBig (callee extracted) |
+| `uint256.FromBig` | (b) | verified | todo | newobject + SetFromBig (callee extracted) |
 | `uint256.FromDecimal` | (b) | todo | todo | fromDecimal loop + mapaccess/ifaceeq, not extractable without contracts for runtime.mapaccess2_fast32/ifaceeq |
 | `uint256.FromHex` | (b) | todo | todo | newobject (z escapes) + fromHex loop; error values are globals (ErrSyntax...) in .data |
-| `uint256.MustFromBig` | (b) | todo | todo | newobject + SetFromBig + gopanic on overflow |
+| `uint256.MustFromBig` | (b) | verified | todo | newobject + SetFromBig + gopanic on overflow |
 | `uint256.MustFromDecimal` | (b) | todo | todo | as FromDecimal |
 | `uint256.MustFromHex` | (b) | todo | todo | newobject + fromHex + gopanic(err) |
 | `(*uint256.Int).CmpBig` | (a) | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |

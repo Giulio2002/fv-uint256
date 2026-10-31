@@ -263,6 +263,30 @@ theorem bigAbs_frame (m0 m1 : Janus.Arm64.Memory) (rs : List (Nat × Nat)) (pw l
   intro i hi
   exact hf.readLE _ _ (Janus.Outside.of_sub ho (by omega) (by omega))
 
+theorem flag_false (r : BitVec 64) (ov : Bool) (h : r.toNat = if ov = true then 1 else 0)
+    (hb : (r.getLsbD 0 == true) = true) : ov = true := by
+  cases ov
+  · simp only [Bool.false_eq_true, if_false] at h
+    rw [lsb0] at hb
+    simp [h] at hb
+  · rfl
+
+theorem flag_true (r : BitVec 64) (ov : Bool) (h : r.toNat = if ov = true then 1 else 0)
+    (hb : ¬ (r.getLsbD 0 == true) = true) : ov = false := by
+  cases ov
+  · rfl
+  · simp only [if_true] at h
+    rw [lsb0] at hb
+    simp [h] at hb
+
+theorem ovFalse_of (n : Nat) (h : n ≤ 4) : fromBigOv n = false := by
+  simp only [fromBigOv]; simpa using h
+
+theorem ovTrue_of (n : Nat) (h : 4 < n) : fromBigOv n = true := by
+  simp only [fromBigOv]; simpa using h
+
+theorem ovF_of (n : Nat) (h : fromBigOv n = false) : n ≤ 4 := ovF n h
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,
