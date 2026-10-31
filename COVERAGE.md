@@ -12,7 +12,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `uint256.MustFromDecimal` | todo | todo | |
 | `uint256.MustFromHex` | todo | todo | |
 | `uint256.NewInt` | todo | todo | |
-| `(*uint256.Int).Abs` | todo | todo | |
+| `(*uint256.Int).Abs` | verified | verified | lean/Fv256/{Arm64,Amd64}/Abs.lean |
 | `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
 | `(*uint256.Int).AddMod` | todo | todo | |
 | `(*uint256.Int).AddOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddOverflow.lean |

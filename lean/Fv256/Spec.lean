@@ -93,4 +93,7 @@ def byteLen (x : Nat) : Nat := (bitLen x + 7) / 8
 (`n = 0` is the top byte); `0` when `n ≥ 32`. -/
 def byte (n x : Nat) : Nat := if n < 32 then x / 2 ^ (8 * (31 - n)) % 256 else 0
 
+/-- `z.Abs(x)`: the absolute value of the two's-complement reading, modulo `2^256`. -/
+def abs (x : Nat) : Nat := if x < 2 ^ 255 then x else (W - x) % W
+
 end Fv256.Spec
