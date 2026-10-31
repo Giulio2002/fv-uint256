@@ -19,7 +19,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).AddUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddUint64.lean |
 | `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
 | `(*uint256.Int).BitLen` | verified | blocked (GOAMD64=v1) | arm64: lean/Fv256/Arm64/BitLen.lean. amd64: the default GOAMD64=v1 build uses `bsr rax, rcx` on a possibly-zero limb; the Janus amd64 model faults (`undefinedResult`) for BSR of zero, so the proof cannot proceed (draft in wip/). Verified on a GOAMD64=v3 build (lzcnt): lean/Fv256/Amd64v3/BitLen.lean |
-| `(*uint256.Int).Byte` | verified | todo | lean/Fv256/{Arm64,Amd64}/Byte.lean |
+| `(*uint256.Int).Byte` | verified | verified | lean/Fv256/{Arm64,Amd64}/Byte.lean |
 | `(*uint256.Int).ByteLen` | todo | todo | |
 | `(*uint256.Int).Bytes` | todo | todo | |
 | `(*uint256.Int).Bytes20` | todo | todo | |

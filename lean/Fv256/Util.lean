@@ -1222,4 +1222,6 @@ theorem hi16 (A B : Nat) (hA : A < 18446744073709551616) (hB : B < 1844674407370
     (A + 18446744073709551616 * B) / 18446744073709551616 % 18446744073709551616 = B := by
   omega
 
+theorem bv128_zero_toNat : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) = 0 := rfl
+
 end Fv256.Util
