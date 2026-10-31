@@ -856,6 +856,36 @@ theorem rev_rev (k x : Nat) (hx : x < 256 ^ k) : revBytesNat k (revBytesNat k x)
 theorem rev8_rev8 (x : Nat) (hx : x < 18446744073709551616) : revBytesNat 8 (revBytesNat 8 x) = x :=
   rev_rev 8 x (by simpa using hx)
 
+theorem be20_rev (m : Memory) (p : Nat) :
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 20 =
+      revBytesNat 4 (m.readLE p 4) * 2 ^ 128 + revBytesNat 8 (m.readLE (p + 4) 8) * 2 ^ 64 +
+        revBytesNat 8 (m.readLE (p + 12) 8) := by
+  have h : ∀ q w, Spec.fromBE (fun i => m.readLE (p + (q + i)) 1) w = revBytesNat w (m.readLE (p + q) w) := by
+    intro q w
+    rw [revBytes_readLE]
+    simp only [Nat.add_assoc]
+  have e0 : Spec.fromBE (fun i => m.readLE (p + i) 1) 4 = revBytesNat 4 (m.readLE p 4) :=
+    revBytes_readLE m p 4 ▸ rfl
+  rw [show 20 = 4 + 16 from rfl, fromBE_add, show 16 = 8 + 8 from rfl, fromBE_add]
+  have h2 := h 4 8
+  have h3 := h (4 + 8) 8
+  simp only [Nat.add_assoc] at h2 h3
+  rw [e0, h2, h3]
+  simp only [Nat.reduceAdd, Nat.reducePow, Nat.add_mul]
+  omega
+
+theorem rc4_val (v : Nat) :
+    (BitVec.setWidth 64 (BitVec.ofNat 32
+      (revContainersNat 4 1 (BitVec.setWidth 32 (BitVec.ofNat 64 v)).toNat))).toNat = revBytesNat 4 (v % 4294967296) := by
+  have hr := revBytes_lt 4 (v % 4294967296)
+  simp only [BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.reducePow, revContainersNat] at *
+  have e1 : v % 18446744073709551616 % 4294967296 = v % 4294967296 := by omega
+  rw [e1]
+  simp only [Nat.mod_mod, Nat.mul_zero, Nat.add_zero]
+  omega
+theorem rev4_rev4 (x : Nat) (hx : x < 4294967296) : revBytesNat 4 (revBytesNat 4 x) = x :=
+  rev_rev 4 x (by simpa using hx)
+
 end BEsec
 
 theorem byte_val (N y0 y1 y2 y3 : Nat) (hN : N < 32) (h0 : y0 < 18446744073709551616) (h1 : y1 < 18446744073709551616)
