@@ -175,4 +175,34 @@ theorem lt_ite (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) 
 theorem beq_toNat (a b : Nat) : (a == b).toNat = if a = b then 1 else 0 := by
   by_cases h : a = b <;> simp [h]
 
+
+theorem subFlags_fst_toNat (x y : BitVec 64) (b : Bool) :
+    (Janus.Amd64.subFlags x y b).1.toNat = (x.toNat + 2 ^ 64 - y.toNat - b.toNat) % 2 ^ 64 := by
+  simp [Janus.Amd64.subFlags]
+
+theorem addFlags_fst_toNat (x y : BitVec 64) (b : Bool) :
+    (Janus.Amd64.addFlags x y b).1.toNat = (x.toNat + y.toNat + b.toNat) % 2 ^ 64 := by
+  simp [Janus.Amd64.addFlags]
+
+
+open Janus.Amd64 in
+theorem neg_chain (x0 x1 x2 x3 : Nat) (h0 : x0 < 18446744073709551616) (h1 : x1 < 18446744073709551616)
+    (h2 : x2 < 18446744073709551616) (h3 : x3 < 18446744073709551616) :
+    (18446744073709551616 - x0) % 18446744073709551616 +
+            18446744073709551616 *
+              (subFlags (0#64) (BitVec.ofNat 64 x1) (decide (0 < x0))).fst.toNat +
+          340282366920938463463374607431768211456 *
+            (subFlags (0#64) (BitVec.ofNat 64 x2) (decide (0 < x1 + (decide (0 < x0)).toNat))).fst.toNat +
+        6277101735386680763835789423207666416102355444464034512896 *
+          (subFlags (0#64) (BitVec.ofNat 64 x3)
+                (decide (0 < x2 + (decide (0 < x1 + (decide (0 < x0)).toNat)).toNat))).fst.toNat =
+    (115792089237316195423570985008687907853269984665640564039457584007913129639936 - (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 +
+        6277101735386680763835789423207666416102355444464034512896 * x3)) % 115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+  have e0 := dec_toNat (0 < x0)
+  have e1 := dec_toNat (0 < x1 + (decide (0 < x0)).toNat)
+  have e2 := dec_toNat (0 < x2 + (decide (0 < x1 + (decide (0 < x0)).toNat)).toNat)
+  simp only [subFlags_fst_toNat, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod,
+    Nat.mod_eq_of_lt h1, Nat.mod_eq_of_lt h2, Nat.mod_eq_of_lt h3]
+  omega
+
 end Fv256.Util

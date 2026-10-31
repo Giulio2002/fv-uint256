@@ -35,4 +35,15 @@ def gt (x y : Nat) : Bool := decide (y < x)
 /-- `z.Cmp(x)`: -1, 0 or 1. -/
 def cmp (x y : Nat) : Int := if x < y then -1 else if x = y then 0 else 1
 
+/-- `z.Not(x)`: bitwise complement of a 256-bit number. -/
+def not (x : Nat) : Nat := W - 1 - x
+/-- `z.Neg(x)`: two's complement negation modulo `2^256`. -/
+def neg (x : Nat) : Nat := (W - x) % W
+/-- `z.Add(x, y)`. -/
+def add (x y : Nat) : Nat := (x + y) % W
+/-- `z.Sub(x, y)`. -/
+def sub (x y : Nat) : Nat := (x + W - y) % W
+/-- `z.Mul(x, y)`. -/
+def mul (x y : Nat) : Nat := (x * y) % W
+
 end Fv256.Spec

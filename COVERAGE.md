@@ -60,8 +60,8 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
 | `(*uint256.Int).MulOverflow` | todo | todo | |
-| `(*uint256.Int).Neg` | todo | todo | |
-| `(*uint256.Int).Not` | todo | todo | |
+| `(*uint256.Int).Neg` | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
+| `(*uint256.Int).Not` | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
 | `(*uint256.Int).PaddedBytes` | todo | todo | |
 | `(*uint256.Int).PrettyDec` | todo | todo | |
