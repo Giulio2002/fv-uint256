@@ -758,6 +758,59 @@ theorem rc_rev8 (v : Nat) (hv : v < 18446744073709551616) :
   simp only [revContainersNat, Nat.reducePow, Nat.mod_eq_of_lt hv] at *
   omega
 
+theorem chunk8 (m : Memory) (a : Nat) :
+    revContainersNat 8 1 (m.readLE a 8) % 18446744073709551616 =
+      Spec.fromBE (fun i => m.readLE (a + i) 1) 8 := by
+  rw [rc_rev8 _ (readLE8_lt _ _), revBytes_readLE]
+
+theorem chunk4 (m : Memory) (a : Nat) :
+    (BitVec.setWidth 64 (BitVec.ofNat 32
+      (revContainersNat 4 1 (BitVec.setWidth 32 (BitVec.ofNat 64 (m.readLE a 4))).toNat))).toNat =
+      Spec.fromBE (fun i => m.readLE (a + i) 1) 4 := by
+  have h4 : m.readLE a 4 < 4294967296 := by simpa using Memory.readLE_lt m a 4
+  have hr := revBytes_lt 4 (m.readLE a 4)
+  simp only [BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.reducePow, revContainersNat]
+  rw [← revBytes_readLE]
+  simp only [Nat.reducePow] at hr
+  have e1 : m.readLE a 4 % 18446744073709551616 % 4294967296 = m.readLE a 4 := by omega
+  rw [e1]
+  have e2 : revBytesNat 4 (m.readLE a 4 % 4294967296) = revBytesNat 4 (m.readLE a 4) := by
+    rw [Nat.mod_eq_of_lt h4]
+  omega
+
+theorem rot0 {w : Nat} (x : BitVec w) : x.rotateRight 0 = x := by
+  simp [BitVec.rotateRight, BitVec.rotateRightAux]
+
+theorem chunk2 (m : Memory) (a : Nat) :
+    ((BitVec.setWidth 64 (BitVec.ofNat 32
+      (revContainersNat 2 2 (BitVec.setWidth 32 (BitVec.ofNat 64 (m.readLE a 2))).toNat))).rotateRight 0).toNat % 65536 =
+      Spec.fromBE (fun i => m.readLE (a + i) 1) 2 := by
+  have h2 : m.readLE a 2 < 65536 := by simpa using Memory.readLE_lt m a 2
+  have hr := revBytes_lt 2 (m.readLE a 2)
+  simp only [rot0, BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.reducePow, revContainersNat]
+  rw [← revBytes_readLE]
+  simp only [Nat.reducePow] at hr
+  have e1 : m.readLE a 2 % 18446744073709551616 % 4294967296 = m.readLE a 2 := by omega
+  rw [e1]
+  have e2 : m.readLE a 2 % 65536 = m.readLE a 2 := Nat.mod_eq_of_lt h2
+  have e3 : m.readLE a 2 / 65536 = 0 := by omega
+  simp only [e2, e3, Nat.zero_mod, revBytesNat, Nat.mul_zero, Nat.add_zero]
+  omega
+
+
+theorem or_hi (a c k : Nat) (ha : a < 2 ^ k) : a ||| (c * 2 ^ k) = a + c * 2 ^ k := by
+  have := or_split k a 0 0 c ha (Nat.two_pow_pos k)
+  simpa [Nat.mul_comm] using this
+
+theorem or_hi16 (a c : Nat) (ha : a < 65536) : a ||| (c * 65536) = a + c * 65536 := or_hi a c 16 ha
+theorem or_hi24 (a c : Nat) (ha : a < 16777216) : a ||| (c * 16777216) = a + c * 16777216 := or_hi a c 24 ha
+theorem or_hi32 (a c : Nat) (ha : a < 4294967296) : a ||| (c * 4294967296) = a + c * 4294967296 := or_hi a c 32 ha
+theorem or_hi40 (a c : Nat) (ha : a < 1099511627776) : a ||| (c * 1099511627776) = a + c * 1099511627776 := or_hi a c 40 ha
+theorem or_hi48 (a c : Nat) (ha : a < 281474976710656) : a ||| (c * 281474976710656) = a + c * 281474976710656 := or_hi a c 48 ha
+theorem or_hi56 (a c : Nat) (ha : a < 72057594037927936) : a ||| (c * 72057594037927936) = a + c * 72057594037927936 := or_hi a c 56 ha
+
+theorem rd1_lt (m : Memory) (a : Nat) : m.readLE a 1 < 256 := by simpa using Memory.readLE_lt m a 1
+
 end BEsec
 
 end Fv256.Util

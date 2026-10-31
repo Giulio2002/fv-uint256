@@ -99,7 +99,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetBytes3` | todo | todo | |
 | `(*uint256.Int).SetBytes30` | todo | todo | |
 | `(*uint256.Int).SetBytes31` | todo | todo | |
-| `(*uint256.Int).SetBytes32` | todo | todo | |
+| `(*uint256.Int).SetBytes32` | verified | todo | lean/Fv256/{Arm64,Amd64}/SetBytes32.lean |
 | `(*uint256.Int).SetBytes4` | todo | todo | |
 | `(*uint256.Int).SetBytes5` | todo | todo | |
 | `(*uint256.Int).SetBytes6` | todo | todo | |
