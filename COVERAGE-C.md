@@ -25,7 +25,7 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).Scan` | (b) | todo | todo | type switch on interface{}, mapaccess2_fast32, ifaceeq, Exp, MulOverflow, SetFromDecimal |
 | `(*uint256.Int).SetFromBig` | (a) | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
 | `(*uint256.Int).SetFromDecimal` | (b) | todo | todo | as FromDecimal |
-| `(*uint256.Int).SetFromHex` | (a) | todo | todo | fromHex loop; error returns are interface values loaded from globals ErrXxx (writable .data: precondition must supply) |
+| `(*uint256.Int).SetFromHex` | (a) | verified | todo | lean/Fv256/Arm64/{SetFromHexLoops,SetFromHex}.lean; fromHex proved as a callee summary (`fromHex_sum`: digit loop invariant over the 4 limbs, specification `parseHex` in SpecC); preconditions beyond the usual pointers: the six package error variables are non-nil and disjoint from z and the stack, enough stack for the callee (`GuardOK s 48`); Witness: `"0x1f"` parses to 31 |
 | `(*uint256.Int).MarshalJSON` | (d) | todo | todo | Dec + concatbyte3 + string/slice runtime |
 | `(*uint256.Int).MarshalSSZ` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MarshalSSZ.lean; runtime.makeslice contract (growslice calls are inlined away: capacity is known); allocator witness inside |
 | `(*uint256.Int).MarshalSSZAppend` | (b) | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
