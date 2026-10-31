@@ -109,4 +109,10 @@ def fromBE (f : Nat → Nat) : Nat → Nat
   | 0 => 0
   | n + 1 => f 0 * 256 ^ n + fromBE (fun i => f (i + 1)) n
 
+/-- `z.ExtendSign(x, b)`: sign-extend `x` from byte `b` (byte 0 is the least significant). Unchanged when `b ≥ 31`. -/
+def extendSign (x b : Nat) : Nat :=
+  if b < 31 then
+    (if x / 2 ^ (8 * b + 7) % 2 = 1 then x % 2 ^ (8 * b + 8) + (W - 2 ^ (8 * b + 8)) else x % 2 ^ (8 * b + 8))
+  else x
+
 end Fv256.Spec

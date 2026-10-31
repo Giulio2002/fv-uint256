@@ -13,6 +13,7 @@ mkdir -p build
 for a in arm64 amd64; do
   (cd go && GOTOOLCHAIN=go1.26.0 CGO_ENABLED=0 GOOS=linux GOARCH=$a go build -trimpath -buildvcs=false -o ../build/harness-$a ./cmd/harness) || { echo "harness build failed ($a)"; exit 2; }
 done
+(cd go && GOTOOLCHAIN=go1.26.0 GOAMD64=v3 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -o ../build/harness-amd64v3 ./cmd/harness) || { echo "harness build failed (amd64 v3)"; exit 2; }
 # rows: | `(*uint256.Int).Fn` | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
 mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
 fail=0; table=""
@@ -31,6 +32,16 @@ for row in "${rows[@]}"; do
          --theorem "Fv256.$dir.$fn.correctness" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
     table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "$r")"$'\n'
   done
+done
+# extra proofs about the GOAMD64=v3 build (functions whose default v1 code the Janus model cannot run)
+for f in lean/Fv256/Amd64v3/*.lean; do
+  [ -e "$f" ] || continue
+  fn="$(basename "$f" .lean)"
+  [ $# -gt 0 ] && { case " $* " in *" $fn "*) ;; *) continue;; esac; }
+  out="build/ex-amd64v3-$fn"
+  if $JANUS extract build/harness-amd64v3 "github.com/holiman/uint256.(*Int).$fn" "$out" >"build/log-amd64v3-$fn" 2>&1 &&
+     timeout "$TMO" $MC $JANUS verify "$out" --proof "$f" --proof-root lean --theorem "Fv256.Amd64v3.$fn.correctness" >>"build/log-amd64v3-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
+  table+="$(printf '%-8s %-24s %s' amd64v3 "$fn" "$r")"$'\n'
 done
 echo "== summary =="; printf '%s' "$table"
 exit $fail
