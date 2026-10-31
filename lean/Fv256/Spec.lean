@@ -104,4 +104,9 @@ def rsh (x n : Nat) : Nat := x / 2 ^ n
 /-- `x.Uint64WithOverflow()` overflow flag: the number does not fit in 64 bits. -/
 def uint64Ov (x : Nat) : Bool := decide (2 ^ 64 ≤ x)
 
+/-- The big-endian value of the first `n` bytes of the byte sequence `f` (`f 0` is the most significant). -/
+def fromBE (f : Nat → Nat) : Nat → Nat
+  | 0 => 0
+  | n + 1 => f 0 * 256 ^ n + fromBE (fun i => f (i + 1)) n
+
 end Fv256.Spec

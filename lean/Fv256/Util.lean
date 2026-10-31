@@ -685,4 +685,79 @@ theorem bl_2 (a0 a1 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 184467440
   have := bl_3 a0 a1 0 h0 h1 (by decide)
   simpa using this
 
+
+section BEsec
+open Janus.Arm64
+
+theorem fromBE_add (f : Nat → Nat) (m n : Nat) :
+    Spec.fromBE f (m + n) = Spec.fromBE f m * 256 ^ n + Spec.fromBE (fun i => f (m + i)) n := by
+  induction m generalizing f with
+  | zero => simp [Spec.fromBE]
+  | succ m ih =>
+    rw [show m + 1 + n = (m + n) + 1 by omega]
+    simp only [Spec.fromBE]
+    rw [ih (fun i => f (i + 1))]
+    have e : (fun i => f (m + i + 1)) = fun i => f (m + 1 + i) :=
+      funext fun i => by rw [show m + i + 1 = m + 1 + i by omega]
+    simp only [e]
+    rw [Nat.pow_add, Nat.add_mul, Nat.mul_assoc]
+    omega
+
+theorem revBytes_readLE (m : Memory) (a k : Nat) :
+    revBytesNat k (m.readLE a k) = Spec.fromBE (fun i => m.readLE (a + i) 1) k := by
+  induction k generalizing a with
+  | zero => simp [revBytesNat, Spec.fromBE]
+  | succ k ih =>
+    rw [Memory.readLE_succ, revBytesNat]
+    have h1 : ((m.bytes a).toNat + 256 * m.readLE (a + 1) k) % 256 = (m.bytes a).toNat := by
+      have := (m.bytes a).isLt
+      omega
+    have h2 : ((m.bytes a).toNat + 256 * m.readLE (a + 1) k) / 256 = m.readLE (a + 1) k := by
+      have := (m.bytes a).isLt
+      omega
+    rw [h1, h2, ih (a + 1)]
+    simp only [Spec.fromBE, Nat.add_zero, Memory.readLE_one]
+    have e : (fun i => (m.bytes (a + 1 + i)).toNat) = fun i => (m.bytes (a + (i + 1))).toNat :=
+      funext fun i => by rw [show a + 1 + i = a + (i + 1) by omega]
+    rw [e]
+
+theorem be32_rev (m : Memory) (p : Nat) :
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 32 =
+      revBytesNat 8 (m.readLE p 8) * 2 ^ 192 + revBytesNat 8 (m.readLE (p + 8) 8) * 2 ^ 128 +
+        revBytesNat 8 (m.readLE (p + 16) 8) * 2 ^ 64 + revBytesNat 8 (m.readLE (p + 24) 8) := by
+  have h : ∀ q, Spec.fromBE (fun i => m.readLE (p + (q + i)) 1) 8 = revBytesNat 8 (m.readLE (p + q) 8) := by
+    intro q
+    rw [revBytes_readLE]
+    simp only [Nat.add_assoc]
+  have e0 : Spec.fromBE (fun i => m.readLE (p + i) 1) 8 = revBytesNat 8 (m.readLE p 8) :=
+    revBytes_readLE m p 8 ▸ rfl
+  rw [show 32 = 8 + 24 from rfl, fromBE_add, show 24 = 8 + 16 from rfl, fromBE_add, show 16 = 8 + 8 from rfl, fromBE_add]
+  have h2 := h (8 + 8)
+  have h3 := h (8 + (8 + 8))
+  simp only [Nat.add_assoc] at h2 h3
+  rw [e0, h 8, h2, h3]
+  simp only [Nat.reduceAdd, Nat.reducePow, Nat.add_mul]
+  omega
+
+theorem revBytes_lt (k x : Nat) : revBytesNat k x < 256 ^ k := by
+  induction k generalizing x with
+  | zero => simp [revBytesNat]
+  | succ k ih =>
+    unfold revBytesNat
+    have h1 : x % 256 < 256 := Nat.mod_lt _ (by decide)
+    have h2 := ih (x / 256)
+    rw [Nat.pow_succ]
+    have : (x % 256) * 256 ^ k + revBytesNat k (x / 256) < 256 * 256 ^ k := by
+      have : (x % 256) * 256 ^ k ≤ 255 * 256 ^ k := Nat.mul_le_mul_right _ (by omega)
+      omega
+    omega
+
+theorem rc_rev8 (v : Nat) (hv : v < 18446744073709551616) :
+    revContainersNat 8 1 v % 18446744073709551616 = revBytesNat 8 v := by
+  have h := revBytes_lt 8 v
+  simp only [revContainersNat, Nat.reducePow, Nat.mod_eq_of_lt hv] at *
+  omega
+
+end BEsec
+
 end Fv256.Util
