@@ -17,7 +17,7 @@ Forms of guarantee beyond the plain `Ensures`:
 * **Slice arguments** (`SetBytes32`, `PutUint256`): a conjunction of `Returns` under `len ≥ 32` and `Panics` (the bounds-check stub) under `len < 32`.
 * **Memory frame**: `Fv256.Util.OnlyWrites2` says that the call changes no byte outside the result object and the callee's own stack window.
 * **Allocation** (`Clone`, `NewInt`): stated for every implementation of `runtime.newobject` satisfying Janus's pinned allocation contract
-  (`NewobjectContract`); the result is a fresh object inside the runtime-owned ranges. No concrete witness state is built for these two.
+  (`NewobjectContract`); the result is a fresh object inside the runtime-owned ranges. Each has a `Witness` that links a toy allocator at the contract address.
 * **`BitLen` on amd64** is proved for a `GOAMD64=v3` build (`lzcnt`); the default `v1` code uses `BSR` of a possibly zero limb, which the Janus
   model does not accept (`COVERAGE.md`).
 
