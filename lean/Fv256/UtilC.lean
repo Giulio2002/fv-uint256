@@ -297,9 +297,19 @@ open Janus.Contracts.EqHashModel Janus.Arm64
 def bigBase : Nat := DST + 32
 def bigWords : Nat := DST + 64
 
-def bigTable : List (Nat × Nat) :=
-  Janus.Contracts.EqHashModel.wtable ++ [(bigBase, 1), (bigBase + 8, 0x40), (bigBase + 9, 0x08), (bigBase + 10, 0x03),
+def bigEntries : List (Nat × Nat) :=
+  [(bigBase, 1), (bigBase + 8, 0x40), (bigBase + 9, 0x08), (bigBase + 10, 0x03),
     (bigBase + 16, 2), (bigBase + 24, 2), (bigWords, 5), (bigWords + 8, 1)]
+
+theorem bigEntries_none (a : Nat) (h : a < 0x30000) : bigEntries.lookup a = none := by
+  unfold bigEntries bigBase bigWords Janus.Contracts.EqHashModel.DST
+  have e : ∀ k, 0x30000 ≤ k → (a == k) = false := fun k hk => by
+    simp only [beq_eq_false_iff_ne]; omega
+  simp only [List.lookup, e 198688 (by decide), e 198696 (by decide), e 198697 (by decide), e 198698 (by decide),
+    e 198704 (by decide), e 198712 (by decide), e 198720 (by decide), e 198728 (by decide)]
+
+def bigTable : List (Nat × Nat) :=
+  Janus.Contracts.EqHashModel.wtable ++ bigEntries
 
 def bigMem : Memory :=
   ⟨fun a => BitVec.ofNat 8 ((bigTable.lookup a).getD 0), Janus.Contracts.EqHashModel.wmem.regions⟩
