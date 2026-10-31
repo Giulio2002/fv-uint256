@@ -522,6 +522,52 @@ theorem sgt_toNat (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 1844674407370955161
         (b3 < a3 + (decide (b2 < a2 + (decide (b1 < a1 + (decide (b0 < a0)).toNat)).toNat)).toNat)))).toNat :=
   slt_toNat b0 b1 b2 b3 a0 a1 a2 a3 g0 g1 g2 g3 h0 h1 h2 h3
 
+
+theorem cmp_ofInt (A B : Nat) :
+    BitVec.ofInt 64 (Spec.cmp A B) =
+      if A < B then 18446744073709551615#64 else if A = B then 0#64 else 1#64 := by
+  unfold Spec.cmp
+  by_cases h1 : A < B
+  · simp [h1]
+  · by_cases h2 : A = B
+    · simp [h1, h2]
+    · simp [h1, h2]
+
+
+theorem ite_one_toNat (P : Prop) [Decidable P] : (if P then 1#64 else 0#64).toNat = (decide P).toNat := by
+  by_cases h : P <;> simp [h]
+
+
+theorem ite01_eq1 (P : Prop) [Decidable P] : ((if P then 0 else 1 : Nat) = 1) ↔ ¬P := by
+  by_cases h : P <;> simp [h]
+theorem ite01_eq0 (P : Prop) [Decidable P] : ((if P then 0 else 1 : Nat) = 0) ↔ P := by
+  by_cases h : P <;> simp [h]
+
+
+theorem zero4_iff (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    (((a3 + (18446744073709551616 - 1 - b3) +
+          (a2 + (18446744073709551616 - 1 - b2) +
+              (a1 + (18446744073709551616 - 1 - b1) + (decide (b0 ≤ a0)).toNat) / 18446744073709551616) /
+            18446744073709551616) % 18446744073709551616 = 0 ∧
+      ((18446744073709551616 - b0 + a0) % 18446744073709551616 = 0 ∧
+        (a1 + (18446744073709551616 - 1 - b1) + (decide (b0 ≤ a0)).toNat) % 18446744073709551616 = 0) ∧
+      (a2 + (18446744073709551616 - 1 - b2) +
+          (a1 + (18446744073709551616 - 1 - b1) + (decide (b0 ≤ a0)).toNat) / 18446744073709551616) %
+        18446744073709551616 = 0)) ↔
+    (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3 =
+      b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3) := by
+  obtain ⟨c, hc⟩ : ∃ c, c = (decide (b0 ≤ a0)).toNat := ⟨_, rfl⟩
+  have hc2 : (c = 1 ∧ b0 ≤ a0) ∨ (c = 0 ∧ ¬ b0 ≤ a0) := by rw [hc]; exact dec_toNat _
+  rw [← hc]
+  obtain ⟨k1, hk1⟩ : ∃ k, k = (a1 + (18446744073709551616 - 1 - b1) + c) / 18446744073709551616 := ⟨_, rfl⟩
+  obtain ⟨k2, hk2⟩ : ∃ k, k = (a2 + (18446744073709551616 - 1 - b2) + k1) / 18446744073709551616 := ⟨_, rfl⟩
+  rw [← hk1, ← hk2]
+  omega
+
 theorem msb_m1 : (18446744073709551615#64).msb = true := by decide
 theorem msb_0 : (0#64).msb = false := by decide
 theorem msb_1 : (1#64).msb = false := by decide

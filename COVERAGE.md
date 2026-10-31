@@ -26,7 +26,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Bytes32` | todo | todo | |
 | `(*uint256.Int).Clear` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clear.lean |
 | `(*uint256.Int).Clone` | todo | todo | |
-| `(*uint256.Int).Cmp` | todo | todo | attempt in wip/: hypotheses with addWithCarry chains not normalised by simp at * |
+| `(*uint256.Int).Cmp` | verified | verified | lean/Fv256/{Arm64,Amd64}/Cmp.lean |
 | `(*uint256.Int).CmpBig` | todo | todo | |
 | `(*uint256.Int).CmpUint64` | todo | todo | |
 | `(*uint256.Int).Dec` | todo | todo | |

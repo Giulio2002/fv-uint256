@@ -7,7 +7,7 @@ import Fv256.Util
 
 **Guarantee.** For all pointers `z` (receiver, `RAX`) and `x` (`RBX`) such that the return-address slot is writable and
 the 32 bytes at each are readable (below `2^48`; they may be equal or overlap arbitrarily) the call returns (no fault,
-no panic), obeys the ABI, and the `int` result is `Fv256.Spec.cmp` of the number at the receiver and the number at `x` (`AL`, low byte of `RAX`), the numbers being read before the call.
+no panic), obeys the ABI, and the `int` result is `Fv256.Spec.cmp` of the number at the receiver and the number at `x` (`RAX`, read as a signed 64-bit integer: -1, 0 or 1), the numbers being read before the call.
 
 **Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `0`.
 -/
@@ -16,6 +16,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Cmp
 
+set_option maxHeartbeats 8000000 in
 theorem correctness (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false)
@@ -25,7 +26,7 @@ theorem correctness (z x : BitVec 64) :
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw
   simp only [valueAt]
   janus64_run [Util.readLE_32]
-  done
+  all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); have hl := Util.lt_out_iff _ _ _ _ _ _ _ _ (Util.readLE8_lt s.mem z.toNat) (Util.readLE8_lt s.mem (z.toNat + 8)) (Util.readLE8_lt s.mem (z.toNat + 16)) (Util.readLE8_lt s.mem (z.toNat + 24)) (Util.readLE8_lt s.mem x.toNat) (Util.readLE8_lt s.mem (x.toNat + 8)) (Util.readLE8_lt s.mem (x.toNat + 16)) (Util.readLE8_lt s.mem (x.toNat + 24)); simp only [Util.cmp_ofInt]; (simp only [Util.subFlags_fst_toNat, BitVec.toNat_or, BitVec.toNat_sub, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.or_eq_zero_iff, Nat.reducePow, Nat.reduceMod, Util.ite_one_toNat] at *); dec_facts; (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Bool.false_eq_true, Bool.true_eq_false, BitVec.reduceEq]) <;> first | rfl | omega)
 
 namespace Witness
 
