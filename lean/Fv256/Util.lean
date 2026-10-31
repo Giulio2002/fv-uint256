@@ -1224,4 +1224,10 @@ theorem hi16 (A B : Nat) (hA : A < 18446744073709551616) (hB : B < 1844674407370
 
 theorem bv128_zero_toNat : BitVec.toNat (OfNat.ofNat 0 : BitVec 128) = 0 := rfl
 
+theorem rot3_idx (b : Nat) (hb : b < 18446744073709551616) :
+    (b / 8 ||| b * 2305843009213693952 % 18446744073709551616) % 18446744073709551616 % 2305843009213693952 = b / 8 := by
+  have e : b * 2305843009213693952 % 18446744073709551616 = (b % 8) * 2305843009213693952 := by omega
+  have h1 : b / 8 < 2305843009213693952 := by omega
+  rw [e, show (b % 8) * 2305843009213693952 = (b % 8) * 2 ^ 61 from rfl, or_hi _ _ 61 (by simpa using h1)]
+  omega
 end Fv256.Util
