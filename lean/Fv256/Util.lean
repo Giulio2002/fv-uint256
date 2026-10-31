@@ -2075,6 +2075,71 @@ theorem b20_locB (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
   have e4 : q + 28 - 20 = q + 8 := by omega
   rw [e1, e2, e3, e4]
   exact b20_locB0 base q V0 V1 V2
+theorem b20a_res (M0 : Memory) (sp A B : Nat) :
+    Fv256.Spec.fromBE (fun i => (((M0.writeLE (sp + 8) 16 A).writeLE (sp + 12) 16 B).readLE (sp + 8 + i) 1)) 20 =
+      Janus.Arm64.revBytesNat 4 (A % 4294967296) * 2 ^ 128 + Janus.Arm64.revBytesNat 8 (B % 18446744073709551616) * 2 ^ 64 +
+      Janus.Arm64.revBytesNat 8 (B / 18446744073709551616 % 18446744073709551616) := by
+  rw [Util.be20_rev]
+  obtain ⟨M, hM⟩ : ∃ M, M = ((M0.writeLE (sp + 8) 16 A).writeLE (sp + 12) 16 B) := ⟨_, rfl⟩
+  rw [← hM]
+  have h4 : M.readLE (sp + 8) 4 = A % 4294967296 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    simp only [Nat.sub_self, Nat.pow_zero, Nat.div_one]
+  have h12 : M.readLE (sp + 8 + 4) 8 = B % 18446744073709551616 := by
+    rw [hM, Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    have : sp + 8 + 4 - (sp + 12) = 0 := by omega
+    rw [this]
+    (try simp only [Nat.pow_zero, Nat.div_one, Nat.reducePow])
+  have h20 : M.readLE (sp + 8 + 12) 8 = B / 18446744073709551616 % 18446744073709551616 := by
+    rw [hM, Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    have : sp + 8 + 12 - (sp + 12) = 8 := by omega
+    rw [this]
+    (try simp only [Nat.reducePow])
+  rw [h4, h12, h20]
+
+theorem b20a_loc1 (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
+    ((((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).writeLE (sp - 16) 8 V2).readLE (sp - 28) 16) =
+      V0 % 4294967296 + 4294967296 * (V1 % 18446744073709551616) + 79228162514264337593543950336 * (V2 % 4294967296) := by
+  obtain ⟨q, rfl⟩ : ∃ q, sp = q + 28 := ⟨sp - 28, by omega⟩
+  have e1 : q + 28 - 28 = q := by omega
+  have e2 : q + 28 - 24 = q + 4 := by omega
+  have e3 : q + 28 - 16 = q + 12 := by omega
+  rw [e1, e2, e3]
+  obtain ⟨M, hM⟩ : ∃ M, M = (((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).writeLE (q + 12) 8 V2) := ⟨_, rfl⟩
+  rw [← hM]
+  have h16 : M.readLE q 16 = M.readLE q 4 + 256 ^ 4 * M.readLE (q + 4) 12 := Memory.readLE_add _ _ 4 12
+  have h12 : M.readLE (q + 4) 12 = M.readLE (q + 4) 8 + 256 ^ 8 * M.readLE (q + 4 + 8) 4 := Memory.readLE_add _ _ 8 4
+  have r0 : M.readLE q 4 = V0 % 4294967296 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Memory.readLE_writeLE_self]
+  have r1 : M.readLE (q + 4) 8 = V1 % 18446744073709551616 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
+  have r2 : M.readLE (q + 4 + 8) 4 = V2 % 4294967296 := by
+    rw [hM, Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    have : q + 4 + 8 - (q + 12) = 0 := by omega
+    rw [this]
+    simp only [Nat.pow_zero, Nat.div_one, Nat.reducePow]
+  rw [h16, h12, r0, r1, r2]
+  simp only [Nat.reducePow]
+  omega
+
+theorem b20a_loc2 (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
+    ((((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).writeLE (sp - 16) 8 V2).readLE (sp - 24) 16) =
+      V1 % 18446744073709551616 + 18446744073709551616 * (V2 % 18446744073709551616) := by
+  obtain ⟨q, rfl⟩ : ∃ q, sp = q + 28 := ⟨sp - 28, by omega⟩
+  have e1 : q + 28 - 28 = q := by omega
+  have e2 : q + 28 - 24 = q + 4 := by omega
+  have e3 : q + 28 - 16 = q + 12 := by omega
+  rw [e1, e2, e3]
+  obtain ⟨M, hM⟩ : ∃ M, M = (((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).writeLE (q + 12) 8 V2) := ⟨_, rfl⟩
+  rw [← hM]
+  have h16 : M.readLE (q + 4) 16 = M.readLE (q + 4) 8 + 256 ^ 8 * M.readLE (q + 4 + 8) 8 := Memory.readLE_add _ _ 8 8
+  have r1 : M.readLE (q + 4) 8 = V1 % 18446744073709551616 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
+  have r2 : M.readLE (q + 4 + 8) 8 = V2 % 18446744073709551616 := by
+    have : q + 4 + 8 = q + 12 := by omega
+    rw [this, hM, Memory.readLE_writeLE_self]
+  rw [h16, r1, r2]
 end B20
 
 end Fv256.Util

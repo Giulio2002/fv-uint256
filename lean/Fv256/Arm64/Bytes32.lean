@@ -3,18 +3,6 @@ import Fv256.Spec
 import Fv256.Util
 
 /-!
-# `(*uint256.Int).Bytes32(dest *[32]byte)` (arm64)
-
-**Guarantee.** For all pointers `z` (the receiver, `X0`) and `dest` (`X1`) such that the 32 bytes at `z` are readable, the 32
-bytes at `dest` are writable (both below `2^48`) and the two ranges are disjoint, the call returns (no fault, no panic), obeys
-the ABI, the 32 bytes at `dest` afterwards read as the big-endian number `Fv256.Spec.fromBE` equal to the number at `z` (read
-before the call), and no byte changes outside `dest[0..32)`.
-(The compiled code interleaves its loads and stores, so overlapping `z` and `dest` is outside the guarantee.)
-
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns.
--/
-
-/-!
 # `(*uint256.Int).Bytes32() [32]byte` (arm64)
 
 **Guarantee.** For every receiver `z` (`X0`) and every Go call such that the 32 bytes at `z` are readable (below `2^48`), the stack
