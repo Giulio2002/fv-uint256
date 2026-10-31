@@ -510,3 +510,307 @@ macro "div2_close " v:ident rem:ident uk:ident d:ident hvB:ident hukB:ident hd1:
       all_goals omega))
 
 end Fv256.B
+
+namespace Fv256.B
+
+/-- Knuth's quotient-digit estimate with the single `qhat*dl > rhat*B + u0` correction used by `udivremKnuth`. -/
+def qhat1 (B dh dl u2 u1 u0 : Nat) : Nat :=
+  if dh ≤ u2 then B - 1
+  else if (((u2 * B + u1) / dh) * dl > ((u2 * B + u1) % dh) * B + u0) then (u2 * B + u1) / dh - 1
+  else (u2 * B + u1) / dh
+
+theorem qhat1_bounds (B dh dl u2 u1 u0 β D X : Nat)
+    (hdh2 : B ≤ 2 * dh) (hdhB : dh < B) (hdl : dl < B) (hu0 : u0 < B) (hu1 : u1 < B) (hu2 : u2 < B)
+    (hβ : 0 < β)
+    (hD1 : (dh * B + dl) * β ≤ D) (hD2 : D < (dh * B + dl + 1) * β)
+    (hX1 : ((u2 * B + u1) * B + u0) * β ≤ X) (hX2 : X < (((u2 * B + u1) * B + u0) + 1) * β)
+    (hXD : X < B * D) :
+    X / D ≤ qhat1 B dh dl u2 u1 u0 ∧ qhat1 B dh dl u2 u1 u0 ≤ X / D + 1 := by
+  have hD2pos : 0 < dh * B + dl := by
+    have : 0 < dh := by omega
+    have : 0 < B := by omega
+    have := Nat.mul_pos ‹0 < dh› ‹0 < B›
+    omega
+  have hD0 : 0 < D := Nat.lt_of_lt_of_le (Nat.mul_pos hD2pos hβ) hD1
+  have hdiv := Nat.div_add_mod X D
+  have hmod := Nat.mod_lt X hD0
+  obtain ⟨q, hq⟩ : ∃ q, q = X / D := ⟨_, rfl⟩
+  obtain ⟨r, hr⟩ : ∃ r, r = X % D := ⟨_, rfl⟩
+  rw [← hq, ← hr] at hdiv
+  rw [← hr] at hmod
+  rw [← hq]
+  have hqB : q < B := by
+    refine Nat.lt_of_mul_lt_mul_right (a := D) ?_
+    have : q * D ≤ X := by rw [Nat.mul_comm q D]; omega
+    omega
+  have hqD : q * D ≤ X := by rw [Nat.mul_comm q D]; omega
+  have hXq : X < (q + 1) * D := by rw [Nat.succ_mul, Nat.mul_comm q D]; omega
+  unfold qhat1
+  by_cases hA : dh ≤ u2
+  · simp only [hA, ite_true]
+    refine ⟨by omega, ?_⟩
+    refine Nat.le_of_not_lt (fun hlt => ?_)
+    -- q + 3 ≤ B
+    have h1 : (q + 1) * D ≤ (B - 2) * D := Nat.mul_le_mul_right _ (by omega)
+    have h2 : (B - 2) * D ≤ (B - 2) * ((dh * B + dl + 1) * β) := Nat.mul_le_mul_left _ (Nat.le_of_lt hD2)
+    have h3 : dh * B ≤ u2 * B + u1 := by
+      have := Nat.mul_le_mul_right B hA
+      omega
+    have h4 : dh * B * B * β ≤ ((u2 * B + u1) * B + u0) * β := Nat.mul_le_mul_right _ (by
+      have := Nat.mul_le_mul_right B h3
+      omega)
+    have h5 : (dh * B + dl + 1) ≤ (dh + 1) * B := by
+      have : (dh + 1) * B = dh * B + B := by grind
+      omega
+    have h6 : (B - 2) * ((dh * B + dl + 1) * β) ≤ (B - 2) * (((dh + 1) * B) * β) :=
+      Nat.mul_le_mul_left _ (Nat.mul_le_mul_right _ h5)
+    have h7 : dh * B * B * β < (B - 2) * (((dh + 1) * B) * β) := by omega
+    have h8 : dh * B < (B - 2) * (dh + 1) := by
+      have e1 : dh * B * B * β = (dh * B) * (B * β) := by grind
+      have e2 : (B - 2) * (((dh + 1) * B) * β) = ((B - 2) * (dh + 1)) * (B * β) := by grind
+      rw [e1, e2] at h7
+      exact Nat.lt_of_mul_lt_mul_right h7
+    have h9 : (B - 2) * (dh + 1) + 2 * (dh + 1) = B * (dh + 1) := by
+      rw [← Nat.add_mul]; congr 1; omega
+    have h10 : B * (dh + 1) = dh * B + B := by grind
+    omega
+  · simp only [hA, if_false]
+    have hu2 : u2 < dh := by omega
+    obtain ⟨qh, hqh⟩ : ∃ qh, qh = (u2 * B + u1) / dh := ⟨_, rfl⟩
+    obtain ⟨rh, hrh⟩ : ∃ rh, rh = (u2 * B + u1) % dh := ⟨_, rfl⟩
+    have hN2 := Nat.div_add_mod (u2 * B + u1) dh
+    rw [← hqh, ← hrh] at hN2
+    have hrhd : rh < dh := by rw [hrh]; exact Nat.mod_lt _ (by omega)
+    rw [← hqh, ← hrh]
+    obtain ⟨N2, hN2d⟩ : ∃ N2, N2 = u2 * B + u1 := ⟨_, rfl⟩
+    rw [← hN2d] at hN2 hX1 hX2
+    obtain ⟨N3, hN3d⟩ : ∃ N3, N3 = N2 * B + u0 := ⟨_, rfl⟩
+    rw [← hN3d] at hX1 hX2
+    obtain ⟨D2, hD2d⟩ : ∃ D2, D2 = dh * B + dl := ⟨_, rfl⟩
+    rw [← hD2d] at hD1 hD2 hD2pos
+    have hi : q * D2 ≤ N3 := by
+      have h1 : q * D2 * β ≤ q * D := by
+        rw [Nat.mul_assoc]; exact Nat.mul_le_mul_left _ hD1
+      have h2 : q * D2 * β < (N3 + 1) * β := by omega
+      have := Nat.lt_of_mul_lt_mul_right h2
+      omega
+    have hiv : N3 < (q + 1) * (D2 + 1) := by
+      have h1 : (q + 1) * D ≤ (q + 1) * ((D2 + 1) * β) := Nat.mul_le_mul_left _ (Nat.le_of_lt hD2)
+      have h2 : N3 * β < ((q + 1) * (D2 + 1)) * β := by
+        have e : (q + 1) * ((D2 + 1) * β) = ((q + 1) * (D2 + 1)) * β := by grind
+        omega
+      exact Nat.lt_of_mul_lt_mul_right h2
+    have hD2gt : q < D2 := by
+      have : dh * B ≤ D2 := by omega
+      have : B * 1 ≤ dh * B := by
+        have := Nat.mul_le_mul_right B (show 1 ≤ dh by omega)
+        omega
+      omega
+    have hii : N3 < (qh + 1) * D2 := by
+      have h1 : N3 < (N2 + 1) * B := by rw [hN3d, Nat.add_mul]; omega
+      have h2 : (N2 + 1) * B ≤ (dh * qh + dh) * B := Nat.mul_le_mul_right _ (by omega)
+      have h3 : (dh * qh + dh) * B = dh * B * (qh + 1) := by grind
+      have h4 : dh * B * (qh + 1) ≤ D2 * (qh + 1) := Nat.mul_le_mul_right _ (by omega)
+      have h5 : D2 * (qh + 1) = (qh + 1) * D2 := by grind
+      omega
+    have hv : qh ≤ q + 2 := by
+      refine Nat.le_of_not_lt (fun hlt => ?_)
+      have h1 : dh * (q + 3) ≤ dh * qh := Nat.mul_le_mul_left _ (by omega)
+      have h2 : dh * B * (q + 3) ≤ N3 := by
+        have : dh * (q + 3) ≤ N2 := by omega
+        have := Nat.mul_le_mul_right B this
+        have e : dh * B * (q + 3) = dh * (q + 3) * B := by grind
+        omega
+      have h3 : (q + 1) * (D2 + 1) ≤ (q + 1) * ((dh + 1) * B) := Nat.mul_le_mul_left _ (by
+        have : (dh + 1) * B = dh * B + B := by grind
+        omega)
+      have h4 : dh * B * (q + 3) < (q + 1) * (dh + 1) * B := by
+        have e : (q + 1) * ((dh + 1) * B) = (q + 1) * (dh + 1) * B := by grind
+        omega
+      have h5 : dh * (q + 3) < (q + 1) * (dh + 1) := by
+        have e1 : dh * B * (q + 3) = dh * (q + 3) * B := by grind
+        rw [e1] at h4
+        exact Nat.lt_of_mul_lt_mul_right h4
+      have h6 : (q + 1) * (dh + 1) = (q + 1) * dh + (q + 1) := by grind
+      have h7 : dh * (q + 3) = dh * q + 3 * dh := by grind
+      have h8 : (q + 1) * dh = q * dh + dh := by grind
+      have h9 : dh * q = q * dh := by grind
+      omega
+    have hT : (qh * dl > rh * B + u0) ↔ N3 < qh * D2 := by
+      have e1 : qh * D2 = qh * dh * B + qh * dl := by rw [hD2d]; grind
+      have e2 : N3 = N2 * B + u0 := hN3d
+      have e3 : N2 * B = (dh * qh + rh) * B := by rw [hN2]
+      have e4 : (dh * qh + rh) * B = dh * qh * B + rh * B := by grind
+      have e5 : dh * qh * B = qh * dh * B := by grind
+      constructor <;> intro h <;> omega
+    by_cases hTc : qh * dl > rh * B + u0
+    · simp only [hTc, ite_true]
+      have := hT.mp hTc
+      refine ⟨?_, ?_⟩
+      · have : q < qh := by
+          refine Nat.lt_of_not_ge (fun hge => ?_)
+          have := Nat.mul_le_mul_right D2 hge
+          omega
+        omega
+      · omega
+    · simp only [hTc, if_false]
+      have hn : ¬ N3 < qh * D2 := fun h => hTc (hT.mpr h)
+      refine ⟨?_, ?_⟩
+      · refine Nat.le_of_not_lt (fun hlt => ?_)
+        have := Nat.mul_le_mul_right D2 (show qh + 1 ≤ q by omega)
+        omega
+      · refine Nat.le_of_not_lt (fun hlt => ?_)
+        have : (q + 2) * D2 ≤ qh * D2 := Nat.mul_le_mul_right D2 (by omega)
+        have e : (q + 2) * D2 = (q + 1) * D2 + D2 := by grind
+        have e2 : (q + 1) * (D2 + 1) = (q + 1) * D2 + q + 1 := by grind
+        omega
+
+end Fv256.B
+
+namespace Fv256.B
+
+theorem knuth_nb (P D u2 Z qh q r b : Nat) (hD : D < P) (hD0 : 0 < D) (hZ : Z < P)
+    (hq1 : q * D ≤ u2 * P + Z) (hq2 : u2 * P + Z < (q + 1) * D)
+    (hqh : q ≤ qh ∧ qh ≤ q + 1) (hsub : Z + b * P = r + qh * D) (hr : r < P) (hb : b ≤ u2) :
+    qh = q ∧ b = u2 ∧ r = u2 * P + Z - q * D := by
+  have e1 : (q + 1) * D = q * D + D := by grind
+  obtain ⟨t, ht⟩ : ∃ t, u2 = b + t := ⟨u2 - b, by omega⟩
+  have e2 : u2 * P = b * P + t * P := by rw [ht, Nat.add_mul]
+  have hP : 0 < P := by omega
+  rcases (show qh = q ∨ qh = q + 1 by omega) with h | h
+  · subst h
+    have : t = 0 := by
+      refine Nat.eq_zero_of_not_pos (fun htp => ?_)
+      have : P ≤ t * P := Nat.le_mul_of_pos_left P htp
+      omega
+    subst this
+    refine ⟨rfl, by omega, by omega⟩
+  · exfalso
+    subst h
+    have e3 : (q + 1) * D = q * D + D := e1
+    have : 0 ≤ t * P := Nat.zero_le _
+    omega
+
+/-- Borrow case: the estimate was one too large; adding `D` back (dropping the carry out) repairs it. -/
+theorem knuth_borrow (P D u2 Z qh q r b : Nat) (hD : D < P) (hD0 : 0 < D) (hZ : Z < P)
+    (hq1 : q * D ≤ u2 * P + Z) (hq2 : u2 * P + Z < (q + 1) * D)
+    (hqh : q ≤ qh ∧ qh ≤ q + 1) (hsub : Z + b * P = r + qh * D) (hr : r < P) (hb : u2 < b) :
+    qh = q + 1 ∧ b = u2 + 1 ∧ P ≤ r + D ∧ r + D - P = u2 * P + Z - q * D := by
+  have e1 : (q + 1) * D = q * D + D := by grind
+  obtain ⟨t, ht⟩ : ∃ t, b = u2 + 1 + t := ⟨b - u2 - 1, by omega⟩
+  have e2 : b * P = u2 * P + P + t * P := by
+    rw [ht, Nat.add_mul, Nat.add_mul, Nat.one_mul]
+  have hP : 0 < P := by omega
+  rcases (show qh = q ∨ qh = q + 1 by omega) with h | h
+  · exfalso
+    subst h
+    have : 0 ≤ t * P := Nat.zero_le _
+    omega
+  · subst h
+    have : t = 0 := by
+      refine Nat.eq_zero_of_not_pos (fun htp => ?_)
+      have : P ≤ t * P := Nat.le_mul_of_pos_left P htp
+      omega
+    subst this
+    refine ⟨rfl, by omega, by omega, by omega⟩
+
+end Fv256.B
+
+namespace Fv256.B
+
+/-- The correction loop of `bits.Div64` for one half digit (base `b = 2^32`): decrement the estimate while it is
+`≥ b` or too large for the next digit, stopping when the remainder estimate reaches `b`. -/
+def hloop (b yn1 yn0 un1 : Nat) : Nat → Nat → Nat
+  | 0, _ => 0
+  | qh + 1, rh =>
+    if (qh + 1 ≥ b ∨ (qh + 1) * yn0 > b * rh + un1) then
+      (if rh + yn1 ≥ b then qh else hloop b yn1 yn0 un1 qh (rh + yn1))
+    else qh + 1
+
+theorem hloop_correct (b yn1 yn0 un32 un1 : Nat) (hb : 0 < b) (hy2 : b ≤ 2 * yn1) (hy1 : yn1 < b) (hy0 : yn0 < b)
+    (hun1 : un1 < b) (hlt : un32 < yn1 * b + yn0) :
+    ∀ qh rh, qh * yn1 + rh = un32 → (un32 * b + un1) / (yn1 * b + yn0) ≤ qh → qh ≤ b + 1 →
+      hloop b yn1 yn0 un1 qh rh = (un32 * b + un1) / (yn1 * b + yn0) := by
+  intro qh
+  induction qh with
+  | zero =>
+    intro rh _ hq _
+    simp only [hloop]
+    exact (Nat.le_zero.mp hq).symm
+  | succ qh ih =>
+    intro rh h1 hq hqb
+    have hy : 0 < yn1 * b + yn0 := by
+      have : 0 < yn1 := by omega
+      have := Nat.mul_pos this hb
+      omega
+    have hqN := Nat.div_add_mod (un32 * b + un1) (yn1 * b + yn0)
+    have hmod := Nat.mod_lt (un32 * b + un1) hy
+    obtain ⟨q, hqd⟩ : ∃ q, q = (un32 * b + un1) / (yn1 * b + yn0) := ⟨_, rfl⟩
+    obtain ⟨r, hrd⟩ : ∃ r, r = (un32 * b + un1) % (yn1 * b + yn0) := ⟨_, rfl⟩
+    rw [← hqd, ← hrd] at hqN
+    rw [← hrd] at hmod
+    rw [← hqd] at hq ⊢
+    -- y*q ≤ N < y*(q+1)
+    obtain ⟨y, hyd⟩ : ∃ y, y = yn1 * b + yn0 := ⟨_, rfl⟩
+    rw [← hyd] at hqN hmod hlt hy
+    have hqy : y * q ≤ un32 * b + un1 := by omega
+    have hqy2 : un32 * b + un1 < y * q + y := by omega
+    have hqb' : q < b := by
+      refine Nat.lt_of_mul_lt_mul_left (a := y) ?_
+      have : (un32 + 1) * b ≤ y * b := Nat.mul_le_mul_right _ (by omega)
+      rw [Nat.add_mul] at this
+      have e : y * b = b * y := by grind
+      omega
+    have hA : (qh + 1) * yn1 + rh = un32 := h1
+    have hP : (qh + 1) * y = (qh + 1) * yn1 * b + (qh + 1) * yn0 := by rw [hyd]; grind
+    have hN : un32 * b = (qh + 1) * yn1 * b + rh * b := by rw [← hA]; grind
+    simp only [hloop]
+    by_cases hc : (qh + 1 ≥ b ∨ (qh + 1) * yn0 > b * rh + un1)
+    · simp only [hc, if_true]
+      have hqlt : q < qh + 1 := by
+        rcases hc with hc | hc
+        · omega
+        · refine Nat.lt_of_not_ge (fun hge => ?_)
+          have := Nat.mul_le_mul_left y hge
+          have e : b * rh = rh * b := by grind
+          have e2 : y * (qh + 1) = (qh + 1) * y := by grind
+          omega
+      by_cases hr : rh + yn1 ≥ b
+      · simp only [hr, if_true]
+        -- qh = q
+        refine Nat.le_antisymm (Nat.le_of_not_lt (fun hlt' => ?_)) (by omega)
+        have h2 : (qh + 1) * yn1 = qh * yn1 + yn1 := by grind
+        have h3 : qh * yn0 < b * b := by
+          have : qh * yn0 ≤ b * yn0 := Nat.mul_le_mul_right _ (by omega)
+          have : b * yn0 < b * b := Nat.mul_lt_mul_of_pos_left hy0 hb
+          omega
+        have h4 : qh * y = qh * yn1 * b + qh * yn0 := by rw [hyd]; grind
+        have h5 : qh * yn1 * b + (rh + yn1) * b = un32 * b := by
+          have : qh * yn1 + (rh + yn1) = un32 := by omega
+          rw [← this]; grind
+        have h6 : b * b ≤ (rh + yn1) * b := Nat.mul_le_mul_right _ hr
+        have h7 : qh * y ≤ un32 * b := by omega
+        have h8 : y * (qh) ≤ un32 * b + un1 := by
+          have : y * qh = qh * y := by grind
+          omega
+        have h9 := Nat.mul_le_mul_left y (show q + 1 ≤ qh by omega)
+        have e : y * (q + 1) = y * q + y := by grind
+        omega
+      · simp only [hr, if_false]
+        have hr' : ¬ (rh + yn1 ≥ b) := hr
+        have h2 : (qh + 1) * yn1 = qh * yn1 + yn1 := by grind
+        rw [ih (rh + yn1) (by omega) (by omega) (by omega), hqd]
+    · simp only [hc, if_false]
+      have hc1 : qh + 1 < b := by omega
+      have hc2 : (qh + 1) * yn0 ≤ b * rh + un1 := by omega
+      refine Nat.le_antisymm ?_ hq
+      refine Nat.le_of_not_lt (fun hlt' => ?_)
+      have h9 : (qh + 1) * y ≤ un32 * b + un1 := by
+        have e : b * rh = rh * b := by grind
+        omega
+      have h10 := Nat.mul_le_mul_left y (show q + 1 ≤ qh + 1 by omega)
+      have e : y * (q + 1) = y * q + y := by grind
+      have e2 : y * (qh + 1) = (qh + 1) * y := by grind
+      omega
+
+end Fv256.B
