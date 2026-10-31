@@ -7,6 +7,20 @@ mathematical specification says.
 `COVERAGE.md` lists every exported symbol with its status per ISA (`verified`, `todo`, or `blocked` with the exact reason).
 Nothing is claimed for a symbol that is not `verified` there.
 
+## Status
+`COVERAGE.md` is the authoritative table (127 exported functions and methods). Verified so far: simple arithmetic, comparison and bit
+operations, `Mul`, `Lsh`/`Rsh` (arm64), `Byte`, `Cmp` and the `...Uint64` variants, conversions to and from big-endian bytes
+(`SetBytes32`, `PutUint256`, `WriteToArray32/20`, `Bytes32`), `Clone`, `NewInt`, `SizeSSZ`. Open: division and modular arithmetic, `Exp`,
+`Sqrt`, `Log10`, string and `big.Int` conversions, `SRsh`, `ExtendSign`, the other `SetBytesN`, amd64 shifts; the exact reason is in the table.
+
+Forms of guarantee beyond the plain `Ensures`:
+* **Slice arguments** (`SetBytes32`, `PutUint256`): a conjunction of `Returns` under `len ≥ 32` and `Panics` (the bounds-check stub) under `len < 32`.
+* **Memory frame**: `Fv256.Util.OnlyWrites2` says that the call changes no byte outside the result object and the callee's own stack window.
+* **Allocation** (`Clone`, `NewInt`): stated for every implementation of `runtime.newobject` satisfying Janus's pinned allocation contract
+  (`NewobjectContract`); the result is a fresh object inside the runtime-owned ranges. No concrete witness state is built for these two.
+* **`BitLen` on amd64** is proved for a `GOAMD64=v3` build (`lzcnt`); the default `v1` code uses `BSR` of a possibly zero limb, which the Janus
+  model does not accept (`COVERAGE.md`).
+
 ## Pinned inputs
 | input | value |
 |---|---|
