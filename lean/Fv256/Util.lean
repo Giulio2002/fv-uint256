@@ -2001,4 +2001,80 @@ theorem bl_trick (v u : BitVec 64) (huv : u = v + 7#64) (hv : v.toNat ≤ 256) :
   rw [Nat.zero_and, Nat.zero_or, h4, hor]
   omega
 
+-- Bytes20 helpers
+section B20
+open Janus.Arm64
+theorem b20_res (M0 : Memory) (sp A B V2 : Nat) :
+    Fv256.Spec.fromBE (fun i => ((((M0.writeLE (sp + 8) 8 A).writeLE (sp + 16) 8 B).writeLE (sp + 20) 8 V2).readLE (sp + 8 + i) 1)) 20 =
+      Janus.Arm64.revBytesNat 4 (A % 4294967296) * 2 ^ 128 +
+      Janus.Arm64.revBytesNat 8 (A / 4294967296 % 4294967296 + 4294967296 * (B % 4294967296)) * 2 ^ 64 +
+      Janus.Arm64.revBytesNat 8 (V2 % 18446744073709551616) := by
+  rw [Util.be20_rev]
+  obtain ⟨M, hM⟩ : ∃ M, M = (((M0.writeLE (sp + 8) 8 A).writeLE (sp + 16) 8 B).writeLE (sp + 20) 8 V2) := ⟨_, rfl⟩
+  rw [← hM]
+  have h4 : M.readLE (sp + 8) 4 = A % 4294967296 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    simp only [Nat.sub_self, Nat.pow_zero, Nat.div_one]
+  have h12 : M.readLE (sp + 12) 4 = A / 4294967296 % 4294967296 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    have : sp + 12 - (sp + 8) = 4 := by omega
+    rw [this]
+  have h16 : M.readLE (sp + 16) 4 = B % 4294967296 := by
+    rw [hM, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+    simp only [Nat.sub_self, Nat.pow_zero, Nat.div_one]
+  have h20 : M.readLE (sp + 20) 8 = V2 % 18446744073709551616 := by
+    rw [hM, Memory.readLE_writeLE_self]
+  have h8 : M.readLE (sp + 8 + 4) 8 = M.readLE (sp + 8 + 4) 4 + 256 ^ 4 * M.readLE (sp + 8 + 4 + 4) 4 := Memory.readLE_add _ _ 4 4
+  have e12 : sp + 8 + 4 = sp + 12 := by omega
+  have e16 : sp + 8 + 4 + 4 = sp + 16 := by omega
+  have e20 : sp + 8 + 12 = sp + 20 := by omega
+  rw [h8, e12, e16, e20, h4, h12, h16, h20]
+
+theorem b20_locA0 (base : Memory) (q V0 V1 : Nat) :
+    (((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).readLE q 8) =
+      V0 % 4294967296 + 4294967296 * (V1 % 4294967296) := by
+  have h8 : (((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).readLE q 8) =
+      (((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).readLE q 4) +
+        256 ^ 4 * (((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).readLE (q + 4) 4) := Memory.readLE_add _ _ 4 4
+  rw [h8, Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+    Memory.readLE_writeLE_self, Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+  simp only [Nat.sub_self, Nat.pow_zero, Nat.div_one, Nat.reducePow]
+
+theorem b20_locB0 (base : Memory) (q V0 V1 V2 : Nat) :
+    ((((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).writeLE (q + 12) 8 V2).readLE (q + 8) 8) =
+      V1 / 4294967296 % 4294967296 + 4294967296 * (V2 % 4294967296) := by
+  have h8 : ((((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).writeLE (q + 12) 8 V2).readLE (q + 8) 8) =
+      ((((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).writeLE (q + 12) 8 V2).readLE (q + 8) 4) +
+        256 ^ 4 * ((((base.writeLE q 4 V0).writeLE (q + 4) 8 V1).writeLE (q + 12) 8 V2).readLE (q + 8 + 4) 4) := Memory.readLE_add _ _ 4 4
+  rw [h8, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_inside _ _ (by omega) (by omega),
+    Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+  have e1 : q + 8 - (q + 4) = 4 := by omega
+  rw [e1]
+  have e2 : q + 8 + 4 - (q + 12) = 0 := by omega
+  rw [e2]
+  simp only [Nat.pow_zero, Nat.div_one, Nat.reducePow]
+
+theorem b20_locA (base : Memory) (sp V0 V1 : Nat) (h : 28 ≤ sp) :
+    (((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).readLE (sp - 28) 8) =
+      V0 % 4294967296 + 4294967296 * (V1 % 4294967296) := by
+  obtain ⟨q, rfl⟩ : ∃ q, sp = q + 28 := ⟨sp - 28, by omega⟩
+  have e1 : q + 28 - 28 = q := by omega
+  have e2 : q + 28 - 24 = q + 4 := by omega
+  rw [e1, e2]
+  exact b20_locA0 base q V0 V1
+
+theorem b20_locB (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
+    ((((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).writeLE (sp - 16) 8 V2).readLE (sp - 20) 8) =
+      V1 / 4294967296 % 4294967296 + 4294967296 * (V2 % 4294967296) := by
+  obtain ⟨q, rfl⟩ : ∃ q, sp = q + 28 := ⟨sp - 28, by omega⟩
+  have e1 : q + 28 - 28 = q := by omega
+  have e2 : q + 28 - 24 = q + 4 := by omega
+  have e3 : q + 28 - 16 = q + 12 := by omega
+  have e4 : q + 28 - 20 = q + 8 := by omega
+  rw [e1, e2, e3, e4]
+  exact b20_locB0 base q V0 V1 V2
+end B20
+
 end Fv256.Util
