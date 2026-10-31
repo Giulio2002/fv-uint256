@@ -113,7 +113,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetUint64.lean |
 | `(*uint256.Int).Sgt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sgt.lean |
 | `(*uint256.Int).Sign` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sign.lean |
-| `(*uint256.Int).SizeSSZ` | todo | todo | |
+| `(*uint256.Int).SizeSSZ` | verified | verified | lean/Fv256/{Arm64,Amd64}/SizeSSZ.lean |
 | `(*uint256.Int).Slt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Slt.lean |
 | `(*uint256.Int).Sqrt` | todo | todo | |
 | `(*uint256.Int).String` | todo | todo | |

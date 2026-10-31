@@ -115,4 +115,7 @@ def extendSign (x b : Nat) : Nat :=
     (if x / 2 ^ (8 * b + 7) % 2 = 1 then x % 2 ^ (8 * b + 8) + (W - 2 ^ (8 * b + 8)) else x % 2 ^ (8 * b + 8))
   else x
 
+/-- `z.SizeSSZ()`: the SSZ encoding of a `uint256` has 32 bytes. -/
+def sizeSSZ : Nat := 32
+
 end Fv256.Spec
