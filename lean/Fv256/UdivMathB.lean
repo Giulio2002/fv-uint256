@@ -175,4 +175,17 @@ theorem clz_norm (x : Nat) (hx0 : x ≠ 0) (hx : x < 2 ^ 64) :
   · rw [e]; exact Nat.mul_le_mul_right _ hx1
   · rw [e2]; exact Nat.mul_lt_mul_of_pos_right hx2 (Nat.two_pow_pos _)
 
+theorem rd16_lo (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 16 % 2 ^ 64 = m.readLE a 8 := by
+  rw [show (16 : Nat) = 8 + 8 from rfl, Janus.Arm64.Memory.readLE_add]
+  have h0 := Janus.Arm64.Memory.readLE_lt m a 8
+  simp only [Nat.reducePow] at h0 ⊢
+  omega
+
+theorem rd16_hi (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 16 / 2 ^ 64 % 2 ^ 64 = m.readLE (a + 8) 8 := by
+  rw [show (16 : Nat) = 8 + 8 from rfl, Janus.Arm64.Memory.readLE_add]
+  have h0 := Janus.Arm64.Memory.readLE_lt m a 8
+  have h1 := Janus.Arm64.Memory.readLE_lt m (a + 8) 8
+  simp only [Nat.reducePow] at h0 h1 ⊢
+  omega
+
 end Fv256.B

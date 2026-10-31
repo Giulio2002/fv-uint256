@@ -78,4 +78,60 @@ theorem den_nil (s0 : State) (sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memo
   intro k hk
   simp [setRegF, hk]
 
+set_option maxHeartbeats 16000000 in
+theorem ulen_lt_ne (s0 : State) (up remp n ulen sf ra rbpv : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hn : n ≤ 4) (hulen : ulen < n) (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64)
+    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true) (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
+    (hdisj : remp + 32 ≤ up ∨ up + 32 ≤ remp)
+    (hsf : sf + 0xf8 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x150 true = true)
+    (hsu : up + 32 ≤ sf - 0x58 ∨ sf + 0xf8 ≤ up) (hsr : remp + 32 ≤ sf - 0x58 ∨ sf + 0xf8 ≤ remp)
+    (e12 : R 12 = BitVec.ofNat 64 ulen) (e2 : R 2 = BitVec.ofNat 64 n) (e6 : R 6 = BitVec.ofNat 64 4)
+    (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp) (e4 : R 4 = BitVec.ofNat 64 sf)
+    (m_e8 : M.readLE (sf + 0xe8) 8 = rbpv) (m_f0 : M.readLE (sf + 0xf0) 8 = ra) (hra47 : ra < 2 ^ 47) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 ra)
+      { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 ra, flags := fl', xmm := X', mem := M' } ∧
+        R' 4 = BitVec.ofNat 64 (sf + 0xf8) ∧ R' 5 = BitVec.ofNat 64 rbpv ∧ X' 15 = s0.xmm 15 ∧
+        (∀ j, j < 4 → M'.readLE (remp + 8 * j) 8 = M.readLE (up + 8 * j) 8) ∧
+        MemFrame M M' [(sf - 8, sf), (remp, remp + 32)]) := by
+  have hcode := ku_lt
+  have hra2 : M.readLE (sf + 0xf0) 8 < 2 ^ 47 := by rw [m_f0]; exact hra47
+  janus64_run [e12, e2, e6, e7, e10, e4, m_e8, m_f0, hra2]
+  refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [setRegF]; bv_omega
+  · simp [setRegF]
+  · simp [setXmmF]
+  · intro j hj
+    have h0 := Janus.Arm64.Memory.readLE_lt M up 16
+    have hj' : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 := by omega
+    rcases hj' with rfl | rfl | rfl | rfl
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      simpa using Fv256.B.rd16_lo M up
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      simpa using Fv256.B.rd16_hi M up
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      simpa using Fv256.B.rd16_lo M (up + 16)
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      simpa using Fv256.B.rd16_hi M (up + 16)
+  · janus_frame
+
+set_option maxHeartbeats 8000000 in
+theorem ulen_lt_nil (s0 : State) (n ulen sf ra rbpv : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hn : n ≤ 4) (hulen : ulen < n)
+    (hsf : sf + 0xf8 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible sf 0xf8 true = true)
+    (e12 : R 12 = BitVec.ofNat 64 ulen) (e2 : R 2 = BitVec.ofNat 64 n) (e10 : R 10 = 0#64) (e4 : R 4 = BitVec.ofNat 64 sf)
+    (m_e8 : M.readLE (sf + 0xe8) 8 = rbpv) (m_f0 : M.readLE (sf + 0xf0) 8 = ra) (hra47 : ra < 2 ^ 47) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 ra)
+      { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 ra, flags := fl', mem := M } ∧
+        R' 4 = BitVec.ofNat 64 (sf + 0xf8) ∧ R' 5 = BitVec.ofNat 64 rbpv) := by
+  have hcode := ku_lt
+  have hra2 : M.readLE (sf + 0xf0) 8 < 2 ^ 47 := by rw [m_f0]; exact hra47
+  janus64_run [e12, e2, e10, e4, m_e8, m_f0, hra2]
+  refine ⟨_, _, rfl, ?_, ?_⟩
+  · simp [setRegF]; bv_omega
+  · simp [setRegF]
+
 end Fv256.Amd64.UdivremG
