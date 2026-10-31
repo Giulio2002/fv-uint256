@@ -15,3 +15,5 @@
   the workspace must come from a verify of that same function).
 - Slt/Sgt amd64: shared limb lemmas Util.slt_toNat / sgt_toNat (sign bits first, then the borrow chain).
 - Cmp: Util.cmp_ofInt, zero4_iff, ite01_eq*; Mul amd64 uses Util.OnlyWrites2 (result + scratch slot below SP).
+- BitLen amd64 (v1) blocked: Janus faults on BSR of zero (Exec.lean execCount) although Go relies on ZF after it. Needs a Janus model where BSR of 0 sets ZF=1 and leaves dst unchanged (AMD-documented), or another sound treatment. GOAMD64=v3 build verified instead (lean/Fv256/Amd64v3, extraction build/ex-amd64v3-*).
+- ByteLen: machine code does signed (BitLen+7)/8 with bit tricks (ASR/ORR/rotate); needs a small lemma, drafts in wip/*_ByteLen.lean (arm64 unsolved: omega cannot see through the &&&/||| shifts). Plan: generalise clz to q<=64, case split 65 values, evaluate with decide.

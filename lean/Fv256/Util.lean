@@ -672,4 +672,17 @@ theorem bl_4 (a0 a1 a2 a3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 184
     · simp [c2]
   · simp [c3]
 
+
+theorem bl_3 (a0 a1 a2 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616) (h2 : a2 < 18446744073709551616) :
+    Spec.bitLen (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2) =
+    if a2 ≠ 0 then 128 + Spec.bitLen a2 else if a1 ≠ 0 then 64 + Spec.bitLen a1 else Spec.bitLen a0 := by
+  have := bl_4 a0 a1 a2 0 h0 h1 h2
+  simpa using this
+
+theorem bl_2 (a0 a1 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616) :
+    Spec.bitLen (a0 + 18446744073709551616 * a1) =
+    if a1 ≠ 0 then 64 + Spec.bitLen a1 else Spec.bitLen a0 := by
+  have := bl_3 a0 a1 0 h0 h1 (by decide)
+  simpa using this
+
 end Fv256.Util
