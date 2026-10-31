@@ -26,4 +26,13 @@ def or (x y : Nat) : Nat := x ||| y
 /-- `z.Xor(x, y)`. -/
 def xor (x y : Nat) : Nat := x ^^^ y
 
+/-- `z.Eq(x)`. -/
+def eq (x y : Nat) : Bool := x == y
+/-- `z.Lt(x)`: unsigned less-than. -/
+def lt (x y : Nat) : Bool := decide (x < y)
+/-- `z.Gt(x)`: unsigned greater-than. -/
+def gt (x y : Nat) : Bool := decide (y < x)
+/-- `z.Cmp(x)`: -1, 0 or 1. -/
+def cmp (x y : Nat) : Int := if x < y then -1 else if x = y then 0 else 1
+
 end Fv256.Spec

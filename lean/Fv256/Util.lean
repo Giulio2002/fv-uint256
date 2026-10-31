@@ -130,4 +130,49 @@ theorem xor_mod_rd (m : Janus.Arm64.Memory) (a b : Nat) :
 @[simp] theorem readLE8_mod (m : Janus.Arm64.Memory) (a : Nat) :
     m.readLE a 8 % 18446744073709551616 = m.readLE a 8 := Nat.mod_eq_of_lt (readLE8_lt m a)
 
+
+theorem dec_toNat (p : Prop) [Decidable p] :
+    ((decide p).toNat = 1 ∧ p) ∨ ((decide p).toNat = 0 ∧ ¬ p) := by
+  by_cases h : p <;> simp [h]
+
+/-- the borrow chain of a 256-bit subtraction decides `<` (one limb at a time, as `SUB`/`SBB`/`SBB`/`SBB` compute it). -/
+theorem lt_chain (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    decide (a3 < b3 + (decide (a2 < b2 + (decide (a1 < b1 + (decide (a0 < b0)).toNat)).toNat)).toNat) =
+    decide (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3 <
+      b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3) := by
+  have e0 := dec_toNat (a0 < b0)
+  have e1 := dec_toNat (a1 < b1 + (decide (a0 < b0)).toNat)
+  have e2 := dec_toNat (a2 < b2 + (decide (a1 < b1 + (decide (a0 < b0)).toNat)).toNat)
+  simp only [decide_eq_decide]
+  omega
+
+
+theorem lt_ite (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (h0 : a0 < 18446744073709551616) (h1 : a1 < 18446744073709551616)
+    (h2 : a2 < 18446744073709551616) (h3 : a3 < 18446744073709551616) (g0 : b0 < 18446744073709551616)
+    (g1 : b1 < 18446744073709551616) (g2 : b2 < 18446744073709551616) (g3 : b3 < 18446744073709551616) :
+    (if (if a3 < b3 + (decide (a2 < b2 + (decide (a1 < b1 + (decide (a0 < b0)).toNat)).toNat)).toNat
+          then 1#64 else 0#64).toNat = 0 then 0#8 else 1#8).toNat =
+    (decide (a0 + 18446744073709551616 * a1 + 340282366920938463463374607431768211456 * a2 +
+        6277101735386680763835789423207666416102355444464034512896 * a3 <
+      b0 + 18446744073709551616 * b1 + 340282366920938463463374607431768211456 * b2 +
+        6277101735386680763835789423207666416102355444464034512896 * b3)).toNat := by
+  have key := lt_chain a0 a1 a2 a3 b0 b1 b2 b3 h0 h1 h2 h3 g0 g1 g2 g3
+  by_cases hP : a3 < b3 + (decide (a2 < b2 + (decide (a1 < b1 + (decide (a0 < b0)).toNat)).toNat)).toNat
+  · rw [if_pos hP]
+    simp only [hP, decide_true] at key
+    have hQ := of_decide_eq_true key.symm
+    simp [hQ]
+  · rw [if_neg hP]
+    simp only [hP, decide_false] at key
+    have hQ := of_decide_eq_false key.symm
+    simp [hQ]
+
+
+theorem beq_toNat (a b : Nat) : (a == b).toNat = if a = b then 1 else 0 := by
+  by_cases h : a = b <;> simp [h]
+
 end Fv256.Util

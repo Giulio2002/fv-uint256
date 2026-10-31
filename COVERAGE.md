@@ -33,12 +33,12 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Div` | todo | todo | |
 | `(*uint256.Int).DivMod` | todo | todo | |
 | `(*uint256.Int).EncodeRLP` | todo | todo | |
-| `(*uint256.Int).Eq` | todo | todo | |
+| `(*uint256.Int).Eq` | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | todo | todo | |
 | `(*uint256.Int).ExtendSign` | todo | todo | |
 | `(*uint256.Int).Float64` | todo | todo | |
 | `(*uint256.Int).Format` | todo | todo | |
-| `(*uint256.Int).Gt` | todo | todo | |
+| `(*uint256.Int).Gt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Gt.lean |
 | `(*uint256.Int).GtUint64` | todo | todo | |
 | `(*uint256.Int).HashTreeRoot` | todo | todo | |
 | `(*uint256.Int).Hex` | todo | todo | |
@@ -47,7 +47,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).IsZero` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | todo | todo | |
 | `(*uint256.Int).Lsh` | todo | todo | |
-| `(*uint256.Int).Lt` | todo | todo | |
+| `(*uint256.Int).Lt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Lt.lean |
 | `(*uint256.Int).LtUint64` | todo | todo | |
 | `(*uint256.Int).MarshalJSON` | todo | todo | |
 | `(*uint256.Int).MarshalSSZ` | todo | todo | |
