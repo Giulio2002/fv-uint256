@@ -1230,4 +1230,54 @@ theorem rot3_idx (b : Nat) (hb : b < 18446744073709551616) :
   have h1 : b / 8 < 2305843009213693952 := by omega
   rw [e, show (b % 8) * 2305843009213693952 = (b % 8) * 2 ^ 61 from rfl, or_hi _ _ 61 (by simpa using h1)]
   omega
+theorem shrd_val (x y t : Nat) (ht : t < 64) (hx : x < 18446744073709551616) :
+    (y * 18446744073709551616 + x) / 2 ^ t % 18446744073709551616 =
+      x / 2 ^ t + y * 2 ^ (64 - t) % 18446744073709551616 := by
+  have h := pq_eq t (by omega)
+  have hP : 0 < 2 ^ t := Nat.two_pow_pos t
+  have hQ : 0 < 2 ^ (64 - t) := Nat.two_pow_pos _
+  have e1 : (y * 18446744073709551616 + x) / 2 ^ t = y * 2 ^ (64 - t) + x / 2 ^ t := by
+    rw [← h, Nat.mul_comm (2 ^ t), ← Nat.mul_assoc]
+    rw [Nat.add_comm, Nat.add_mul_div_right _ _ hP]
+    omega
+  have hv : x / 2 ^ t < 2 ^ (64 - t) := by
+    rw [Nat.div_lt_iff_lt_mul hP, Nat.mul_comm, h]; exact hx
+  have hA := shr_hi y t ht
+  have hc : y % 2 ^ t + 1 ≤ 2 ^ t := Nat.mod_lt _ hP
+  have h3 : 2 ^ (64 - t) * (y % 2 ^ t + 1) ≤ 2 ^ (64 - t) * 2 ^ t := Nat.mul_le_mul_left _ hc
+  rw [Nat.mul_add, Nat.mul_comm (2 ^ (64 - t)) (2 ^ t), h, Nat.mul_one] at h3
+  rw [e1]
+  generalize x / 2 ^ t = h' at *
+  generalize y * 2 ^ (64 - t) = A at *
+  generalize 2 ^ (64 - t) * (y % 2 ^ t) = B at *
+  generalize 2 ^ (64 - t) = Q at *
+  omega
+
+theorem shld_val (x y t : Nat) (ht : t < 64) (hx : x < 18446744073709551616) (hy : y < 18446744073709551616) :
+    (y * 18446744073709551616 + x) * 2 ^ t / 18446744073709551616 % 18446744073709551616 =
+      y * 2 ^ t % 18446744073709551616 + x / 2 ^ (64 - t) := by
+  have s := shl_split x t (by omega)
+  have l := lo_hi_lt y x t ht hx
+  have e : (y * 18446744073709551616 + x) * 2 ^ t = 18446744073709551616 * (y * 2 ^ t) + x * 2 ^ t := by
+    rw [Nat.add_mul, Nat.mul_comm y 18446744073709551616, Nat.mul_assoc]
+  rw [e]
+  generalize y * 2 ^ t = YP at *
+  generalize x * 2 ^ t = XP at *
+  generalize x / 2 ^ (64 - t) = h at *
+  omega
+
+theorem shr_or_nat0 (a b t : Nat) (ht1 : 1 ≤ t) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (a * 2 ^ (64 - t) % 18446744073709551616 ||| b / 2 ^ t) =
+      b / 2 ^ t + a * 2 ^ (64 - t) % 18446744073709551616 := by
+  have h := shr_or_nat a b t ht1 ht ha hb
+  rw [Nat.mod_eq_of_lt (by omega : 64 - t < 64)] at h
+  have hlt : (a * 2 ^ (64 - t) % 18446744073709551616 ||| b / 2 ^ t) < 18446744073709551616 :=
+    Nat.or_lt_two_pow (n := 64) (Nat.mod_lt _ (by decide)) (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) hb)
+  rwa [Nat.mod_eq_of_lt hlt] at h
+
+theorem and_ones_lt (a : Nat) (h : a < 18446744073709551616) : a &&& 18446744073709551615 = a :=
+  Nat.and_two_pow_sub_one_of_lt_two_pow (n := 64) h
+theorem ones_and_lt (a : Nat) (h : a < 18446744073709551616) : 18446744073709551615 &&& a = a := by
+  rw [Nat.and_comm]; exact and_ones_lt a h
+
 end Fv256.Util
