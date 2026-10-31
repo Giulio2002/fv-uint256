@@ -69,7 +69,7 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
-  decide
+  try decide
 
 end Witness
 
@@ -149,8 +149,8 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
-  simp only [valueAt]
-  decide
+  try simp only [valueAt]
+  try decide
 
 end Witness
 

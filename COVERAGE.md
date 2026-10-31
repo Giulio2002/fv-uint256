@@ -24,7 +24,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Bytes` | todo | todo | |
 | `(*uint256.Int).Bytes20` | todo | todo | |
 | `(*uint256.Int).Bytes32` | todo | todo | |
-| `(*uint256.Int).Clear` | todo | todo | |
+| `(*uint256.Int).Clear` | verified | verified | lean/Fv256/{Arm64,Amd64}/Clear.lean |
 | `(*uint256.Int).Clone` | todo | todo | |
 | `(*uint256.Int).Cmp` | todo | todo | attempt in wip/: hypotheses with addWithCarry chains not normalised by simp at * |
 | `(*uint256.Int).CmpBig` | todo | todo | |
@@ -71,8 +71,8 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SMod` | todo | todo | |
 | `(*uint256.Int).SRsh` | todo | todo | |
 | `(*uint256.Int).Scan` | todo | todo | |
-| `(*uint256.Int).Set` | todo | todo | |
-| `(*uint256.Int).SetAllOne` | todo | todo | |
+| `(*uint256.Int).Set` | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
+| `(*uint256.Int).SetAllOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetAllOne.lean |
 | `(*uint256.Int).SetBytes` | todo | todo | |
 | `(*uint256.Int).SetBytes1` | todo | todo | |
 | `(*uint256.Int).SetBytes10` | todo | todo | |
@@ -109,7 +109,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetFromBig` | todo | todo | |
 | `(*uint256.Int).SetFromDecimal` | todo | todo | |
 | `(*uint256.Int).SetFromHex` | todo | todo | |
-| `(*uint256.Int).SetOne` | todo | todo | |
+| `(*uint256.Int).SetOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetOne.lean |
 | `(*uint256.Int).SetUint64` | todo | todo | |
 | `(*uint256.Int).Sgt` | verified | todo | arm64: lean/Fv256/Arm64/Sgt.lean; amd64: proof attempt in wip/ times out (30 branch cases, omega on 256-bit constants) |
 | `(*uint256.Int).Sign` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sign.lean |

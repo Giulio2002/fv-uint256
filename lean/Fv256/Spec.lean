@@ -60,4 +60,13 @@ def slt (x y : Nat) : Bool := decide (signed x < signed y)
 /-- `z.Sgt(x)`: signed greater-than. -/
 def sgt (x y : Nat) : Bool := decide (signed y < signed x)
 
+/-- `z.Clear()`. -/
+def clear : Nat := 0
+/-- `z.SetOne()`. -/
+def one : Nat := 1
+/-- `z.SetAllOne()`: all 256 bits set. -/
+def allOne : Nat := W - 1
+/-- `z.Set(x)`. -/
+def set (x : Nat) : Nat := x
+
 end Fv256.Spec

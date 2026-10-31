@@ -28,7 +28,7 @@ theorem correctness (z x : BitVec 64) :
   intro ret hret s hs ⟨⟨hz, hz'⟩, ⟨hx, hx'⟩⟩
   janus_intro hs
   janus_run
-  {tail}
+  all_goals ({tail})
 
 namespace Witness
 
@@ -99,7 +99,7 @@ theorem correctness (z x : BitVec 64) :
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw
   simp only [valueAt]
   janus64_run [Util.readLE_32]
-  {tail}
+  all_goals ({tail})
 
 namespace Witness
 
