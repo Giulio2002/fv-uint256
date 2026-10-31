@@ -159,4 +159,20 @@ theorem shr_mach (a b s : Nat) (hs1 : 1 ≤ s) (hs : s ≤ 63) (ha : a < 2 ^ 64)
     rw [← e64]; exact ha
   rw [h1, Fv256.Util.or_hi _ _ (64 - s) hx]
 
+theorem clz_norm (x : Nat) (hx0 : x ≠ 0) (hx : x < 2 ^ 64) :
+    Janus.Arm64.clzNat 64 x ≤ 63 ∧ 2 ^ 63 ≤ x * 2 ^ Janus.Arm64.clzNat 64 x ∧ x * 2 ^ Janus.Arm64.clzNat 64 x < 2 ^ 64 := by
+  have h := Fv256.Util.clz_bl 64 x hx
+  have hbl : Fv256.Spec.bitLen x = Nat.log2 x + 1 := by unfold Fv256.Spec.bitLen; rw [if_neg hx0]
+  have hx1 : 2 ^ Nat.log2 x ≤ x := Nat.log2_self_le hx0
+  have hx2 : x < 2 ^ (Nat.log2 x + 1) := Nat.lt_log2_self
+  have hlog : Nat.log2 x < 64 := by
+    rw [Nat.log2_lt hx0]; exact hx
+  have hs : Janus.Arm64.clzNat 64 x = 63 - Nat.log2 x := by omega
+  rw [hs]
+  have e : 2 ^ 63 = 2 ^ Nat.log2 x * 2 ^ (63 - Nat.log2 x) := by rw [← Nat.pow_add]; congr 1; omega
+  have e2 : 2 ^ 64 = 2 ^ (Nat.log2 x + 1) * 2 ^ (63 - Nat.log2 x) := by rw [← Nat.pow_add]; congr 1; omega
+  refine ⟨by omega, ?_, ?_⟩
+  · rw [e]; exact Nat.mul_le_mul_right _ hx1
+  · rw [e2]; exact Nat.mul_lt_mul_of_pos_right hx2 (Nat.two_pow_pos _)
+
 end Fv256.B
