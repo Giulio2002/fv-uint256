@@ -96,4 +96,12 @@ def byte (n x : Nat) : Nat := if n < 32 then x / 2 ^ (8 * (31 - n)) % 256 else 0
 /-- `z.Abs(x)`: the absolute value of the two's-complement reading, modulo `2^256`. -/
 def abs (x : Nat) : Nat := if x < 2 ^ 255 then x else (W - x) % W
 
+/-- `z.Lsh(x, n)`: shift left by `n` bits, modulo `2^256` (zero once `n ≥ 256`). -/
+def lsh (x n : Nat) : Nat := (x * 2 ^ n) % W
+/-- `z.Rsh(x, n)`: logical shift right by `n` bits (zero once `n ≥ 256`). -/
+def rsh (x n : Nat) : Nat := x / 2 ^ n
+
+/-- `x.Uint64WithOverflow()` overflow flag: the number does not fit in 64 bits. -/
+def uint64Ov (x : Nat) : Bool := decide (2 ^ 64 ≤ x)
+
 end Fv256.Spec
