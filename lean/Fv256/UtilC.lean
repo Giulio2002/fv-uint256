@@ -199,6 +199,57 @@ theorem bigAbs_stackframe (m : Janus.Arm64.Memory) (sp ret z pw len : Nat) (h1 :
   intro i hi
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
 
+open Janus.Amd64 in
+theorem ite_sub (c : Prop) [Decidable c] :
+    (if c then (18446744073709551615#64 : BitVec 64) else 0#64) = (subFlags (0#64) (0#64) (decide c)).fst := by
+  by_cases h : c <;> simp [h, subFlags]
+
+theorem sw8_iff (r : BitVec 64) : (BitVec.setWidth 8 r = 0#8) ↔ r.toNat % 256 = 0 := by
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simpa [BitVec.toNat_setWidth] using this
+  · intro h
+    apply BitVec.eq_of_toNat_eq
+    simpa [BitVec.toNat_setWidth] using h
+
+theorem noov_of64 (r : BitVec 64) (ov : Bool) (h : r.toNat % 256 = ov.toNat)
+    (hb : BitVec.setWidth 8 r = 0#8) : ov = false := by
+  rw [sw8_iff] at hb
+  cases ov
+  · rfl
+  · simp at h; omega
+
+theorem ov_of64 (r : BitVec 64) (ov : Bool) (h : r.toNat % 256 = ov.toNat)
+    (hb : ¬ BitVec.setWidth 8 r = 0#8) : ov = true := by
+  rw [sw8_iff] at hb
+  cases ov
+  · simp at h; omega
+  · rfl
+
+theorem bit0_8 (a : Nat) (h : a < 2) (hb : BitVec.ofNat 8 a = 0#8) : (a == 1) = false := by
+  have : a ≠ 1 := by
+    intro e; subst e; revert hb; decide
+  simpa using this
+
+theorem bit1_8 (a : Nat) (h : a < 2) (hb : ¬ BitVec.ofNat 8 a = 0#8) : (a == 1) = true := by
+  have : a = 1 := by
+    rcases (by omega : a = 0 ∨ a = 1) with e | e
+    · subst e; exact absurd (by decide) hb
+    · exact e
+  simpa using this
+
+theorem bigAbs_stackframe64 (m : Janus.Arm64.Memory) (sp bp z v1 v2 c pw len : Nat) (h1 : 72 ≤ sp)
+    (h2 : pw + 8 * len ≤ sp - 72 ∨ sp + 16 ≤ pw) :
+    bigAbs (fun i =>
+      (((((m.writeLE (sp - 8) 8 bp).writeLE (sp + 8) 8 z).writeLE (sp - 40) 16 v1).writeLE (sp - 24) 16 v2).writeLE
+        (sp - 64) 8 c).readLE (pw + 8 * i) 8) len =
+    bigAbs (fun i => m.readLE (pw + 8 * i) 8) len := by
+  apply bigAbs_congr
+  intro i hi
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+
+
 /-! ## A witness memory holding a `big.Int` (shared by the SetFromBig / CmpBig / FromBig witnesses)
 
 `z = DST` (32 bytes), `b = DST + 32` is `big.Int{neg = true, abs = nat{ptr = DST + 64, len = 2, cap = 2}}`,

@@ -14,7 +14,7 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `uint256.MustFromBig` | (b) | todo | todo | newobject + SetFromBig + gopanic on overflow |
 | `uint256.MustFromDecimal` | (b) | todo | todo | as FromDecimal |
 | `uint256.MustFromHex` | (b) | todo | todo | newobject + fromHex + gopanic(err) |
-| `(*uint256.Int).CmpBig` | (a) | verified | todo | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
+| `(*uint256.Int).CmpBig` | (a) | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).Dec` | (d) | todo | todo | strconv.FormatUint/AppendUint/formatBits + udivrem(Knuth) loops + slicebytetostring (String contract exists); ~15 functions |
 | `(*uint256.Int).PrettyDec` | (d) | todo | todo | as Dec |
 | `(*uint256.Int).Hex` | (b) | todo | todo | makeslice(66) + slicebytetostring (RtLive string contracts) + 64-nibble table lookups |
