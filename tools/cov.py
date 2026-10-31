@@ -1,12 +1,14 @@
 #!/usr/bin/env python3 -I
 # cov.py Fn...  : mark COVERAGE.md rows from the build/log-<isa>-<Fn> verdicts (Verified on first line)
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys, re
-p='/srv/fv-uint256/COVERAGE.md'
+p=ROOT+'/COVERAGE.md'
 s=open(p).read()
 for fn in sys.argv[1:]:
     st={}
     for isa in ('arm64','amd64'):
-        try: st[isa]=open(f'/srv/fv-uint256/build/log-{isa}-{fn}').readline().startswith('Verified')
+        try: st[isa]=open(fROOT+'/build/log-{isa}-{fn}').readline().startswith('Verified')
         except OSError: st[isa]=False
     pat=re.compile(r'(\| `\(\*uint256\.Int\)\.%s` \| )([^|]*)\|([^|]*)\|([^\n]*)'%re.escape(fn))
     m=pat.search(s)

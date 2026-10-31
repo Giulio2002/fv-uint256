@@ -1280,4 +1280,17 @@ theorem and_ones_lt (a : Nat) (h : a < 18446744073709551616) : a &&& 18446744073
 theorem ones_and_lt (a : Nat) (h : a < 18446744073709551616) : 18446744073709551615 &&& a = a := by
   rw [Nat.and_comm]; exact and_ones_lt a h
 
+theorem shl_or_nat0 (a b t : Nat) (ht1 : 1 ≤ t) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (a * 2 ^ t % 18446744073709551616 ||| b / 2 ^ (64 - t)) =
+      a * 2 ^ t % 18446744073709551616 + b / 2 ^ (64 - t) := by
+  have h := shl_or a b t ht ha hb
+  have hlt : (a * 2 ^ t % 18446744073709551616 ||| b / 2 ^ (64 - t)) < 18446744073709551616 :=
+    Nat.or_lt_two_pow (n := 64) (Nat.mod_lt _ (by decide)) (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) hb)
+  rwa [Nat.mod_eq_of_lt hlt] at h
+
+theorem shl_or_nat0' (a b t : Nat) (ht1 : 1 ≤ t) (ht : t < 64) (ha : a < 18446744073709551616) (hb : b < 18446744073709551616) :
+    (b / 2 ^ (64 - t) ||| a * 2 ^ t % 18446744073709551616) =
+      a * 2 ^ t % 18446744073709551616 + b / 2 ^ (64 - t) := by
+  rw [Nat.or_comm]; exact shl_or_nat0 a b t ht1 ht ha hb
+
 end Fv256.Util

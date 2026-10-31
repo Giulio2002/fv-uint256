@@ -1,10 +1,12 @@
 #!/usr/bin/env python3 -I
 # setbytes_arm.py N [mode]   mode: probe (trace goals) | full
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 n = int(sys.argv[1]); mode = sys.argv[2] if len(sys.argv) > 2 else 'probe'
 below = int(sys.argv[3]) if len(sys.argv) > 3 else 24
 above = int(sys.argv[4]) if len(sys.argv) > 4 else 24
-tmpl = open('/srv/fv-uint256/lean/Fv256/Arm64/SetBytes32.lean').read()
+tmpl = open(ROOT+'/lean/Fv256/Arm64/SetBytes32.lean').read()
 s = tmpl.replace('SetBytes32', f'SetBytes{n}').replace('32 ≤ len.toNat', f'{n} ≤ len.toNat').replace('len.toNat < 32', f'len.toNat < {n}')
 s = s.replace('StackOK s 24 24', f'StackOK s {below} {above}').replace('StackOK s0 24 24', f'StackOK s0 {below} {above}')
 s = s.replace('(s.sp.toNat - 24) 48', f'(s.sp.toNat - {below}) {below+above}').replace('(s0.sp.toNat - 24) 48', f'(s0.sp.toNat - {below}) {below+above}')
@@ -29,4 +31,4 @@ if mode == 'probe':
     s = s[:i] + "    refine ⟨?_, ?_⟩\n    · trace_state; sorry\n    · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]\n" + s[j:]
     k = s.index("\nnamespace Witness")
     s = s[:k] + "\nend Fv256.Arm64.SetBytes%d\n" % n
-open(f'/srv/fv-uint256/lean/Fv256/Arm64/SetBytes{n}.lean', 'w').write(s)
+open(fROOT+'/lean/Fv256/Arm64/SetBytes{n}.lean', 'w').write(s)

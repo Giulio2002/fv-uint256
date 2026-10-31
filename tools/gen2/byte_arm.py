@@ -1,4 +1,6 @@
 #!/usr/bin/env python3 -I
+import os
+ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 M='18446744073709551616'; M2='340282366920938463463374607431768211456'; M3='6277101735386680763835789423207666416102355444464034512896'
 def blk(v):
@@ -19,7 +21,7 @@ def blk(v):
        "· rw [h]; simp only [Nat.reduceSub, Nat.reduceMul, Nat.reduceAdd]; simp [hN]"]
     B=["simp only [Spec.byte]", "split <;> omega"]
     return A,B,B
-t=open('/srv/fv-uint256/lean/Fv256/Arm64/Neg.lean').read()
+t=open(ROOT+'/lean/Fv256/Arm64/Neg.lean').read()
 t=t.replace('Neg','Byte').replace('(*uint256.Int).Byte(x *Int)','(*uint256.Int).Byte(n *Int)')
 t=t.replace('Spec.neg (val256 s.mem x.toNat)','Spec.byte (val256 s.mem x.toNat) (val256 s.mem z.toNat)')
 k=t.index("  rcases hzx with rfl | hzx")
@@ -35,4 +37,4 @@ def side(v):
     return out
 t=t[:k]+"  rcases hzx with rfl | hzx\n  · "+side('z').lstrip()+"  · "+side('x').lstrip()+t[k2:]
 t=t.replace("Fv256.Spec.neg` of the number at `x` before the call","Fv256.Spec.byte` of the number at `x` (the index) and the number at `z` before the call").replace("`z = Fv256.Spec.neg x`","`z = byte n of z`")
-open('/srv/fv-uint256/lean/Fv256/Arm64/Byte.lean','w').write(t)
+open(ROOT+'/lean/Fv256/Arm64/Byte.lean','w').write(t)

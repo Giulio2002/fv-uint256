@@ -1,8 +1,13 @@
 #!/bin/bash
-# usage: v.sh ISA FN   (logs to build/log-ISA-FN)
-export PATH=$PATH:/usr/local/go/bin LEAN_NUM_THREADS=4 JANUS_JOBS=2
-cd /srv/fv-uint256
-J=/srv/janus-fv-uint256-janus2/bin/janus
+# usage: v.sh ISA FN   verify one function (extracts first if needed). ISA = arm64 | amd64 | amd64v3
+# env: FV_ROOT (repo root, default: parent of this script), FV_JANUS (path to the janus binary, default: janus in PATH),
+#      FV_CONTRACTS (extra flags for janus extract, e.g. "--contract runtime.newobject")
+export LEAN_NUM_THREADS=${LEAN_NUM_THREADS:-4} JANUS_JOBS=${JANUS_JOBS:-2}
+FV_ROOT=${FV_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+J=${FV_JANUS:-janus}
+cd "$FV_ROOT" || exit 2
 I=$1; F=$2; D=$(echo ${I:0:1}|tr a-z A-Z)${I:1}
-[ -f build/ex-$I-$F/identity.json ] || $J extract build/harness-$I "github.com/holiman/uint256.(*Int).$F" build/ex-$I-$F >/dev/null 2>&1
-timeout 1800 memcap $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness
+case "$F" in NewInt) full="github.com/holiman/uint256.$F";; *) full="github.com/holiman/uint256.(*Int).$F";; esac
+if [ ! -f build/ex-$I-$F/identity.json ]; then $J extract build/harness-$I "$full" build/ex-$I-$F $FV_CONTRACTS >/dev/null 2>&1; fi
+MC=""; command -v memcap >/dev/null && MC=memcap
+timeout 1800 $MC $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness
