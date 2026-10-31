@@ -76,4 +76,12 @@ def subOv (x y : Nat) : Bool := decide (x < y)
 /-- `z.MulOverflow(x, y)` overflow flag: the true product does not fit in 256 bits. -/
 def mulOv (x y : Nat) : Bool := decide (W ≤ x * y)
 
+/-- `z.AddUint64(x, n)`. -/
+def addU (x n : Nat) : Nat := (x + n) % W
+/-- `z.SubUint64(x, n)`. -/
+def subU (x n : Nat) : Nat := (x + W - n) % W
+
+/-- `z.SetUint64(n)`. -/
+def setU (n : Nat) : Nat := n
+
 end Fv256.Spec

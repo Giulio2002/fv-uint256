@@ -16,7 +16,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
 | `(*uint256.Int).AddMod` | todo | todo | |
 | `(*uint256.Int).AddOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddOverflow.lean |
-| `(*uint256.Int).AddUint64` | todo | todo | |
+| `(*uint256.Int).AddUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddUint64.lean |
 | `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
 | `(*uint256.Int).BitLen` | todo | todo | |
 | `(*uint256.Int).Byte` | todo | todo | |
@@ -110,7 +110,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).SetFromDecimal` | todo | todo | |
 | `(*uint256.Int).SetFromHex` | todo | todo | |
 | `(*uint256.Int).SetOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetOne.lean |
-| `(*uint256.Int).SetUint64` | todo | todo | |
+| `(*uint256.Int).SetUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetUint64.lean |
 | `(*uint256.Int).Sgt` | verified | todo | arm64: lean/Fv256/Arm64/Sgt.lean; amd64: proof attempt in wip/ times out (30 branch cases, omega on 256-bit constants) |
 | `(*uint256.Int).Sign` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sign.lean |
 | `(*uint256.Int).SizeSSZ` | todo | todo | |
@@ -119,7 +119,7 @@ Status values: `todo`, `verified-arm64`, `verified-amd64`, `verified` (both), `b
 | `(*uint256.Int).String` | todo | todo | |
 | `(*uint256.Int).Sub` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
 | `(*uint256.Int).SubOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/SubOverflow.lean |
-| `(*uint256.Int).SubUint64` | todo | todo | |
+| `(*uint256.Int).SubUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/SubUint64.lean |
 | `(*uint256.Int).ToBig` | todo | todo | |
 | `(*uint256.Int).Uint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |
 | `(*uint256.Int).Uint64WithOverflow` | todo | todo | |
