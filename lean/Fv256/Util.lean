@@ -813,4 +813,13 @@ theorem rd1_lt (m : Memory) (a : Nat) : m.readLE a 1 < 256 := by simpa using Mem
 
 end BEsec
 
+theorem byte_val (N y0 y1 y2 y3 : Nat) (hN : N < 32) (h0 : y0 < 18446744073709551616) (h1 : y1 < 18446744073709551616)
+    (h2 : y2 < 18446744073709551616) (h3 : y3 < 18446744073709551616) :
+    Spec.byte N (y0 + 18446744073709551616 * y1 + 340282366920938463463374607431768211456 * y2 +
+        6277101735386680763835789423207666416102355444464034512896 * y3) =
+    (if N / 8 = 3 then y0 else if N / 8 = 2 then y1 else if N / 8 = 1 then y2 else y3) / 2 ^ (8 * (7 - N % 8)) % 256 := by
+  have hc : N = 0 ∨ N = 1 ∨ N = 2 ∨ N = 3 ∨ N = 4 ∨ N = 5 ∨ N = 6 ∨ N = 7 ∨ N = 8 ∨ N = 9 ∨ N = 10 ∨ N = 11 ∨ N = 12 ∨ N = 13 ∨ N = 14 ∨ N = 15 ∨ N = 16 ∨ N = 17 ∨ N = 18 ∨ N = 19 ∨ N = 20 ∨ N = 21 ∨ N = 22 ∨ N = 23 ∨ N = 24 ∨ N = 25 ∨ N = 26 ∨ N = 27 ∨ N = 28 ∨ N = 29 ∨ N = 30 ∨ N = 31 := by omega
+  rcases hc with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    (simp only [Spec.byte, Nat.reduceLT, ite_true, Nat.reduceDiv, Nat.reduceMod, Nat.reduceSub, Nat.reduceAdd, Nat.reduceMul, Nat.reducePow, Nat.reduceEqDiff, ite_false] <;> omega)
+
 end Fv256.Util
