@@ -2514,4 +2514,100 @@ theorem bl_amd (v w : BitVec 64) (hw : w = v + 7#64) (hv : v.toNat ≤ 256) :
   rw [BitVec.toNat_sshiftRight_of_msb_false hmsb, hwn]
   simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow]
 
+theorem blS_zero' (u : BitVec 64) (hu : u.toNat < 2 ^ 63) :
+    ((if u.getLsbD 63 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551614#64 |||
+      u.rotateRight 63 &&& 18446744073709551615#64 &&& 1#64) >>> 61 = 0#64 := blS_zero u hu
+
+theorem bl7_lt (v : BitVec 64) (hv : v.toNat ≤ 256) : (v + 7#64).toNat = v.toNat + 7 := by
+  rw [BitVec.toNat_add]; simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; omega
+
+theorem bl7_asr (v : BitVec 64) (hv : v.toNat ≤ 256) :
+    (v + 7#64).sshiftRight 3 = BitVec.ofNat 64 ((v.toNat + 7) / 8) := by
+  apply BitVec.eq_of_toNat_eq
+  have h := bl7_lt v hv
+  have hm : (v + 7#64).msb = false := by
+    rw [BitVec.msb_eq_decide]; simp only [h]; simp; omega
+  rw [BitVec.toNat_sshiftRight_of_msb_false hm, h, BitVec.toNat_ofNat]
+  simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow]
+  omega
+
+theorem bl7_r (v : BitVec 64) (hv : v.toNat ≤ 256) :
+    ((if (v + 7#64).getLsbD 63 = true then 18446744073709551615#64 else 0#64).toNat &&& 16140901064495857664 |||
+      ((v + 7#64).rotateRight 3).toNat % 2305843009213693952) = (v.toNat + 7) / 8 := by
+  have := bl_trick v (v + 7#64) rfl hv
+  rw [show blS (v + 7#64) = 0#64 from blS_zero _ (by rw [bl7_lt v hv]; omega)] at this
+  simpa using this
+
+theorem mask_asr (k : Nat) (hk : k ≤ 32) :
+    ((0#64 - BitVec.ofNat 64 k).sshiftRight 63).toNat = if k = 0 then 0 else 18446744073709551615 := by
+  by_cases h : k = 0
+  · subst h; simp
+  · rw [if_neg h]
+    have hm : (0#64 - BitVec.ofNat 64 k).msb = true := by
+      rw [BitVec.msb_eq_decide]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; simp; omega
+    rw [BitVec.toNat_sshiftRight_of_msb_true hm]
+    simp [BitVec.toNat_sub, BitVec.toNat_ofNat]
+    simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow]
+    omega
+
+
+theorem fromBE_lt (f : Nat → Nat) (hf : ∀ i, f i < 256) (n : Nat) : Spec.fromBE f n < 256 ^ n := by
+  induction n generalizing f with
+  | zero => simp [Spec.fromBE]
+  | succ n ih =>
+    simp only [Spec.fromBE]
+    have h1 := hf 0
+    have h2 := ih (fun i => f (i + 1)) (fun i => hf (i + 1))
+    rw [Nat.pow_succ]
+    have : f 0 * 256 ^ n + 256 ^ n ≤ 256 ^ n * 256 := by
+      have : (f 0 + 1) * 256 ^ n ≤ 256 * 256 ^ n := Nat.mul_le_mul_right _ (by omega)
+      rw [Nat.add_mul, Nat.one_mul, Nat.mul_comm 256] at this; exact this
+    omega
+
+theorem suffix_be (M : Janus.Arm64.Memory) (obj val bl : Nat) (hbl : bl ≤ 32) (hval : val < 256 ^ bl)
+    (h32 : Spec.fromBE (fun i => M.readLE (obj + i) 1) 32 = val) :
+    Spec.fromBE (fun i => M.readLE (obj + (32 - bl) + i) 1) bl = val := by
+  have h := fromBE_add (fun i => M.readLE (obj + i) 1) (32 - bl) bl
+  rw [show 32 - bl + bl = 32 by omega, h32] at h
+  have hs : Spec.fromBE (fun i => M.readLE (obj + (32 - bl) + i) 1) bl < 256 ^ bl :=
+    fromBE_lt _ (fun i => by simpa using Janus.Arm64.Memory.readLE_lt M (obj + (32 - bl) + i) 1) bl
+  simp only [Nat.add_assoc] at h hs ⊢
+  by_cases hp : Spec.fromBE (fun i => M.readLE (obj + i) 1) (32 - bl) = 0
+  · rw [hp] at h; omega
+  · have : 256 ^ bl ≤ Spec.fromBE (fun i => M.readLE (obj + i) 1) (32 - bl) * 256 ^ bl :=
+      Nat.le_mul_of_pos_left _ (Nat.pos_of_ne_zero hp)
+    omega
+
+theorem and_ones (x : Nat) (h : x < 18446744073709551616) : x &&& 18446744073709551615 = x := by
+  have := Nat.and_two_pow_sub_one_eq_mod x 64
+  simp only [Nat.reducePow, Nat.reduceSub] at this
+  rw [this]; exact Nat.mod_eq_of_lt h
+
+theorem ptr_arith (w K1 K2 bl : Nat) (hw : w ≤ 281474976710624) (h1 : K1 = bl) (h2 : K2 = bl) (hb : bl ≤ 32) :
+    (w + ((18446744073709551616 - K1 % 18446744073709551616 + 32) % 18446744073709551616 &&&
+      if K2 = 0 then 0 else 18446744073709551615)) % 18446744073709551616 = w + if bl = 0 then 0 else 32 - bl := by
+  rw [h1, h2]
+  by_cases h : bl = 0
+  · subst h; simp
+    omega
+  · rw [if_neg h, if_neg h, and_ones _ (by omega)]
+    omega
+
+theorem byteLen_zero (v : Nat) (h : Spec.byteLen v = 0) : v = 0 := by
+  unfold Spec.byteLen at h
+  by_cases hv : v = 0
+  · exact hv
+  · exfalso; unfold Spec.bitLen at h; rw [if_neg hv] at h; omega
+
+theorem lt_pow_byteLen (v : Nat) : v < 256 ^ Spec.byteLen v := by
+  by_cases hv : v = 0
+  · subst hv; exact Nat.pow_pos (by omega)
+  · have h1 : v < 2 ^ Spec.bitLen v := (bitLen_bounds v hv).2
+    have h2 : Spec.bitLen v ≤ 8 * Spec.byteLen v := by unfold Spec.byteLen; omega
+    have h3 : 2 ^ Spec.bitLen v ≤ 2 ^ (8 * Spec.byteLen v) := Nat.pow_le_pow_right (by omega) h2
+    have h4 : 2 ^ (8 * Spec.byteLen v) = 256 ^ Spec.byteLen v := by rw [Nat.pow_mul]
+    omega
+
+theorem rev8_zero : Janus.Arm64.revBytesNat 8 0 = 0 := by decide
+
 end Fv256.Util
