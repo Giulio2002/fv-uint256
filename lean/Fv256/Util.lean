@@ -2694,4 +2694,7 @@ theorem pad_big (M0 : Janus.Arm64.Memory) (obj n L0 L1 L2 L3 : Nat) (hn : 32 ≤
       omega
 
 
+theorem cmp_eq_mod (z T : Nat) (hz : z < 18446744073709551616) (hT : T < 18446744073709551616) :
+    (18446744073709551616 - z + T) % 18446744073709551616 = 0 ↔ z = T := by omega
+
 end Fv256.Util
