@@ -192,7 +192,7 @@ theorem caseOne (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0
     · rw [h64, sp_arith sp0 hsp0]
     · rw [h614, k5 14 (by simp), hR414]
     · intro h; exact absurd rfl h
-    · exact frx.mono (by intro a n' h; simp [Outside] at h ⊢; omega)
+    · exact ⟨fun _ => frx, fun h => absurd rfl h⟩
   · obtain ⟨hr48, hra, hr0z⟩ := hrem hr0
     have hrs' := hrs hr0
     have hqr' := hqr hr0
@@ -230,7 +230,7 @@ theorem caseOne (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0
     have h8 := Fv256.Amd64.UdivremF.epilogue2 s0 (sp0 - 0xf0) rbpv ra R5 fl5 M5 (by omega) (by omega) hMs7 g4 se8' sf0' hra47
     refine Fv256.B.reachesRet_mono64 h8 ?_
     rintro S ⟨R8, fl8, hS8, h84, h85, h814⟩
-    refine ⟨R8, fl8, s0.xmm, M5, by rw [hS8], ?_, h85, ?_, rfl, ?_, fun _ => hrv, fr5⟩
+    refine ⟨R8, fl8, s0.xmm, M5, by rw [hS8], ?_, h85, ?_, rfl, ?_, fun _ => hrv, ⟨fun h => absurd h hr0, fun _ => fr5⟩⟩
     · rw [h84, sp_arith sp0 hsp0]
     · rw [h814, gk 14 (by simp), hR414]
     · rw [hq5]; exact hQ

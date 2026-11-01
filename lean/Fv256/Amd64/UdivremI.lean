@@ -27,7 +27,8 @@ def UPost (s0 : State) (M0 : Memory) (sp0 dp qp up remp ra rbpv : Nat) (g : W64)
     R' 4 = BitVec.ofNat 64 (sp0 + 8) ∧ R' 5 = BitVec.ofNat 64 rbpv ∧ R' 14 = g ∧ X' 15 = s0.xmm 15 ∧
     Fv256.B.wv M' qp 4 = Fv256.B.wv M0 up 4 / Fv256.B.wv M0 dp 4 ∧
     (remp ≠ 0 → Fv256.B.wv M' remp 4 = Fv256.B.wv M0 up 4 % Fv256.B.wv M0 dp 4) ∧
-    MemFrame M0 M' [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)]
+    (remp = 0 → MemFrame M0 M' [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)]) ∧
+    (remp ≠ 0 → MemFrame M0 M' [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)])
 
 theorem sp_arith (sp0 : Nat) (h : 0x150 ≤ sp0) : sp0 - 0xf0 + 0xf8 = sp0 + 8 := by omega
 
@@ -76,7 +77,7 @@ theorem caseL (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     · rw [h14, hg]
     · rw [hqM, Nat.div_eq_of_lt hUlt]
     · intro h; exact absurd rfl h
-    · exact hfr.mono (by intro a n' h; simp [Outside] at h ⊢; omega)
+    · exact ⟨fun _ => hfr.mono (by intro a n' h; simp [Outside] at h ⊢; omega), fun h => absurd rfl h⟩
   · obtain ⟨hr48, hra, hr0z⟩ := hrem hr0
     have hua' : M.accessible up 32 false = true := by rw [hfr.accessible]; exact hua
     have hra' : M.accessible remp 32 true = true := by rw [hfr.accessible]; exact hra
@@ -95,8 +96,7 @@ theorem caseL (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     · intro _
       rw [Nat.mod_eq_of_lt hUlt, hUw]
       exact Fv256.B.wv_congr M' M remp up 4 (fun j hj => hcp j hj)
-    · refine hfr.trans hf' ?_
-      intro a n' h; simp [Outside] at h ⊢; omega
+    · exact ⟨fun h => absurd h hr0, fun _ => hfr.trans hf' (by intro a n' h; simp [Outside] at h ⊢; omega)⟩
 
 set_option maxHeartbeats 32000000 in
 theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
@@ -233,8 +233,8 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
   have hQ : Fv256.B.wv M4 qp 4 = Fv256.B.wv M0 up 4 / Fv256.B.wv M0 dp 4 := by
     rw [hq4, hdiv.1, hUD, hDD]
   have hsfx : sp0 - 0xf0 + 0x138 ≤ 2 ^ 48 := by omega
-  have fr134 : MemFrame M0 M4 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] := by
-    have a1 : MemFrame M0 M3 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] :=
+  have fr134 : MemFrame M0 M4 [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] := by
+    have a1 : MemFrame M0 M3 [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] :=
       hfr.trans fr13 (by intro a n' h; simp [Outside] at h ⊢; omega)
     exact a1.trans fr4 (by intro a n' h; simp [Outside] at h ⊢; omega)
   have hMs5 : M4.accessible (sp0 - 0xf0) 0x138 true = true := by
@@ -259,7 +259,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     have h6 := Fv256.Amd64.UdivremF.epilogue s0 (sp0 - 0xf0) rbpv ra R5 fl5 M4 (by omega) (by omega) hMs6 ((k5 4 (by simp)).trans d4) se8 sf0 hra47
     refine Fv256.B.reachesRet_mono64 h6 ?_
     rintro S ⟨R6, fl6, hS6, h64, h65, h614⟩
-    refine ⟨R6, fl6, s0.xmm, M4, by rw [hS6], ?_, h65, ?_, rfl, hQ, ?_, fr134⟩
+    refine ⟨R6, fl6, s0.xmm, M4, by rw [hS6], ?_, h65, ?_, rfl, hQ, ?_, ⟨fun _ => fr134, fun h => absurd rfl h⟩⟩
     · rw [h64, sp_arith sp0 hsp0]
     · rw [h614, k5 14 (by simp), d14]; exact hR3_14.trans hg
     · intro h; exact absurd rfl h
@@ -335,7 +335,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     have h8 := Fv256.Amd64.UdivremF.epilogue s0 (sp0 - 0xf0) rbpv ra R7 fl7 M7 (by omega) (by omega) hMs7 g4 se8' sf0' hra47
     refine Fv256.B.reachesRet_mono64 h8 ?_
     rintro S ⟨R8, fl8, hS8, h84, h85, h814⟩
-    refine ⟨R8, fl8, s0.xmm, M7, by rw [hS8], ?_, h85, ?_, rfl, ?_, fun _ => hrv, fr7⟩
+    refine ⟨R8, fl8, s0.xmm, M7, by rw [hS8], ?_, h85, ?_, rfl, ?_, fun _ => hrv, ⟨fun h => absurd h hr0, fun _ => fr7⟩⟩
     · rw [h84, sp_arith sp0 hsp0]
     · rw [h814, gk 14 (by simp), lk 14 (by simp), f14, d14]; exact hR3_14.trans hg
     · rw [hq7]; exact hQ

@@ -35,13 +35,15 @@ theorem udivrem_summary :
           ((s.regs 10).toNat + 32 ≤ (s.regs 7).toNat ∨ (s.regs 7).toNat + 32 ≤ (s.regs 10).toNat) ∧
           ((s.regs 10).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 10).toNat)))
       (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
-        s' = { s with regs := R', rip := retAddrOf s, flags := fl', xmm := X', mem := M' } ∧
-        R' 4 = s.regs 4 + 8 ∧ R' 5 = BitVec.ofNat 64 (s.regs 5).toNat ∧ R' 14 = s.regs 14 ∧ X' 15 = s.xmm 15 ∧
+        s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
+                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M' } ∧
         Fv256.B.wv M' (s.regs 0).toNat 4 = Fv256.B.wv s.mem (s.regs 7).toNat 4 / Fv256.B.wv s.mem (s.regs 9).toNat 4 ∧
         ((s.regs 10).toNat ≠ 0 → Fv256.B.wv M' (s.regs 10).toNat 4 =
           Fv256.B.wv s.mem (s.regs 7).toNat 4 % Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
-        MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
-          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) := by
+        ((s.regs 10).toNat = 0 → MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32),
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) ∧
+        ((s.regs 10).toNat ≠ 0 → MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)])) := by
   intro s hpc ⟨⟨hra1, hra2⟩, hsp0, hg, hw, hx15, h6, h3, ⟨hqb, hqa⟩, ⟨hub, hua⟩, ⟨hdb, hda⟩, hqs, hus, hds, hgd, hD0, hq0, hrem⟩
   have hrip : { s with regs := s.regs, rip := BitVec.ofNat 64 ku, flags := s.flags, mem := s.mem } = s := by rw [← hpc]
   obtain ⟨hlow, hnw, hacc⟩ := hw
@@ -86,19 +88,38 @@ theorem udivrem_summary :
     exact ⟨a, b, c⟩
   have fin : ∀ S', UPost s s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat (s.regs 7).toNat (s.regs 10).toNat
       (s.mem.readLE (s.regs 4).toNat 8) (s.regs 5).toNat (s.regs 14) S' → (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
-        s' = { s with regs := R', rip := retAddrOf s, flags := fl', xmm := X', mem := M' } ∧
-        R' 4 = s.regs 4 + 8 ∧ R' 5 = BitVec.ofNat 64 (s.regs 5).toNat ∧ R' 14 = s.regs 14 ∧ X' 15 = s.xmm 15 ∧
+        s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
+                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M' } ∧
         Fv256.B.wv M' (s.regs 0).toNat 4 = Fv256.B.wv s.mem (s.regs 7).toNat 4 / Fv256.B.wv s.mem (s.regs 9).toNat 4 ∧
         ((s.regs 10).toNat ≠ 0 → Fv256.B.wv M' (s.regs 10).toNat 4 =
           Fv256.B.wv s.mem (s.regs 7).toNat 4 % Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
-        MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
-          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) s S' := by
+        ((s.regs 10).toNat = 0 → MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32),
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) ∧
+        ((s.regs 10).toNat ≠ 0 → MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)])) s S' := by
     rintro S' ⟨R', fl', X', M', hS, h4, h5, h14, hx, hq, hr, hf⟩
-    refine ⟨R', fl', X', M', by rw [hS]; rfl, ?_, h5, h14, hx, hq, hr, hf⟩
-    rw [h4]
-    apply BitVec.eq_of_toNat_eq
-    simp [BitVec.toNat_add]
-  have hqs' := (hrem' |> fun _ => hrem)
+    have e4 : R' 4 = s.regs 4 + 8 := by
+      rw [h4]
+      apply BitVec.eq_of_toNat_eq
+      simp [BitVec.toNat_add]
+    have e5 : R' 5 = s.regs 5 := by rw [h5]; exact ofNat_toNat64 _
+    have hRf : (fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i) = R' := by
+      funext i
+      by_cases i4 : i = 4
+      · subst i4; simp [e4]
+      · by_cases i5 : i = 5
+        · subst i5; simp [e5]
+        · by_cases i14 : i = 14
+          · subst i14; simp [h14]
+          · simp [i4, i5, i14]
+    have hXf : (fun i => if i = 15 then s.xmm 15 else X' i) = X' := by
+      funext i
+      by_cases i15 : i = 15
+      · subst i15; simp [hx]
+      · simp [i15]
+    refine ⟨R', fl', X', M', ?_, hq, hr, hf⟩
+    rw [hRf, hXf, hS]
+    rfl
   rcases Nat.lt_or_ge ulen n with hlt | hge
   · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremI.caseL s R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
       (s.regs 1).toNat (s.regs 3).toNat (s.regs 7).toNat (s.regs 10).toNat n ulen sh (s.regs 5).toNat (s.mem.readLE (s.regs 4).toNat 8)
