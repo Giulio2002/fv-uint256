@@ -7,6 +7,7 @@ import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
+import Fv256.Amd64.UdivremL
 
 /-!
 # `(*uint256.Int).Div(x, y *Int) *Int` (amd64): `z = x / y`, and `0` when `y = 0`
@@ -57,7 +58,7 @@ theorem correctness (z x y : BitVec 64) :
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UdivremK.udivrem_summary]
+  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UdivremL.udivrem_nil]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)

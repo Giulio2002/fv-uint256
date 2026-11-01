@@ -71,4 +71,7 @@ theorem zero_eq_mod_self (x y : Nat) (h : x = y) : 0 = x % y := by
 
 theorem mod_congr (a b c : Nat) (h : b = c) : a % b = a % c := by rw [h]
 
+theorem mod64_mod (a b : Nat) (ha : a < 2 ^ 64) : a % b % 18446744073709551616 = a % b :=
+  Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le a b) (by omega))
+
 end Fv256.B

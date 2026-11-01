@@ -7,6 +7,7 @@ import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
+import Fv256.Amd64.UdivremL
 
 /-!
 # `(*uint256.Int).Mod(x, y *Int) *Int` (amd64): `z = x % y`, and `0` when `y = 0`
@@ -57,7 +58,10 @@ theorem correctness (z x y : BitVec 64) :
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UdivremK.udivrem_summary]
+  have hs72 : (s.regs 4 - 72#64).toNat = (s.regs 4).toNat - 72 := by
+    rw [BitVec.toNat_sub]; simp only [BitVec.toNat_ofNat]; have := (s.regs 4).isLt; omega
+  have hr1 : s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true := Janus.Arm64.Memory.accessible_mono _ hacc (by omega) (by omega)
+  janus64_run [hs72, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UdivremL.udivrem_rem]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
@@ -76,7 +80,8 @@ theorem correctness (z x y : BitVec 64) :
            | (exfalso; omega)
            | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
            | exact (Nat.mod_eq_of_lt (by omega)).symm
-           | exact Fv256.B.mod_congr _ _ _ (by omega)))
+           | exact Fv256.B.mod_congr _ _ _ (by omega)
+           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; exact Fv256.B.mod_congr _ _ _ (by omega))))
     | skip)
 
 namespace Witness
