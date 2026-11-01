@@ -10,7 +10,7 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 | `(*uint256.Int).Div` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.divSpec`; amd64 chain udivremBy1/udivremKnuth/udivrem all proven (summaries), Div wrapper theorem compiles; arm64 chain pending |
 | `(*uint256.Int).Mod` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.modSpec` |
 | `(*uint256.Int).DivMod` | todo | todo | extraction needs `--max-functions` (reaches >64 functions via new(Int)/Set) |
-| `(*uint256.Int).SDiv` | todo | todo | |
+| `(*uint256.Int).SDiv` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.sdivSpec`; uses the Div summary proved in-file (DivSum.lean) |
 | `(*uint256.Int).SMod` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.smodSpec`; uses the Mod summary proved in-file (ModSum.lean) |
 | `(*uint256.Int).AddMod` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |

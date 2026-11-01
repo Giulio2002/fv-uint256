@@ -86,4 +86,18 @@ theorem modSpec_zero_left (y : Nat) : modSpec 0 y = 0 := by
 theorem modSpec_zero_right (x : Nat) : modSpec x 0 = 0 := by
   unfold modSpec; simp
 
+theorem steps_link {p : Janus.Amd64.Program} (impl : List Janus.Amd64.Segment) {s s' : Janus.Amd64.State} {k : Nat}
+    (h : Janus.Amd64.Program.Steps p s k s') : Janus.Amd64.Program.Steps (p.link impl) s k s' := by
+  induction h with
+  | refl => exact .refl _
+  | step hx hs hf hst _ ih =>
+    exact .step (by simpa using hx) (by simpa using hs) (Janus.Amd64.Program.fetch_link impl hf) hst ih
+
+theorem summary_link {p : Janus.Amd64.Program} (impl : List Janus.Amd64.Segment) {entry : Nat}
+    {pre : Janus.Amd64.State → Prop} {post : Janus.Amd64.State → Janus.Amd64.State → Prop}
+    (h : Janus.Amd64.Tactic.Summary p entry pre post) : Janus.Amd64.Tactic.Summary (p.link impl) entry pre post := by
+  intro s hpc hp
+  obtain ⟨k, s', hst, hr, hq⟩ := h s hpc hp
+  exact ⟨k, s', steps_link impl hst, hr, hq⟩
+
 end Fv256.B
