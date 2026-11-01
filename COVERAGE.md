@@ -30,13 +30,13 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).CmpBig` | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).CmpUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
 | `(*uint256.Int).Dec` | todo | todo | |
-| `(*uint256.Int).Div` | todo | todo | |
+| `(*uint256.Int).Div` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | proofs on branch fv/wb (family B, COVERAGE-B.md); not merged to main until the pin moves |
 | `(*uint256.Int).DivMod` | todo | todo | |
 | `(*uint256.Int).EncodeRLP` | todo | todo | |
 | `(*uint256.Int).Eq` | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | todo | todo | |
 | `(*uint256.Int).ExtendSign` | verified | verified | lean/Fv256/{Arm64,Amd64}/ExtendSign.lean |
-| `(*uint256.Int).Float64` | todo | todo | |
+| `(*uint256.Int).Float64` | verified, pending Janus pin (deeprec 35083b3f) | verified, pending Janus pin (deeprec 35083b3f; re-checked with f65043ca) | branch fv/wb |
 | `(*uint256.Int).Format` | out of scope | out of scope | math/big Format through a dynamic fmt.State (interface calls into fmt/strconv/big): not provable at reasonable cost (upstream analysis DESIGN-U5-U6) |
 | `(*uint256.Int).Gt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Gt.lean |
 | `(*uint256.Int).GtUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/GtUint64.lean |
@@ -54,7 +54,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).MarshalSSZAppend` | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
 | `(*uint256.Int).MarshalSSZInto` | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZInto.lean: PARTIAL, success path only (`32 <= len <= cap`); error path (fmt.Errorf) not covered |
 | `(*uint256.Int).MarshalText` | todo | todo | |
-| `(*uint256.Int).Mod` | todo | todo | |
+| `(*uint256.Int).Mod` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | branch fv/wb |
 | `(*uint256.Int).Mul` | verified | verified | lean/Fv256/{Arm64,Amd64}/Mul.lean; amd64 post allows the 16-byte stack scratch slot (OnlyWrites2) |
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
@@ -67,8 +67,8 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).PrettyDec` | todo | todo | |
 | `(*uint256.Int).PutUint256` | verified | verified | lean/Fv256/{Arm64,Amd64}/PutUint256.lean |
 | `(*uint256.Int).Rsh` | verified | verified | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |
-| `(*uint256.Int).SDiv` | todo | todo | |
-| `(*uint256.Int).SMod` | todo | todo | |
+| `(*uint256.Int).SDiv` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | branch fv/wb |
+| `(*uint256.Int).SMod` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | branch fv/wb |
 | `(*uint256.Int).SRsh` | verified | verified | lean/Fv256/{Arm64,Amd64}/SRsh.lean |
 | `(*uint256.Int).Scan` | todo | todo | |
 | `(*uint256.Int).Set` | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
