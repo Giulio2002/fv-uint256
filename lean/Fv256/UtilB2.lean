@@ -74,4 +74,16 @@ theorem mod_congr (a b c : Nat) (h : b = c) : a % b = a % c := by rw [h]
 theorem mod64_mod (a b : Nat) (ha : a < 2 ^ 64) : a % b % 18446744073709551616 = a % b :=
   Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.mod_le a b) (by omega))
 
+theorem divSpec_zero_left (y : Nat) : divSpec 0 y = 0 := by
+  unfold divSpec; split <;> simp
+
+theorem divSpec_zero_right (x : Nat) : divSpec x 0 = 0 := by
+  unfold divSpec; simp
+
+theorem modSpec_zero_left (y : Nat) : modSpec 0 y = 0 := by
+  unfold modSpec; split <;> simp
+
+theorem modSpec_zero_right (x : Nat) : modSpec x 0 = 0 := by
+  unfold modSpec; simp
+
 end Fv256.B

@@ -57,7 +57,7 @@ theorem correctness (z x y : BitVec 64) :
   have hy1 := Util.readLE8_lt s.mem (y.toNat + 8)
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
-  janus64_run [Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.Amd64.DivSum.div_summary]
+  janus64_run [Util.msb_m1, Util.msb_0, Util.msb_1, Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.Amd64.DivSum.div_summary]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
@@ -66,10 +66,10 @@ theorem correctness (z x y : BitVec 64) :
     have ny := Util.neg_chain _ _ _ _ hy0 hy1 hy2 hy3
     have nz := Util.neg_chain _ _ _ _ (Util.readLE8_lt s'.mem z.toNat) (Util.readLE8_lt s'.mem (z.toNat + 8))
       (Util.readLE8_lt s'.mem (z.toNat + 16)) (Util.readLE8_lt s'.mem (z.toNat + 24))
-    simp only [nx, ny, nz] at *
+    simp only [nx, ny, nz, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right] at *
     rw [Fv256.B.sdivSpec]
     simp only [Fv256.Spec.abs, Fv256.Spec.neg, Fv256.Spec.W, Nat.reducePow]
-    simp (disch := omega) only [if_pos, if_neg]
+    simp (disch := omega) only [if_pos, if_neg, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right]
     first | omega | (trace_state; skip))
 
 namespace Witness
