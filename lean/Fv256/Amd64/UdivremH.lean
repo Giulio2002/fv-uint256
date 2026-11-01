@@ -64,11 +64,11 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
     (e4 : R 4 = BitVec.ofNat 64 sp0) (e9 : R 9 = BitVec.ofNat 64 dp) (e0 : R 0 = BitVec.ofNat 64 qp) (e3 : R 3 = BitVec.ofNat 64 ql)
     (e1 : R 1 = BitVec.ofNat 64 qcap) (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp) (e6 : R 6 = BitVec.ofNat 64 4)
     (hqp : qp < 2 ^ 64) (hql : ql < 2 ^ 64) (hqc : qcap < 2 ^ 64) (hup : up < 2 ^ 64) (hremp : remp < 2 ^ 64)
-    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x50 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x198 true = true)
-    (hdp : dp + 32 ≤ 2 ^ 48) (hda : M0.accessible dp 32 false = true) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ dp)
-    (hup48 : up + 32 ≤ 2 ^ 48) (hua : M0.accessible up 32 false = true) (hdisju : up + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ up)
+    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x190 true = true)
+    (hdp : dp + 32 ≤ 2 ^ 48) (hda : M0.accessible dp 32 false = true) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ dp)
+    (hup48 : up + 32 ≤ 2 ^ 48) (hua : M0.accessible up 32 false = true) (hdisju : up + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ up)
     (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M0.accessible ((R 14).toNat + 16) 8 false = true)
-    (hg3 : M0.readLE ((R 14).toNat + 16) 8 < sp0 - 0xf8) (hgd : (R 14).toNat + 24 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ (R 14).toNat + 16)
+    (hg3 : M0.readLE ((R 14).toNat + 16) 8 < sp0 - 0xf8) (hgd : (R 14).toNat + 24 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ (R 14).toNat + 16)
     (hD0 : Fv256.B.wv M0 dp 4 ≠ 0) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x1a0))
       { s0 with regs := R, rip := BitVec.ofNat 64 ku, flags := fl, mem := M0 }
@@ -95,8 +95,8 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
       subst h; rfl
     · exact h
   have hnz1 := hnz hn1
-  have hsf : sp0 - 0xf0 + 0x140 ≤ 2 ^ 48 := by omega
-  have hMs1 : M1.accessible (sp0 - 0xf0) 0x140 true = true := by
+  have hsf : sp0 - 0xf0 + 0x138 ≤ 2 ^ 48 := by omega
+  have hMs1 : M1.accessible (sp0 - 0xf0) 0x138 true = true := by
     rw [fr1.accessible]; exact Janus.Arm64.Memory.accessible_mono _ hMs (by omega) (by omega)
   have hdtB : M1.readLE (dp + n * 8 - 8) 8 < 2 ^ 64 := by
     have := Janus.Arm64.Memory.readLE_lt M1 (dp + n * 8 - 8) 8; simpa using this
@@ -115,7 +115,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   have hdw3 : ∀ k, k ≤ 3 → M3.readLE (dp + 8 * k) 8 = M1.readLE (dp + 8 * k) 8 := fun k hk =>
     fr3.readLE _ _ (by simp [Outside] <;> omega)
   have hda3 : M3.accessible dp 32 false = true := by rw [fr3.accessible]; exact hda1
-  have hMs3 : M3.accessible (sp0 - 0xf0) 0x140 true = true := by rw [fr3.accessible]; exact hMs1
+  have hMs3 : M3.accessible (sp0 - 0xf0) 0x138 true = true := by rw [fr3.accessible]; exact hMs1
   have hR3_4 : R3 4 = BitVec.ofNat 64 (sp0 - 0xf0) := (fk3 4 (by simp)).trans hR2_4
   have h4 := Fv256.Amd64.UdivremB.dn_loop s0 dp qp qcap ql up remp n 4 s (sp0 - 0xf0) hs63 hn4 hn1 hdp hsf (by omega) (by omega)
     (n - 1) (by omega) R3 fl3 M3 hda3 hMs3 f12 ((fk3 0 (by simp)).trans ((hk2 0 (by simp)).trans ((rk 0 (by simp)).trans e0)))
@@ -129,7 +129,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   intro S4 _ ⟨R4, fl4, M4, hS4, g12, gk, gmem, gfr⟩
   subst hS4
   have hda4 : M4.accessible dp 32 false = true := by rw [gfr.accessible]; exact hda3
-  have hMs4 : M4.accessible (sp0 - 0xf0) 0x140 true = true := by rw [gfr.accessible]; exact hMs3
+  have hMs4 : M4.accessible (sp0 - 0xf0) 0x138 true = true := by rw [gfr.accessible]; exact hMs3
   have h5 := Fv256.Amd64.UdivremC.mid1 s0 dp qp qcap ql up remp n 4 s (sp0 - 0xf0) R4 fl4 M4 hs63 hn4 hn1 (by omega) (by omega) hdp hda4 hsf hMs4
     (by omega) (by omega) g12 ((gk 0 (by simp)).trans ((fk3 0 (by simp)).trans ((hk2 0 (by simp)).trans ((rk 0 (by simp)).trans e0))))
     ((gk 1 (by simp)).trans ((fk3 1 (by simp)).trans ((hk2 1 (by simp)).trans ((rk 1 (by simp)).trans e1))))
@@ -150,7 +150,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   have hd5 : ∀ k, k ≤ 3 → M5.readLE (dp + 8 * k) 8 = M1.readLE (dp + 8 * k) 8 := fun k hk =>
     (fr5.readLE _ _ (by simp [Outside] <;> omega)).trans ((gfr.readLE _ _ (by simp [Outside] <;> omega)).trans (hdw3 k hk))
   have hua5 : M5.accessible up 32 false = true := by rw [fr5.accessible, gfr.accessible, fr3.accessible, fr1.accessible]; exact hua
-  have hMs5 : M5.accessible (sp0 - 0xf0) 0x140 true = true := by rw [fr5.accessible]; exact hMs4
+  have hMs5 : M5.accessible (sp0 - 0xf0) 0x138 true = true := by rw [fr5.accessible]; exact hMs4
   have hsf8 : M5.readLE (sp0 - 0xf0 + 0xf8) 8 = qp := by
     rw [fr5.readLE _ _ (by simp [Outside] <;> omega), gfr.readLE _ _ (by simp [Outside] <;> omega)]; exact sf8
   have h6 := Fv256.Amd64.UdivremC.ulen_loop s0 up qp M5 (sp0 - 0xf0) hup48 hua5 hsf (by omega) hMs5 (by omega) hsf8 hqp 4 R5 fl5

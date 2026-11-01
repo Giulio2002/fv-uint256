@@ -17,8 +17,8 @@ set_option maxHeartbeats 8000000 in
 theorem pro2 (s0 : State) (dp n sf qp ql qcap up remp : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hn : n ≤ 4) (hn1 : 1 ≤ n) (dtop : Nat) (hdtop : M.readLE (dp + n * 8 - 8) 8 = dtop) (hdt0 : dtop ≠ 0) (hdtB : dtop < 2 ^ 64)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : dp + 32 ≤ sf ∨ sf + 0x140 ≤ dp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : dp + 32 ≤ sf ∨ sf + 0x138 ≤ dp)
     (e2 : R 2 = BitVec.ofNat 64 n) (e9 : R 9 = BitVec.ofNat 64 dp) (e4 : R 4 = BitVec.ofNat 64 sf)
     (e0 : R 0 = BitVec.ofNat 64 qp) (e3 : R 3 = BitVec.ofNat 64 ql) (e1 : R 1 = BitVec.ofNat 64 qcap)
     (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp)
@@ -66,7 +66,7 @@ theorem pro2 (s0 : State) (dp n sf qp ql qcap up remp : Nat) (R : Nat → W64) (
 
 set_option maxHeartbeats 8000000 in
 theorem den_nil (s0 : State) (sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
     (e4 : R 4 = BitVec.ofNat 64 sf) (m_130 : M.readLE (sf + 0x130) 8 = 0) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x394))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x2e5), flags := fl, mem := M }

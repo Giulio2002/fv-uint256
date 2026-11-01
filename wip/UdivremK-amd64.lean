@@ -22,18 +22,18 @@ set_option maxHeartbeats 32000000 in
 theorem udivrem_summary :
     Summary Extracted.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
-        0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x50 ∧ s.xmm 15 = 0 ∧
+        0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = 4 ∧ (s.regs 3).toNat = 4 ∧
         Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 7) 32 false ∧ Buffer s (s.regs 9) 32 false ∧
-        ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x50 ≤ (s.regs 0).toNat) ∧
-        ((s.regs 7).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x50 ≤ (s.regs 7).toNat) ∧
-        ((s.regs 9).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x50 ≤ (s.regs 9).toNat) ∧
-        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x50 ≤ (s.regs 14).toNat + 16) ∧
+        ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 0).toNat) ∧
+        ((s.regs 7).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 7).toNat) ∧
+        ((s.regs 9).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 9).toNat) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 14).toNat + 16) ∧
         Fv256.B.wv s.mem (s.regs 9).toNat 4 ≠ 0 ∧ Fv256.B.wv s.mem (s.regs 0).toNat 4 = 0 ∧
         ((s.regs 10).toNat ≠ 0 → Buffer s (s.regs 10) 32 true ∧ Fv256.B.wv s.mem (s.regs 10).toNat 4 = 0 ∧
           ((s.regs 0).toNat + 32 ≤ (s.regs 10).toNat ∨ (s.regs 10).toNat + 32 ≤ (s.regs 0).toNat) ∧
           ((s.regs 10).toNat + 32 ≤ (s.regs 7).toNat ∨ (s.regs 7).toNat + 32 ≤ (s.regs 10).toNat) ∧
-          ((s.regs 10).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x50 ≤ (s.regs 10).toNat)))
+          ((s.regs 10).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 10).toNat)))
       (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
         s' = { s with regs := R', rip := retAddrOf s, flags := fl', xmm := X', mem := M' } ∧
         R' 4 = s.regs 4 + 8 ∧ R' 5 = BitVec.ofNat 64 (s.regs 5).toNat ∧ R' 14 = s.regs 14 ∧ X' 15 = s.xmm 15 ∧
@@ -41,7 +41,7 @@ theorem udivrem_summary :
         ((s.regs 10).toNat ≠ 0 → Fv256.B.wv M' (s.regs 10).toNat 4 =
           Fv256.B.wv s.mem (s.regs 7).toNat 4 % Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
         MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
-          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x50)]) := by
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) := by
   intro s hpc ⟨⟨hra1, hra2⟩, hsp0, hg, hw, hx15, h6, h3, ⟨hqb, hqa⟩, ⟨hub, hua⟩, ⟨hdb, hda⟩, hqs, hus, hds, hgd, hD0, hq0, hrem⟩
   have hrip : { s with regs := s.regs, rip := BitVec.ofNat 64 ku, flags := s.flags, mem := s.mem } = s := by rw [← hpc]
   obtain ⟨hlow, hnw, hacc⟩ := hw
@@ -57,7 +57,7 @@ theorem udivrem_summary :
   have hg2 : s.mem.accessible ((s.regs 14).toNat + 16) 8 false = true := by
     have := hg.readable
     simpa [stackguard0Offset, regG] using this
-  have hMs : s.mem.accessible ((s.regs 4).toNat - 0x148) 0x198 true = true := by simpa using hacc
+  have hMs : s.mem.accessible ((s.regs 4).toNat - 0x148) 0x190 true = true := by simpa using hacc
   have e4 := (ofNat_toNat64 (s.regs 4)).symm
   have e9 := (ofNat_toNat64 (s.regs 9)).symm
   have e0 := (ofNat_toNat64 (s.regs 0)).symm
@@ -92,7 +92,7 @@ theorem udivrem_summary :
         ((s.regs 10).toNat ≠ 0 → Fv256.B.wv M' (s.regs 10).toNat 4 =
           Fv256.B.wv s.mem (s.regs 7).toNat 4 % Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
         MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
-          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x50)]) s S' := by
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) s S' := by
     rintro S' ⟨R', fl', X', M', hS, h4, h5, h14, hx, hq, hr, hf⟩
     refine ⟨R', fl', X', M', by rw [hS]; rfl, ?_, h5, h14, hx, hq, hr, hf⟩
     rw [h4]

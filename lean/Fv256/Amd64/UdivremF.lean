@@ -16,8 +16,8 @@ set_option maxHeartbeats 8000000 in
 theorem den_iter_pos (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hi : i + 1 < n) (hn : n ≤ 4) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp)
     (e9 : R 9 = BitVec.ofNat 64 i) (e2 : R 2 = BitVec.ofNat 64 remp) (e3 : R 3 = BitVec.ofNat 64 (n - 1))
     (e0 : R 0 = 18446744073709551615#64) (e6 : R 6 = BitVec.ofNat 64 (ulen + 1)) (e7 : R 7 = 18446744073709551615#64)
     (e8 : R 8 = 0 - BitVec.ofNat 64 s) (e1 : R 1 = 0 - BitVec.ofNat 64 (64 - s)) (e4 : R 4 = BitVec.ofNat 64 sf)
@@ -57,8 +57,8 @@ set_option maxHeartbeats 8000000 in
 theorem den_iter_zero (s0 : State) (remp n ulen sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hi : i + 1 < n) (hn : n ≤ 4) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp)
     (e9 : R 9 = BitVec.ofNat 64 i) (e2 : R 2 = BitVec.ofNat 64 remp) (e3 : R 3 = BitVec.ofNat 64 (n - 1))
     (e0 : R 0 = 18446744073709551615#64) (e6 : R 6 = BitVec.ofNat 64 (ulen + 1)) (e7 : R 7 = 0#64)
     (e8 : R 8 = 0 - BitVec.ofNat 64 0) (e1 : R 1 = 0 - BitVec.ofNat 64 (64 - 0)) (e4 : R 4 = BitVec.ofNat 64 sf) :
@@ -92,8 +92,8 @@ set_option maxHeartbeats 8000000 in
 theorem den_iter (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hi : i + 1 < n) (hn : n ≤ 4) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp)
     (e9 : R 9 = BitVec.ofNat 64 i) (e2 : R 2 = BitVec.ofNat 64 remp) (e3 : R 3 = BitVec.ofNat 64 (n - 1))
     (e0 : R 0 = 18446744073709551615#64) (e6 : R 6 = BitVec.ofNat 64 (ulen + 1)) (e7 : R 7 = (if s = 0 then 0#64 else 18446744073709551615#64))
     (e8 : R 8 = 0 - BitVec.ofNat 64 s) (e1 : R 1 = 0 - BitVec.ofNat 64 (64 - s)) (e4 : R 4 = BitVec.ofNat 64 sf) :
@@ -112,8 +112,8 @@ theorem den_iter (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl :
 
 set_option maxHeartbeats 8000000 in
 theorem den_loop (s0 : State) (remp n ulen s sf : Nat) (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
-    (hrem : remp + 32 ≤ 2 ^ 48) (hsf : sf + 0x140 ≤ 2 ^ 48) (hsf0 : 0x20 ≤ sf) (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp) :
-    ∀ t i, i + t = n - 1 → ∀ (R : Nat → W64) (fl : Flags) (M : Memory), M.accessible remp 32 true = true → M.accessible sf 0x140 true = true →
+    (hrem : remp + 32 ≤ 2 ^ 48) (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x20 ≤ sf) (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp) :
+    ∀ t i, i + t = n - 1 → ∀ (R : Nat → W64) (fl : Flags) (M : Memory), M.accessible remp 32 true = true → M.accessible sf 0x138 true = true →
       R 9 = BitVec.ofNat 64 i → R 2 = BitVec.ofNat 64 remp → R 3 = BitVec.ofNat 64 (n - 1) →
       R 0 = 18446744073709551615#64 → R 6 = BitVec.ofNat 64 (ulen + 1) → R 7 = (if s = 0 then 0#64 else 18446744073709551615#64) →
       R 8 = 0 - BitVec.ofNat 64 s → R 1 = 0 - BitVec.ofNat 64 (64 - s) → R 4 = BitVec.ofNat 64 sf →
@@ -159,7 +159,7 @@ theorem den_loop (s0 : State) (remp n ulen s sf : Nat) (hs : s ≤ 63) (hn : n �
 set_option maxHeartbeats 8000000 in
 theorem den_setup (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : ulen ≤ 4) (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
     (e4 : R 4 = BitVec.ofNat 64 sf)
     (m_130 : M.readLE (sf + 0x130) 8 = remp) (m_d0 : M.readLE (sf + 0xd0) 8 = 18446744073709551615)
     (m_e0 : M.readLE (sf + 0xe0) 8 = n - 1) (m_90 : M.readLE (sf + 0x90) 8 = ulen + 1)
@@ -195,8 +195,8 @@ set_option maxHeartbeats 8000000 in
 theorem den_final_pos (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp)
     (e2 : R 2 = BitVec.ofNat 64 remp) (e0 : R 0 = 18446744073709551615#64) (e1 : R 1 = 0 - BitVec.ofNat 64 (64 - s))
     (e4 : R 4 = BitVec.ofNat 64 sf) (m_b8 : M.readLE (sf + 0xb8) 8 = n)
     (hsn : ¬ (18446744073709551616 - (64 - s)) % 64 = 0) :
@@ -229,8 +229,8 @@ set_option maxHeartbeats 8000000 in
 theorem den_final_zero (s0 : State) (remp n ulen sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp)
     (e2 : R 2 = BitVec.ofNat 64 remp) (e0 : R 0 = 18446744073709551615#64) (e1 : R 1 = 0 - BitVec.ofNat 64 (64 - 0))
     (e4 : R 4 = BitVec.ofNat 64 sf) (m_b8 : M.readLE (sf + 0xb8) 8 = n) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x394))
@@ -260,8 +260,8 @@ set_option maxHeartbeats 8000000 in
 theorem den_final (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ 4)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp)
     (e2 : R 2 = BitVec.ofNat 64 remp) (e0 : R 0 = 18446744073709551615#64) (e1 : R 1 = 0 - BitVec.ofNat 64 (64 - s))
     (e4 : R 4 = BitVec.ofNat 64 sf) (m_b8 : M.readLE (sf + 0xb8) 8 = n) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x394))
@@ -312,7 +312,7 @@ theorem epilogue2 (s0 : State) (sf rbpv ra : Nat) (R : Nat → W64) (fl : Flags)
 
 set_option maxHeartbeats 8000000 in
 theorem by1_tail_nil (s0 : State) (sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
     (e4 : R 4 = BitVec.ofNat 64 sf) (m_130 : M.readLE (sf + 0x130) 8 = 0) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x38b))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x355), flags := fl, mem := M }
@@ -328,8 +328,8 @@ set_option maxHeartbeats 8000000 in
 theorem by1_tail_pos (s0 : State) (remp rr s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64) (hrr : rr < 2 ^ 64)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp) (hx15 : s0.xmm 15 = 0)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp) (hx15 : s0.xmm 15 = 0)
     (e0 : R 0 = BitVec.ofNat 64 rr) (e4 : R 4 = BitVec.ofNat 64 sf)
     (m_130 : M.readLE (sf + 0x130) 8 = remp) (m_d0 : M.readLE (sf + 0xd0) 8 = 18446744073709551615)
     (m_d8 : M.readLE (sf + 0xd8) 8 = 18446744073709551616 - (64 - s))
@@ -364,8 +364,8 @@ set_option maxHeartbeats 8000000 in
 theorem by1_tail_zero (s0 : State) (remp rr sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64) (hrr : rr < 2 ^ 64)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp) (hx15 : s0.xmm 15 = 0)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp) (hx15 : s0.xmm 15 = 0)
     (e0 : R 0 = BitVec.ofNat 64 rr) (e4 : R 4 = BitVec.ofNat 64 sf)
     (m_130 : M.readLE (sf + 0x130) 8 = remp) (m_d0 : M.readLE (sf + 0xd0) 8 = 18446744073709551615)
     (m_d8 : M.readLE (sf + 0xd8) 8 = 18446744073709551616 - (64 - 0)) :
@@ -398,8 +398,8 @@ set_option maxHeartbeats 8000000 in
 theorem by1_tail_ne (s0 : State) (remp rr s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64) (hrr : rr < 2 ^ 64)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : remp + 32 ≤ sf ∨ sf + 0x140 ≤ remp) (hx15 : s0.xmm 15 = 0)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp) (hx15 : s0.xmm 15 = 0)
     (e0 : R 0 = BitVec.ofNat 64 rr) (e4 : R 4 = BitVec.ofNat 64 sf)
     (m_130 : M.readLE (sf + 0x130) 8 = remp) (m_d0 : M.readLE (sf + 0xd0) 8 = 18446744073709551615)
     (m_d8 : M.readLE (sf + 0xd8) 8 = 18446744073709551616 - (64 - s)) :

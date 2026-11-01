@@ -27,21 +27,21 @@ def UPost (s0 : State) (M0 : Memory) (sp0 dp qp up remp ra rbpv : Nat) (g : W64)
     R' 4 = BitVec.ofNat 64 (sp0 + 8) ∧ R' 5 = BitVec.ofNat 64 rbpv ∧ R' 14 = g ∧ X' 15 = s0.xmm 15 ∧
     Fv256.B.wv M' qp 4 = Fv256.B.wv M0 up 4 / Fv256.B.wv M0 dp 4 ∧
     (remp ≠ 0 → Fv256.B.wv M' remp 4 = Fv256.B.wv M0 up 4 % Fv256.B.wv M0 dp 4) ∧
-    MemFrame M0 M' [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x50)]
+    MemFrame M0 M' [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)]
 
 theorem sp_arith (sp0 : Nat) (h : 0x150 ≤ sp0) : sp0 - 0xf0 + 0xf8 = sp0 + 8 := by omega
 
 set_option maxHeartbeats 16000000 in
 theorem caseL (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
     (F : Front R M M0 sp0 dp qp qcap ql up remp n ulen s rbpv ra) (hlt : ulen < n) (g : W64) (hg : R 14 = g)
-    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x50 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x198 true = true)
-    (hup48 : up + 32 ≤ 2 ^ 48) (hua : M0.accessible up 32 false = true) (hdisju : up + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ up)
-    (hdp : dp + 32 ≤ 2 ^ 48) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ dp)
-    (hq48 : qp + 32 ≤ 2 ^ 48) (hq0 : Fv256.B.wv M0 qp 4 = 0) (hqs : qp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ qp)
+    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x190 true = true)
+    (hup48 : up + 32 ≤ 2 ^ 48) (hua : M0.accessible up 32 false = true) (hdisju : up + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ up)
+    (hdp : dp + 32 ≤ 2 ^ 48) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ dp)
+    (hq48 : qp + 32 ≤ 2 ^ 48) (hq0 : Fv256.B.wv M0 qp 4 = 0) (hqs : qp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ qp)
     (hremB : remp < 2 ^ 64)
     (hrem : remp ≠ 0 → remp + 32 ≤ 2 ^ 48 ∧ M0.accessible remp 32 true = true ∧ Fv256.B.wv M0 remp 4 = 0)
     (hqr : remp ≠ 0 → qp + 32 ≤ remp ∨ remp + 32 ≤ qp) (hru : remp ≠ 0 → remp + 32 ≤ up ∨ up + 32 ≤ remp)
-    (hrs : remp ≠ 0 → remp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ remp) (hra47 : ra < 2 ^ 47) (hx15 : s0.xmm 15 = 0) :
+    (hrs : remp ≠ 0 → remp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ remp) (hra47 : ra < 2 ^ 47) (hx15 : s0.xmm 15 = 0) :
     ReachesRet Extracted.program (BitVec.ofNat 64 ra)
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
       (UPost s0 M0 sp0 dp qp up remp ra rbpv g) := by
@@ -102,16 +102,16 @@ set_option maxHeartbeats 32000000 in
 theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
     (F : Front R M M0 sp0 dp qp qcap ql up remp n ulen s rbpv ra) (hn2 : 2 ≤ n) (hge : n ≤ ulen) (g : W64) (hg : R 14 = g)
     (hql : ql = 4)
-    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x50 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x198 true = true)
-    (hup48 : up + 32 ≤ 2 ^ 48) (hua : M0.accessible up 32 false = true) (hdisju : up + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ up)
-    (hdp : dp + 32 ≤ 2 ^ 48) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ dp)
-    (hq48 : qp + 32 ≤ 2 ^ 48) (hqa : M0.accessible qp 32 true = true) (hq0 : Fv256.B.wv M0 qp 4 = 0) (hqs : qp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ qp)
+    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x190 true = true)
+    (hup48 : up + 32 ≤ 2 ^ 48) (hua : M0.accessible up 32 false = true) (hdisju : up + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ up)
+    (hdp : dp + 32 ≤ 2 ^ 48) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ dp)
+    (hq48 : qp + 32 ≤ 2 ^ 48) (hqa : M0.accessible qp 32 true = true) (hq0 : Fv256.B.wv M0 qp 4 = 0) (hqs : qp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ qp)
     (hremB : remp < 2 ^ 64)
     (hrem : remp ≠ 0 → remp + 32 ≤ 2 ^ 48 ∧ M0.accessible remp 32 true = true ∧ Fv256.B.wv M0 remp 4 = 0)
     (hqr : remp ≠ 0 → qp + 32 ≤ remp ∨ remp + 32 ≤ qp) (hru : remp ≠ 0 → remp + 32 ≤ up ∨ up + 32 ≤ remp)
-    (hrs : remp ≠ 0 → remp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ remp) (hra47 : ra < 2 ^ 47) (hx15 : s0.xmm 15 = 0)
+    (hrs : remp ≠ 0 → remp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ remp) (hra47 : ra < 2 ^ 47) (hx15 : s0.xmm 15 = 0)
     (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M0.accessible ((R 14).toNat + 16) 8 false = true)
-    (hg3 : M0.readLE ((R 14).toNat + 16) 8 < sp0 - 0xf8) (hgd : (R 14).toNat + 24 ≤ sp0 - 0x148 ∨ sp0 + 0x50 ≤ (R 14).toNat + 16) :
+    (hg3 : M0.readLE ((R 14).toNat + 16) 8 < sp0 - 0xf8) (hgd : (R 14).toNat + 24 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ (R 14).toNat + 16) :
     ReachesRet Extracted.program (BitVec.ofNat 64 ra)
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
       (UPost s0 M0 sp0 dp qp up remp ra rbpv g) := by
@@ -119,7 +119,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
   obtain ⟨hn, hn4, hul4, hs63⟩ : 1 ≤ n ∧ n ≤ 4 ∧ ulen ≤ 4 ∧ s ≤ 63 := ⟨F.hn, F.hn4, F.hulen, F.hs⟩
   have hfr := F.frame
   have hua1 : M.accessible up 32 false = true := by rw [hfr.accessible]; exact hua
-  have hMs1 : M.accessible (sp0 - 0xf0) 0x140 true = true := by
+  have hMs1 : M.accessible (sp0 - 0xf0) 0x138 true = true := by
     rw [hfr.accessible]; exact Janus.Arm64.Memory.accessible_mono _ hMs (by omega) (by omega)
   have h1 := Fv256.Amd64.UdivremD.mid2 s0 dp qp qcap ql up remp n 4 ulen s (sp0 - 0xf0) R fl M hs63 hn4 hn rfl hul4 hge hup48 hua1
     (by omega) hMs1 (by omega) (by omega) hx15 F.e12 F.e0 F.e1 F.e3 F.e7 F.e10 F.e11 F.e8 F.e13 F.e15 F.e9 F.e4 F.e2 F.e6
@@ -127,7 +127,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
   intro S1 _ ⟨R1, fl1, M1, hS1, a0, a1, a2, a10, a13, ak, sb8, sz, stop, fr1⟩
   subst hS1
   have hua2 : M1.accessible up 32 false = true := by rw [fr1.accessible]; exact hua1
-  have hMs2 : M1.accessible (sp0 - 0xf0) 0x140 true = true := by rw [fr1.accessible]; exact hMs1
+  have hMs2 : M1.accessible (sp0 - 0xf0) 0x138 true = true := by rw [fr1.accessible]; exact hMs1
   have h2 := Fv256.Amd64.UdivremD.un_loop s0 up ulen s (sp0 - 0xf0) hs63 hul4 hup48 (by omega) (by omega) (by omega) (ulen - 1) (by omega)
     R1 fl1 M1 hua2 hMs2 (by rw [a0]) ((ak 7 (by simp)).trans F.e7) ((ak 11 (by simp)).trans F.e11) ((ak 8 (by simp)).trans F.e8) a13
     ((ak 15 (by simp)).trans F.e15) a2 ((ak 4 (by simp)).trans F.e4) (fun k hk1 hk2 => by omega)
@@ -138,7 +138,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     have : k ≠ 0 ∧ k ≠ 1 ∧ k ≠ 6 ∧ k ≠ 12 := by simp at hk; omega
     exact bk k this.1 this.2.1 this.2.2.1 this.2.2.2
   have hua3 : M2.accessible up 32 false = true := by rw [fr2.accessible]; exact hua2
-  have hMs3 : M2.accessible (sp0 - 0xf0) 0x140 true = true := by rw [fr2.accessible]; exact hMs2
+  have hMs3 : M2.accessible (sp0 - 0xf0) 0x138 true = true := by rw [fr2.accessible]; exact hMs2
   have hsb8 : M2.readLE (sp0 - 0xf0 + 0xb8) 8 = n := by
     rw [fr2.readLE _ _ (by simp [Outside] <;> omega)]; exact sb8
   have h3 := Fv256.Amd64.UdivremD.midA s0 up n ulen s (sp0 - 0xf0) R2 fl2 M2 hs63 hul4 hn2 hn4 hup48 hua3 (by omega) hMs3 (by omega) (by omega) hx15
@@ -153,7 +153,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
       fr1.trans fr2 (by intro a n' h; simp [Outside] at h ⊢; omega)
     exact a12'.trans fr3 (by intro a n' h; simp [Outside] at h ⊢; omega)
   have hq3 : M3.accessible qp 32 true = true := by rw [fr13.accessible, hfr.accessible]; exact hqa
-  have hMs4 : M3.accessible (sp0 - 0xf0 - 0x58) 0x198 true = true := by
+  have hMs4 : M3.accessible (sp0 - 0xf0 - 0x58) 0x190 true = true := by
     rw [fr13.accessible, hfr.accessible]
     exact Janus.Arm64.Memory.accessible_mono _ hMs (by omega) (by omega)
   have hg3' : M3.readLE ((R 14).toNat + 16) 8 < sp0 - 0xf0 - 8 := by
@@ -232,12 +232,12 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     exact hqw j hj2
   have hQ : Fv256.B.wv M4 qp 4 = Fv256.B.wv M0 up 4 / Fv256.B.wv M0 dp 4 := by
     rw [hq4, hdiv.1, hUD, hDD]
-  have hsfx : sp0 - 0xf0 + 0x140 ≤ 2 ^ 48 := by omega
-  have fr134 : MemFrame M0 M4 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x50)] := by
-    have a1 : MemFrame M0 M3 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x50)] :=
+  have hsfx : sp0 - 0xf0 + 0x138 ≤ 2 ^ 48 := by omega
+  have fr134 : MemFrame M0 M4 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] := by
+    have a1 : MemFrame M0 M3 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] :=
       hfr.trans fr13 (by intro a n' h; simp [Outside] at h ⊢; omega)
     exact a1.trans fr4 (by intro a n' h; simp [Outside] at h ⊢; omega)
-  have hMs5 : M4.accessible (sp0 - 0xf0) 0x140 true = true := by
+  have hMs5 : M4.accessible (sp0 - 0xf0) 0x138 true = true := by
     rw [fr4.accessible, fr13.accessible, hfr.accessible]; exact Janus.Arm64.Memory.accessible_mono _ hMs (by omega) (by omega)
   have hMs6 : M4.accessible (sp0 - 0xf0) 0xf8 true = true := Janus.Arm64.Memory.accessible_mono _ hMs5 (by omega) (by omega)
   have hsb8' : M4.readLE (sp0 - 0xf0 + 0xb8) 8 = n := by
@@ -267,8 +267,8 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     have hrs' := hrs hr0
     have hqr' := hqr hr0
     have hru' := hru hr0
-    have frx : MemFrame M0 M4 [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x50)] := by
-      have a1 : MemFrame M0 M3 [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x50)] :=
+    have frx : MemFrame M0 M4 [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] := by
+      have a1 : MemFrame M0 M3 [(qp, qp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] :=
         hfr.trans fr13 (by intro a n' h; simp [Outside] at h ⊢; omega)
       exact a1.trans fr4 (by intro a n' h; simp [Outside] at h ⊢; omega)
     have hra4 : M4.accessible remp 32 true = true := by rw [fr134.accessible]; exact hra
@@ -285,7 +285,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     refine Fv256.B.reachesRet_trans64 h5 ?_
     intro S5 _ ⟨R5, fl5, hS5, f9, f2, f3, f0, f6, f7, f8, f1, f4, f14⟩
     subst hS5
-    have hdsj : remp + 32 ≤ sp0 - 0xf0 ∨ sp0 - 0xf0 + 0x140 ≤ remp := by omega
+    have hdsj : remp + 32 ≤ sp0 - 0xf0 ∨ sp0 - 0xf0 + 0x138 ≤ remp := by omega
     have h6 := Fv256.Amd64.UdivremF.den_loop s0 remp n ulen s (sp0 - 0xf0) hs63 hn4 hn hge hul4 hr48 hsfx (by omega) hdsj (n - 1) 0 (by omega)
       R5 fl5 M4 hra4 hMs5 f9 f2 f3 f0 f6 f7 f8 f1 f4
     refine Fv256.B.reachesRet_trans64 h6 ?_
@@ -293,7 +293,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
     subst hS6
     have lfr' : MemFrame M4 M6 [(remp, remp + 8 * (n - 1))] := lfr.mono (by intro a n' h; simp [Outside] at h ⊢; omega)
     have hra6 : M6.accessible remp 32 true = true := by rw [lfr'.accessible]; exact hra4
-    have hMs6' : M6.accessible (sp0 - 0xf0) 0x140 true = true := by rw [lfr'.accessible]; exact hMs5
+    have hMs6' : M6.accessible (sp0 - 0xf0) 0x138 true = true := by rw [lfr'.accessible]; exact hMs5
     have mb8 : M6.readLE (sp0 - 0xf0 + 0xb8) 8 = n := by
       rw [lfr'.readLE _ _ (by simp [Outside] <;> omega)]; exact hsb8'
     have h7 := Fv256.Amd64.UdivremF.den_final s0 remp n ulen s (sp0 - 0xf0) R6 fl6 M6 hs63 hn4 hn hge hul4 hr48 hra6 hsfx hMs6' (by omega) hdsj
@@ -328,7 +328,7 @@ theorem caseK (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 d
       rw [Fv256.B.wv_ext M7 remp n 4 hn4 (fun j h1 h2 => ?_), hw, hRn, Nat.mul_div_cancel _ (Nat.two_pow_pos s), hUD, hDD]
       rw [frA.readLE _ _ (by simp [Outside]; omega), frx.readLE _ _ (by simp [Outside]; omega)]
       exact hz j h2
-    have fr7 : MemFrame M0 M7 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x50)] :=
+    have fr7 : MemFrame M0 M7 [(qp, qp + 32), (remp, remp + 32), (sp0 - 0x148, sp0), (sp0 + 8, sp0 + 0x48)] :=
       frx.trans frA (by intro a n' h; simp [Outside] at h ⊢; omega)
     have hq7 : Fv256.B.wv M7 qp 4 = Fv256.B.wv M4 qp 4 :=
       Fv256.B.wv_of_frame M4 M7 _ frA qp 4 (by simp [Outside]; omega)

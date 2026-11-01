@@ -16,8 +16,8 @@ set_option maxHeartbeats 8000000 in
 theorem mid1_pos (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hul : ul ≤ 4) (hul1 : 1 ≤ ul)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : dp + 32 ≤ sf ∨ sf + 0x140 ≤ dp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : dp + 32 ≤ sf ∨ sf + 0x138 ≤ dp)
     (e12 : R 12 = 0#64) (e0 : R 0 = BitVec.ofNat 64 qp) (e1 : R 1 = BitVec.ofNat 64 qcap) (e3 : R 3 = BitVec.ofNat 64 ql)
     (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp) (e11 : R 11 = BitVec.ofNat 64 (64 - s))
     (e8 : R 8 = 0 - BitVec.ofNat 64 s) (e13 : R 13 = BitVec.ofNat 64 (63 - s)) (e15 : R 15 = BitVec.ofNat 64 s)
@@ -62,8 +62,8 @@ set_option maxHeartbeats 8000000 in
 theorem mid1_zero (s0 : State) (dp qp qcap ql up remp n ul sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hn : n ≤ 4) (hn1 : 1 ≤ n) (hul : ul ≤ 4) (hul1 : 1 ≤ ul)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : dp + 32 ≤ sf ∨ sf + 0x140 ≤ dp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : dp + 32 ≤ sf ∨ sf + 0x138 ≤ dp)
     (e12 : R 12 = 0#64) (e0 : R 0 = BitVec.ofNat 64 qp) (e1 : R 1 = BitVec.ofNat 64 qcap) (e3 : R 3 = BitVec.ofNat 64 ql)
     (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp) (e11 : R 11 = BitVec.ofNat 64 (64 - 0))
     (e8 : R 8 = 0 - BitVec.ofNat 64 0) (e13 : R 13 = BitVec.ofNat 64 (63 - 0)) (e15 : R 15 = BitVec.ofNat 64 0)
@@ -104,8 +104,8 @@ set_option maxHeartbeats 8000000 in
 theorem mid1 (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hul : ul ≤ 4) (hul1 : 1 ≤ ul)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
-    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
-    (hdisj : dp + 32 ≤ sf ∨ sf + 0x140 ≤ dp)
+    (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : dp + 32 ≤ sf ∨ sf + 0x138 ≤ dp)
     (e12 : R 12 = 0#64) (e0 : R 0 = BitVec.ofNat 64 qp) (e1 : R 1 = BitVec.ofNat 64 qcap) (e3 : R 3 = BitVec.ofNat 64 ql)
     (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp) (e11 : R 11 = BitVec.ofNat 64 (64 - s))
     (e8 : R 8 = 0 - BitVec.ofNat 64 s) (e13 : R 13 = BitVec.ofNat 64 (63 - s)) (e15 : R 15 = BitVec.ofNat 64 s)
@@ -128,8 +128,8 @@ theorem mid1 (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W
 -- the search for the most significant non-zero word of `u` (head at +0x182, exit at +0x1a0)
 set_option maxHeartbeats 8000000 in
 theorem ulen_loop (s0 : State) (up qp : Nat) (M : Memory) (sf : Nat)
-    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true) (hsf : sf + 0x140 ≤ 2 ^ 48) (hsf0 : 0x20 ≤ sf)
-    (hMs : M.accessible sf 0x140 true = true) (hdisj : up + 32 ≤ sf ∨ sf + 0x140 ≤ up)
+    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true) (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x20 ≤ sf)
+    (hMs : M.accessible sf 0x138 true = true) (hdisj : up + 32 ≤ sf ∨ sf + 0x138 ≤ up)
     (m_f8 : M.readLE (sf + 0xf8) 8 = qp) (hqp : qp < 2 ^ 64) :
     ∀ t (R : Nat → W64) (fl : Flags), t ≤ 4 → R 7 = BitVec.ofNat 64 up → R 4 = BitVec.ofNat 64 sf → R 12 = BitVec.ofNat 64 t - 1 →
       R 0 = BitVec.ofNat 64 qp →
