@@ -42,7 +42,10 @@ theorem fromHex_summary (z hp len : BitVec 64) :
         (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
           s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
           s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))) :=
-  fun s hpc hpre => fromHex_sum [] z hp len s hpc hpre
+  by
+    have h := fromHex_sum [] z hp len
+    rw [link_nil] at h
+    exact h
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 100000 in

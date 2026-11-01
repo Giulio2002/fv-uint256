@@ -26,7 +26,7 @@ def LoopQ (s : State) (z hp len : BitVec 64) (s' : State) : Prop :=
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 10000 in
-theorem loop (impl : List Janus.Segment) (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : len.toNat ≤ 66)
+theorem loop (impl : List Janus.Amd64.Segment) (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : len.toNat ≤ 66)
     (hz' : z.toNat + 32 ≤ 2 ^ 48) (hs' : hp.toNat + len.toNat ≤ 2 ^ 48)
     (hsa : s.mem.accessible hp.toNat len.toNat false = true)
     (hdz : z.toNat + 32 ≤ hp.toNat ∨ hp.toNat + len.toNat ≤ z.toNat)
@@ -59,7 +59,7 @@ theorem loop (impl : List Janus.Segment) (s : State) (z hp len : BitVec 64) (hL 
       s.mem.accessible hp.toNat len.toNat false = true → s.mem.accessible 5175774 256 false = true →
       s.mem.accessible 5987120 96 false = true →
       s.mem.accessible (s.regs 4).toNat 8 false = true →
-      ReachesRet (Extracted.program) (retAddrOf s) S (LoopQ s z hp len) := by
+      ReachesRet (Extracted.program.link impl) (retAddrOf s) S (LoopQ s z hp len) := by
   intro n
   induction n using Nat.strongRecOn with
   | _ n ih =>
@@ -306,6 +306,9 @@ def FromHexPost (z hp len : BitVec 64) (s s' : State) : Prop :=
       s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
       s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))
 
+theorem link_nil (p : Janus.Amd64.Program) : p.link [] = p := by
+  cases p; simp [Janus.Amd64.Program.link]
+
 theorem rr_mono {p : Janus.Amd64.Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
     (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
   obtain ⟨k, s', a, b, c⟩ := h
@@ -358,8 +361,8 @@ theorem post_of_loopQ (s s' : State) (z hp len : BitVec 64) (hn3 : 3 ≤ len.toN
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 10000 in
-theorem fromHex_sum (impl : List Janus.Segment) (z hp len : BitVec 64) :
-    Summary Extracted.program fh (FromHexPre z hp len) (FromHexPost z hp len) := by
+theorem fromHex_sum (impl : List Janus.Amd64.Segment) (z hp len : BitVec 64) :
+    Summary (Extracted.program.link impl) fh (FromHexPre z hp len) (FromHexPost z hp len) := by
   intro s hpc ⟨⟨hr1, hr2, hx15, hdf⟩, hz0, hp0, hl0, ⟨hzw, hz⟩, ⟨hpw, hp⟩, htab0, hSt0, hzt, hst, herr, ⟨hlow, hnw, hacc⟩,
     hdzh, hdzs, hdhs, hdzg, hdgs, hnn⟩
   subst hz0 hp0 hl0
