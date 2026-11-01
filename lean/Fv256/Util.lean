@@ -624,6 +624,10 @@ theorem limbs_of_readLE32 (m : Janus.Arm64.Memory) (a c0 c1 c2 c3 : Nat)
   have := readLE8_lt m a; have := readLE8_lt m (a + 8); have := readLE8_lt m (a + 16); have := readLE8_lt m (a + 24)
   omega
 
+theorem bitLen_bounds (v : Nat) (h : v ≠ 0) : 2 ^ (Spec.bitLen v - 1) ≤ v ∧ v < 2 ^ Spec.bitLen v := by
+  simp only [Spec.bitLen, if_neg h, Nat.add_sub_cancel]
+  exact ⟨Nat.log2_self_le h, Nat.lt_log2_self⟩
+
 theorem bitLen_of_range (x m : Nat) (hm : 1 ≤ m) (h1 : 2 ^ (m - 1) ≤ x) (h2 : x < 2 ^ m) : Spec.bitLen x = m := by
   obtain ⟨n, rfl⟩ : ∃ n, m = n + 1 := ⟨m - 1, by omega⟩
   have hx : x ≠ 0 := by have := Nat.two_pow_pos n; simp at h1; omega

@@ -20,6 +20,7 @@ Forms of guarantee beyond the plain `Ensures`:
   (`NewobjectContract`); the result is a fresh object inside the runtime-owned ranges. Each has a `Witness` that links a toy allocator at the contract address.
 * **Partial theorems** (`MarshalSSZAppend`, `MarshalSSZInto`, `UnmarshalSSZ`): status `partial` in `COVERAGE.md`; the theorem is complete for the stated scope (e.g. `len + 32 <= cap`, the success path) and says nothing about the other paths.
 * **Omitted callees**: the `Runtime contracts assumed` banner line printed by `janus verify` also lists omitted UNPINNED callees (e.g. `fmt.errorf` passed with `--contract`). Those are not assumptions: no code is copied for them, the statement carries no hypothesis about them, and reaching one is a fault, so a proof that closes shows the precondition excludes that path.
+* **Writable globals** (`Log10`): the tables `uint256.pows64` / `uint256.pows` live in writable `.noptrdata`, which the extractor does not copy; the statement therefore assumes (`Tabs64`, `TabsBig` in `L10Defs.lean`) that they are readable, disjoint from the callee's stack window and hold the powers of ten (only `10^20..10^77` of `pows` are claimed and read). The result is stated relationally: `v = 0 → r = 0` and `v ≠ 0 → 10^r ≤ v < 10^(r+1)`. One proof module per (top nonzero limb, its bit length) keeps each job small.
 * **`BitLen` on amd64** is proved for a `GOAMD64=v3` build (`lzcnt`); the default `v1` code uses `BSR` of a possibly zero limb, which the Janus
   model does not accept (`COVERAGE.md`).
 
