@@ -129,7 +129,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Value` | todo | todo | |
 | `(*uint256.Int).WriteToArray20` | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray20.lean |
 | `(*uint256.Int).WriteToArray32` | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray32.lean |
-| `(*uint256.Int).WriteToSlice` | verified | todo | arm64: lean/Fv256/Arm64/WriteToSlice.lean (+ WtsCases/Case<k>.lean, one module per min(len,32); the byte loop is unrolled) |
+| `(*uint256.Int).WriteToSlice` | verified | verified | arm64: lean/Fv256/Arm64/WriteToSlice.lean (+ WtsCases/Case<k>.lean, one module per min(len,32); the byte loop is unrolled); amd64: same layout under Fv256/Amd64 |
 | `(*uint256.Int).Xor` | verified | verified | lean/Fv256/{Arm64,Amd64}/Xor.lean |
 
 ## Exported variables (data, no code to verify)

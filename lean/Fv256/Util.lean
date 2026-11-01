@@ -607,6 +607,30 @@ theorem ow2_wr_iff {m m' : Janus.Arm64.Memory} {p n q k a j : Nat} (v : Nat)
 theorem ow2_self_iff (m : Janus.Arm64.Memory) (p n q k : Nat) : OnlyWrites2 m m p n q k ↔ True :=
   ⟨fun _ => trivial, fun _ => ow2_refl m p n q k⟩
 
+theorem awc_c_dec (x y : BitVec 64) (c : Bool) :
+    (Janus.Arm64.addWithCarry x y c).2.c = decide (18446744073709551616 ≤ x.toNat + y.toNat + c.toNat) := by
+  have h := Janus.Tactic.awc_c_toNat x y c
+  have := x.isLt; have := y.isLt; have : c.toNat ≤ 1 := Bool.toNat_le c
+  cases hh : (Janus.Arm64.addWithCarry x y c).2.c <;> simp_all <;> omega
+
+theorem dec_ite (p : Prop) [Decidable p] : (decide p).toNat = if p then 1 else 0 := by
+  by_cases h : p <;> simp [h]
+
+theorem limbs_of_readLE32 (m : Janus.Arm64.Memory) (a c0 c1 c2 c3 : Nat)
+    (h : m.readLE a 32 = c0 + 2 ^ 64 * c1 + 2 ^ 128 * c2 + 2 ^ 192 * c3)
+    (b0 : c0 < 2 ^ 64) (b1 : c1 < 2 ^ 64) (b2 : c2 < 2 ^ 64) (b3 : c3 < 2 ^ 64) :
+    m.readLE a 8 = c0 ∧ m.readLE (a + 8) 8 = c1 ∧ m.readLE (a + 16) 8 = c2 ∧ m.readLE (a + 24) 8 = c3 := by
+  rw [readLE_32] at h
+  have := readLE8_lt m a; have := readLE8_lt m (a + 8); have := readLE8_lt m (a + 16); have := readLE8_lt m (a + 24)
+  omega
+
+theorem bitLen_of_range (x m : Nat) (hm : 1 ≤ m) (h1 : 2 ^ (m - 1) ≤ x) (h2 : x < 2 ^ m) : Spec.bitLen x = m := by
+  obtain ⟨n, rfl⟩ : ∃ n, m = n + 1 := ⟨m - 1, by omega⟩
+  have hx : x ≠ 0 := by have := Nat.two_pow_pos n; simp at h1; omega
+  have : Nat.log2 x = n := by
+    rw [Nat.log2_eq_iff hx]; exact ⟨by simpa using h1, by simpa [Nat.pow_succ] using h2⟩
+  simp [Spec.bitLen, hx, this]
+
 theorem clz_bl (n x : Nat) (hx : x < 2 ^ n) : Janus.Arm64.clzNat n x + Spec.bitLen x = n := by
   induction n generalizing x with
   | zero =>
@@ -2448,6 +2472,24 @@ theorem chain32_ow2 (m M0 : Memory) (d L0 L1 L2 L3 q k : Nat) (h : OnlyWrites2 m
   refine ow2_wl _ ?_ (by omega) (by omega)
   refine ow2_wl _ ?_ (by omega) (by omega)
   exact h
+theorem chain32d (M0 : Janus.Arm64.Memory) (d L0 L1 L2 L3 : Nat) (h0 : L0 < 18446744073709551616) (h1 : L1 < 18446744073709551616)
+    (h2 : L2 < 18446744073709551616) (h3 : L3 < 18446744073709551616) :
+    Spec.fromBE (fun i => (((((((((((((((((((((((((((((((((M0).writeLE (d + 31) 1 (L0 % 256)).writeLE (d + 30) 1 (L0 / 256 % 256)).writeLE (d + 29) 1 (L0 / 65536 % 256)).writeLE (d + 28) 1 (L0 / 16777216 % 256)).writeLE (d + 27) 1 (L0 / 4294967296 % 256)).writeLE (d + 26) 1 (L0 / 1099511627776 % 256)).writeLE (d + 25) 1 (L0 / 281474976710656 % 256)).writeLE (d + 24) 1 (L0 / 72057594037927936 % 256)).writeLE (d + 23) 1 (L1 % 256)).writeLE (d + 22) 1 (L1 / 256 % 256)).writeLE (d + 21) 1 (L1 / 65536 % 256)).writeLE (d + 20) 1 (L1 / 16777216 % 256)).writeLE (d + 19) 1 (L1 / 4294967296 % 256)).writeLE (d + 18) 1 (L1 / 1099511627776 % 256)).writeLE (d + 17) 1 (L1 / 281474976710656 % 256)).writeLE (d + 16) 1 (L1 / 72057594037927936 % 256)).writeLE (d + 15) 1 (L2 % 256)).writeLE (d + 14) 1 (L2 / 256 % 256)).writeLE (d + 13) 1 (L2 / 65536 % 256)).writeLE (d + 12) 1 (L2 / 16777216 % 256)).writeLE (d + 11) 1 (L2 / 4294967296 % 256)).writeLE (d + 10) 1 (L2 / 1099511627776 % 256)).writeLE (d + 9) 1 (L2 / 281474976710656 % 256)).writeLE (d + 8) 1 (L2 / 72057594037927936 % 256)).writeLE (d + 7) 1 (L3 % 256)).writeLE (d + 6) 1 (L3 / 256 % 256)).writeLE (d + 5) 1 (L3 / 65536 % 256)).writeLE (d + 4) 1 (L3 / 16777216 % 256)).writeLE (d + 3) 1 (L3 / 4294967296 % 256)).writeLE (d + 2) 1 (L3 / 1099511627776 % 256)).writeLE (d + 1) 1 (L3 / 281474976710656 % 256)).writeLE (d + 0) 1 (L3 / 72057594037927936 % 256)).readLE (d + i) 1) 32 =
+      (L0 + 18446744073709551616 * L1 + 340282366920938463463374607431768211456 * L2 +
+        6277101735386680763835789423207666416102355444464034512896 * L3) % 2 ^ (8 * 32) := by
+  have := chain32 M0 d L0 L1 L2 L3 h0 h1 h2 h3
+  simp only [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Nat.reducePow, Nat.reduceMod,
+    Nat.mod_eq_of_lt h0, Nat.mod_eq_of_lt h1, Nat.mod_eq_of_lt h2, Nat.mod_eq_of_lt h3] at this
+  exact this
+
+theorem chain32d_ow2 (m M0 : Janus.Arm64.Memory) (d L0 L1 L2 L3 q k : Nat) (h0 : L0 < 18446744073709551616) (h1 : L1 < 18446744073709551616)
+    (h2 : L2 < 18446744073709551616) (h3 : L3 < 18446744073709551616) (h : OnlyWrites2 m M0 d 32 q k) :
+    OnlyWrites2 m (((((((((((((((((((((((((((((((((M0).writeLE (d + 31) 1 (L0 % 256)).writeLE (d + 30) 1 (L0 / 256 % 256)).writeLE (d + 29) 1 (L0 / 65536 % 256)).writeLE (d + 28) 1 (L0 / 16777216 % 256)).writeLE (d + 27) 1 (L0 / 4294967296 % 256)).writeLE (d + 26) 1 (L0 / 1099511627776 % 256)).writeLE (d + 25) 1 (L0 / 281474976710656 % 256)).writeLE (d + 24) 1 (L0 / 72057594037927936 % 256)).writeLE (d + 23) 1 (L1 % 256)).writeLE (d + 22) 1 (L1 / 256 % 256)).writeLE (d + 21) 1 (L1 / 65536 % 256)).writeLE (d + 20) 1 (L1 / 16777216 % 256)).writeLE (d + 19) 1 (L1 / 4294967296 % 256)).writeLE (d + 18) 1 (L1 / 1099511627776 % 256)).writeLE (d + 17) 1 (L1 / 281474976710656 % 256)).writeLE (d + 16) 1 (L1 / 72057594037927936 % 256)).writeLE (d + 15) 1 (L2 % 256)).writeLE (d + 14) 1 (L2 / 256 % 256)).writeLE (d + 13) 1 (L2 / 65536 % 256)).writeLE (d + 12) 1 (L2 / 16777216 % 256)).writeLE (d + 11) 1 (L2 / 4294967296 % 256)).writeLE (d + 10) 1 (L2 / 1099511627776 % 256)).writeLE (d + 9) 1 (L2 / 281474976710656 % 256)).writeLE (d + 8) 1 (L2 / 72057594037927936 % 256)).writeLE (d + 7) 1 (L3 % 256)).writeLE (d + 6) 1 (L3 / 256 % 256)).writeLE (d + 5) 1 (L3 / 65536 % 256)).writeLE (d + 4) 1 (L3 / 16777216 % 256)).writeLE (d + 3) 1 (L3 / 4294967296 % 256)).writeLE (d + 2) 1 (L3 / 1099511627776 % 256)).writeLE (d + 1) 1 (L3 / 281474976710656 % 256)).writeLE (d + 0) 1 (L3 / 72057594037927936 % 256)) d 32 q k := by
+  have := chain32_ow2 m M0 d L0 L1 L2 L3 q k h
+  simp only [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Nat.reducePow, Nat.reduceMod,
+    Nat.mod_eq_of_lt h0, Nat.mod_eq_of_lt h1, Nat.mod_eq_of_lt h2, Nat.mod_eq_of_lt h3] at this
+  exact this
+
 end CH32
 
 -- ByteLen amd64 helper

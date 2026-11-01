@@ -45,7 +45,7 @@ def lemma(k):
     if n == 0:
         L.append("  · simp [Spec.fromBE, Nat.mod_one]")
     elif big:
-        L.append("  · exact Util.chain32 _ _ _ _ _ _ l0 l1 l2 l3")
+        L.append("  · exact Util.chain32d _ d.toNat _ _ _ _ l0 l1 l2 l3")
     else:
         L += ["  · refine (Util.fromBE_congr ?_).trans (Util.fromBE_bytes _ _)", "    intro a ha"]
         alts = " ∨ ".join(f"a = {j}" for j in range(n))
@@ -55,7 +55,7 @@ def lemma(k):
                   "      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]",
                   "      omega"]
     if big:
-        L.append("  · refine Util.chain32_ow2 _ _ _ _ _ _ _ _ _ ?_")
+        L.append("  · refine Util.chain32d_ow2 _ _ _ _ _ _ _ _ _ l0 l1 l2 l3 ?_")
         L.append("    simp (disch := omega) only [Util.ow2_wr_iff, Util.ow2_self_iff]")
     else:
         L.append("  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]")
@@ -97,7 +97,7 @@ theorem correctness (z d len cap : BitVec 64) :
         Util.OnlyWrites2 s.mem s'.mem d.toNat (min len.toNat 32) ((s.regs regSP).toNat - 8) 32) := by
   intro ret hret s hs ⟨hst, hz, hl, hd, hzd, hzs, hds⟩
   by_cases h32 : 32 ≤ len.toNat
-  · have := caseBig z d len cap h32 hl ret hret s hs ⟨hst, hz, ⟨by omega, Janus.Arm64.Memory.accessible_mono _ hd.2 (Nat.le_refl _) (by omega)⟩, by omega, by omega, by omega⟩
+  · have := caseBig z d len cap h32 hl ret hret s hs ⟨hst, hz, ⟨by have := hd.1; omega, Janus.Arm64.Memory.accessible_mono _ hd.2 (Nat.le_refl _) (by omega)⟩, by omega, by omega, by omega⟩
     simpa [Nat.min_eq_right h32] using this
   · have e : len = BitVec.ofNat 64 len.toNat := by simp
     rcases (show """ + " ∨ ".join(f"len.toNat = {k}" for k in range(32)) + """ by omega) with """ + " | ".join(f"h{k}" for k in range(32)) + "\n"
