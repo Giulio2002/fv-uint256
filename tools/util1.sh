@@ -2,7 +2,7 @@
 # util1.sh: compile Fv256/Spec.lean and Fv256/Util.lean into build/olean (fast iteration on shared lemmas).
 # env: FV_ROOT (default: parent of this script), FV_CACHE (janus consumer cache dir, default newest ~/.cache/janus/v1/consumer/*)
 FV_ROOT=${FV_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
-C=${FV_CACHE:-$(ls -dt $HOME/.cache/janus/v1/consumer/*/ | head -1)}
+C=${FV_CACHE:-$(ls -dt ${JANUS_CACHE_DIR:-$HOME/.cache/janus}/v1/consumer/*/ | head -1)}
 JL=$(ls -dt $C/*/janus/.lake/build/lib/lean | head -1)
 L=$(command -v lean || echo $HOME/.elan/bin/lean)
 MC=""; command -v memcap >/dev/null && MC=memcap

@@ -7,6 +7,14 @@ mathematical specification says.
 `COVERAGE.md` lists every exported symbol with its status per ISA (`verified`, `todo`, or `blocked` with the exact reason).
 Nothing is claimed for a symbol that is not `verified` there.
 
+## Assumptions about initialized mutable globals
+Two kinds of assumption go beyond the machine code itself, and each is stated in the theorem, not hidden:
+* **Runtime contracts** (`runtime.newobject`, `makeslice`, ...): hypotheses of the pinned Janus allocation contracts.
+* **`Log10` reads two writable Go globals**, `uint256.pows64` and `uint256.pows` (`.noptrdata`). The binary's *initial* contents are the
+  powers of ten, but because the section is writable the extractor does not take it as code-time constant, so the theorem *assumes*
+  (`Tabs64`, `TabsBig` in `lean/Fv256/Arm64/L10Defs.lean`) that, when `Log10` runs, they still hold `10^i` (and are readable and
+  disjoint from the callee's stack window). Nothing in uint256 writes them, but a program that mutates them voids the result.
+
 ## Status
 `COVERAGE.md` is the authoritative table (127 exported functions and methods). Verified so far: simple arithmetic, comparison and bit
 operations, `Mul`, `Lsh`/`Rsh` (arm64), `Byte`, `Cmp` and the `...Uint64` variants, conversions to and from big-endian bytes
