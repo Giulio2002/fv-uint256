@@ -22,7 +22,7 @@ def smodSpec (x y : Nat) : Nat :=
 
 /-- `SDiv`: two's complement operands; truncating signed division (`0` when `y = 0`). -/
 def sdivSpec (x y : Nat) : Nat :=
-  if (2 ^ 255 ≤ x) = (2 ^ 255 ≤ y) then divSpec (Fv256.Spec.abs x) (Fv256.Spec.abs y)
+  if (2 ^ 255 ≤ x ↔ 2 ^ 255 ≤ y) then divSpec (Fv256.Spec.abs x) (Fv256.Spec.abs y)
   else Fv256.Spec.neg (divSpec (Fv256.Spec.abs x) (Fv256.Spec.abs y))
 
 end Fv256.B
