@@ -207,4 +207,42 @@ theorem parseHex_error_lt (b : Nat → Nat) (n e : Nat) (h : parseHex b n = Exce
   · rw [if_neg h5] at h; cases h; decide
 
 
+theorem cmp255 (N : Nat) (hN : N < 256) :
+    (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 N))) - 255#8 = 0#8) ↔ N = 255 := by
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat] at this
+    simp at this
+    omega
+  · intro h; subst h; decide
+
+theorem cmp120 (N : Nat) (hN : N < 256) :
+    (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 N))) - 120#8 = 0#8) ↔ N = 120 := by
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat] at this
+    simp at this
+    omega
+  · intro h; subst h; decide
+
+theorem cmp88 (N : Nat) (hN : N < 256) :
+    (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 N))) - 88#8 = 0#8) ↔ N = 88 := by
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat] at this
+    simp at this
+    omega
+  · intro h; subst h; decide
+
+theorem zero_read16 (m : Memory) (z j : Nat) (hj : j < 4) :
+    (((m.writeLE (z + 16) 16 0).writeLE z 16 0).readLE (z + 8 * j) 8) = 0 := by
+  obtain rfl | rfl | rfl | rfl : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 := by omega
+  · rw [show z + 8 * 0 = z by omega, Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]; simp
+  · rw [Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]; simp
+  · rw [Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]; simp
+  · rw [Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]; simp
+
 end Fv256.C
