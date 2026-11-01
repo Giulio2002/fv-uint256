@@ -51,7 +51,7 @@ theorem mod_summary :
   have hr1 : s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true := Janus.Arm64.Memory.accessible_mono _ hacc (by omega) (by omega)
   janus64_run [hs72, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UdivremL.udivrem_rem]
   all_goals (first | (exfalso; omega) | skip)
-  all_goals (refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
+  all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
   all_goals (first
     | (have e8 : BitVec.toNat (s.regs 4) - 64 = BitVec.toNat (s.regs 4) - 72 + 8 := by omega
