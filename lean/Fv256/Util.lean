@@ -2180,4 +2180,98 @@ theorem mo_flag (a b c d xv yv : Nat) (hx : xv < 2 ^ 256) (hy : yv < 2 ^ 256)
     have : Spec.W ≤ xv * yv := by rw [hW]; omega
     simp [this]
 
+-- WriteToSlice helpers
+section WTS
+open Janus.Arm64
+theorem fromBE_bytes (X n : Nat) :
+    Fv256.Spec.fromBE (fun a => X / 2 ^ (8 * (n - 1 - a)) % 256) n = X % 2 ^ (8 * n) := by
+  induction n with
+  | zero => simp [Fv256.Spec.fromBE, Nat.mod_one]
+  | succ n ih =>
+    simp only [Fv256.Spec.fromBE]
+    have e : (fun i => X / 2 ^ (8 * (n + 1 - 1 - (i + 1))) % 256) = (fun a => X / 2 ^ (8 * (n - 1 - a)) % 256) := by
+      funext i
+      have : n + 1 - 1 - (i + 1) = n - 1 - i := by omega
+      rw [this]
+    rw [e, ih]
+    have h8 : 2 ^ (8 * (n + 1)) = 2 ^ (8 * n) * 256 := by rw [Nat.mul_succ, Nat.pow_add]
+    have h256 : (256 : Nat) ^ n = 2 ^ (8 * n) := by rw [Nat.pow_mul]
+    rw [h8, h256, Nat.mod_mul]
+    simp only [Nat.add_sub_cancel, Nat.sub_zero]
+    rw [Nat.mul_comm]
+    omega
+
+/-- the destination after the first `i` iterations of the `WriteToSlice` loop (`dest[e-j] = byte j of z`) -/
+def wts (M : Memory) (d e : Nat) (zl : Nat → Nat) : Nat → Memory
+  | 0 => M
+  | i + 1 => (wts M d e zl i).writeLE (d + (e - i)) 1 (zl (i / 8) / 2 ^ (8 * (i % 8)) % 256)
+
+theorem wts_succ (M : Memory) (d e : Nat) (zl : Nat → Nat) (i : Nat) :
+    wts M d e zl (i + 1) = (wts M d e zl i).writeLE (d + (e - i)) 1 (zl (i / 8) / 2 ^ (8 * (i % 8)) % 256) := rfl
+
+theorem wts_zero (M : Memory) (d e : Nat) (zl : Nat → Nat) : wts M d e zl 0 = M := rfl
+
+theorem wts_read_out (M : Memory) (d e : Nat) (zl : Nat → Nat) (i a k : Nat) (hi : i ≤ e + 1)
+    (h : a + k ≤ d + (e + 1 - i) ∨ d + e + 1 ≤ a) : (wts M d e zl i).readLE a k = M.readLE a k := by
+  induction i with
+  | zero => rfl
+  | succ i ih =>
+    rw [wts_succ, Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+    exact ih (by omega) (by omega)
+
+theorem wts_byte (M : Memory) (d e : Nat) (zl : Nat → Nat) (i : Nat) (hi : i ≤ e + 1) (a : Nat)
+    (ha1 : e + 1 - i ≤ a) (ha2 : a ≤ e) :
+    (wts M d e zl i).readLE (d + a) 1 = zl ((e - a) / 8) / 2 ^ (8 * ((e - a) % 8)) % 256 := by
+  induction i with
+  | zero => omega
+  | succ i ih =>
+    rw [wts_succ]
+    by_cases h : a = e - i
+    · subst h
+      rw [Memory.readLE_writeLE_self]
+      have e1 : e - (e - i) = i := by omega
+      rw [e1]
+      simp only [Nat.reducePow, Nat.mod_mod]
+    · rw [Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      exact ih (by omega) (by omega)
+
+theorem wts_ow2 (M : Memory) (d e : Nat) (zl : Nat → Nat) (m : Memory) (q k : Nat) (i : Nat) (hi : i ≤ e + 1)
+    (h0 : OnlyWrites2 m M d (e + 1) q k) : OnlyWrites2 m (wts M d e zl i) d (e + 1) q k := by
+  induction i with
+  | zero => exact h0
+  | succ i ih =>
+    rw [wts_succ]
+    exact ow2_wl _ (ih (by omega)) (by omega) (by omega)
+theorem fromBE_congr {f g : Nat → Nat} {n : Nat} (h : ∀ a, a < n → f a = g a) :
+    Fv256.Spec.fromBE f n = Fv256.Spec.fromBE g n := by
+  induction n generalizing f g with
+  | zero => rfl
+  | succ n ih =>
+    simp only [Fv256.Spec.fromBE]
+    rw [h 0 (by omega), ih (fun a ha => h (a + 1) (by omega))]
+
+theorem wts_acc (M : Memory) (d e : Nat) (zl : Nat → Nat) (i a k : Nat) (w : Bool) :
+    (wts M d e zl i).accessible a k w = M.accessible a k w := by
+  induction i with
+  | zero => rfl
+  | succ i ih => rw [wts_succ]; exact ih
+end WTS
+
+theorem sdiv8 (i : BitVec 64) (hi : i.toNat < 4611686018427387904) :
+    (if (i + blS i).getLsbD 63 = true then 18446744073709551615#64 else 0#64).toNat &&& 16140901064495857664 |||
+      ((i + blS i).rotateRight 3).toNat % 2305843009213693952 = i.toNat / 8 := by
+  rw [blS_zero i (by omega)]
+  have hb : i.getLsbD 63 = false := by
+    rw [← BitVec.testBit_toNat]
+    exact Nat.testBit_lt_two_pow (by omega)
+  have : i + 0#64 = i := by simp
+  rw [this]
+  simp only [hb, Bool.false_eq_true, ite_false, BitVec.toNat_rotateRight]
+  simp only [Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Nat.reduceSub]
+  have h4 : i.toNat * 2305843009213693952 % 18446744073709551616 = (i.toNat % 8) * 2305843009213693952 := by omega
+  have hor := or_hi (i.toNat / 8) (i.toNat % 8) 61 (by simp only [Nat.reducePow]; omega)
+  simp only [Nat.reducePow] at hor
+  rw [Nat.zero_and, Nat.zero_or, h4, hor]
+  omega
+
 end Fv256.Util
