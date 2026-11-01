@@ -76,6 +76,15 @@ def Pre (R : RtInv) (b : Nat) (z bp : BitVec 64) (s : State) : Prop :=
           Disjoint (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8) 32 z.toNat 32 ∧
           Disjoint (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8) 32 (s.mem.readLE bp.toNat 8) 32)))
 
+/-- Extra separation facts of `correctness`: the stack-guard slot `g + 16` is apart from the caller's writable blocks. -/
+def PreX (z bp : BitVec 64) (s : State) : Prop :=
+  Apart bp.toNat 8 ((s.regs 28).toNat + 16) 8 ∧
+    (z.toNat ≠ 0 → s.mem.readLE bp.toNat 8 ≠ 0 →
+      s.mem.readLE (s.mem.readLE bp.toNat 8 + 24) 8 < 2 ^ 63 ∧
+      Apart (s.mem.readLE bp.toNat 8) 32 ((s.regs 28).toNat + 16) 8 ∧
+      (4 ≤ s.mem.readLE (s.mem.readLE bp.toNat 8 + 24) 8 →
+        Apart (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8) 32 ((s.regs 28).toNat + 16) 8))
+
 /-- The postcondition of `correctness`. -/
 def Post (R : RtInv) (z bp : BitVec 64) (s s' : State) : Prop :=
   (z.toNat = 0 → s'.mem.readLE bp.toNat 8 = 0) ∧
@@ -200,6 +209,50 @@ theorem frame_wb {m S M0 w2 : Memory} {rt : List (Nat × Nat)} {sl sh bl bh al a
 
 /-- A read equation `m.readLE a n = v` that `simp` does not see (to keep a copy of a fact `simp at *` rewrites). -/
 def ReadEq (m : Memory) (a n v : Nat) : Prop := m.readLE a n = v
+
+/-- Reading back the four words stored at `A`. -/
+theorem words4 (M : Memory) (A v0 v1 v2 v3 : Nat) (h0 : v0 < 2 ^ 64) (h1 : v1 < 2 ^ 64) (h2 : v2 < 2 ^ 64)
+    (h3 : v3 < 2 ^ 64) (i : Nat) (hi : i < 4) :
+    ((((M.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3).readLE (A + 8 * i) 8
+      = (if i = 0 then v0 else if i = 1 then v1 else if i = 2 then v2 else v3) := by
+  have e : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+  obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
+  · simp only [Nat.mul_zero, Nat.add_zero, if_true]
+    rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_self, e, Nat.mod_eq_of_lt h0]
+  · simp only [Nat.mul_one]
+    rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Janus.Arm64.Memory.readLE_writeLE_self, e, Nat.mod_eq_of_lt h1]
+    simp
+  · rw [show A + 8 * 2 = A + 16 by omega, Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Janus.Arm64.Memory.readLE_writeLE_self, e, Nat.mod_eq_of_lt h2]
+    simp
+  · rw [show A + 8 * 3 = A + 24 by omega, Janus.Arm64.Memory.readLE_writeLE_self, e, Nat.mod_eq_of_lt h3]
+    simp
+
+theorem read_words4 (M : Memory) (A v0 v1 v2 v3 x n : Nat) (h : x + n ≤ A ∨ A + 32 ≤ x) :
+    ((((M.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3).readLE x n = M.readLE x n := by
+  rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+    Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+
+theorem frame_add {m S : Memory} {rt : List (Nat × Nat)} {sl sh bl bh al ah : Nat}
+    (h : MemFrame m S (rt ++ [(sl, sh), (bl, bh)])) : MemFrame m S (rt ++ [(sl, sh), (bl, bh), (al, ah)]) :=
+  h.mono fun a n hh => by
+    simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
+    exact ⟨hh.1, hh.2.1, hh.2.2.1⟩
+
+theorem view_words4 (rt L : List (Nat × Nat)) (M : Memory) (A v0 v1 v2 v3 : Nat) (hA : Outside A 32 rt) :
+    view rt L ((((M.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3) = view rt L M := by
+  rw [view_writeLE_out (Outside.of_sub hA (by omega) (by omega)), view_writeLE_out (Outside.of_sub hA (by omega) (by omega)),
+    view_writeLE_out (Outside.of_sub hA (by omega) (by omega)), view_writeLE_out (Outside.of_sub hA (by omega) (by omega))]
+
+theorem frame_words4 {m S : Memory} {rt : List (Nat × Nat)} {sl sh bl bh A : Nat} {v0 v1 v2 v3 : Nat}
+    (h : MemFrame m S (rt ++ [(sl, sh), (bl, bh), (A, A + 32)])) :
+    MemFrame m ((((S.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3)
+      (rt ++ [(sl, sh), (bl, bh), (A, A + 32)]) :=
+  (((h.writeLE_inRanges _ ⟨(A, A + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
+    ⟨(A, A + 32), by simp, by omega, by omega⟩).writeLE_inRanges _ ⟨(A, A + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
+    ⟨(A, A + 32), by simp, by omega, by omega⟩
 
 /-- The pc after `*b` was loaded (or allocated) and stored: `ldr x2, [x1]` (`IntoBig+0x64`). -/
 abbrev pcLoad : Nat := Extracted.entry + 0x64
