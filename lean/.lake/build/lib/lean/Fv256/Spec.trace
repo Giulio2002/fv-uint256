@@ -1,0 +1,31 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["90eba6a1296c1f61.olean"],
+  "m": false,
+  "i": "dd6c29999a56bc82.ilean",
+  "c": "d7c4dfe898854cfa.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/srv/janus-fv-uint256-janus2/.lake/build/lib/lean:/srv/fv-uint256/lean/.lake/build/lib/lean /root/.elan/toolchains/leanprover--lean4---v4.34.1/bin/lean /srv/fv-uint256/lean/Fv256/Spec.lean -o /srv/fv-uint256/lean/.lake/build/lib/lean/Fv256/Spec.olean -i /srv/fv-uint256/lean/.lake/build/lib/lean/Fv256/Spec.ilean -c /srv/fv-uint256/lean/.lake/build/ir/Fv256/Spec.c --setup /srv/fv-uint256/lean/.lake/build/ir/Fv256/Spec.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["deps",
+   [["fv256/Fv256:extraDep", [["@fv256:extraDep", "00000000000006bb"]]],
+    ["imports",
+     [["Janus transitive imports (legacy)", "d206b38fb2da5915"],
+      ["Janus:importAllArts", "07262083b2dbb07c"]]]]],
+  ["libs",
+   [["import dynlibs", "00000000000006bb"],
+    ["package external libraries", "00000000000006bb"],
+    ["module dynlibs", "00000000000006bb"],
+    ["module plugins", "00000000000006bb"]]],
+  ["Lean 4.34.1, commit 5045d0056413266e57c625dcd7c365b10e377c52",
+   "e9f3658beb070375"],
+  ["/srv/fv-uint256/lean/Fv256/Spec.lean", "c17ea5e636080d08"],
+  ["options", "00000000000006bb"],
+  ["isModule: false", "feefd2a0d3a1847e"],
+  ["Module.name: Fv256.Spec", "59674fc1e5192e3a"],
+  ["Package.id?: (some fv256)", "58173c288429f619"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "e8501bc6522ad6cc"}
