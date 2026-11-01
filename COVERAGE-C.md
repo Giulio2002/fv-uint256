@@ -17,11 +17,11 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).CmpBig` | (a) | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).Dec` | (d) | todo | todo | strconv.FormatUint/AppendUint/formatBits + udivrem(Knuth) loops + slicebytetostring (String contract exists); ~15 functions |
 | `(*uint256.Int).PrettyDec` | (d) | todo | todo | as Dec |
-| `(*uint256.Int).Hex` | (b) | todo | todo | makeslice(66) + slicebytetostring (RtLive string contracts) + 64-nibble table lookups |
+| `(*uint256.Int).Hex` | (b) | blocked U16 | todo | arm64: loop lemma (hexstep) and string/postcondition lemmas done (wip/ArmHex.lean.wip), but the base-case theorem fails the kernel check (deep recursion in the symbolic nibble-count/pointer prefix, also on Janus f65043ca); repro /srv/janus-ops/repros/U16-hex-deeprec/. No Live variant of slicebytetostring exists. |
 | `(*uint256.Int).String` | (d) | todo | todo | = Dec |
 | `(*uint256.Int).Format` | (d) | out of scope | out of scope | math/big Format through a dynamic fmt.State (interface calls into fmt/strconv/big): not provable at reasonable cost (upstream analysis DESIGN-U5-U6) |
-| `(*uint256.Int).IntoBig` | (b) | todo | todo | newobject, write barrier, big.Int.Bits/SetBits layout; needs a big.Int memory model |
-| `(*uint256.Int).ToBig` | (b) | todo | todo | IntoBig + newobject |
+| `(*uint256.Int).IntoBig` | (b) | blocked | blocked | newobject, write barrier, big.Int.Bits/SetBits layout; needs a big.Int memory model BLOCKED (U14): newobject then gcWriteBarrier2 on the same path; the second contract call needs readiness at a memory view that does not exist at entry. Provable partial paths (z == nil; *b != nil and cap >= 4) planned last. |
+| `(*uint256.Int).ToBig` | (b) | blocked | blocked | IntoBig + newobject BLOCKED (U14): newobject then gcWriteBarrier2 on the same path; the second contract call needs readiness at a memory view that does not exist at entry. Provable partial paths (z == nil; *b != nil and cap >= 4) planned last. |
 | `(*uint256.Int).Scan` | (b) | todo | todo | type switch on interface{}, mapaccess2_fast32, ifaceeq, Exp, MulOverflow, SetFromDecimal |
 | `(*uint256.Int).SetFromBig` | (a) | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
 | `(*uint256.Int).SetFromDecimal` | (b) | todo | todo | as FromDecimal |

@@ -63,4 +63,14 @@ noncomputable def parseHex (b : Nat → Nat) (n : Nat) : Except Nat Nat :=
   else if 66 < n then .error 4
   else if allHex b 2 n then .ok (hexSum b 2 (n - 2)) else .error 5
 
+/-- the ASCII code of the lower-case hexadecimal digit `d` (`0-9a-f`) -/
+def hexChar (d : Nat) : Nat := if d < 10 then 48 + d else 87 + d
+
+/-- `Hex()`: the bytes of `"0x"` followed by the `n` hexadecimal digits of `v`, most significant first. -/
+def hexStrBytes (v n : Nat) : List Nat :=
+  48 :: 120 :: (List.range n).map (fun k => hexChar (v / 16 ^ (n - 1 - k) % 16))
+
+/-- `n` is the number of hexadecimal digits of `v` (`v = 0` has one): `16^(n-1) <= v < 16^n`, or `n = 1`. -/
+def hexDigits (v n : Nat) : Prop := 1 ≤ n ∧ v < 16 ^ n ∧ (n = 1 ∨ 16 ^ (n - 1) ≤ v)
+
 end Fv256.C
