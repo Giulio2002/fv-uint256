@@ -2610,4 +2610,88 @@ theorem lt_pow_byteLen (v : Nat) : v < 256 ^ Spec.byteLen v := by
 
 theorem rev8_zero : Janus.Arm64.revBytesNat 8 0 = 0 := by decide
 
+theorem pad_big (M0 : Janus.Arm64.Memory) (obj n L0 L1 L2 L3 : Nat) (hn : 32 ≤ n)
+    (hzb : Janus.Contracts.ZeroBytes M0 obj n) (h0 : L0 < 18446744073709551616) (h1 : L1 < 18446744073709551616)
+    (h2 : L2 < 18446744073709551616) (h3 : L3 < 18446744073709551616) :
+    Spec.fromBE (fun i => (((((((((((((((((((((((((((((((((M0).writeLE (obj + (n - 1)) 1 (L0)).writeLE (obj + (n - 2)) 1 (L0 / 256)).writeLE (obj + (n - 3)) 1 (L0 / 65536)).writeLE (obj + (n - 4)) 1 (L0 / 16777216)).writeLE (obj + (n - 5)) 1 (L0 / 4294967296)).writeLE (obj + (n - 6)) 1 (L0 / 1099511627776)).writeLE (obj + (n - 7)) 1 (L0 / 281474976710656)).writeLE (obj + (n - 8)) 1 (L0 / 72057594037927936)).writeLE (obj + (n - 9)) 1 (L1)).writeLE (obj + (n - 10)) 1 (L1 / 256)).writeLE (obj + (n - 11)) 1 (L1 / 65536)).writeLE (obj + (n - 12)) 1 (L1 / 16777216)).writeLE (obj + (n - 13)) 1 (L1 / 4294967296)).writeLE (obj + (n - 14)) 1 (L1 / 1099511627776)).writeLE (obj + (n - 15)) 1 (L1 / 281474976710656)).writeLE (obj + (n - 16)) 1 (L1 / 72057594037927936)).writeLE (obj + (n - 17)) 1 (L2)).writeLE (obj + (n - 18)) 1 (L2 / 256)).writeLE (obj + (n - 19)) 1 (L2 / 65536)).writeLE (obj + (n - 20)) 1 (L2 / 16777216)).writeLE (obj + (n - 21)) 1 (L2 / 4294967296)).writeLE (obj + (n - 22)) 1 (L2 / 1099511627776)).writeLE (obj + (n - 23)) 1 (L2 / 281474976710656)).writeLE (obj + (n - 24)) 1 (L2 / 72057594037927936)).writeLE (obj + (n - 25)) 1 (L3)).writeLE (obj + (n - 26)) 1 (L3 / 256)).writeLE (obj + (n - 27)) 1 (L3 / 65536)).writeLE (obj + (n - 28)) 1 (L3 / 16777216)).writeLE (obj + (n - 29)) 1 (L3 / 4294967296)).writeLE (obj + (n - 30)) 1 (L3 / 1099511627776)).writeLE (obj + (n - 31)) 1 (L3 / 281474976710656)).writeLE (obj + (n - 32)) 1 (L3 / 72057594037927936)).readLE (obj + i) 1) n =
+      (L0 + 18446744073709551616 * L1 + 340282366920938463463374607431768211456 * L2 +
+        6277101735386680763835789423207666416102355444464034512896 * L3) % 2 ^ (8 * n) := by
+  refine (fromBE_congr ?_).trans (fromBE_bytes _ _)
+  intro a ha
+  by_cases hlow : a + 32 < n
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [Janus.Contracts.ZeroBytes.readLE hzb (k := a) (j := 1) (by omega)]
+    have hp : 2 ^ 256 ≤ 2 ^ (8 * (n - 1 - a)) := Nat.pow_le_pow_right (by omega) (by omega)
+    rw [Nat.div_eq_of_lt (by simp only [Nat.reducePow] at hp ⊢; omega)]
+  · obtain ⟨k, hk, hk1, hk32⟩ : ∃ k, a = n - k ∧ 1 ≤ k ∧ k ≤ 32 := ⟨n - a, by omega, by omega, by omega⟩
+    subst hk
+    have hexp : n - 1 - (n - k) = k - 1 := by omega
+    rw [hexp]
+    rcases  (show k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 ∨ k = 6 ∨ k = 7 ∨ k = 8 ∨ k = 9 ∨ k = 10 ∨ k = 11 ∨ k = 12 ∨ k = 13 ∨ k = 14 ∨ k = 15 ∨ k = 16 ∨ k = 17 ∨ k = 18 ∨ k = 19 ∨ k = 20 ∨ k = 21 ∨ k = 22 ∨ k = 23 ∨ k = 24 ∨ k = 25 ∨ k = 26 ∨ k = 27 ∨ k = 28 ∨ k = 29 ∨ k = 30 ∨ k = 31 ∨ k = 32 by omega) with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul]
+      omega
+
+
 end Fv256.Util

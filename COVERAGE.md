@@ -63,7 +63,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Neg` | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
 | `(*uint256.Int).Not` | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
-| `(*uint256.Int).PaddedBytes` | todo | todo | |
+| `(*uint256.Int).PaddedBytes` | verified | todo | arm64: lean/Fv256/Arm64/PaddedBytes.lean (+ PadCases/Case<k>.lean for n = 0..31 and CaseBig for n >= 32); makeslice contract hypothesis (n <= 2^48 precondition: the panic paths are excluded), toy-allocator Witness |
 | `(*uint256.Int).PrettyDec` | todo | todo | |
 | `(*uint256.Int).PutUint256` | verified | verified | lean/Fv256/{Arm64,Amd64}/PutUint256.lean |
 | `(*uint256.Int).Rsh` | verified | verified | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |

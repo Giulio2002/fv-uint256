@@ -3,7 +3,7 @@
 contract_flags() {
   case "$1" in
     Clone|NewInt|FromBig|MustFromBig|Bytes) echo "--contract runtime.newobject";;
-    MarshalSSZ) echo "--contract runtime.makeslice";;
+    MarshalSSZ|PaddedBytes) echo "--contract runtime.makeslice";;
     MarshalSSZAppend) echo "--contract runtime.growslice";;
     MarshalSSZInto|UnmarshalSSZ) echo "--contract runtime.convT64 --contract fmt.errorf --contract runtime.newobject";;
     *) echo "";;
