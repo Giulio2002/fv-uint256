@@ -134,4 +134,40 @@ theorem ulen_lt_nil (s0 : State) (n ulen sf ra rbpv : Nat) (R : Nat → W64) (fl
   · simp [setRegF]; bv_omega
   · simp [setRegF]
 
+set_option maxHeartbeats 8000000 in
+theorem pro1 (s0 : State) (sp0 dp : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M.accessible (sp0 - 0x148) 0x190 true = true)
+    (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true) (hdisj : dp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ dp)
+    (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M.accessible ((R 14).toNat + 16) 8 false = true)
+    (hg3 : M.readLE ((R 14).toNat + 16) 8 < sp0 - 0x70) (hgd : (R 14).toNat + 24 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ (R 14).toNat + 16)
+    (e4 : R 4 = BitVec.ofNat 64 sp0) (e9 : R 9 = BitVec.ofNat 64 dp) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x34))
+      { s0 with regs := R, rip := BitVec.ofNat 64 ku, flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x34), flags := fl', mem := M' } ∧
+        R' 2 = BitVec.ofNat 64 4 - 1 ∧ R' 4 = BitVec.ofNat 64 (sp0 - 0xf0) ∧ R' 5 = BitVec.ofNat 64 (sp0 - 8) ∧
+        (∀ k, k ∉ [2, 4, 5, 12] → R' k = R k) ∧
+        M'.readLE (sp0 - 8) 8 = (R 5).toNat ∧ M'.readLE (sp0 + 8) 8 = (R 0).toNat ∧ M'.readLE (sp0 + 32) 8 = (R 7).toNat ∧
+        MemFrame M M' [(sp0 - 8, sp0), (sp0 + 8, sp0 + 16), (sp0 + 32, sp0 + 40)]) := by
+  have hcode := ku_lt
+  janus64_run [e4, e9] until [ku + 0x34]
+  have t5 := (R 5).isLt
+  have t0 := (R 0).isLt
+  have t7 := (R 7).isLt
+  simp only [Nat.reducePow] at t5 t0 t7
+  refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [setRegF]
+  · simp [setRegF]; bv_omega
+  · simp [setRegF]; bv_omega
+  · intro k hk
+    have : k ≠ 2 ∧ k ≠ 4 ∧ k ≠ 5 ∧ k ≠ 12 := by simp at hk; omega
+    simp [setRegF, this.1, this.2.1, this.2.2.1, this.2.2.2]
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow]; exact Nat.mod_eq_of_lt (by omega)
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow]; exact Nat.mod_eq_of_lt (by omega)
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow]; exact Nat.mod_eq_of_lt (by omega)
+  · janus_frame
+
 end Fv256.Amd64.UdivremG
