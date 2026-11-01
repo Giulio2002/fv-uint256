@@ -189,3 +189,35 @@ theorem rd16_hi (m : Janus.Arm64.Memory) (a : Nat) : m.readLE a 16 / 2 ^ 64 % 2 
   omega
 
 end Fv256.B
+
+namespace Fv256.B
+
+/-- Top words of a word vector: `wv` of the upper `m - k` words is the integer quotient. -/
+theorem wv_top_div (M : Janus.Arm64.Memory) (p m : Nat) :
+    ∀ k, k ≤ m → wv M (p + 8 * k) (m - k) = wv M p m / 2 ^ (64 * k) := by
+  intro k
+  induction k with
+  | zero => intro _; simp
+  | succ k ih =>
+    intro hk
+    have h1 := ih (by omega)
+    obtain ⟨m', rfl⟩ : ∃ m', m = m' + (k + 1) := ⟨m - (k + 1), by omega⟩
+    have e1 : m' + (k + 1) - k = (m' + 1) := by omega
+    have e2 : m' + (k + 1) - (k + 1) = m' := by omega
+    rw [e1] at h1
+    rw [e2, show p + 8 * (k + 1) = p + 8 * k + 8 by omega]
+    have h2 : wv M (p + 8 * k) (m' + 1) = M.readLE (p + 8 * k) 8 + 2 ^ 64 * wv M (p + 8 * k + 8) m' := wv_succ _ _ _
+    have h3 := Janus.Arm64.Memory.readLE_lt M (p + 8 * k) 8
+    simp only [Nat.reducePow] at h3
+    have e3 : 2 ^ (64 * (k + 1)) = 2 ^ (64 * k) * 2 ^ 64 := by rw [Nat.mul_succ, Nat.pow_add]
+    rw [h1] at h2
+    rw [e3]
+    have hP : 0 < 2 ^ (64 * k) := Nat.two_pow_pos _
+    -- X / 2^(64k) = a + 2^64 * y with a < 2^64  gives  X / (2^(64k) * 2^64) = y
+    obtain ⟨X, hX⟩ : ∃ X, X = wv M p (m' + (k + 1)) := ⟨_, rfl⟩
+    rw [← hX] at h2 ⊢
+    rw [← Nat.div_div_eq_div_mul, h2]
+    simp only [Nat.reducePow]
+    omega
+
+end Fv256.B
