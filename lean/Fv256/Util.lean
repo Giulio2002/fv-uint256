@@ -2274,4 +2274,180 @@ theorem sdiv8 (i : BitVec 64) (hi : i.toNat < 4611686018427387904) :
   rw [Nat.zero_and, Nat.zero_or, h4, hor]
   omega
 
+-- WriteToSlice (amd64, len >= 32): the 32 byte stores
+section CH32
+open Janus.Arm64
+theorem chain32 (M0 : Memory) (d L0 L1 L2 L3 : Nat) (h0 : L0 < 18446744073709551616) (h1 : L1 < 18446744073709551616)
+    (h2 : L2 < 18446744073709551616) (h3 : L3 < 18446744073709551616) :
+    Fv256.Spec.fromBE (fun i => (((((((((((((((((((((((((((((((((M0).writeLE (d + 31) 1 (L0 % 256)).writeLE (d + 30) 1 ((BitVec.ofNat 64 L0 >>> 8).toNat % 256)).writeLE (d + 29) 1 ((BitVec.ofNat 64 L0 >>> 16).toNat % 256)).writeLE (d + 28) 1 ((BitVec.ofNat 64 L0 >>> 24).toNat % 256)).writeLE (d + 27) 1 ((BitVec.ofNat 64 L0 >>> 32).toNat % 256)).writeLE (d + 26) 1 ((BitVec.ofNat 64 L0 >>> 40).toNat % 256)).writeLE (d + 25) 1 ((BitVec.ofNat 64 L0 >>> 48).toNat % 256)).writeLE (d + 24) 1 ((BitVec.ofNat 64 L0 >>> 56).toNat % 256)).writeLE (d + 23) 1 (L1 % 256)).writeLE (d + 22) 1 ((BitVec.ofNat 64 L1 >>> 8).toNat % 256)).writeLE (d + 21) 1 ((BitVec.ofNat 64 L1 >>> 16).toNat % 256)).writeLE (d + 20) 1 ((BitVec.ofNat 64 L1 >>> 24).toNat % 256)).writeLE (d + 19) 1 ((BitVec.ofNat 64 L1 >>> 32).toNat % 256)).writeLE (d + 18) 1 ((BitVec.ofNat 64 L1 >>> 40).toNat % 256)).writeLE (d + 17) 1 ((BitVec.ofNat 64 L1 >>> 48).toNat % 256)).writeLE (d + 16) 1 ((BitVec.ofNat 64 L1 >>> 56).toNat % 256)).writeLE (d + 15) 1 (L2 % 256)).writeLE (d + 14) 1 ((BitVec.ofNat 64 L2 >>> 8).toNat % 256)).writeLE (d + 13) 1 ((BitVec.ofNat 64 L2 >>> 16).toNat % 256)).writeLE (d + 12) 1 ((BitVec.ofNat 64 L2 >>> 24).toNat % 256)).writeLE (d + 11) 1 ((BitVec.ofNat 64 L2 >>> 32).toNat % 256)).writeLE (d + 10) 1 ((BitVec.ofNat 64 L2 >>> 40).toNat % 256)).writeLE (d + 9) 1 ((BitVec.ofNat 64 L2 >>> 48).toNat % 256)).writeLE (d + 8) 1 ((BitVec.ofNat 64 L2 >>> 56).toNat % 256)).writeLE (d + 7) 1 (L3 % 256)).writeLE (d + 6) 1 ((BitVec.ofNat 64 L3 >>> 8).toNat % 256)).writeLE (d + 5) 1 ((BitVec.ofNat 64 L3 >>> 16).toNat % 256)).writeLE (d + 4) 1 ((BitVec.ofNat 64 L3 >>> 24).toNat % 256)).writeLE (d + 3) 1 ((BitVec.ofNat 64 L3 >>> 32).toNat % 256)).writeLE (d + 2) 1 ((BitVec.ofNat 64 L3 >>> 40).toNat % 256)).writeLE (d + 1) 1 ((BitVec.ofNat 64 L3 >>> 48).toNat % 256)).writeLE (d + 0) 1 ((BitVec.ofNat 64 L3 >>> 56).toNat % 256)).readLE (d + i) 1) 32 =
+      (L0 + 18446744073709551616 * L1 + 340282366920938463463374607431768211456 * L2 +
+        6277101735386680763835789423207666416102355444464034512896 * L3) % 2 ^ (8 * 32) := by
+  refine (fromBE_congr ?_).trans (fromBE_bytes _ _)
+  intro a ha
+  rcases (show a = 0 ∨ a = 1 ∨ a = 2 ∨ a = 3 ∨ a = 4 ∨ a = 5 ∨ a = 6 ∨ a = 7 ∨ a = 8 ∨ a = 9 ∨ a = 10 ∨ a = 11 ∨ a = 12 ∨ a = 13 ∨ a = 14 ∨ a = 15 ∨ a = 16 ∨ a = 17 ∨ a = 18 ∨ a = 19 ∨ a = 20 ∨ a = 21 ∨ a = 22 ∨ a = 23 ∨ a = 24 ∨ a = 25 ∨ a = 26 ∨ a = 27 ∨ a = 28 ∨ a = 29 ∨ a = 30 ∨ a = 31 by omega) with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+  · (try simp only [Nat.add_zero])
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul, Nat.reduceMod, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.toNat_ushiftRight]
+    omega
+theorem chain32_ow2 (m M0 : Memory) (d L0 L1 L2 L3 q k : Nat) (h : OnlyWrites2 m M0 d 32 q k) :
+    OnlyWrites2 m (((((((((((((((((((((((((((((((((M0).writeLE (d + 31) 1 (L0 % 256)).writeLE (d + 30) 1 ((BitVec.ofNat 64 L0 >>> 8).toNat % 256)).writeLE (d + 29) 1 ((BitVec.ofNat 64 L0 >>> 16).toNat % 256)).writeLE (d + 28) 1 ((BitVec.ofNat 64 L0 >>> 24).toNat % 256)).writeLE (d + 27) 1 ((BitVec.ofNat 64 L0 >>> 32).toNat % 256)).writeLE (d + 26) 1 ((BitVec.ofNat 64 L0 >>> 40).toNat % 256)).writeLE (d + 25) 1 ((BitVec.ofNat 64 L0 >>> 48).toNat % 256)).writeLE (d + 24) 1 ((BitVec.ofNat 64 L0 >>> 56).toNat % 256)).writeLE (d + 23) 1 (L1 % 256)).writeLE (d + 22) 1 ((BitVec.ofNat 64 L1 >>> 8).toNat % 256)).writeLE (d + 21) 1 ((BitVec.ofNat 64 L1 >>> 16).toNat % 256)).writeLE (d + 20) 1 ((BitVec.ofNat 64 L1 >>> 24).toNat % 256)).writeLE (d + 19) 1 ((BitVec.ofNat 64 L1 >>> 32).toNat % 256)).writeLE (d + 18) 1 ((BitVec.ofNat 64 L1 >>> 40).toNat % 256)).writeLE (d + 17) 1 ((BitVec.ofNat 64 L1 >>> 48).toNat % 256)).writeLE (d + 16) 1 ((BitVec.ofNat 64 L1 >>> 56).toNat % 256)).writeLE (d + 15) 1 (L2 % 256)).writeLE (d + 14) 1 ((BitVec.ofNat 64 L2 >>> 8).toNat % 256)).writeLE (d + 13) 1 ((BitVec.ofNat 64 L2 >>> 16).toNat % 256)).writeLE (d + 12) 1 ((BitVec.ofNat 64 L2 >>> 24).toNat % 256)).writeLE (d + 11) 1 ((BitVec.ofNat 64 L2 >>> 32).toNat % 256)).writeLE (d + 10) 1 ((BitVec.ofNat 64 L2 >>> 40).toNat % 256)).writeLE (d + 9) 1 ((BitVec.ofNat 64 L2 >>> 48).toNat % 256)).writeLE (d + 8) 1 ((BitVec.ofNat 64 L2 >>> 56).toNat % 256)).writeLE (d + 7) 1 (L3 % 256)).writeLE (d + 6) 1 ((BitVec.ofNat 64 L3 >>> 8).toNat % 256)).writeLE (d + 5) 1 ((BitVec.ofNat 64 L3 >>> 16).toNat % 256)).writeLE (d + 4) 1 ((BitVec.ofNat 64 L3 >>> 24).toNat % 256)).writeLE (d + 3) 1 ((BitVec.ofNat 64 L3 >>> 32).toNat % 256)).writeLE (d + 2) 1 ((BitVec.ofNat 64 L3 >>> 40).toNat % 256)).writeLE (d + 1) 1 ((BitVec.ofNat 64 L3 >>> 48).toNat % 256)).writeLE (d + 0) 1 ((BitVec.ofNat 64 L3 >>> 56).toNat % 256)) d 32 q k := by
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  refine ow2_wl _ ?_ (by omega) (by omega)
+  exact h
+end CH32
+
 end Fv256.Util
