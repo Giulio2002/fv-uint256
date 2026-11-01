@@ -7,6 +7,7 @@ import Fv256.KnuthMathB
 import Fv256.UdivMathB
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.KnuthSummary
+import Fv256.Amd64.DivWork
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 open Fv256.Amd64.UdivremA
@@ -58,5 +59,35 @@ theorem midB (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl :
        · janus_frame
        · intro a n' h; simp [Outside] at h ⊢; omega)
   all_goals trace_state
+
+set_option maxHeartbeats 16000000 in
+theorem midB1 (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hulen : ulen ≤ 4) (hulen1 : 1 ≤ ulen) (hql : ql = 4)
+    (hsf : sf + 0x148 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x1a0 true = true)
+    (hqb : qp + 32 ≤ 2 ^ 48) (hqa : M.accessible qp 32 true = true)
+    (hqs : qp + 32 ≤ sf - 0x58 ∨ sf + 0x148 ≤ qp)
+    (hx15 : s0.xmm 15 = 0) (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M.accessible ((R 14).toNat + 16) 8 false = true)
+    (hg3 : M.readLE ((R 14).toNat + 16) 8 < sf - 8) (hgd : (R 14).toNat + 24 ≤ sf - 0x58 ∨ sf + 0x148 ≤ (R 14).toNat + 16)
+    (e2 : R 2 = BitVec.ofNat 64 (sf + 72)) (e3 : R 3 = BitVec.ofNat 64 ql) (e10 : R 10 = BitVec.ofNat 64 (ulen + 1))
+    (e9 : R 9 = BitVec.ofNat 64 qcap) (e4 : R 4 = BitVec.ofNat 64 sf)
+    (m_f8 : M.readLE (sf + 0xf8) 8 = qp) (m_98 : M.readLE (sf + 0x98) 8 = d0)
+    (hd0 : d0 < 2 ^ 64) (hdtop : 2 ^ 63 ≤ d0)
+    (hD : M.readLE (sf + 72 + 8 * ulen) 8 < d0) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x355))
+      { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x32e), flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (rr : Nat),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x355), flags := fl', mem := M' } ∧
+        R' 0 = BitVec.ofNat 64 rr ∧ R' 4 = BitVec.ofNat 64 sf ∧ R' 14 = R 14 ∧ rr < d0 ∧
+        Fv256.B.wv M (sf + 72) (ulen + 1) = d0 * Fv256.B.wv M' qp ulen + rr ∧
+        MemFrame M M' [(qp, qp + 8 * ulen), (sf - 16, sf + 8), (sf + 24, sf + 32)]) := by
+  have hcode := ku_lt
+  janus64_run [Fv256.B.wv_writeLE_outside, e2, e3, e10, e9, e4, m_f8, m_98] until [ku + 0x355] calls [Fv256.Amd64.DivWork2.by1_summary]
+  rename_i rr R2 fl2 M2 h0 hk h4 h8 hlt hwv hfr
+  refine ⟨R2, fl2, M2, rr, rfl, h0, h4, ?_, hlt, hwv, ?_⟩
+  · have := hk 14 (by simp)
+    simpa using this
+  · refine Janus.MemFrame.trans (rs := [(sf - 8, sf)]) ?_ hfr ?_
+    · janus_frame
+    · intro a n' h; simp [Outside] at h ⊢; omega
 
 end Fv256.Amd64.UdivremE

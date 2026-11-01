@@ -394,4 +394,101 @@ theorem midA (s0 : State) (up n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) 
     exact midA_zero s0 up n ulen sf R fl M hulen hn2 hn hup hua hsf hMs hsf0 hdisj hx15 e7 e11 e15 e4 m_b8
   · exact midA_pos s0 up n ulen s sf R fl M hs h hulen hn2 hn hup hua hsf hMs hsf0 hdisj hx15 e7 e11 e15 e4 m_b8 (by omega)
 
+set_option maxHeartbeats 8000000 in
+theorem midA1_pos (s0 : State) (up n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hs1 : 1 ≤ s) (hulen : ulen ≤ 4) (hn1 : n = 1)
+    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true)
+    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : up + 32 ≤ sf ∨ sf + 0x140 ≤ up) (hx15 : s0.xmm 15 = 0)
+    (e7 : R 7 = BitVec.ofNat 64 up) (e11 : R 11 = 0 - BitVec.ofNat 64 (64 - s))
+    (e15 : R 15 = 18446744073709551615#64) (e4 : R 4 = BitVec.ofNat 64 sf)
+    (m_b8 : M.readLE (sf + 0xb8) 8 = n)
+    (hsn : ¬ (18446744073709551616 - (64 - s)) % 64 = 0) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x32e))
+      { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x26c), flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x32e), flags := fl', mem := M' } ∧
+        R' 12 = BitVec.ofNat 64 n ∧ (∀ k, k ∉ [1, 12] → R' k = R k) ∧
+        M'.readLE (sf + 0xd8) 8 = 18446744073709551616 - (64 - s) ∧ M'.readLE (sf + 0xd0) 8 = 18446744073709551615 ∧
+        M'.readLE (sf + 0x48) 8 = (M.readLE up 8 * 2 ^ s) % 2 ^ 64 ∧
+        MemFrame M M' [(sf + 0xd0, sf + 0xe0), (sf + 0x48, sf + 0x50)]) := by
+  have hcode := ku_lt
+  have hd0 : M.readLE up 8 < 2 ^ 64 := by
+    have := Janus.Arm64.Memory.readLE_lt M up 8; simpa using this
+  have hn1b : (BitVec.ofNat 64 n = 1#64) := by subst hn1; rfl
+  janus64_run [hsn, hn1b, e7, e11, e15, e4, m_b8]
+  all_goals refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals first
+    | (simp [setRegF]; done)
+    | (intro k hk
+       have hk' : k ≠ 1 ∧ k ≠ 12 := by simpa using hk
+       simp [setRegF, hk'.1, hk'.2])
+    | janus_frame
+    | (simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self] <;>
+       first
+       | (simp only [Nat.reducePow]; done)
+       | (simp only [Nat.reducePow]; exact Nat.mod_eq_of_lt (by omega))
+       | (rw [show (18446744073709551616 - (64 - s)) % 64 = s by omega]; try simp only [Nat.reducePow]))
+  all_goals trace_state
+
+set_option maxHeartbeats 8000000 in
+theorem midA1_zero (s0 : State) (up n ulen sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hulen : ulen ≤ 4) (hn1 : n = 1)
+    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true)
+    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : up + 32 ≤ sf ∨ sf + 0x140 ≤ up) (hx15 : s0.xmm 15 = 0)
+    (e7 : R 7 = BitVec.ofNat 64 up) (e11 : R 11 = 0 - BitVec.ofNat 64 (64 - 0))
+    (e15 : R 15 = 18446744073709551615#64) (e4 : R 4 = BitVec.ofNat 64 sf)
+    (m_b8 : M.readLE (sf + 0xb8) 8 = n) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x32e))
+      { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x26c), flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x32e), flags := fl', mem := M' } ∧
+        R' 12 = BitVec.ofNat 64 n ∧ (∀ k, k ∉ [1, 12] → R' k = R k) ∧
+        M'.readLE (sf + 0xd8) 8 = 18446744073709551616 - (64 - 0) ∧ M'.readLE (sf + 0xd0) 8 = 18446744073709551615 ∧
+        M'.readLE (sf + 0x48) 8 = (M.readLE up 8 * 2 ^ 0) % 2 ^ 64 ∧
+        MemFrame M M' [(sf + 0xd0, sf + 0xe0), (sf + 0x48, sf + 0x50)]) := by
+  have hcode := ku_lt
+  have hd0 : M.readLE up 8 < 2 ^ 64 := by
+    have := Janus.Arm64.Memory.readLE_lt M up 8; simpa using this
+  have hn1b : (BitVec.ofNat 64 n = 1#64) := by subst hn1; rfl
+  janus64_run [hn1b, e7, e11, e15, e4, m_b8]
+  all_goals refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals first
+    | (simp [setRegF]; done)
+    | (intro k hk
+       have hk' : k ≠ 1 ∧ k ≠ 12 := by simpa using hk
+       simp [setRegF, hk'.1, hk'.2])
+    | janus_frame
+    | (simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self] <;>
+       first
+       | (simp only [Nat.reducePow]; done)
+       | (simp only [Nat.reducePow]; exact Nat.mod_eq_of_lt (by omega))
+       | (simp [Nat.mod_eq_of_lt hd0]))
+  all_goals trace_state
+
+
+set_option maxHeartbeats 8000000 in
+theorem midA1 (s0 : State) (up n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hulen : ulen ≤ 4) (hn1 : n = 1)
+    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true)
+    (hsf : sf + 0x140 ≤ 2 ^ 48) (hMs : M.accessible sf 0x140 true = true) (hsf0 : 0x20 ≤ sf)
+    (hdisj : up + 32 ≤ sf ∨ sf + 0x140 ≤ up) (hx15 : s0.xmm 15 = 0)
+    (e7 : R 7 = BitVec.ofNat 64 up) (e11 : R 11 = 0 - BitVec.ofNat 64 (64 - s))
+    (e15 : R 15 = 18446744073709551615#64) (e4 : R 4 = BitVec.ofNat 64 sf)
+    (m_b8 : M.readLE (sf + 0xb8) 8 = n) :
+    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x32e))
+      { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x26c), flags := fl, mem := M }
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x32e), flags := fl', mem := M' } ∧
+        R' 12 = BitVec.ofNat 64 n ∧ (∀ k, k ∉ [1, 12] → R' k = R k) ∧
+        M'.readLE (sf + 0xd8) 8 = 18446744073709551616 - (64 - s) ∧ M'.readLE (sf + 0xd0) 8 = 18446744073709551615 ∧
+        M'.readLE (sf + 0x48) 8 = (M.readLE up 8 * 2 ^ s) % 2 ^ 64 ∧
+        MemFrame M M' [(sf + 0xd0, sf + 0xe0), (sf + 0x48, sf + 0x50)]) := by
+  rcases Nat.eq_zero_or_pos s with h | h
+  · subst h
+    exact midA1_zero s0 up n ulen sf R fl M hulen hn1 hup hua hsf hMs hsf0 hdisj hx15 e7 e11 e15 e4 m_b8
+  · exact midA1_pos s0 up n ulen s sf R fl M hs h hulen hn1 hup hua hsf hMs hsf0 hdisj hx15 e7 e11 e15 e4 m_b8 (by omega)
+
+
 end Fv256.Amd64.UdivremD
