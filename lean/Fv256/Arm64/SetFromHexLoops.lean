@@ -121,7 +121,7 @@ def LoopQ (s : State) (z hp len : BitVec 64) (s' : State) : Prop :=
 
 /- the loop invariant at the inner-loop head (`CMP end, ri`): limb `i` is being accumulated, `ri` digits (from `e (i+1)`) done -/
 set_option maxHeartbeats 16000000 in
-theorem loop (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : len.toNat ≤ 66)
+theorem loop (impl : List Segment) (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : len.toNat ≤ 66)
     (h30a : (s.regs 30).toNat % 4 = 0) (h30b : (s.regs 30).toNat < 2 ^ 56)
     (hz' : z.toNat + 32 ≤ 2 ^ 48) (hs' : hp.toNat + len.toNat ≤ 2 ^ 48)
     (hsa : s.mem.accessible hp.toNat len.toNat false = true)
@@ -152,7 +152,7 @@ theorem loop (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : le
       s.mem.accessible (s.sp.toNat - 24) 48 true = true → s.mem.accessible z.toNat 32 true = true →
       s.mem.accessible hp.toNat len.toNat false = true → s.mem.accessible 1001813 256 false = true →
       s.mem.accessible 1792752 96 false = true →
-      ReachesRet Extracted.program (s.regs regLR) S (LoopQ s z hp len) := by
+      ReachesRet (Extracted.program.link impl) (s.regs regLR) S (LoopQ s z hp len) := by
   intro n
   induction n using Nat.strongRecOn with
   | _ n ih =>
@@ -441,7 +441,7 @@ def errAddrOf (e : Nat) : Nat :=
   if e = 0 then 1792752 else if e = 1 then 1792784 else if e = 2 then 1792800
   else if e = 3 then 1792816 else if e = 4 then 1792832 else 1792768
 
-theorem errAddrOf_bounds (e : Nat) : 1792752 ≤ errAddrOf e ∧ errAddrOf e + 8 ≤ 1792848 := by
+theorem errAddrOf_bounds (e : Nat) : 1792752 ≤ errAddrOf e ∧ errAddrOf e + 16 ≤ 1792848 := by
   unfold errAddrOf
   by_cases h0 : e = 0
   · simp [h0]
@@ -457,7 +457,10 @@ theorem errAddrOf_bounds (e : Nat) : 1792752 ≤ errAddrOf e ∧ errAddrOf e + 8
 
 def FromHexPre (z hp len : BitVec 64) (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ s.regs 0 = z ∧ s.regs 1 = hp ∧ s.regs 2 = len ∧
-  Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧ Extracted.program.DataLoaded s.mem ∧
+  Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧
+  (∀ c, c < 256 → s.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255) ∧ s.mem.accessible 1001813 256 false = true ∧
+  (z.toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ z.toNat) ∧
+  (s.sp.toNat - 24 + 48 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 24) ∧
   s.mem.accessible 1792752 96 false = true ∧ GuardOK s 0 ∧ StackOK s 24 24 ∧
   Disjoint z.toNat 32 hp.toNat len.toNat ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
   Disjoint hp.toNat len.toNat (s.sp.toNat - 24) 48 ∧ Disjoint z.toNat 32 1792752 96 ∧
@@ -472,6 +475,61 @@ def FromHexPost (z hp len : BitVec 64) (s s' : State) : Prop :=
   (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
       s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
       s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))
+
+theorem hexSum_congr (b b' : Nat → Nat) (a : Nat) :
+    ∀ n, (∀ k, a ≤ k → k < a + n → b k = b' k) → hexSum b a n = hexSum b' a n := by
+  intro n
+  induction n with
+  | zero => intro _; rfl
+  | succ n ih =>
+    intro h
+    simp only [hexSum, hexDigit]
+    rw [ih (fun k h1 h2 => h k h1 (by omega)), h (a + n) (by omega) (by omega)]
+
+open Classical in
+theorem parseHex_congr (b b' : Nat → Nat) (n : Nat) (h : ∀ k, k < n → b k = b' k) :
+    parseHex b n = parseHex b' n := by
+  have hall : allHex b 2 n ↔ allHex b' 2 n := by
+    constructor
+    · intro H k h1 h2; rw [← h k h2]; exact H k h1 h2
+    · intro H k h1 h2; rw [h k h2]; exact H k h1 h2
+  unfold parseHex
+  by_cases h0 : n = 0
+  · simp [h0]
+  by_cases h1 : n = 1
+  · subst h1; simp
+  have e0 : b 0 = b' 0 := h 0 (by omega)
+  have e1 : b 1 = b' 1 := h 1 (by omega)
+  by_cases h2 : n = 2
+  · subst h2; simp [e0, e1]
+  have e2 : b 2 = b' 2 := h 2 (by omega)
+  simp only [e0, e1, e2, hall]
+  rw [hexSum_congr b b' 2 (n - 2) (fun k h1 h2 => h k (by omega))]
+
+open Classical in
+theorem parseHex_error_lt (b : Nat → Nat) (n e : Nat) (h : parseHex b n = Except.error e) : e < 6 := by
+  unfold parseHex at h
+  by_cases h0 : n = 0
+  · rw [if_pos h0] at h; cases h; decide
+  rw [if_neg h0] at h
+  by_cases h1 : n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88)
+  · rw [if_pos h1] at h; cases h; decide
+  rw [if_neg h1] at h
+  by_cases h2 : n = 2
+  · rw [if_pos h2] at h; cases h; decide
+  rw [if_neg h2] at h
+  by_cases h3 : 3 < n ∧ b 2 = 48
+  · rw [if_pos h3] at h; cases h; decide
+  rw [if_neg h3] at h
+  by_cases h4 : 66 < n
+  · rw [if_pos h4] at h; cases h; decide
+  rw [if_neg h4] at h
+  by_cases h5 : allHex b 2 n
+  · rw [if_pos h5] at h; cases h
+  · rw [if_neg h5] at h; cases h; decide
+
+theorem link_nil (p : Program) : p.link [] = p := by
+  cases p; simp [Program.link]
 
 theorem rr_mono {p : Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
     (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
@@ -523,9 +581,9 @@ theorem post_of_loopQ (s s' : State) (z hp len : BitVec 64) (hn3 : 3 ≤ len.toN
     · rw [if_neg hnall] at he; cases he; exact ⟨r0, r1⟩
 
 set_option maxHeartbeats 16000000 in
-theorem fromHex_sum (z hp len : BitVec 64) :
-    Summary Extracted.program fh (FromHexPre z hp len) (FromHexPost z hp len) := by
-  intro s hpc ⟨h30a, h30b, hz0, hp0, hl0, ⟨hz, hz'⟩, ⟨hs, hs'⟩, hd, herr, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩,
+theorem fromHex_sum (impl : List Segment) (z hp len : BitVec 64) :
+    Summary (Extracted.program.link impl) fh (FromHexPre z hp len) (FromHexPost z hp len) := by
+  intro s hpc ⟨h30a, h30b, hz0, hp0, hl0, ⟨hz, hz'⟩, ⟨hs, hs'⟩, htab0, hSt0, hzt, hst, herr, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩,
     hdzh, hdzs, hdhs, hdzg, hdgs, hnn⟩
   subst hz0 hp0 hl0
   simp only [Disjoint] at hdzh hdzs hdhs hdzg hdgs
@@ -541,10 +599,6 @@ theorem fromHex_sum (z hp len : BitVec 64) :
   have e0 : bytesAt s.mem (s.regs 1).toNat 0 = s.mem.readLE (s.regs 1).toNat 1 := rfl
   have e1 : bytesAt s.mem (s.regs 1).toNat 1 = s.mem.readLE ((s.regs 1).toNat + 1) 1 := rfl
   have e2 : bytesAt s.mem (s.regs 1).toNat 2 = s.mem.readLE ((s.regs 1).toNat + 2) 1 := rfl
-  have htab0 := tab_vals hd
-  have hSt0 : s.mem.accessible 1001813 256 false = true := accessible_of_dataRead hd tab_isSome
-  have hzt : (s.regs 0).toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ (s.regs 0).toNat := disj_data hd (t := 1001813) (k := 256) tab_isSome hz
-  have hst : s.sp.toNat - 24 + 48 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 24 := disj_data hd (t := 1001813) (k := 256) tab_isSome hw
   janus_run until [innerHead]
   all_goals (try simp only [sw32 _ hb0, sw32 _ hb1, sw32 _ hb2] at *)
   all_goals first
@@ -567,7 +621,7 @@ theorem fromHex_sum (z hp len : BitVec 64) :
          (by simp [setReg_apply]) (by janus_frame) (by simp [errAddrOf, setReg_apply]) (by simp [errAddrOf, setReg_apply]))
     | skip
   all_goals
-    refine rr_mono (loop s (s.regs 0) (s.regs 1) (s.regs 2) (by omega) (by omega) h30a h30b hz' hs' hs hdzh (by omega)
+    refine rr_mono (loop impl s (s.regs 0) (s.regs 1) (s.regs 2) (by omega) (by omega) h30a h30b hz' hs' hs hdzh (by omega)
            (by omega) hzt hdzg (by omega) (by omega) (by omega) hal
            (17 * (3 - 0) + ((s.regs 2).toNat - hexEnd (s.regs 2).toNat 1)) _ 0 (s.regs 2).toNat
            (hexEnd (s.regs 2).toNat 1) (hexEnd (s.regs 2).toNat 1) rfl (by omega) (by unfold hexEnd; omega) rfl

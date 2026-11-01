@@ -16,36 +16,6 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Fv256.C Fv256.Arm64.S
 
 namespace Fv256.Arm64.SetFromHex
 
-theorem hexSum_congr (b b' : Nat → Nat) (a : Nat) :
-    ∀ n, (∀ k, a ≤ k → k < a + n → b k = b' k) → hexSum b a n = hexSum b' a n := by
-  intro n
-  induction n with
-  | zero => intro _; rfl
-  | succ n ih =>
-    intro h
-    simp only [hexSum, hexDigit]
-    rw [ih (fun k h1 h2 => h k h1 (by omega)), h (a + n) (by omega) (by omega)]
-
-open Classical in
-theorem parseHex_congr (b b' : Nat → Nat) (n : Nat) (h : ∀ k, k < n → b k = b' k) :
-    parseHex b n = parseHex b' n := by
-  have hall : allHex b 2 n ↔ allHex b' 2 n := by
-    constructor
-    · intro H k h1 h2; rw [← h k h2]; exact H k h1 h2
-    · intro H k h1 h2; rw [h k h2]; exact H k h1 h2
-  unfold parseHex
-  by_cases h0 : n = 0
-  · simp [h0]
-  by_cases h1 : n = 1
-  · subst h1; simp
-  have e0 : b 0 = b' 0 := h 0 (by omega)
-  have e1 : b 1 = b' 1 := h 1 (by omega)
-  by_cases h2 : n = 2
-  · subst h2; simp [e0, e1]
-  have e2 : b 2 = b' 2 := h 2 (by omega)
-  simp only [e0, e1, e2, hall]
-  rw [hexSum_congr b b' 2 (n - 2) (fun k h1 h2 => h k (by omega))]
-
 theorem dataLoaded_write {p : Program} {m : Memory} (h : p.DataLoaded m) {a n : Nat} (v : Nat)
     (hw : m.accessible a n true = true) : p.DataLoaded (m.writeLE a n v) := by
   intro d hd
@@ -77,7 +47,10 @@ theorem fromHex_summary (z hp len : BitVec 64) :
         (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
           s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
           s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))) :=
-  fun s hpc hpre => fromHex_sum z hp len s hpc hpre
+  by
+    have h := fromHex_sum [] z hp len
+    rw [link_nil] at h
+    exact h
 
 set_option maxHeartbeats 16000000 in
 theorem correctness (z hp len : BitVec 64) :
@@ -99,12 +72,6 @@ theorem correctness (z hp len : BitVec 64) :
   intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, ⟨hz, hz'⟩, ⟨hps, hps'⟩, hd, herr, hnn, hd1, hd2, hd3, hd4, hd5, hd6⟩
   janus_intro hs
   simp only [Disjoint] at hd1 hd2 hd3 hd4 hd5 hd6
-  have hdl : Extracted.program.DataLoaded
-      (((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 ret).writeLE (BitVec.toNat s.sp - 56) 8
-        (BitVec.toNat (s.regs 29))).writeLE (BitVec.toNat s.sp + 16) 8 hp.toNat) :=
-    dataLoaded_write (dataLoaded_write (dataLoaded_write hd _ (Memory.accessible_sub s.mem hw (Or.inr rfl) (by omega) (by omega))) _
-      (Memory.accessible_sub s.mem hw (Or.inr rfl) (by omega) (by omega))) _
-      (Memory.accessible_sub s.mem hw (Or.inr rfl) (by omega) (by omega))
   have hnn' : ∀ e, e < 6 → ¬ (((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 ret).writeLE (BitVec.toNat s.sp - 56) 8
         (BitVec.toNat (s.regs 29))).writeLE (BitVec.toNat s.sp + 16) 8 hp.toNat).readLE (errAddrOf e) 8 = 0 := by
     intro e he
@@ -113,6 +80,18 @@ theorem correctness (z hp len : BitVec 64) :
       Memory.readLE_writeLE_of_disjoint _ _ (by omega),
       Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
     exact hnn e he
+  have htb : ∀ c, c < 256 → s.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255 := tab_vals hd
+  have hSt0 : s.mem.accessible 1001813 256 false = true := accessible_of_dataRead hd tab_isSome
+  have hzt : z.toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ z.toNat := disj_data hd (t := 1001813) (k := 256) tab_isSome hz
+  have hst : s.sp.toNat - 72 + 96 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 72 :=
+    disj_data hd (t := 1001813) (k := 256) tab_isSome hw
+  have htb' : ∀ c, c < 256 → (((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 ret).writeLE (BitVec.toNat s.sp - 56) 8
+        (BitVec.toNat (s.regs 29))).writeLE (BitVec.toNat s.sp + 16) 8 hp.toNat).readLE (1001813 + c) 1 =
+        (hexNib c).getD 255 := by
+    intro c hc
+    rw [Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+    exact htb c hc
   janus_run calls [fromHex_summary z hp len]
   rename_i hpcA hpcB hsp hr28 hr29 hr30 hr18 hE hfr hOK
   have hB : parseHex (bytesAt (((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 ret).writeLE (BitVec.toNat s.sp - 56) 8
