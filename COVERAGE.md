@@ -18,9 +18,9 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).AddOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddOverflow.lean |
 | `(*uint256.Int).AddUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddUint64.lean |
 | `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
-| `(*uint256.Int).BitLen` | verified | blocked (GOAMD64=v1) | arm64: lean/Fv256/Arm64/BitLen.lean. amd64: the default GOAMD64=v1 build uses `bsr rax, rcx` on a possibly-zero limb; the Janus amd64 model faults (`undefinedResult`) for BSR of zero, so the proof cannot proceed (draft in wip/). Verified on a GOAMD64=v3 build (lzcnt): lean/Fv256/Amd64v3/BitLen.lean |
+| `(*uint256.Int).BitLen` | verified | pending Janus pin (bsrbsf 494e1168) | arm64: lean/Fv256/Arm64/BitLen.lean. amd64 (default GOAMD64=v1): lean/Fv256/Amd64/BitLen.lean, verified privately against Janus bsrbsf 494e1168 (BSR/BSF of zero model); the statement does not mention the undefined-value stream. Extra: lean/Fv256/Amd64v3/BitLen.lean verifies the GOAMD64=v3 build (lzcnt) on the pinned Janus. |
 | `(*uint256.Int).Byte` | verified | verified | lean/Fv256/{Arm64,Amd64}/Byte.lean |
-| `(*uint256.Int).ByteLen` | verified | blocked | lean/Fv256/Arm64/ByteLen.lean; amd64 v1 blocked: Janus model faults on BSR of zero (U2) |
+| `(*uint256.Int).ByteLen` | verified | pending Janus pin (bsrbsf 494e1168) | arm64: lean/Fv256/Arm64/ByteLen.lean. amd64 (default GOAMD64=v1): lean/Fv256/Amd64/ByteLen.lean, verified privately against Janus bsrbsf 494e1168 (same BSR model). |
 | `(*uint256.Int).Bytes` | todo | todo | |
 | `(*uint256.Int).Bytes20` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes20.lean |
 | `(*uint256.Int).Bytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes32.lean |

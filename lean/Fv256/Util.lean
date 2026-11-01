@@ -2450,4 +2450,22 @@ theorem chain32_ow2 (m M0 : Memory) (d L0 L1 L2 L3 q k : Nat) (h : OnlyWrites2 m
   exact h
 end CH32
 
+-- ByteLen amd64 helper
+theorem bl_amd (v w : BitVec 64) (hw : w = v + 7#64) (hv : v.toNat ≤ 256) :
+    (BitVec.sshiftRight (v + (BitVec.sshiftRight w 63 >>> 61) + 7#64) 3).toNat = (v.toNat + 7) / 8 := by
+  have hwn : w.toNat = v.toNat + 7 := by
+    rw [hw, BitVec.toNat_add]; simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
+  have hmsb : w.msb = false := by
+    rw [BitVec.msb_eq_decide]; simp only [Nat.reduceSub, Nat.reducePow]; rw [hwn]; simp; omega
+  have h0 : BitVec.sshiftRight w 63 = 0#64 := by
+    rw [BitVec.sshiftRight_eq_of_msb_false hmsb]
+    apply BitVec.eq_of_toNat_eq
+    rw [BitVec.toNat_ushiftRight, hwn]
+    simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow, BitVec.toNat_zero]; omega
+  rw [h0]
+  have e : v + (0#64 >>> 61) + 7#64 = w := by rw [hw]; simp
+  rw [e]
+  rw [BitVec.toNat_sshiftRight_of_msb_false hmsb, hwn]
+  simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow]
+
 end Fv256.Util
