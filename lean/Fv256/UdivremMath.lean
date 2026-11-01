@@ -93,4 +93,29 @@ theorem knuth_pre_lt (Mn : Janus.Arm64.Memory) (q ulen n s U Dn : Nat) (hn : 1 �
     exact Nat.mul_le_mul_left _ (Nat.pow_le_pow_right (by decide : 2 > 0) (by omega : s ≤ 63))
   omega
 
+theorem wv_congr (N M : Janus.Arm64.Memory) (q p : Nat) :
+    ∀ k, (∀ j, j < k → N.readLE (q + 8 * j) 8 = M.readLE (p + 8 * j) 8) → wv N q k = wv M p k := by
+  intro k
+  induction k with
+  | zero => intro _; rfl
+  | succ k ih =>
+    intro h
+    rw [wv_snoc, wv_snoc, ih (fun j hj => h j (by omega)), h k (by omega)]
+
+theorem wv_zero_word (M : Janus.Arm64.Memory) (p N : Nat) (h : wv M p N = 0) : ∀ j, j < N → M.readLE (p + 8 * j) 8 = 0 := by
+  intro j hj
+  induction N with
+  | zero => omega
+  | succ N ih =>
+    rw [wv_snoc] at h
+    have h1 : wv M p N = 0 := by omega
+    have h2 : 2 ^ (64 * N) * M.readLE (p + 8 * N) 8 = 0 := by omega
+    rcases Nat.lt_or_ge j N with hj' | hj'
+    · exact ih h1 hj'
+    · have : j = N := by omega
+      subst this
+      rcases Nat.mul_eq_zero.mp h2 with h3 | h3
+      · exact absurd h3 (Nat.pos_iff_ne_zero.mp (Nat.two_pow_pos _))
+      · exact h3
+
 end Fv256.B

@@ -92,16 +92,17 @@ theorem ulen_lt_ne (s0 : State) (up remp n ulen sf ra rbpv : Nat) (R : Nat → W
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 ra, flags := fl', xmm := X', mem := M' } ∧
-        R' 4 = BitVec.ofNat 64 (sf + 0xf8) ∧ R' 5 = BitVec.ofNat 64 rbpv ∧ X' 15 = s0.xmm 15 ∧
+        R' 4 = BitVec.ofNat 64 (sf + 0xf8) ∧ R' 5 = BitVec.ofNat 64 rbpv ∧ X' 15 = s0.xmm 15 ∧ R' 14 = R 14 ∧
         (∀ j, j < 4 → M'.readLE (remp + 8 * j) 8 = M.readLE (up + 8 * j) 8) ∧
         MemFrame M M' [(sf - 8, sf), (remp, remp + 32)]) := by
   have hcode := ku_lt
   have hra2 : M.readLE (sf + 0xf0) 8 < 2 ^ 47 := by rw [m_f0]; exact hra47
   janus64_run [e12, e2, e6, e7, e10, e4, m_e8, m_f0, hra2]
-  refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · simp [setRegF]; bv_omega
   · simp [setRegF]
   · simp [setXmmF]
+  · simp [setRegF]
   · intro j hj
     have h0 := Janus.Arm64.Memory.readLE_lt M up 16
     have hj' : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 := by omega
@@ -126,12 +127,13 @@ theorem ulen_lt_nil (s0 : State) (n ulen sf ra rbpv : Nat) (R : Nat → W64) (fl
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 ra, flags := fl', mem := M } ∧
-        R' 4 = BitVec.ofNat 64 (sf + 0xf8) ∧ R' 5 = BitVec.ofNat 64 rbpv) := by
+        R' 4 = BitVec.ofNat 64 (sf + 0xf8) ∧ R' 5 = BitVec.ofNat 64 rbpv ∧ R' 14 = R 14) := by
   have hcode := ku_lt
   have hra2 : M.readLE (sf + 0xf0) 8 < 2 ^ 47 := by rw [m_f0]; exact hra47
   janus64_run [e12, e2, e10, e4, m_e8, m_f0, hra2]
-  refine ⟨_, _, rfl, ?_, ?_⟩
+  refine ⟨_, _, rfl, ?_, ?_, ?_⟩
   · simp [setRegF]; bv_omega
+  · simp [setRegF]
   · simp [setRegF]
 
 set_option maxHeartbeats 8000000 in
