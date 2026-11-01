@@ -10,10 +10,10 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 |---|---|---|---|---|
 | `uint256.FromBig` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/FromBig.lean; runtime.newobject contract + SetFromBig as callee summary; `Witness`: toy allocator + concrete call, `example := correctness ...` fires (hnew and precondition jointly satisfiable) |
 | `uint256.FromDecimal` | (b) | todo | todo | fromDecimal loop + mapaccess/ifaceeq, not extractable without contracts for runtime.mapaccess2_fast32/ifaceeq |
-| `uint256.FromHex` | (b) | todo | todo | newobject (z escapes) + fromHex loop; error values are globals (ErrSyntax...) in .data |
+| `uint256.FromHex` | (b) | verified | todo | lean/Fv256/Arm64/FromHex.lean; runtime.newobject contract + the fromHex callee summary (`SetFromHexLoops.fromHex_sum`, spec `parseHex`); preconditions: the package error variables are non-nil, outside `rt`, disjoint from the stack; `Witness`: toy allocator + concrete call on `"0x1f"`, `example := correctness ...` fires |
 | `uint256.MustFromBig` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromBig.lean; EnsuresGo with PanicRuntime P: returns when x=nil or len<=4, else panics with the \"overflow\" eface; same Witness pattern |
 | `uint256.MustFromDecimal` | (b) | todo | todo | as FromDecimal |
-| `uint256.MustFromHex` | (b) | todo | todo | newobject + fromHex + gopanic(err) |
+| `uint256.MustFromHex` | (b) | verified | todo | lean/Fv256/Arm64/MustFromHex.lean; EnsuresGo with PanicRuntime P: returns exactly when `parseHex` succeeds, otherwise panics with the eface `(itab.Type, data)` of the sentinel error (`itab+8` read from the error variable's itab: the itabs must be readable, outside `rt` and the stack); same Witness pattern as FromHex |
 | `(*uint256.Int).CmpBig` | (a) | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).Dec` | (d) | todo | todo | strconv.FormatUint/AppendUint/formatBits + udivrem(Knuth) loops + slicebytetostring (String contract exists); ~15 functions |
 | `(*uint256.Int).PrettyDec` | (d) | todo | todo | as Dec |
