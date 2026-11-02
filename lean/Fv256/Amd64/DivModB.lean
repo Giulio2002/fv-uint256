@@ -52,6 +52,12 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
             s'.mem.readLE m'' 32 = Fv256.B.modSpec (valueAt s x 32) (valueAt s y 32) ∧
             MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
               ((s.regs 4).toNat - 4248, (s.regs 4).toNat + 0x28)])) := by
+  have e8 : BitVec.toNat (s.regs 4) - 40 = BitVec.toNat (s.regs 4) - 48 + 8 := by omega
+  have e16 : BitVec.toNat (s.regs 4) - 32 = BitVec.toNat (s.regs 4) - 48 + 16 := by omega
+  have e24 : BitVec.toNat (s.regs 4) - 24 = BitVec.toNat (s.regs 4) - 48 + 24 := by omega
+  have f8 : BitVec.toNat (s.regs 4) - 72 = BitVec.toNat (s.regs 4) - 80 + 8 := by omega
+  have f16 : BitVec.toNat (s.regs 4) - 64 = BitVec.toNat (s.regs 4) - 80 + 16 := by omega
+  have f24 : BitVec.toNat (s.regs 4) - 56 = BitVec.toNat (s.regs 4) - 80 + 24 := by omega
   have h7' : st.regs 7 = BitVec.ofNat 64 m' := by rw [← h7]; simp
   have hgl := hg.load
   have hgb := hg.below
@@ -76,15 +82,8 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
        · subst hr; janus_frame)
     | skip)
   all_goals (first | (simp [hsx15]; done) | skip)
-  all_goals (
-    have e8 : BitVec.toNat (s.regs 4) - 40 = BitVec.toNat (s.regs 4) - 48 + 8 := by omega
-    have e16 : BitVec.toNat (s.regs 4) - 32 = BitVec.toNat (s.regs 4) - 48 + 16 := by omega
-    have e24 : BitVec.toNat (s.regs 4) - 24 = BitVec.toNat (s.regs 4) - 48 + 24 := by omega
-    have f8 : BitVec.toNat (s.regs 4) - 72 = BitVec.toNat (s.regs 4) - 80 + 8 := by omega
-    have f16 : BitVec.toNat (s.regs 4) - 64 = BitVec.toNat (s.regs 4) - 80 + 16 := by omega
-    have f24 : BitVec.toNat (s.regs 4) - 56 = BitVec.toNat (s.regs 4) - 80 + 24 := by omega
-    try rw [e8, e16, e24]
-    try rw [f8, f16, f24])
+  all_goals (try rw [e8, e16, e24])
+  all_goals (try rw [f8, f16, f24])
   all_goals (
     try simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside,
       Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
@@ -112,7 +111,5 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
            | (rw [Fv256.B.mod64_mod _ _ (by omega)]; exact Fv256.B.mod_congr _ _ _ (by omega))))
     | skip)
 
-  all_goals trace_state
-  all_goals sorry
 
 end Fv256.Amd64.DivModB
