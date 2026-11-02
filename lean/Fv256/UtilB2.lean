@@ -100,4 +100,12 @@ theorem summary_link {p : Janus.Amd64.Program} (impl : List Janus.Amd64.Segment)
   obtain ⟨k, s', hst, hr, hq⟩ := h s hpc hp
   exact ⟨k, s', steps_link impl hst, hr, hq⟩
 
+theorem divSpec_of_ne (x y : Nat) (h : y ≠ 0) : divSpec x y = x / y := by unfold divSpec; simp [h]
+theorem modSpec_of_ne (x y : Nat) (h : y ≠ 0) : modSpec x y = x % y := by unfold modSpec; simp [h]
+
+theorem ne_zero_of_limbs (a b c d : Nat) (h : ¬(((a = 0 ∧ b = 0) ∧ c = 0) ∧ d = 0)) :
+    a + 18446744073709551616 * b + 340282366920938463463374607431768211456 * c +
+      6277101735386680763835789423207666416102355444464034512896 * d ≠ 0 := by
+  intro h'; apply h; omega
+
 end Fv256.B

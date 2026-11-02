@@ -91,7 +91,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
       Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
     first
     | (exfalso; omega)
-    | (rw [Fv256.B.divSpec, if_neg (by omega)]; assumption)
+    | (rw [Fv256.B.divSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
     | (rw [Fv256.B.divSpec]
        split <;>
          (first
@@ -100,7 +100,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
            | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
            | exact (Nat.div_eq_of_lt (by omega)).symm
            | exact Fv256.B.div_congr _ _ _ (by omega)))
-    | (rw [Fv256.B.modSpec, if_neg (by omega)]; assumption)
+    | (rw [Fv256.B.modSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
     | (rw [Fv256.B.modSpec]
        split <;>
          (first
