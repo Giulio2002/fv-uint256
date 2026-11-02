@@ -65,10 +65,13 @@ theorem slowPath (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) 
   all_goals (unfold Hidden at hfacts)
   all_goals (obtain ⟨hzb, hzo, hPb, hPz, hbpo', hbpd', hzd⟩ := hfacts)
   all_goals (refine ⟨fun h => absurd h hz0, fun _ => ⟨P, ?_⟩, ?_⟩)
-  all_goals (
-    refine slow0_bigout ?hsp ?hF ?hfr ?h_rdP ?hbpo ?hbpd ?hzo ?hzd ?hzb ?hPa ?hP48 ?hAacc ?hA48 ?hbA ?hbP ?hAP ?hlen ?hv ?hnorm ?hzero ?hv0 ?hv1 ?hv2 ?hv3
-    all_goals (try assumption)
-    all_goals (trace_state; fail "slow0b"))
-  all_goals (trace_state; fail "slow-close")
+  -- the goals come in pairs per leaf: BigOut, then MemFrame
+  all_goals (first
+    | (refine slow0_bigout ?hsp ?hF ?hfr ?h_rdP ?hbpo ?hbpd ?hzo ?hzd ?hzb ?hPa ?hP48 ?hAacc ?hA48 ?hbA ?hbP ?hAP ?hlen ?hv ?hnorm ?hzero ?hv0 ?hv1 ?hv2 ?hv3
+       all_goals (try assumption)
+       all_goals (trace_state; fail "slow0b"))
+    | (refine slow0_frame ?hsp ?hF ?hfr ?hAin ?hPin
+       all_goals (try assumption)
+       all_goals (trace_state; fail "slow0f")))
 
 end Fv256.Arm64.IntoBig

@@ -68,7 +68,6 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b1 : Nat) (z bp : BitVec 64)
             ‹MemFrame _ _ _› ‹LiveFrame _ _ _ _› ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ ‹InRanges (BitVec.toNat _) 16 R.rt›
             (read_wb' ‹MemFrame _ _ _› hPo16 (by omega)) (read_wb' ‹MemFrame _ _ _› hPo24 (by omega)) (Or.symm ‹Apart (BitVec.toNat _) 16 A' 32›) ‹Apart P 32 (BitVec.toNat _) 16›,
           tail1_frame hfr2 hb' ‹MemFrame _ _ _› ‹InRanges (BitVec.toNat _) 16 R.rt›⟩)
-      | (trace_state; fail "tail-close")
   · subst hL
     have hPi16 : InRanges (P + 16) 8 ([(P, P + 32)] ++ [(A', A' + 32)]) :=
       ⟨(P, P + 32), by simp, by omega, by omega⟩
@@ -88,6 +87,9 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b1 : Nat) (z bp : BitVec 64)
             ‹MemFrame _ _ _› ‹LiveFrame _ _ _ _› ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ ‹InRanges (BitVec.toNat _) 16 R.rt›
             (‹LiveFrame _ _ _ _›.readLE (P + 16) 8 hPi16 trivial) (‹LiveFrame _ _ _ _›.readLE (P + 24) 8 hPi24 trivial) (Or.symm hAw) hPw,
           tail1_frame hfr2 hb' ‹MemFrame _ _ _› ‹InRanges (BitVec.toNat _) 16 R.rt›⟩)
-      | (trace_state; fail "tail-close")
+      | (refine ⟨tail1_bigout (sp := s.sp.toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb' ?hF3 ?hLive ?hAL1 ?hs ?hPk16 ?hPk24 ?hAs ?hPs,
+            tail1_frame hfr2 hb' ?hF3' ?hs'⟩
+         all_goals (try assumption)
+         all_goals (trace_state; fail "tail1-dbg"))
 
 end Fv256.Arm64.IntoBig
