@@ -90,7 +90,6 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
       Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
       Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
     first
-    | (exfalso; omega)
     | (rw [Fv256.B.divSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
     | (rw [Fv256.B.divSpec]
        split <;>
@@ -101,6 +100,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
            | exact (Nat.div_eq_of_lt (by omega)).symm
            | exact Fv256.B.div_congr _ _ _ (by omega)))
     | (rw [Fv256.B.modSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
+    | (exfalso; omega)
     | (rw [Fv256.B.modSpec]
        split <;>
          (first
