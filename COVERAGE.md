@@ -144,3 +144,15 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 - `uint256.ErrSyntax`: sentinel error value, n/a (no code); used by the functions that return it.
 
 Type `uint256.Int` is `[4]uint64` (little-endian limbs); no code.
+
+## Proof times (optimisation log)
+Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix pass. Times are `janus verify` wall seconds, base f65043ca vs head 9c4be184, as measured by main; "after" is filled in when a fix lands.
+
+| item | before | after | status / plan |
+|---|---|---|---|
+| MulOverflow arm64 | > 3300 s (timeout, exit 124, 5 aliasing-pattern modules) | - | time MoCases A-E separately, profile the slowest, fix the cause |
+| WriteToSlice arm64 | 429 s | - | profile pass pending |
+| ExtendSign amd64 / arm64 | 262 / 238 s, 144 / 127 s | - | profile pass pending |
+| SRsh amd64 | 175 s | - | profile pass pending |
+| Slt, Sgt amd64 | ~80-104 s each | - | profile pass pending |
+| Abs arm64 | 64 s (base) / 508 s (head) | - | rerun cold and warm to separate a head-stack regression from a cold-build artefact |
