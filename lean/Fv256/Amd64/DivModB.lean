@@ -76,22 +76,22 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
        · subst hr; janus_frame)
     | skip)
   all_goals (first | (simp [hsx15]; done) | skip)
-  all_goals (first
-    | (have e8 : BitVec.toNat (s.regs 4) - 40 = BitVec.toNat (s.regs 4) - 48 + 8 := by omega
-       have e16 : BitVec.toNat (s.regs 4) - 32 = BitVec.toNat (s.regs 4) - 48 + 16 := by omega
-       have e24 : BitVec.toNat (s.regs 4) - 24 = BitVec.toNat (s.regs 4) - 48 + 24 := by omega
-       rw [e8, e16, e24])
-    | (have e8 : BitVec.toNat (s.regs 4) - 72 = BitVec.toNat (s.regs 4) - 80 + 8 := by omega
-       have e16 : BitVec.toNat (s.regs 4) - 64 = BitVec.toNat (s.regs 4) - 80 + 16 := by omega
-       have e24 : BitVec.toNat (s.regs 4) - 56 = BitVec.toNat (s.regs 4) - 80 + 24 := by omega
-       rw [e8, e16, e24])
-    | skip)
+  all_goals (
+    have e8 : BitVec.toNat (s.regs 4) - 40 = BitVec.toNat (s.regs 4) - 48 + 8 := by omega
+    have e16 : BitVec.toNat (s.regs 4) - 32 = BitVec.toNat (s.regs 4) - 48 + 16 := by omega
+    have e24 : BitVec.toNat (s.regs 4) - 24 = BitVec.toNat (s.regs 4) - 48 + 24 := by omega
+    have f8 : BitVec.toNat (s.regs 4) - 72 = BitVec.toNat (s.regs 4) - 80 + 8 := by omega
+    have f16 : BitVec.toNat (s.regs 4) - 64 = BitVec.toNat (s.regs 4) - 80 + 16 := by omega
+    have f24 : BitVec.toNat (s.regs 4) - 56 = BitVec.toNat (s.regs 4) - 80 + 24 := by omega
+    try rw [e8, e16, e24]
+    try rw [f8, f16, f24])
   all_goals (
     try simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside,
       Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
       Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
     first
     | (exfalso; omega)
+    | (rw [Fv256.B.divSpec, if_neg (by omega)]; assumption)
     | (rw [Fv256.B.divSpec]
        split <;>
          (first
@@ -100,6 +100,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
            | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
            | exact (Nat.div_eq_of_lt (by omega)).symm
            | exact Fv256.B.div_congr _ _ _ (by omega)))
+    | (rw [Fv256.B.modSpec, if_neg (by omega)]; assumption)
     | (rw [Fv256.B.modSpec]
        split <;>
          (first
