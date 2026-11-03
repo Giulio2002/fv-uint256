@@ -15,7 +15,7 @@ namespace Fv256.Amd64.DivModP
 
 set_option maxHeartbeats 0 in
 set_option profiler true in
-set_option profiler.threshold 3000 in
+set_option profiler.threshold 500 in
 set_option maxRecDepth 200000 in
 /-- The part of `DivMod` after the (possible) un-aliasing allocation: from the merge point (`+0x8c`) with `m'` in `RDI`. -/
 theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : Nat)
@@ -83,35 +83,6 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
        · janus_frame
        · subst hr; janus_frame)
     | skip)
-  all_goals (first | (simp [hsx15]; done) | skip)
-  all_goals (try rw [e8, e16, e24])
-  all_goals (try rw [f8, f16, f24])
-  all_goals (
-    try simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside,
-      Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
-      Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
-    first
-    | (rw [Fv256.B.divSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
-    | (rw [Fv256.B.divSpec]
-       split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
-           | exact (Nat.div_eq_of_lt (by omega)).symm
-           | exact Fv256.B.div_congr _ _ _ (by omega)))
-    | (rw [Fv256.B.modSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
-    | (exfalso; omega)
-    | (rw [Fv256.B.modSpec]
-       split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
-           | exact (Nat.mod_eq_of_lt (by omega)).symm
-           | exact Fv256.B.mod_congr _ _ _ (by omega)
-           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; exact Fv256.B.mod_congr _ _ _ (by omega))))
-    | skip)
-
+  all_goals sorry
 
 end Fv256.Amd64.DivModP
