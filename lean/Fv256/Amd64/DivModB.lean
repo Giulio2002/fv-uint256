@@ -14,10 +14,11 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 
 namespace Fv256.Amd64.DivModB
 
-set_option maxHeartbeats 32000000 in
+set_option maxHeartbeats 64000000 in
 set_option profiler true in
-set_option profiler.threshold 200 in
+set_option profiler.threshold 3000 in
 set_option trace.profiler true in
+set_option trace.profiler.threshold 3000 in
 set_option maxRecDepth 200000 in
 /-- The part of `DivMod` after the (possible) un-aliasing allocation: from the merge point (`+0x8c`) with `m'` in `RDI`. -/
 theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : Nat)
@@ -94,6 +95,25 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
       Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
       Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
     try clear hdz hdx hdy hdm hzm hdg hgo hout hxo hyo hzo hm' hm'r hacc hlow hnw hnw2 hgl hgb hgr hzw hz hxw hx hyw hy hmw hm hfr hrip hspill hretslot hbp h0 h3 h1 h7 h7' h4 h5 h14 e8 e16 e24 f8 f16 f24
-    first | with_reducible assumption | skip)
+    first
+    | with_reducible assumption
+    | (rw [Fv256.B.divSpec]
+       split <;>
+         (first
+           | omega
+           | (exfalso; omega)
+           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
+           | exact (Nat.div_eq_of_lt (by omega)).symm
+           | exact Fv256.B.div_congr _ _ _ (by omega)))
+    | (rw [Fv256.B.modSpec]
+       split <;>
+         (first
+           | omega
+           | (exfalso; omega)
+           | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
+           | exact (Nat.mod_eq_of_lt (by omega)).symm
+           | exact Fv256.B.mod_congr _ _ _ (by omega)
+           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; exact Fv256.B.mod_congr _ _ _ (by omega))))
+    | (exfalso; omega))
 
 end Fv256.Amd64.DivModB
