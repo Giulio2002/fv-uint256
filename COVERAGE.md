@@ -59,7 +59,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
-| `(*uint256.Int).MulOverflow` | todo | todo | |
+| `(*uint256.Int).MulOverflow` | pending Janus pin (9c4be184) | todo | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified privately on Janus 9c4be184 (U12 carry fix) in 295 s |
 | `(*uint256.Int).Neg` | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
 | `(*uint256.Int).Not` | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
@@ -150,7 +150,7 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 
 | item | before | after | status / plan |
 |---|---|---|---|
-| MulOverflow arm64 | > 3300 s (timeout, exit 124, 5 aliasing-pattern modules) | - | time MoCases A-E separately, profile the slowest, fix the cause |
+| MulOverflow arm64 | > 3300 s (timeout, exit 124; case E alone OOM > 33 GB) | 295 s (closers ~20 s per aliasing case) | FIXED: cause was `refine mo_flag … <;> first \| omega \| …` running omega on the huge limb goals; now one bullet per goal |
 | WriteToSlice arm64 | 429 s | - | profile pass pending |
 | ExtendSign amd64 / arm64 | 262 / 238 s, 144 / 127 s | - | profile pass pending |
 | SRsh amd64 | 175 s | - | profile pass pending |
