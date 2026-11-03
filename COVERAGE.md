@@ -131,6 +131,25 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).WriteToArray32` | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray32.lean |
 | `(*uint256.Int).WriteToSlice` | verified | verified | arm64: lean/Fv256/Arm64/WriteToSlice.lean (+ WtsCases/Case<k>.lean, one module per min(len,32); the byte loop is unrolled); amd64: same layout under Fv256/Amd64 |
 | `(*uint256.Int).Xor` | verified | verified | lean/Fv256/{Arm64,Amd64}/Xor.lean |
+| `(*uint256.Int).MulDivOverflowRem` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ReverseBytes` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IAdd` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IAddMod` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IAddUint64` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISubUint64` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISub` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IMul` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IDiv` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IMod` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISMod` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IMulModWithReciprocal` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IMulMod` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISDiv` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ILsh` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IRsh` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISRsh` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).IExp` | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISqrt` | todo | todo | new in master 48f3f44 |
 
 ## Exported variables (data, no code to verify)
 
