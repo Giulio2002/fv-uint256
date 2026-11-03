@@ -1,0 +1,37 @@
+Repro.lean:8:11: warning: Variable name `b` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Repro.lean:8:13: warning: Variable name `yn1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _yn1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Repro.lean:8:17: warning: Variable name `yn0` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _yn0
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Repro.lean:8:21: warning: Variable name `un1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _un1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Repro.lean:8:25: warning: Variable name `qh` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _qh
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Repro.lean:8:28: warning: Variable name `rh` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _rh
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Repro.lean:43:4: error: janus_run: heartbeat budget exceeded at pc 0x8cbc8 (math/bits.Div64+0xe8): b.lo 0x8cba4 while evaluating the instruction (simp with the janus_exec set), after 185 instructions.
+The limit was `maxHeartbeats` (8000000), which covers the whole declaration: raise it with `set_option maxHeartbeats N in` before the theorem (or give this run its own budget with `janus_run (budget := N)`), or stop earlier (`until [...]`, a callee `Summary`) and split the proof.
+Repro.lean:14:0: error: (deterministic) timeout at `whnf`, maximum number of heartbeats (8000000) has been reached
+Note: Use `set_option maxHeartbeats <num>` to set the limit.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+
+real	9m37.741s
+user	9m37.863s
+sys	0m0.611s
+
+real	9m39.019s
+user	9m38.861s
+sys	0m0.889s

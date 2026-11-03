@@ -1,0 +1,49 @@
+import Extracted
+import Fv256.Spec
+import Fv256.Util
+import Fv256.SpecB
+import Fv256.UtilB
+
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
+
+namespace Fv256.Arm64.Div64W
+
+abbrev d64 : Nat := segAddr Extracted.program "math/bits.Div64"
+
+-- second correction loop of `bits.Div64` (head at `+0xc4`)
+set_option maxHeartbeats 8000000 in
+theorem loop2 (s : State) (y' yn1 yn0 k q1 un21 un0 : Nat) (hyn1 : yn1 < 2 ^ 32) (hyn1' : 2 ^ 32 ≤ 2 * yn1)
+    (hyn0 : yn0 < 2 ^ 32) (hy' : y' = yn1 * 2 ^ 32 + yn0) (hk : k < 64) (hun0 : un0 < 2 ^ 32) (hun21 : un21 < y')
+    (hq1 : q1 < 2 ^ 32) (hlr : (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56)
+    (hsp : 40 ≤ s.sp.toNat) (hspm : s.sp.toNat % 16 = 0) (hspb : s.sp.toNat ≤ 2 ^ 48)
+    (hw : s.mem.accessible (s.sp.toNat - 40) 40 true = true) :
+    ∀ qh rh (R : Nat → W64) (fl : Flags) (M : Memory), rh < 2 ^ 32 → qh * yn1 + rh = un21 →
+      (un21 * 2 ^ 32 + un0) / y' ≤ qh → qh ≤ 2 ^ 32 + 1 →
+      R 2 = BitVec.ofNat 64 y' → R 3 = BitVec.ofNat 64 k → R 4 = BitVec.ofNat 64 un21 → R 5 = BitVec.ofNat 64 rh →
+      R 6 = BitVec.ofNat 64 q1 → R 7 = BitVec.ofNat 64 un0 → R 8 = BitVec.ofNat 64 yn0 → R 9 = BitVec.ofNat 64 qh →
+      R 10 = BitVec.ofNat 64 (2 ^ 32) → R 29 = s.sp - 40#64 → R 30 = s.regs 30 →
+      (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 29] → R i = s.regs i) →
+      MemFrame s.mem M [(s.sp.toNat - 40, s.sp.toNat)] →
+      M.readLE (s.sp.toNat - 40) 8 = (s.regs 29).toNat → M.readLE (s.sp.toNat - 32) 8 = (s.regs 30).toNat →
+      ReachesRet Extracted.program (s.regs regLR)
+        { s with regs := R, sp := s.sp - 32#64, pc := BitVec.ofNat 64 (d64 + 0xc4), flags := fl, mem := M }
+        (fun S' => S'.pc = s.regs 30 ∧ S'.sp = s.sp ∧
+          S'.regs 0 = BitVec.ofNat 64 (Fv256.B.hloop (2 ^ 32) yn1 yn0 un0 qh rh + q1 * 2 ^ 32) ∧
+          (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16] → S'.regs i = s.regs i) ∧
+          MemFrame s.mem S'.mem [(s.sp.toNat - 40, s.sp.toNat)]) := by
+  intro qh
+  induction qh with
+  | zero =>
+    intro rh R fl M hrh h1 h2 h3 e2 e3 e4 e5 e6 e7 e8 e9 e10 e29 e30 hRu hfr hm29 hm30
+    clear h1 h2 h3
+    have hMa : M.accessible (s.sp.toNat - 40) 40 true = true := by rw [hfr.accessible]; exact hw
+    have hm29' : BitVec.ofNat 64 (M.readLE (s.sp.toNat - 40) 8) = s.regs 29 := by rw [hm29]; simp
+    have hm30' : BitVec.ofNat 64 (M.readLE (s.sp.toNat - 32) 8) = s.regs 30 := by rw [hm30]; simp
+    simp only [d64, reduceSegAddr, Nat.reduceAdd]
+    have hlr' : BitVec.ofNat 64 (s.regs 30).toNat = s.regs 30 := by simp
+    janus_run [e2, e3, e4, e5, e6, e7, e8, e9, e10, e29, e30, hm29, hm30, hlr']
+    all_goals trace_state
+    all_goals sorry
+  | succ qh ih => sorry
+
+end Fv256.Arm64.Div64W

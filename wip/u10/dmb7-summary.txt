@@ -1,0 +1,5 @@
+top-level tactic steps >=20 s in dmb7.log (seconds, line, tactic):
+(1182.393253, 1641, '✅️ ')
+(1182.393226, 1704, '✅️ ')
+(874.948697, 1769, '✅️ janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2,')
+(292.512107, 651736, '✅️ all_goals')
