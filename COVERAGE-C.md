@@ -62,3 +62,5 @@ Witness: the nonvacuous witness must instantiate `PreX` concretely, i.e. a `g` p
 
 ## IntoBig arm64 status (2026-11-03)
 `IntoBigSlow3.slowHead3` (31 s), `IntoBigMid.mid` (no sorry, 92 s) and `IntoBigT.correctness` (117 s) compile on speed15 with no sorry. They still carry the diagnostic `maxHeartbeats 0` (to be replaced by a measured limit), and the Witness is not yet written. Before/after for the slow head: > 1700 s (10 leaves of omega/assumption over the post-call context) -> 31 s (leaf-free `normloop` induction plus clean-context lemmas). pending Janus pin 689b0f67.
+
+IntoBig arm64 re-checked on the MASTER extraction (uint256 48f3f44, harness built from fv/master, contracts newobject + gcWriteBarrier1/2; only the ADRP/LDR immediates of the type descriptors and the write-barrier flag moved): the whole chain Defs, FinF, Close, Loop, Tail (498 s), Slow3 (36 s), Mid (101 s), T (123 s) compiles with rc=0, no sorry, on Janus 50db36a6 (speed15), pending 689b0f67.
