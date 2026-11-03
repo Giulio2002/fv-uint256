@@ -7,10 +7,10 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `uint256.Reciprocal` | todo | todo | |
 | `uint256.FromBig` | verified | verified | lean/Fv256/{Arm64,Amd64}/FromBig.lean; runtime.newobject contract + SetFromBig as callee summary; `Witness`: toy allocator + concrete call, `example := correctness ...` fires (hnew and precondition jointly satisfiable) |
 | `uint256.FromDecimal` | todo | todo | |
-| `uint256.FromHex` | on branch fv/wc: verified (not yet merged) | on branch fv/wc: verified (not yet merged) | FV-C; see COVERAGE-C.md on fv/wc |
+| `uint256.FromHex` | verified | verified | lean/Fv256/{Arm64,Amd64}/FromHex.lean (FV-C; runtime.newobject contract); verify time arm64 209 s, amd64 114 s on Janus c7950624 |
 | `uint256.MustFromBig` | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromBig.lean; EnsuresGo with PanicRuntime P: returns when x=nil or len<=4, else panics with the \"overflow\" eface; same Witness pattern |
 | `uint256.MustFromDecimal` | todo | todo | |
-| `uint256.MustFromHex` | on branch fv/wc: verified (not yet merged) | on branch fv/wc: verified (not yet merged) | FV-C; see COVERAGE-C.md on fv/wc |
+| `uint256.MustFromHex` | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromHex.lean (FV-C; runtime.newobject contract); verify time arm64 208 s, amd64 113 s on Janus c7950624 |
 | `uint256.NewInt` | verified | verified | lean/Fv256/{Arm64,Amd64}/NewInt.lean; uses the runtime.newobject allocation contract (hypothesis hnew); Witness with a toy allocator linked at runtime.newobject |
 | `(*uint256.Int).Abs` | verified | verified | lean/Fv256/{Arm64,Amd64}/Abs.lean |
 | `(*uint256.Int).Add` | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
@@ -108,7 +108,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).SetBytes9` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes9.lean; verify time arm64 14s, amd64 11s on Janus c7950624 |
 | `(*uint256.Int).SetFromBig` | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
 | `(*uint256.Int).SetFromDecimal` | todo | todo | |
-| `(*uint256.Int).SetFromHex` | on branch fv/wc: verified (not yet merged) | on branch fv/wc: verified (not yet merged) | FV-C; see COVERAGE-C.md on fv/wc |
+| `(*uint256.Int).SetFromHex` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetFromHex.lean (FV-C; runtime.newobject contract); verify time arm64 672 s, amd64 82 s uncached on Janus c7950624 |
 | `(*uint256.Int).SetOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetOne.lean |
 | `(*uint256.Int).SetUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetUint64.lean |
 | `(*uint256.Int).Sgt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Sgt.lean |
