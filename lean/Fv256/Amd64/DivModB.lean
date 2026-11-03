@@ -15,6 +15,9 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 namespace Fv256.Amd64.DivModB
 
 set_option maxHeartbeats 32000000 in
+set_option profiler true in
+set_option profiler.threshold 200 in
+set_option trace.profiler true in
 set_option maxRecDepth 200000 in
 /-- The part of `DivMod` after the (possible) un-aliasing allocation: from the merge point (`+0x8c`) with `m'` in `RDI`. -/
 theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : Nat)
