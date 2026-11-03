@@ -59,7 +59,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
-| `(*uint256.Int).MulOverflow` | verified | todo | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified on Janus c7950624 (U12 carry fix). amd64: generator tools/gen2/mo_amd.py + lean/Fv256/Amd64/MoCases/A..E drafted; blocked on the 16-byte-read-over-8-byte-store overlap in the umul frame (fixed upstream on agent/speed-ovl 9601814b, unmerged); re-run case E against it |
+| `(*uint256.Int).MulOverflow` | verified | pending Janus integ/speed15 | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified on c7950624 (295 s). amd64: lean/Fv256/Amd64/MulOverflow.lean (+ MoCases/A..E; value via Util.mul_limbs + per-limb janus_carry, stores peeled by janus64_simp); needs the overlap fix of integ/speed15; verified on Janus 689b0f67 in 696 s full (cases on 8821a47f: A 331, B 84, C 85, D 76, E 70 s) |
 | `(*uint256.Int).Neg` | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
 | `(*uint256.Int).Not` | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
@@ -150,6 +150,7 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 
 | item | before | after | status / plan |
 |---|---|---|---|
+| MulOverflow amd64 | > 3000 s (value closer `janus_arith` on stores not peeled) | 696 s full (cases 70-331 s) | FIXED: 16-byte stores split via janus64_simp + mul_limbs per-limb janus_carry |
 | MulOverflow arm64 | > 3300 s (timeout, exit 124; case E alone OOM > 33 GB) | 295 s (closers ~20 s per aliasing case) | FIXED: cause was `refine mo_flag … <;> first \| omega \| …` running omega on the huge limb goals; now one bullet per goal |
 | WriteToSlice arm64 | 429 s | - | profile pass pending |
 | ExtendSign amd64 / arm64 | 262 / 238 s, 144 / 127 s | - | profile pass pending |
