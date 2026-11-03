@@ -66,7 +66,6 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
   janus64_run [Util.readLE_32] until [Extracted.entry + 0x8c] calls [hnew.pos]
-  rotate_left
   · -- the path with the un-aliasing allocation (z = m)
     rename_i ptr junk fl xx yh mm zh kr cfr cin clt cacc cal8 cal16 czb ctriv
     have hzm' : z = m := BitVec.eq_of_toNat_eq (by omega)
