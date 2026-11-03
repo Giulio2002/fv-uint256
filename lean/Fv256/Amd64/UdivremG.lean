@@ -79,13 +79,13 @@ theorem den_nil (s0 : State) (sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memo
   simp [setRegF, hk]
 
 set_option maxHeartbeats 16000000 in
-theorem ulen_lt_ne (s0 : State) (up remp n ulen sf ra rbpv : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem ulen_lt_ne {L : Nat} (hL : L ≤ 8) (s0 : State) (up remp n ulen sf ra rbpv : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hn : n ≤ 4) (hulen : ulen < n) (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64)
-    (hup : up + 32 ≤ 2 ^ 48) (hua : M.accessible up 32 false = true) (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
-    (hdisj : remp + 32 ≤ up ∨ up + 32 ≤ remp)
+    (hup : up + 8 * L ≤ 2 ^ 48) (hua : M.accessible up (8 * L) false = true) (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
+    (hdisj : remp + 32 ≤ up ∨ up + 8 * L ≤ remp)
     (hsf : sf + 0xf8 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x150 true = true)
-    (hsu : up + 32 ≤ sf - 0x58 ∨ sf + 0xf8 ≤ up) (hsr : remp + 32 ≤ sf - 0x58 ∨ sf + 0xf8 ≤ remp)
-    (e12 : R 12 = BitVec.ofNat 64 ulen) (e2 : R 2 = BitVec.ofNat 64 n) (e6 : R 6 = BitVec.ofNat 64 4)
+    (hsu : up + 8 * L ≤ sf - 0x58 ∨ sf + 0xf8 ≤ up) (hsr : remp + 32 ≤ sf - 0x58 ∨ sf + 0xf8 ≤ remp)
+    (e12 : R 12 = BitVec.ofNat 64 ulen) (e2 : R 2 = BitVec.ofNat 64 n) (e6 : R 6 = BitVec.ofNat 64 L)
     (e7 : R 7 = BitVec.ofNat 64 up) (e10 : R 10 = BitVec.ofNat 64 remp) (e4 : R 4 = BitVec.ofNat 64 sf)
     (m_e8 : M.readLE (sf + 0xe8) 8 = rbpv) (m_f0 : M.readLE (sf + 0xf0) 8 = ra) (hra47 : ra < 2 ^ 47) :
     ReachesRet Extracted.program (BitVec.ofNat 64 ra)
