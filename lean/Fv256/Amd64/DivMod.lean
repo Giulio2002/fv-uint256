@@ -103,7 +103,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     refine Fv256.Amd64.DivModB.partB impl rt z x y m ptr.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
       (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
       ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
-    all_goals (first | with_reducible rfl | exact h_x15 | bv_omega | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]; done) | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]))
+    all_goals (first | with_reducible rfl | (with_reducible exact h_x15) | (simpa using h_x15) | bv_omega | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]; done) | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]))
     all_goals (first | janus_frame | skip)
     all_goals sorry
   · -- no allocation: z != m, the numbers stay where they are
@@ -119,15 +119,15 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       rw [Janus.Arm64.Memory.readLE_writeLE_self]
       exact Nat.mod_eq_of_lt (by simpa using z.isLt)
     have hsp0 : (Arm64.Memory.writeLE (Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat) ((s.regs 4).toNat + 8) 8 z.toNat).readLE (s.regs 4).toNat 8 = ret := by
-      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ (by omega)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
       exact h_ret
     have hspm8 : (Arm64.Memory.writeLE (Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat) ((s.regs 4).toNat + 8) 8 z.toNat).readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
-      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ (by omega), Janus.Arm64.Memory.readLE_writeLE_self]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
       exact Nat.mod_eq_of_lt (by simpa using (s.regs 5).isLt)
     refine Fv256.Amd64.DivModB.partB impl rt z x y m m.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
       hmw hm hxo hyo hzo hdz hdx hdy hdm hzm2 hdg hgo
       ⟨fun _ => rfl, fun h => absurd (by rw [h]) hne⟩ (Or.inr rfl) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
-    all_goals (first | with_reducible rfl | exact h_x15 | bv_omega | (simp (disch := omega) [setRegF, h_a0, h_a1, h_a2, h_a3, hsp8, hsp0, hspm8]; done) | skip)
+    all_goals (first | with_reducible rfl | (with_reducible exact h_x15) | (simpa using h_x15) | bv_omega | (simp (disch := omega) [setRegF, h_a0, h_a1, h_a2, h_a3, hsp8, hsp0, hspm8]; done) | skip)
     all_goals (first | janus_frame | skip)
     all_goals trace_state
     all_goals sorry
