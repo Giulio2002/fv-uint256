@@ -23,7 +23,7 @@ theorem caseE (z : BitVec 64) :
   have hgr := hg.readable
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hacc hlow hnw hal hd0
   simp only [valueAt]
-  janus64_run [Util.readLE_32]
+  janus64_run
   have := Util.readLE8_lt s.mem z.toNat
   have := Util.readLE8_lt s.mem (z.toNat + 8)
   have := Util.readLE8_lt s.mem (z.toNat + 16)

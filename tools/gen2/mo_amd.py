@@ -23,7 +23,7 @@ def stmt(n):
     L += "  intro ret hret s hs ⟨hg, ⟨hlow, hnw, hacc⟩, hal, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩" + "".join(f", hd{i}" for i in range(len(pairs)+len(params))) + "⟩\n"
     L += "  janus64_intro hs\n  have hgl := hg.load\n  have hgb := hg.below\n  have hnw2 := hg.noWrap\n  have hgr := hg.readable\n"
     L += "  simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hacc hlow hnw hal" + "".join(f" hd{i}" for i in range(len(pairs)+len(params))) + "\n"
-    L += "  simp only [valueAt]\n  janus64_run [Util.readLE_32]\n"
+    L += "  simp only [valueAt]\n  janus64_run\n"
     for v in params:
         for j in range(4):
             L += f"  have := Util.readLE8_lt s.mem {v}.toNat\n" if j == 0 else f"  have := Util.readLE8_lt s.mem ({v}.toNat + {8*j})\n"

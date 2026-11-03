@@ -23,7 +23,7 @@ theorem caseB (z y : BitVec 64) :
   have hgr := hg.readable
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hacc hlow hnw hal hd0 hd1 hd2
   simp only [valueAt]
-  janus64_run [Util.readLE_32]
+  janus64_run
   have := Util.readLE8_lt s.mem z.toNat
   have := Util.readLE8_lt s.mem (z.toNat + 8)
   have := Util.readLE8_lt s.mem (z.toNat + 16)
@@ -32,10 +32,10 @@ theorem caseB (z y : BitVec 64) :
   have := Util.readLE8_lt s.mem (y.toNat + 8)
   have := Util.readLE8_lt s.mem (y.toNat + 16)
   have := Util.readLE8_lt s.mem (y.toNat + 24)
-  have hvy : Janus.Arm64.Memory.readLE s.mem y.toNat 32 < 2 ^ 256 := by
-    simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem y.toNat 32
   have hvz : Janus.Arm64.Memory.readLE s.mem z.toNat 32 < 2 ^ 256 := by
     simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem z.toNat 32
+  have hvy : Janus.Arm64.Memory.readLE s.mem y.toNat 32 < 2 ^ 256 := by
+    simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem y.toNat 32
   all_goals (simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.mod_mod])
   refine Util.mo_flag8 _ _ _ _ _ _ hvz hvy ?_ ?_ ?_ ?_
   · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
