@@ -127,10 +127,22 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       exact Nat.mod_eq_of_lt (by simpa using (s.regs 5).isLt)
     refine Fv256.Amd64.DivModB.partB impl rt z x y m m.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
       hmw hm hxo hyo hzo hdz hdx hdy hdm hzm2 hdg hgo
-      ⟨fun _ => rfl, fun h => absurd (by rw [h]) hne⟩ (Or.inr rfl) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
-    all_goals (first | with_reducible rfl | (exact hx0') | bv_omega | (dsimp only [Extracted.entry]; rfl) | (simp (disch := omega) [setRegF, h_a0, h_a1, h_a2, h_a3, hsp8, hsp0, hspm8]; done) | skip)
-    all_goals (first | janus_frame | skip)
-    all_goals trace_state
-    all_goals sorry
+      ⟨fun _ => rfl, fun h => absurd (by rw [h]) hne⟩ (Or.inr rfl)
+      ?hrip ?h0 ?h3 ?h1 ?h7 ?h4 ?h5 ?h14 ?hx15 ?hdf ?hsx15 ?hfr ?hspill ?hretslot ?hbp
+    case hrip => unfold Extracted.entry; decide
+    case h0 => exact h_a0
+    case h3 => exact h_a1
+    case h1 => exact h_a2
+    case h7 => exact congrArg BitVec.toNat h_a3
+    case h4 => rfl
+    case h5 => rfl
+    case h14 => rfl
+    case hx15 => exact hx0'
+    case hdf => exact h_df
+    case hsx15 => exact hx0'
+    case hfr => janus_frame
+    case hspill => exact hsp8
+    case hretslot => exact hsp0
+    case hbp => exact hspm8
 
 end Fv256.Amd64.DivMod
