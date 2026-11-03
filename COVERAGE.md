@@ -18,9 +18,9 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).AddOverflow` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddOverflow.lean |
 | `(*uint256.Int).AddUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/AddUint64.lean |
 | `(*uint256.Int).And` | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
-| `(*uint256.Int).BitLen` | verified | pending Janus pin (bsrbsf 494e1168) | arm64: lean/Fv256/Arm64/BitLen.lean. amd64 (default GOAMD64=v1): lean/Fv256/Amd64/BitLen.lean, verified privately against Janus bsrbsf 494e1168 (BSR/BSF of zero model); the statement does not mention the undefined-value stream. Extra: lean/Fv256/Amd64v3/BitLen.lean verifies the GOAMD64=v3 build (lzcnt) on the pinned Janus. |
+| `(*uint256.Int).BitLen` | verified | verified | arm64: lean/Fv256/Arm64/BitLen.lean. amd64 (default GOAMD64=v1): lean/Fv256/Amd64/BitLen.lean, verified on Janus c7950624 (BSR/BSF of zero model); the statement does not mention the undefined-value stream. Extra: lean/Fv256/Amd64v3/BitLen.lean verifies the GOAMD64=v3 build (lzcnt) on the pinned Janus. |
 | `(*uint256.Int).Byte` | verified | verified | lean/Fv256/{Arm64,Amd64}/Byte.lean |
-| `(*uint256.Int).ByteLen` | verified | pending Janus pin (bsrbsf 494e1168) | arm64: lean/Fv256/Arm64/ByteLen.lean. amd64 (default GOAMD64=v1): lean/Fv256/Amd64/ByteLen.lean, verified privately against Janus bsrbsf 494e1168 (same BSR model). |
+| `(*uint256.Int).ByteLen` | verified | verified | arm64: lean/Fv256/Arm64/ByteLen.lean. amd64 (default GOAMD64=v1): lean/Fv256/Amd64/ByteLen.lean, verified on Janus c7950624 (same BSR model). |
 | `(*uint256.Int).Bytes` | verified | todo | arm64: lean/Fv256/Arm64/Bytes.lean (allocation contract hypothesis, toy-allocator Witness); single runtime call (newobject) |
 | `(*uint256.Int).Bytes20` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes20.lean |
 | `(*uint256.Int).Bytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/Bytes32.lean |
@@ -45,7 +45,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).IntoBig` | todo | todo | |
 | `(*uint256.Int).IsUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
-| `(*uint256.Int).Log10` | verified | pending Janus pin (bsrbsf 494e1168) | arm64: lean/Fv256/Arm64/Log10.lean (+ L10Cases/C<k>_<m>.lean, one per top nonzero limb k and its bit length m, + Zero); assumes the writable powers-of-ten tables (L10Defs.lean). amd64: lean/Fv256/Amd64/Log10.lean (same layout), verified privately against Janus bsrbsf 494e1168 (the lowest limb's BSR may see zero); same table assumption. |
+| `(*uint256.Int).Log10` | verified | verified | arm64: lean/Fv256/Arm64/Log10.lean (+ L10Cases/C<k>_<m>.lean, one per top nonzero limb k and its bit length m, + Zero); assumes the writable powers-of-ten tables (L10Defs.lean). amd64: lean/Fv256/Amd64/Log10.lean (same layout), verified on Janus c7950624 (the lowest limb's BSR may see zero); same table assumption. |
 | `(*uint256.Int).Lsh` | verified | verified | arm64: lean/Fv256/Arm64/Lsh.lean; amd64: machine code uses mask/SHLD idioms (`&&& (if .. then -1 else 0)`), proof not yet done (probe in wip/) |
 | `(*uint256.Int).Lt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Lt.lean |
 | `(*uint256.Int).LtUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/LtUint64.lean |
@@ -59,7 +59,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
-| `(*uint256.Int).MulOverflow` | pending Janus pin (9c4be184) | todo | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified privately on Janus 9c4be184 (U12 carry fix) in 295 s. amd64: generator tools/gen2/mo_amd.py + lean/Fv256/Amd64/MoCases/A..E drafted; blocked on the 16-byte-read-over-8-byte-store overlap in the umul frame (fixed upstream on agent/speed-ovl 9601814b, unmerged); re-run case E against it |
+| `(*uint256.Int).MulOverflow` | verified | todo | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified on Janus c7950624 (U12 carry fix). amd64: generator tools/gen2/mo_amd.py + lean/Fv256/Amd64/MoCases/A..E drafted; blocked on the 16-byte-read-over-8-byte-store overlap in the umul frame (fixed upstream on agent/speed-ovl 9601814b, unmerged); re-run case E against it |
 | `(*uint256.Int).Neg` | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
 | `(*uint256.Int).Not` | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
@@ -156,3 +156,7 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 | SRsh amd64 | 175 s | - | profile pass pending |
 | Slt, Sgt amd64 | ~80-104 s each | - | profile pass pending |
 | Abs arm64 | 64 s (base) / 508 s (head) | - | rerun cold and warm to separate a head-stack regression from a cold-build artefact |
+
+## Pin bump to Janus c7950624 (2026-11-03)
+`scripts/verify-all.sh` against Janus `c7950624d0f8d6cb1bb439ee343923be94a52fdc`, 11 parallel chunks: **122 PASS / 0 FAIL** (62 functions, both ISAs, plus the GOAMD64=v3 BitLen proof). Nothing that passed on the earlier pins fails here (no U18 dependency).
+Chunk wall times (s, 6 functions each, 3 chunks at a time): 1338 (incl. framework build), 273, 509, 507, 1569, 266, 814, 225, 390, 139, 528.
