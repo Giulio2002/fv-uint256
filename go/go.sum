@@ -1,2 +1,4 @@
 github.com/holiman/uint256 v1.3.2 h1:a9EgMPSC1AAaj1SZL5zIQD3WbwTuHrMGOerLjGmM/TA=
 github.com/holiman/uint256 v1.3.2/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
+github.com/holiman/uint256 v1.3.3-0.20261018174624-48f3f4483d41 h1:qhKO5K4Ns5jLsG2vS6EPwOFDPVWDZzAN9h/Yo8jRsSs=
+github.com/holiman/uint256 v1.3.3-0.20261018174624-48f3f4483d41/go.mod h1:EOMSn4q6Nyt9P6efbI3bueV4e1b3dGlUCXeiRV4ng7E=
