@@ -66,17 +66,18 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
   janus64_run [Util.readLE_32] until [Extracted.entry + 0x8c] calls [hnew.pos]
-  all_goals (first
-    | (have hdj := InRanges.disjoint ‹InRanges _ 32 rt› hout
-       have hdz' := InRanges.disjoint ‹InRanges _ 32 rt› hzo
-       have hdx' := InRanges.disjoint ‹InRanges _ 32 rt› hxo
-       have hdy' := InRanges.disjoint ‹InRanges _ 32 rt› hyo
-       have hdgo := InRanges.disjoint ‹InRanges _ 32 rt› hgo
-       refine Fv256.Amd64.DivModB.partB impl rt z x y m _ ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy ?_ ?_ hxo hyo hzo hdz hdx hdy ?_ ?_ hdg hgo ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ h_x15 ?_ ?_ ?_ ?_
-       all_goals trace_state
-       all_goals sorry)
-    | skip)
-  all_goals trace_state
-  all_goals sorry
+  rotate_left
+  · -- the path with the un-aliasing allocation (z = m)
+    rename_i ptr junk fl xx yh mm zh kr cfr cin clt cacc cal8 cal16 czb ctriv
+    have hzm' : z = m := BitVec.eq_of_toNat_eq (by omega)
+    have hdj := InRanges.disjoint cin hout
+    have hdzp := InRanges.disjoint cin hzo
+    refine Fv256.Amd64.DivModB.partB impl rt z x y m ptr.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
+      (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
+      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
+    all_goals trace_state
+    all_goals sorry
+  · trace_state
+    sorry
 
 end Fv256.Amd64.DivMod
