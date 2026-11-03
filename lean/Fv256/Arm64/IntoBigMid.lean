@@ -6,7 +6,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 namespace Fv256.Arm64.IntoBig
 
 set_option maxRecDepth 20000 in
-set_option maxHeartbeats 0 in
+set_option maxHeartbeats 4000000 in
 /-- `IntoBig` after `*b` is known to hold a (non-nil) `big.Int` pointer `P`. -/
 theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret : Nat)
     (hret : RetAddr (Extracted.program.link impl) ret) (s : State)

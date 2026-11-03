@@ -5,7 +5,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 namespace Fv256.Arm64.IntoBig
 
 set_option maxRecDepth 20000 in
-set_option maxHeartbeats 0 in
+set_option maxHeartbeats 4000000 in
 theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (hnew : NewobjectLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
