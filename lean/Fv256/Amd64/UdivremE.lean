@@ -83,7 +83,7 @@ theorem midB1 (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl
   have hcode := ku_lt
   janus64_run [Fv256.B.wv_writeLE_outside, e2, e3, e10, e9, e4, m_f8, m_98] until [ku + 0x355] calls [hS := Fv256.Amd64.DivWork2.by1_summary]
   obtain ⟨rr, R2, fl2, M2, hs, h0, h4, h8, hk, hlt, hwv, hfr⟩ := hS
-  subst hs
+  cases hs
   refine ⟨R2, fl2, M2, rr, rfl, by simpa using h0, by simpa using h4, ?_, by simpa using hlt, by simpa using hwv, ?_⟩
   · have := hk 14 (by simp)
     simpa using this
