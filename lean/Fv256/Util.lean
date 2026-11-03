@@ -2697,4 +2697,17 @@ theorem pad_big (M0 : Janus.Arm64.Memory) (obj n L0 L1 L2 L3 : Nat) (hn : 32 ≤
 theorem cmp_eq_mod (z T : Nat) (hz : z < 18446744073709551616) (hT : T < 18446744073709551616) :
     (18446744073709551616 - z + T) % 18446744073709551616 = 0 ↔ z = T := by omega
 
+set_option exponentiation.threshold 600 in
+theorem mo_flag8 (a b c d xv yv : Nat) (hx : xv < 2 ^ 256) (hy : yv < 2 ^ 256)
+    (ha : a = xv * yv / 2 ^ 256 % 2 ^ 64) (hb : b = xv * yv / 2 ^ 320 % 2 ^ 64)
+    (hc : c = xv * yv / 2 ^ 384 % 2 ^ 64) (hd : d = xv * yv / 2 ^ 448 % 2 ^ 64) :
+    (if a ||| b ||| c ||| d = 0 then 0#8 else 1#8).toNat =
+      if Spec.W ≤ xv * yv then 1 else 0 := by
+  have h := mo_flag a b c d xv yv hx hy ha hb hc hd
+  by_cases h0 : a ||| b ||| c ||| d = 0
+  · simp only [h0, if_true] at h ⊢
+    rw [← h]; rfl
+  · simp only [h0, if_false] at h ⊢
+    rw [← h]; rfl
+
 end Fv256.Util
