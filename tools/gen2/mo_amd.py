@@ -29,9 +29,12 @@ def stmt(n):
             L += f"  have := Util.readLE8_lt s.mem {v}.toNat\n" if j == 0 else f"  have := Util.readLE8_lt s.mem ({v}.toNat + {8*j})\n"
     for v in {X, Y}:
         L += f"  have hv{v} : Janus.Arm64.Memory.readLE s.mem {v}.toNat 32 < 2 ^ 256 := by\n    simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem {v}.toNat 32\n"
-    # on Janus >= 8821a47f (overlap fix) janus64_run closes the register, value and frame conjuncts itself; only the flag goal is left
+    # on Janus >= 8821a47f (overlap fix) janus64_run closes the register conjunct itself and the chains reduce; three conjuncts remain
     L += "  all_goals (simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.mod_mod])\n"
-    L += f"  refine Util.mo_flag8 _ _ _ _ _ _ hv{X} hv{Y} ?_ ?_ ?_ ?_\n" + "  · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)\n" * 4
+    L += "  refine ⟨?_, ?_, ?_⟩\n"
+    L += f"  · refine Util.mo_flag8 _ _ _ _ _ _ hv{X} hv{Y} ?_ ?_ ?_ ?_\n" + "    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)\n" * 4
+    L += "  · simp only [Spec.mul, Spec.W, Nat.reducePow, Util.readLE_32]; janus_arith\n"
+    L += "  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]\n"
     return L
 os.makedirs(ROOT + '/lean/Fv256/Amd64/MoCases', exist_ok=True)
 for n in PATS:

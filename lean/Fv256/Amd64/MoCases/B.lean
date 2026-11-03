@@ -37,10 +37,13 @@ theorem caseB (z y : BitVec 64) :
   have hvy : Janus.Arm64.Memory.readLE s.mem y.toNat 32 < 2 ^ 256 := by
     simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem y.toNat 32
   all_goals (simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.mod_mod])
-  refine Util.mo_flag8 _ _ _ _ _ _ hvz hvy ?_ ?_ ?_ ?_
-  · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
-  · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
-  · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
-  · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+  refine ⟨?_, ?_, ?_⟩
+  · refine Util.mo_flag8 _ _ _ _ _ _ hvz hvy ?_ ?_ ?_ ?_
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+  · simp only [Spec.mul, Spec.W, Nat.reducePow, Util.readLE_32]; janus_arith
+  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
 end Fv256.Amd64.MulOverflow
