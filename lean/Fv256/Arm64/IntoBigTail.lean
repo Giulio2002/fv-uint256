@@ -11,11 +11,11 @@ abbrev pcTail : Nat := Extracted.entry + 0x108
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 0 in
 /-- The allocating path after the copy and the normalization: the stores and the barrier. -/
-theorem slowTail (impl : List Segment) (R : RtInv) (b1 : Nat) (z bp : BitVec 64) (ret : Nat)
+theorem slowTail (impl : List Segment) (R : RtInv) (b b1 : Nat) (z bp : BitVec 64) (ret : Nat)
     (hret : RetAddr (Extracted.program.link impl) ret) (s : State)
     (hwb2 : WbLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
-    (hpre : Pre R b1 z bp s) (hz0 : z.toNat ≠ 0)
+    (hpre : Pre R b z bp s) (hz0 : z.toNat ≠ 0)
     (S2 : State) (w2 : Memory)
     (hsp : S2.sp = s.sp - 48#64) (h28 : S2.regs 28 = s.regs 28) (h29 : S2.regs 29 = s.sp - 56#64)
     (h18 : S2.regs 18 = s.regs 18) (h_rd1 : S2.mem.readLE (s.sp.toNat - 48) 8 = ret)
@@ -23,7 +23,7 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b1 : Nat) (z bp : BitVec 64)
     (h_rd3 : S2.mem.readLE (s.sp.toNat + 8) 8 = z.toNat) (h_rd4 : S2.mem.readLE (s.sp.toNat + 16) 8 = bp.toNat)
     (hfr2 : MemFrame s.mem S2.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
     (hpc : S2.pc = BitVec.ofNat 64 pcTail)
-    (A' P len : Nat) (h0 : S2.regs 0 = BitVec.ofNat 64 A') (h1 : S2.regs 1 = BitVec.ofNat 64 len)
+    (A' P len : Nat) (hA0 : (S2.regs 0).toNat = A') (hA1 : (S2.regs 1).toNat = len)
     (hlen : len ≤ 4) (h_rdP : S2.mem.readLE bp.toNat 8 = P)
     (hPa : s.mem.accessible P 32 true = true) (hP48 : P + 32 ≤ 2 ^ 48)
     (hAacc : s.mem.accessible A' 32 true = true) (hA48 : A' + 32 ≤ 2 ^ 48)
@@ -38,6 +38,8 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b1 : Nat) (z bp : BitVec 64)
     Reaches ((Extracted.program.link impl).withExit ret) S2
       (IsReturn fun s' => ABIReturn s s' ∧ BigOut s'.mem bp.toNat P (val256 s.mem z.toNat) ∧
         MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) := by
+  have h0 : S2.regs 0 = BitVec.ofNat 64 A' := by rw [← hA0]; simp
+  have h1 : S2.regs 1 = BitVec.ofNat 64 len := by rw [← hA1]; simp
   obtain ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb', ha, hw⟩, hd, hout, hga, hgr, hflag, hty1, hty2, hok1, hok2, hok3, hok4,
     hinv0, hbud, ⟨hbpa, hbpb⟩, hbpo, hbpd, hz⟩ := hpre
   have hret48 := hret.user
