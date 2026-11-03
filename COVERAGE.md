@@ -59,7 +59,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
-| `(*uint256.Int).MulOverflow` | pending Janus pin (9c4be184) | todo | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified privately on Janus 9c4be184 (U12 carry fix) in 295 s |
+| `(*uint256.Int).MulOverflow` | pending Janus pin (9c4be184) | todo | arm64: lean/Fv256/Arm64/MulOverflow.lean (+ MoCases/A..E, one per aliasing pattern of z,x,y); verified privately on Janus 9c4be184 (U12 carry fix) in 295 s. amd64: generator tools/gen2/mo_amd.py + lean/Fv256/Amd64/MoCases/A..E drafted; blocked on the 16-byte-read-over-8-byte-store overlap in the umul frame (fixed upstream on agent/speed-ovl 9601814b, unmerged); re-run case E against it |
 | `(*uint256.Int).Neg` | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
 | `(*uint256.Int).Not` | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
