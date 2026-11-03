@@ -37,3 +37,19 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 | `(*uint256.Int).EncodeRLP` | (c) | todo | todo | dynamic call io.Writer.Write (ItabIs / interface model), []byte literals on stack |
 | `(*uint256.Int).HashTreeRoot` | (a) | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) |
 | `(*uint256.Int).Value` | (d) | todo | todo | Dec + convTstring (interface boxing) |
+
+## IntoBig arm64: `PreX` conjuncts (precondition added to `correctness`; audit list)
+
+`correctness` assumes `Pre R b z bp s ∧ PreX z bp s`. Every conjunct of `PreX` is a Go runtime/ABI invariant that holds for every real call, not a proof convenience. `g` = the goroutine struct in x28; `g+16` = `stackguard0`, the slot the prologue reads.
+
+| conjunct | why it holds on every real call |
+|---|---|
+| `Apart bp 8 (g+16) 8` | `bp` is the address of the caller's `*big.Int` variable (stack slot or heap object). `g+16` is a field of the runtime `g` struct, a different object. `Pre` only says both are outside `R.rt`, which does not give apartness. |
+| `*P.cap < 2^63` (when `z ≠ 0`, `*bp ≠ 0`) | `cap` of a Go slice is an `int`, so it is below 2^63. The machine compares it signed (`cap_slt`), so without this the `cap < 4` branch would also take negative values. |
+| `Apart P 32 (g+16) 8` (same guard) | `P = *bp` is a live `big.Int` heap object (32 bytes) and the `g` struct is a different object. |
+| `4 ≤ cap → Apart ap 32 (g+16) 8` | `ap` is the backing array of the `big.Int` words (heap), disjoint from `g`. |
+
+When `*bp == 0` the freshly allocated object is separated from `g+16` by the newobject contract (`ApartAll`), so no extra assumption is needed there.
+No conjunct is false for a real caller, so none needs to be proved instead.
+
+Witness: the nonvacuous witness must instantiate `PreX` concretely, i.e. a `g` placed away from `bp`, `P` and `ap`, and `cap` as a small natural number. This is still to do and is tracked with the IntoBig Witness; the proof is `pending Janus pin 689b0f67`.
