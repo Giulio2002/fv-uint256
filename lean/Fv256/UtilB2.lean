@@ -108,4 +108,6 @@ theorem ne_zero_of_limbs (a b c d : Nat) (h : ¬(((a = 0 ∧ b = 0) ∧ c = 0) �
       6277101735386680763835789423207666416102355444464034512896 * d ≠ 0 := by
   intro h'; apply h; omega
 
+theorem sub_off (n a c b : Nat) (h1 : c ≤ n) (h2 : a + b = c) : n - a = n - c + b := by omega
+
 end Fv256.B
