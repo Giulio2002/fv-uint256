@@ -8,12 +8,13 @@ import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
+import Fv256.Amd64.UdivremM
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 
 namespace Fv256.Amd64.DivModB
 
-set_option maxHeartbeats 0 in
+set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 /-- The part of `DivMod` after the (possible) un-aliasing allocation: from the merge point (`+0x8c`) with `m'` in `RDI`. -/
 theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : Nat)
@@ -74,7 +75,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.B.summary_link impl Fv256.Amd64.UdivremL.udivrem_rem]
+  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.B.summary_link impl Fv256.Amd64.UdivremM.udivrem_rem_s]
   all_goals (try clear hdx hdy hdg hgo hxo hyo)
   all_goals (first | refine ⟨?_, m', rfl, hm'.1, hm'.2, ?_, ?_, ?_⟩ | refine ⟨m', rfl, hm'.1, hm'.2, ?_, ?_, ?_⟩)
   all_goals (first
@@ -90,30 +91,6 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
       Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
       Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
     try clear hdz hdx hdy hdm hzm hdg hgo hout hxo hyo hzo hm' hm'r hacc hlow hnw hnw2 hgl hgb hgr hzw hz hxw hx hyw hy hmw hm hfr hrip hspill hretslot hbp h0 h3 h1 h7 h7' h4 h5 h14 e8 e16 e24 f8 f16 f24
-    first
-    | set_option maxHeartbeats 300000 in (rw [Fv256.B.divSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
-    | set_option maxHeartbeats 300000 in
-        (rw [Fv256.B.divSpec]
-         split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
-           | exact (Nat.div_eq_of_lt (by omega)).symm
-           | exact Fv256.B.div_congr _ _ _ (by omega)))
-    | set_option maxHeartbeats 300000 in (rw [Fv256.B.modSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
-    | set_option maxHeartbeats 300000 in (exfalso; omega)
-    | set_option maxHeartbeats 300000 in
-        (rw [Fv256.B.modSpec]
-         split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
-           | exact (Nat.mod_eq_of_lt (by omega)).symm
-           | exact Fv256.B.mod_congr _ _ _ (by omega)
-           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; exact Fv256.B.mod_congr _ _ _ (by omega))))
-    | skip)
-
+    first | assumption | skip)
 
 end Fv256.Amd64.DivModB

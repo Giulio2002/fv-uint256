@@ -8,6 +8,7 @@ import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
+import Fv256.Amd64.UdivremM
 import Fv256.Amd64.DivModB
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
