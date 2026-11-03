@@ -91,8 +91,9 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
     try clear hdz hdx hdy hdm hzm hdg hgo hout hxo hyo hzo hm' hm'r hacc hlow hnw hnw2 hgl hgb hgr hzw hz hxw hx hyw hy hmw hm hfr hrip hspill hretslot hbp h0 h3 h1 h7 h7' h4 h5 h14 e8 e16 e24 f8 f16 f24
     first
     | set_option maxHeartbeats 300000 in (rw [Fv256.B.divSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
-    | set_option maxHeartbeats 300000 in (rw [Fv256.B.divSpec]
-       split <;>
+    | set_option maxHeartbeats 300000 in
+        (rw [Fv256.B.divSpec]
+         split <;>
          (first
            | omega
            | (exfalso; omega)
@@ -101,8 +102,9 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
            | exact Fv256.B.div_congr _ _ _ (by omega)))
     | set_option maxHeartbeats 300000 in (rw [Fv256.B.modSpec_of_ne _ _ (Fv256.B.ne_zero_of_limbs _ _ _ _ (by assumption))]; assumption)
     | set_option maxHeartbeats 300000 in (exfalso; omega)
-    | set_option maxHeartbeats 300000 in (rw [Fv256.B.modSpec]
-       split <;>
+    | set_option maxHeartbeats 300000 in
+        (rw [Fv256.B.modSpec]
+         split <;>
          (first
            | omega
            | (exfalso; omega)
