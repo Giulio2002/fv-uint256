@@ -31,7 +31,13 @@ theorem caseA (z x y : BitVec 64) :
   have := Util.readLE8_lt s.mem (y.toNat + 16)
   have := Util.readLE8_lt s.mem (y.toNat + 24)
   refine ⟨?_, ?_, ?_⟩
-  · refine Util.mo_flag _ _ _ _ _ _ ?_ ?_ ?_ ?_ ?_ ?_ <;> first | omega | (simp only [Spec.W, Nat.reducePow]; janus_arith)
+  · refine Util.mo_flag _ _ _ _ _ _ ?_ ?_ ?_ ?_ ?_ ?_
+    · omega
+    · omega
+    · (simp only [Spec.W, Nat.reducePow]; janus_arith)
+    · (simp only [Spec.W, Nat.reducePow]; janus_arith)
+    · (simp only [Spec.W, Nat.reducePow]; janus_arith)
+    · (simp only [Spec.W, Nat.reducePow]; janus_arith)
   · simp only [Spec.mul, Spec.W, Nat.reducePow]; janus_arith
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 

@@ -11,4 +11,4 @@ case "$F" in NewInt|FromBig|MustFromBig) full="github.com/holiman/uint256.$F";; 
 . "$FV_ROOT/scripts/contract-flags.sh"
 if [ ! -f build/ex-$I-$F/identity.json ]; then $J extract build/harness-$I "$full" build/ex-$I-$F $FV_CONTRACTS $(contract_flags $F) >/dev/null 2>&1; fi
 MC=""; command -v memcap >/dev/null && MC=memcap
-timeout 1800 $MC $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness
+timeout ${FV_TIMEOUT:-1800} $MC $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness

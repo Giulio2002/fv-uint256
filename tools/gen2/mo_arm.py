@@ -28,7 +28,7 @@ def stmt(name):
             haves.append(f"have := Util.readLE8_lt s.mem {v}.toNat" if j == 0 else f"have := Util.readLE8_lt s.mem ({v}.toNat + {8*j})")
     L += "  " + "\n  ".join(haves) + "\n"
     L += "  refine ⟨?_, ?_, ?_⟩\n"
-    L += "  · refine Util.mo_flag _ _ _ _ _ _ ?_ ?_ ?_ ?_ ?_ ?_ <;> first | omega | (simp only [Spec.W, Nat.reducePow]; janus_arith)\n"
+    L += "  · refine Util.mo_flag _ _ _ _ _ _ ?_ ?_ ?_ ?_ ?_ ?_\n    · omega\n    · omega\n" + "    · (simp only [Spec.W, Nat.reducePow]; janus_arith)\n" * 4
     L += "  · simp only [Spec.mul, Spec.W, Nat.reducePow]; janus_arith\n"
     L += "  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]\n"
     return L
