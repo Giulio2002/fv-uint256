@@ -73,9 +73,6 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     have hzm' : z = m := BitVec.eq_of_toNat_eq (by omega)
     have hdj := InRanges.disjoint cin hout
     have hdzp := InRanges.disjoint cin hzo
-    refine Fv256.Amd64.DivModB.partB impl rt z x y m ptr.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
-      (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
-      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
     have hOut : ∀ a n, (s.regs 4).toNat - 4248 ≤ a → a + n ≤ (s.regs 4).toNat + 40 → Outside a n rt :=
       fun a n h1 h2 => Outside.of_sub hout h1 (by omega)
     have hOc : ∀ a n, (s.regs 4).toNat - 136 ≤ a → a + n ≤ (s.regs 4).toNat + 40 →
@@ -103,6 +100,9 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       rw [cfr.readLE _ _ (hOc _ _ (by omega) (by omega))]
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
       exact Nat.mod_eq_of_lt (by simpa using (s.regs 5).isLt)
+    refine Fv256.Amd64.DivModB.partB impl rt z x y m ptr.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
+      (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
+      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
     all_goals (first | rfl | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]; done) | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]))
     all_goals (first | janus_frame | skip)
     all_goals trace_state
