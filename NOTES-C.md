@@ -10,3 +10,8 @@ FromBig 1416 -> 735 s, MustFromBig 435 -> 276 s, CmpBig 358 -> 306 s; amd64 37-9
 `trace.profiler`, fix the cause (closing lemma in post-run shape, assumptions over huge contexts, segmentation at the limb
 loop), record before/after in COVERAGE-C.md. IntoBig: removed a type-mismatched closing refine retried 10x (~290 s);
 Hidden-wrapper workaround costs ~143 s of failed Outside discharges (engine fix on agent/speed-s1, unmerged).
+
+## janus_assumption (2026-11-03, from main/U10)
+On Janus main c7950624 `janus_assumption` (head-symbol match, reducible transparency, fails fast) replaces core `assumption` / `‹T›` over
+big post-call states (2-77 s each in IntoBigSlow2). My IntoBig workspace (ws/IB) is still the pinned 83049110 build without it, so the
+current proofs use `‹T›`; switch to `(by janus_assumption : T)` when the pin moves ('pending Janus pin c7950624') and re-time.
