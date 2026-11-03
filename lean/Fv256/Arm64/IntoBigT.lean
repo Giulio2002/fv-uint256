@@ -14,8 +14,9 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
     (hwb2 : WbLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, bp]
-      (fun s => Pre R b z bp s) (fun s s' => Post R z bp s s') := by
-  intro ret hret s hs hpre
+      (fun s => Pre R b z bp s ∧ PreX z bp s) (fun s s' => Post R z bp s s') := by
+  intro ret hret s hs hpre'
+  obtain ⟨hpre, hpx⟩ := hpre'
   have hpre0 := hpre
   obtain ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb', ha, hw⟩, hd, hout, hga, hgr, hflag, hty1, hty2, hok1, hok2, hok3, hok4,
     hinv, hbud, hbp, hbpo, hbpd, hz⟩ := hpre
@@ -33,7 +34,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
   rw [h_f] at hflag
   janus_run until [Extracted.entry + 0x64] calls [hnew.pos, hwb1, hwb2]
   rotate_left 2
-  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 ‹_› _ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
+  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx ‹_› _ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
     all_goals (try unfold Rel)
     all_goals (try (first | exact rfl | (janus_simp; exact rfl)))
     all_goals (repeat' refine And.intro ?_ ?_)
@@ -45,7 +46,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
       | (exact ZeroBytes.writeLE_apart ‹_› (by unfold Apart at *; omega))
       | (unfold Apart at *; janus_clear_irrel2; omega)
       | (trace_state; fail "x1")
-  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 ‹_› _ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
+  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx ‹_› _ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
     all_goals (try unfold Rel)
     all_goals (try (first | exact rfl | (janus_simp; exact rfl)))
     all_goals (repeat' refine And.intro ?_ ?_)
@@ -58,7 +59,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
       | (unfold Apart at *; janus_clear_irrel2; omega)
       | (refine ZeroBytes.writeLE_apart (ZeroBytes.writeLE_apart (ZeroBytes.writeLE_apart (ZeroBytes.of_liveFrame ‹LiveFrame _ _ _ []› ‹ZeroBytes _ _ _› ⟨_, List.mem_singleton_self _, Nat.le_refl _, Nat.le_refl _⟩) ?_) ?_) ?_ <;> (unfold Apart at *; omega))
       | (trace_state; fail "x2")
-  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 ‹_› _ ?_ ?_ ?_ ?_ _ rfl (Or.inl ⟨?_, ?_, ?_⟩)
+  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx ‹_› _ ?_ ?_ ?_ ?_ _ rfl (Or.inl ⟨?_, ?_, ?_⟩)
     all_goals (try unfold Rel)
     all_goals (try (first | exact rfl | (janus_simp; exact rfl)))
     all_goals (repeat' refine And.intro ?_ ?_)

@@ -1,4 +1,5 @@
 import Fv256.Arm64.IntoBigFinF
+import Fv256.Arm64.IntoBigSlow3
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 
@@ -13,7 +14,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
     (hwb2 : WbLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
-    (hpre : Pre R b z bp s) (hz0 : z.toNat ≠ 0)
+    (hpre : Pre R b z bp s) (hpx : PreX z bp s) (hz0 : z.toNat ≠ 0)
     (S : State) (hrel : Rel R ret z bp s S) (hpc : S.pc = BitVec.ofNat 64 pcLoad)
     (h0 : S.regs 0 = z) (h1 : S.regs 1 = bp)
     (P : Nat) (h_rdP : S.mem.readLE bp.toNat 8 = P)
@@ -218,7 +219,31 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
              intro i h1 h2
              obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
              all_goals (simp; try omega))
-    · sorry
-  · sorry
+    · have hpx2 := hpx.2 hz0 (by rw [hP]; exact hP0)
+      rw [hP] at hpx2
+      obtain ⟨hcl, hgP, -⟩ := hpx2
+      have hcapS : S.mem.readLE (P + 24) 8 = s.mem.readLE (P + 24) 8 := by
+        rw [hfr.readLE (P + 24) 8 (by
+          simp only [outside_append, outside_cons, outside_nil, and_true]
+          exact ⟨Outside.of_sub hPo (by omega) (by omega), by omega, by omega⟩)]
+      have hb0 : 32 ≤ b := by
+        have e1 : blockSize 32 false = 32 := by decide
+        have e2 : blockSize 32 true = 32 := by decide
+        omega
+      exact slowHead3 impl R b z bp ret hret s hnew hwb2 hpre0 hz0 S hsp h28 h29 h18 h_rd1 h_rd2 h_rd3 h_rd4 hfr hpc h0 h1
+        P (S.mem.readLE (P + 24) 8) h_rdP rfl (by rw [hcapS]; omega) hPpa hPpb hpx.1 hgP (Or.symm hPd) (Or.symm hPb)
+        (Or.symm hPz) [] b (Or.inl ⟨rfl, hPo⟩) (Or.inl ⟨rfl, hP⟩) hinvS hb0
+        ⟨(P, P + 32), by simp [hP], Nat.le_refl _, Nat.le_refl _⟩
+  · have hb0 : 32 ≤ b - 32 := by
+      have e1 : blockSize 32 false = 32 := by decide
+      have e2 : blockSize 32 true = 32 := by decide
+      omega
+    have hc0 : S.mem.readLE (P + 24) 8 = 0 := by simpa using hZ.readLE (k := 24) (j := 8) (by omega)
+    obtain ⟨r, hr, hr1, hr2⟩ := hIn
+    exact slowHead3 impl R b z bp ret hret s hnew hwb2 hpre0 hz0 S hsp h28 h29 h18 h_rd1 h_rd2 h_rd3 h_rd4 hfr hpc h0 h1
+      P 0 h_rdP hc0 (by decide) (by rw [← hfr.accessible P 32 true]; exact hAcc) hP48 hpx.1
+      (Or.symm (InRanges.apart ⟨r, hr, hr1, hr2⟩ hgr)) hAs hAb (InRanges.apart ⟨r, hr, hr1, hr2⟩ hzo)
+      [(P, P + 32)] (b - 32) (Or.inr ⟨rfl, ⟨r, hr, hr1, hr2⟩⟩) (Or.inr ⟨rfl, hP0⟩) hinvS hb0
+      ⟨r, List.mem_append_left _ hr, hr1, hr2⟩
 
 end Fv256.Arm64.IntoBig
