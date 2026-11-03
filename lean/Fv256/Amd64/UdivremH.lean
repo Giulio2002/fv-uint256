@@ -72,8 +72,8 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
     (hD0 : Fv256.B.wv M0 dp 4 ≠ 0) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x1a0))
       { s0 with regs := R, rip := BitVec.ofNat 64 ku, flags := fl, mem := M0 }
-      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (n ulen s : Nat),
-        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl', mem := M' } ∧
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (kr : Nat → W64) (n ulen s : Nat),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl', mem := M', kreg := kr } ∧
         Front R' M' M0 sp0 dp qp qcap ql up remp n ulen s (R 5).toNat (M0.readLE sp0 8) ∧ R' 5 = BitVec.ofNat 64 (sp0 - 8) ∧ R' 14 = R 14) := by
   have h1 := Fv256.Amd64.UdivremG.pro1 s0 sp0 dp R fl M0 hsp0 (by omega) (Janus.Arm64.Memory.accessible_mono _ hMs (by omega) (by omega)) hdp hda (by omega) hg1 hg2 (by omega) (by omega) e4 e9
   refine Fv256.B.reachesRet_trans64 h1 ?_
@@ -108,7 +108,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
     ((hk2 1 (by simp)).trans ((rk 1 (by simp)).trans e1)) ((hk2 7 (by simp)).trans ((rk 7 (by simp)).trans e7))
     ((hk2 10 (by simp)).trans ((rk 10 (by simp)).trans e10)) hx15 hqp hql hqc hup hremp
   refine Fv256.B.reachesRet_trans64 h3 ?_
-  intro S3 _ ⟨R3, fl3, M3, hS3, f12, f11, f8, f13, f15, fk3, sd8, se0, sf8, s100, s108, s110, s130, zer, fr3⟩
+  intro S3 _ ⟨R3, fl3, M3, kr3, hS3, f12, f11, f8, f13, f15, fk3, sd8, se0, sf8, s100, s108, s110, s130, zer, fr3⟩
   subst hS3
   obtain ⟨hs63, hn2', hn3'⟩ := Fv256.B.clz_norm (M1.readLE (dp + n * 8 - 8) 8) (by rw [hdt]; exact hnz1) hdtB
   generalize hsd : Janus.Arm64.clzNat 64 (M1.readLE (dp + n * 8 - 8) 8) = s at *
@@ -117,7 +117,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   have hda3 : M3.accessible dp 32 false = true := by rw [fr3.accessible]; exact hda1
   have hMs3 : M3.accessible (sp0 - 0xf0) 0x138 true = true := by rw [fr3.accessible]; exact hMs1
   have hR3_4 : R3 4 = BitVec.ofNat 64 (sp0 - 0xf0) := (fk3 4 (by simp)).trans hR2_4
-  have h4 := Fv256.Amd64.UdivremB.dn_loop s0 dp qp qcap ql up remp n 4 s (sp0 - 0xf0) hs63 hn4 hn1 hdp hsf (by omega) (by omega)
+  have h4 := Fv256.Amd64.UdivremB.dn_loop { s0 with kreg := kr3 } dp qp qcap ql up remp n 4 s (sp0 - 0xf0) hs63 hn4 hn1 hdp hsf (by omega) (by omega)
     (n - 1) (by omega) R3 fl3 M3 hda3 hMs3 f12 ((fk3 0 (by simp)).trans ((hk2 0 (by simp)).trans ((rk 0 (by simp)).trans e0)))
     ((fk3 1 (by simp)).trans ((hk2 1 (by simp)).trans ((rk 1 (by simp)).trans e1)))
     ((fk3 3 (by simp)).trans ((hk2 3 (by simp)).trans ((rk 3 (by simp)).trans e3)))
@@ -130,7 +130,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   subst hS4
   have hda4 : M4.accessible dp 32 false = true := by rw [gfr.accessible]; exact hda3
   have hMs4 : M4.accessible (sp0 - 0xf0) 0x138 true = true := by rw [gfr.accessible]; exact hMs3
-  have h5 := Fv256.Amd64.UdivremC.mid1 s0 dp qp qcap ql up remp n 4 s (sp0 - 0xf0) R4 fl4 M4 hs63 hn4 hn1 (by omega) (by omega) hdp hda4 hsf hMs4
+  have h5 := Fv256.Amd64.UdivremC.mid1 { s0 with kreg := kr3 } dp qp qcap ql up remp n 4 s (sp0 - 0xf0) R4 fl4 M4 hs63 hn4 hn1 (by omega) (by omega) hdp hda4 hsf hMs4
     (by omega) (by omega) g12 ((gk 0 (by simp)).trans ((fk3 0 (by simp)).trans ((hk2 0 (by simp)).trans ((rk 0 (by simp)).trans e0))))
     ((gk 1 (by simp)).trans ((fk3 1 (by simp)).trans ((hk2 1 (by simp)).trans ((rk 1 (by simp)).trans e1))))
     ((gk 3 (by simp)).trans ((fk3 3 (by simp)).trans ((hk2 3 (by simp)).trans ((rk 3 (by simp)).trans e3))))
@@ -153,7 +153,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   have hMs5 : M5.accessible (sp0 - 0xf0) 0x138 true = true := by rw [fr5.accessible]; exact hMs4
   have hsf8 : M5.readLE (sp0 - 0xf0 + 0xf8) 8 = qp := by
     rw [fr5.readLE _ _ (by simp [Outside] <;> omega), gfr.readLE _ _ (by simp [Outside] <;> omega)]; exact sf8
-  have h6 := Fv256.Amd64.UdivremC.ulen_loop s0 up qp M5 (sp0 - 0xf0) hup48 hua5 hsf (by omega) hMs5 (by omega) hsf8 hqp 4 R5 fl5
+  have h6 := Fv256.Amd64.UdivremC.ulen_loop { s0 with kreg := kr3 } up qp M5 (sp0 - 0xf0) hup48 hua5 hsf (by omega) hMs5 (by omega) hsf8 hqp 4 R5 fl5
     (Nat.le_refl _)
     ((ak 7 (by simp)).trans ((gk 7 (by simp)).trans ((fk3 7 (by simp)).trans ((hk2 7 (by simp)).trans ((rk 7 (by simp)).trans e7)))))
     ((ak 4 (by simp)).trans ((gk 4 (by simp)).trans hR3_4))
@@ -186,7 +186,7 @@ theorem front (s0 : State) (R : Nat → W64) (fl : Flags) (M0 : Memory) (sp0 dp 
   obtain ⟨hdnw, hdntop⟩ := Fv256.B.dn_norm M5 M5 dp (sp0 - 0xf0 + 0x98) n s (M1.readLE (dp + n * 8 - 8) 8) hn1 hs63
     (by rw [hdtop5, ← hdt]) hn2' hn3' hdn5
   have hs5 : ∀ k, k ≤ 3 → M5.readLE (dp + 8 * k) 8 = M1.readLE (dp + 8 * k) 8 := hd5
-  refine ⟨0, _, Janus.Amd64.Program.Steps.refl _, rfl, R6, fl6, M5, n, ulen, s, rfl, ⟨hn1, hn4, by omega, hs63, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
+  refine ⟨0, _, Janus.Amd64.Program.Steps.refl _, rfl, R6, fl6, M5, kr3, n, ulen, s, rfl, ⟨hn1, hn4, by omega, hs63, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
     hdwv, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩, ?_, ?_⟩
   · exact b12
   · exact ((bk 2 (by simp)).trans ((ak 2 (by simp)).trans ((gk 2 (by simp)).trans ((fk3 2 (by simp)).trans q2))))

@@ -25,16 +25,16 @@ theorem udivrem_nil :
         ((s.regs 9).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 9).toNat) ∧
         ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 14).toNat + 16) ∧
         Fv256.B.wv s.mem (s.regs 9).toNat 4 ≠ 0 ∧ Fv256.B.wv s.mem (s.regs 0).toNat 4 = 0 ∧ (s.regs 10).toNat = 0)
-      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
+      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory) (kr : Nat → W64),
         s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
-                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M' } ∧
+                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M', kreg := kr } ∧
         Fv256.B.wv M' (s.regs 0).toNat 4 = Fv256.B.wv s.mem (s.regs 7).toNat 4 / Fv256.B.wv s.mem (s.regs 9).toNat 4 ∧
         MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32),
           ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) := by
   intro s hpc ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, hr⟩
   refine Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremK.udivrem_summary s hpc ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, fun h => absurd hr h⟩) ?_
-  rintro S ⟨R', fl', X', M', hS, hq, hrm, hf0, hf1⟩
-  exact ⟨R', fl', X', M', hS, hq, hf0 hr⟩
+  rintro S ⟨R', fl', X', M', kr, hS, hq, hrm, hf0, hf1⟩
+  exact ⟨R', fl', X', M', kr, hS, hq, hf0 hr⟩
 
 set_option maxHeartbeats 8000000 in
 /-- `udivrem(quot, u, d, rem)` with a non-nil `rem`. -/
@@ -53,16 +53,16 @@ theorem udivrem_rem :
           ((s.regs 0).toNat + 32 ≤ (s.regs 10).toNat ∨ (s.regs 10).toNat + 32 ≤ (s.regs 0).toNat) ∧
           ((s.regs 10).toNat + 32 ≤ (s.regs 7).toNat ∨ (s.regs 7).toNat + 32 ≤ (s.regs 10).toNat) ∧
           ((s.regs 10).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 10).toNat))
-      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
+      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory) (kr : Nat → W64),
         s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
-                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M' } ∧
+                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M', kreg := kr } ∧
         Fv256.B.wv M' (s.regs 0).toNat 4 = Fv256.B.wv s.mem (s.regs 7).toNat 4 / Fv256.B.wv s.mem (s.regs 9).toNat 4 ∧
         Fv256.B.wv M' (s.regs 10).toNat 4 = Fv256.B.wv s.mem (s.regs 7).toNat 4 % Fv256.B.wv s.mem (s.regs 9).toNat 4 ∧
         MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
           ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) := by
   intro s hpc ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, hr, hb, hz, d1, d2, d3⟩
   refine Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremK.udivrem_summary s hpc ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, fun _ => ⟨hb, hz, d1, d2, d3⟩⟩) ?_
-  rintro S ⟨R', fl', X', M', hS, hq, hrm, hf0, hf1⟩
-  exact ⟨R', fl', X', M', hS, hq, hrm hr, hf1 hr⟩
+  rintro S ⟨R', fl', X', M', kr, hS, hq, hrm, hf0, hf1⟩
+  exact ⟨R', fl', X', M', kr, hS, hq, hrm hr, hf1 hr⟩
 
 end Fv256.Amd64.UdivremL

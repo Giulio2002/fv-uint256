@@ -25,8 +25,8 @@ theorem pro2 (s0 : State) (dp n sf qp ql qcap up remp : Nat) (R : Nat → W64) (
     (hx15 : s0.xmm 15 = 0) (hqp : qp < 2 ^ 64) (hql : ql < 2 ^ 64) (hqc : qcap < 2 ^ 64) (hup : up < 2 ^ 64) (hremp : remp < 2 ^ 64) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x140))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x4c), flags := fl, mem := M }
-      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
-        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x140), flags := fl', mem := M' } ∧
+      (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (kr : Nat → W64),
+        S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x140), flags := fl', mem := M', kreg := kr } ∧
         R' 12 = BitVec.ofNat 64 (n - 1) ∧ R' 11 = BitVec.ofNat 64 (64 - Janus.Arm64.clzNat 64 dtop) ∧
         R' 8 = 0 - BitVec.ofNat 64 (Janus.Arm64.clzNat 64 dtop) ∧ R' 13 = BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 dtop) ∧
         R' 15 = BitVec.ofNat 64 (Janus.Arm64.clzNat 64 dtop) ∧ (∀ k, k ∉ [8, 11, 12, 13, 15] → R' k = R k) ∧
@@ -44,7 +44,7 @@ theorem pro2 (s0 : State) (dp n sf qp ql qcap up remp : Nat) (R : Nat → W64) (
   have t10 : (R 10).toNat = remp := by rw [e10, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt hremp
   janus64_run [e2, e9, e4, hdtop, hdt0] until [ku + 0x140]
   all_goals (try simp only [hdt0, if_false, ite_false, ↓reduceIte])
-  all_goals refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   all_goals generalize Janus.Arm64.clzNat 64 dtop = sv at *
   all_goals first
     | (simp [setRegF]; bv_omega)

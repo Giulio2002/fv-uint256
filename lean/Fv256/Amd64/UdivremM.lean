@@ -31,9 +31,9 @@ theorem udivrem_rem_s :
           ((s.regs 0).toNat + 32 ≤ (s.regs 10).toNat ∨ (s.regs 10).toNat + 32 ≤ (s.regs 0).toNat) ∧
           ((s.regs 10).toNat + 32 ≤ (s.regs 7).toNat ∨ (s.regs 7).toNat + 32 ≤ (s.regs 10).toNat) ∧
           ((s.regs 10).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 10).toNat))
-      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
+      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory) (kr : Nat → W64),
         s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
-                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M' } ∧
+                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M', kreg := kr } ∧
         Fv256.B.wv M' (s.regs 0).toNat 4 = Fv256.B.divSpec (Fv256.B.wv s.mem (s.regs 7).toNat 4) (Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
         Fv256.B.wv M' (s.regs 10).toNat 4 = Fv256.B.modSpec (Fv256.B.wv s.mem (s.regs 7).toNat 4) (Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
         MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
@@ -41,7 +41,7 @@ theorem udivrem_rem_s :
   intro s hpc ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, hr, hb, hz, d1, d2, d3⟩
   have h16' := h15
   refine Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremK.udivrem_summary s hpc ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, fun _ => ⟨hb, hz, d1, d2, d3⟩⟩) ?_
-  rintro S ⟨R', fl', X', M', hS, hq, hrm, hf0, hf1⟩
-  exact ⟨R', fl', X', M', hS, by rw [Fv256.B.divSpec_of_ne _ _ h16']; exact hq, by rw [Fv256.B.modSpec_of_ne _ _ h16']; exact hrm hr, hf1 hr⟩
+  rintro S ⟨R', fl', X', M', kr, hS, hq, hrm, hf0, hf1⟩
+  exact ⟨R', fl', X', M', kr, hS, by rw [Fv256.B.divSpec_of_ne _ _ h16']; exact hq, by rw [Fv256.B.modSpec_of_ne _ _ h16']; exact hrm hr, hf1 hr⟩
 
 end Fv256.Amd64.UdivremM
