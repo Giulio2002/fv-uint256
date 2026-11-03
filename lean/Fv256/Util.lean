@@ -2710,4 +2710,12 @@ theorem mo_flag8 (a b c d xv yv : Nat) (hx : xv < 2 ^ 256) (hy : yv < 2 ^ 256)
   · simp only [h0, if_false] at h ⊢
     rw [← h]; rfl
 
+theorem mul_limbs (a b c d P : Nat) (ha : a = P % 2 ^ 64) (hb : b = P / 2 ^ 64 % 2 ^ 64)
+    (hc : c = P / 2 ^ 128 % 2 ^ 64) (hd : d = P / 2 ^ 192 % 2 ^ 64) :
+    a + 18446744073709551616 * b + 340282366920938463463374607431768211456 * c +
+      6277101735386680763835789423207666416102355444464034512896 * d = P % Spec.W := by
+  subst ha hb hc hd
+  simp only [Spec.W, Nat.reducePow]
+  omega
+
 end Fv256.Util

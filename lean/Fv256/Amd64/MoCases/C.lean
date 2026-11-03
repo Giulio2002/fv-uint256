@@ -43,7 +43,13 @@ theorem caseC (z x : BitVec 64) :
     · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
     · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
     · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
-  · simp only [Spec.mul, Spec.W, Nat.reducePow, Util.readLE_32]; janus_arith
+  · simp only [Spec.mul, Util.readLE_32]
+    janus64_simp
+    refine Util.mul_limbs _ _ _ _ _ ?_ ?_ ?_ ?_
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
+    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
 end Fv256.Amd64.MulOverflow

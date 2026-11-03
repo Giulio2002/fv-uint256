@@ -33,7 +33,7 @@ def stmt(n):
     L += "  all_goals (simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.mod_mod])\n"
     L += "  refine ⟨?_, ?_, ?_⟩\n"
     L += f"  · refine Util.mo_flag8 _ _ _ _ _ _ hv{X} hv{Y} ?_ ?_ ?_ ?_\n" + "    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)\n" * 4
-    L += "  · simp only [Spec.mul, Spec.W, Nat.reducePow, Util.readLE_32]; janus_arith\n"
+    L += "  · simp only [Spec.mul, Util.readLE_32]\n    janus64_simp\n    refine Util.mul_limbs _ _ _ _ _ ?_ ?_ ?_ ?_\n" + "    · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)\n" * 4
     L += "  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]\n"
     return L
 os.makedirs(ROOT + '/lean/Fv256/Amd64/MoCases', exist_ok=True)
