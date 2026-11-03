@@ -74,38 +74,38 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Set` | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
 | `(*uint256.Int).SetAllOne` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetAllOne.lean |
 | `(*uint256.Int).SetBytes` | todo | todo | |
-| `(*uint256.Int).SetBytes1` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes10` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes11` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes12` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes13` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes14` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes15` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes16` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes17` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes18` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes19` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes2` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes20` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes21` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes22` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes23` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes24` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes25` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes26` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes27` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes28` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes29` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes3` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes30` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes31` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes1` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes1.lean; verify time arm64 508s, amd64 35s on Janus c7950624 |
+| `(*uint256.Int).SetBytes10` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes10.lean; verify time arm64 14s, amd64 12s on Janus c7950624 |
+| `(*uint256.Int).SetBytes11` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes11.lean; verify time arm64 15s, amd64 14s on Janus c7950624 |
+| `(*uint256.Int).SetBytes12` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes12.lean; verify time arm64 15s, amd64 11s on Janus c7950624 |
+| `(*uint256.Int).SetBytes13` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes13.lean; verify time arm64 14s, amd64 13s on Janus c7950624 |
+| `(*uint256.Int).SetBytes14` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes14.lean; verify time arm64 13s, amd64 13s on Janus c7950624 |
+| `(*uint256.Int).SetBytes15` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes15.lean; verify time arm64 14s, amd64 13s on Janus c7950624 |
+| `(*uint256.Int).SetBytes16` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes16.lean; verify time arm64 52s, amd64 11s on Janus c7950624 |
+| `(*uint256.Int).SetBytes17` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes17.lean; verify time arm64 13s, amd64 12s on Janus c7950624 |
+| `(*uint256.Int).SetBytes18` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes18.lean; verify time arm64 14s, amd64 14s on Janus c7950624 |
+| `(*uint256.Int).SetBytes19` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes19.lean; verify time arm64 16s, amd64 18s on Janus c7950624 |
+| `(*uint256.Int).SetBytes2` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes2.lean; verify time arm64 13s, amd64 258s on Janus c7950624 |
+| `(*uint256.Int).SetBytes20` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes20.lean; verify time arm64 18s, amd64 13s on Janus c7950624 |
+| `(*uint256.Int).SetBytes21` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes21.lean; verify time arm64 15s, amd64 14s on Janus c7950624 |
+| `(*uint256.Int).SetBytes22` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes22.lean; verify time arm64 15s, amd64 13s on Janus c7950624 |
+| `(*uint256.Int).SetBytes23` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes23.lean; verify time arm64 16s, amd64 14s on Janus c7950624 |
+| `(*uint256.Int).SetBytes24` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes24.lean; verify time arm64 91s, amd64 15s on Janus c7950624 |
+| `(*uint256.Int).SetBytes25` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes25.lean; verify time arm64 14s, amd64 16s on Janus c7950624 |
+| `(*uint256.Int).SetBytes26` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes26.lean; verify time arm64 15s, amd64 16s on Janus c7950624 |
+| `(*uint256.Int).SetBytes27` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes27.lean; verify time arm64 17s, amd64 24s on Janus c7950624 |
+| `(*uint256.Int).SetBytes28` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes28.lean; verify time arm64 23s, amd64 14s on Janus c7950624 |
+| `(*uint256.Int).SetBytes29` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes29.lean; verify time arm64 17s, amd64 16s on Janus c7950624 |
+| `(*uint256.Int).SetBytes3` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes3.lean; verify time arm64 13s, amd64 11s on Janus c7950624 |
+| `(*uint256.Int).SetBytes30` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes30.lean; verify time arm64 18s, amd64 15s on Janus c7950624 |
+| `(*uint256.Int).SetBytes31` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes31.lean; verify time arm64 18s, amd64 15s on Janus c7950624 |
 | `(*uint256.Int).SetBytes32` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes32.lean |
-| `(*uint256.Int).SetBytes4` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes5` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes6` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes7` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes8` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
-| `(*uint256.Int).SetBytes9` | todo | todo | blocked: kernel deep recursion in the janus_run proof term (stores before the load); see NOTES.md |
+| `(*uint256.Int).SetBytes4` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes4.lean; verify time arm64 12s, amd64 11s on Janus c7950624 |
+| `(*uint256.Int).SetBytes5` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes5.lean; verify time arm64 14s, amd64 12s on Janus c7950624 |
+| `(*uint256.Int).SetBytes6` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes6.lean; verify time arm64 13s, amd64 12s on Janus c7950624 |
+| `(*uint256.Int).SetBytes7` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes7.lean; verify time arm64 14s, amd64 13s on Janus c7950624 |
+| `(*uint256.Int).SetBytes8` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes8.lean; verify time arm64 not timed (SetBytes8 arm64 predates the batch), amd64 11s on Janus c7950624 |
+| `(*uint256.Int).SetBytes9` | verified | verified | lean/Fv256/{Arm64,Amd64}/SetBytes9.lean; verify time arm64 14s, amd64 11s on Janus c7950624 |
 | `(*uint256.Int).SetFromBig` | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
 | `(*uint256.Int).SetFromDecimal` | todo | todo | |
 | `(*uint256.Int).SetFromHex` | on branch fv/wc: verified (not yet merged) | on branch fv/wc: verified (not yet merged) | FV-C; see COVERAGE-C.md on fv/wc |
@@ -155,6 +155,10 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 | ExtendSign amd64 / arm64 | 262 / 238 s, 144 / 127 s | - | profile pass pending |
 | SRsh amd64 | 175 s | - | profile pass pending |
 | Slt, Sgt amd64 | ~80-104 s each | - | profile pass pending |
+| SetBytes1 arm64 | 508 s (peers 11-24 s) | - | profile pass pending |
+| SetBytes2 amd64 | 258 s (peers 11-24 s) | - | profile pass pending |
+| SetBytes24 arm64 | 91 s | - | profile pass pending |
+| SetBytes16 arm64 | 52 s | - | profile pass pending |
 | Abs arm64 | 64 s (base) / 508 s (head) | - | rerun cold and warm to separate a head-stack regression from a cold-build artefact |
 
 ## Pin bump to Janus c7950624 (2026-11-03)
