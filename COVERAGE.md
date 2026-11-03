@@ -155,10 +155,10 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 | ExtendSign amd64 / arm64 | 262 / 238 s, 144 / 127 s | - | profile pass pending |
 | SRsh amd64 | 175 s | - | profile pass pending |
 | Slt, Sgt amd64 | ~80-104 s each | - | profile pass pending |
-| SetBytes1 arm64 | 508 s (peers 11-24 s) | - | profile pass pending |
-| SetBytes2 amd64 | 258 s (peers 11-24 s) | - | profile pass pending |
-| SetBytes24 arm64 | 91 s | - | profile pass pending |
-| SetBytes16 arm64 | 52 s | - | profile pass pending |
+| SetBytes1 arm64 | 508 s (first item of its chunk) | 4 s elaboration | NOT a proof cost: one-time Janus framework build included in the chunk's first item (upstream profile on integ/speed15) |
+| SetBytes2 amd64 | 258 s (first item of its chunk) | 2 s elaboration | NOT a proof cost: cold framework build artefact (upstream profile) |
+| SetBytes24 arm64 | 91 s (79 s on integ/speed15) | - | REAL: ~75 s is one `(try omega)` in the closer (24 byte bounds + big sums); replace by a per-width fromBE byte-sum lemma. Low priority |
+| SetBytes16 arm64 | 52 s (43 s on integ/speed15) | - | REAL: ~39 s one `(try omega)`; same fix as SetBytes24. Low priority |
 | Abs arm64 | 64 s (base) / 508 s (head) | - | rerun cold and warm to separate a head-stack regression from a cold-build artefact |
 
 ## Pin bump to Janus c7950624 (2026-11-03)
