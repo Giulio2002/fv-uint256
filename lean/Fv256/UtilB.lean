@@ -951,9 +951,9 @@ open Fv256
 
 theorem f64_gen (V n F : Nat) (hn1 : 1 ≤ n) (hn2 : n ≤ 192) (hbl : Spec.bitLen V = 257 - n)
     (hV : V < 2 ^ 256) (hVge : 2 ^ 64 ≤ V) (hF : F = (V * 2 ^ n % 2 ^ 256) / 2 ^ 192) :
-    ((1279 - n) * 2 ^ 64 + F) / 2 ^ 12 % 2 ^ 64 = float64Bits V := by
+    ((1279 - n) * 2 ^ 64 + F) / 2 ^ 12 % 2 ^ 64 = float64BitsTrunc V := by
   have hcore := f64_core V n F hn1 hn2 hbl hV hF
-  unfold float64Bits
+  unfold float64BitsTrunc
   rw [if_neg (by omega), hbl]
   have e2 : 257 - n + 1022 = 1279 - n := by omega
   have e3 : 257 - n - 53 = 204 - n := by omega

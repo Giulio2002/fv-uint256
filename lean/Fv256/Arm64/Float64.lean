@@ -10,7 +10,7 @@ import Fv256.UtilB
 **Guarantee.** For every receiver `x` (`X0`) whose 32 bytes are readable (below `2^48`) and every Go call state such that the
 stack-growth check falls through (`GuardOK s 0`), the 88 bytes below `SP` (the 80-byte frame, the saved frame pointer and the
 callee-local copy of the shifted number) are writable and aligned (`StackOK s 88 0`), they do not overlap `x`, and `FPCR = 0`:
-the call returns (no fault, no panic), obeys the ABI, `D0` (read as 64 bits) is `Fv256.B.float64Bits` of the number at `x`
+the call returns (no fault, no panic), obeys the ABI, `D0` (read as 64 bits) is `Fv256.B.float64BitsTrunc` of the number at `x`
 (IEEE 754 binary64 bits: round-to-nearest-even `convertFromInt` below `2^64`, truncation of the 52 bits after the leading one
 from `2^64` on, as the library does), and no byte outside the 88-byte window changes.
 
@@ -25,7 +25,7 @@ set_option maxHeartbeats 8000000 in
 theorem correctness (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0)
-      (fun s s' => s'.getV 0 64 = Fv256.B.float64Bits (val256 s.mem x.toNat) ∧
+      (fun s s' => s'.getV 0 64 = Fv256.B.float64BitsTrunc (val256 s.mem x.toNat) ∧
         OnlyWrites s.mem s'.mem (s.sp.toNat - 88) 88) := by
   intro ret hret s hs ⟨⟨hx, hx'⟩, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hdis, hf⟩
   janus_intro hs
@@ -47,7 +47,7 @@ theorem correctness (x : BitVec 64) :
         simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat]
         rw [FP.fixedToFP_ieee FP.IEEEMode.zero, show FP.roundingMode 0 = .rne from rfl]
         simp only [Bool.true_or, ite_true]
-        unfold Fv256.B.float64Bits
+        unfold Fv256.B.float64BitsTrunc
         rw [if_pos (by simpa using hx0)]
         simp only [Nat.reducePow] at hlt hx0 ⊢
         omega
@@ -266,7 +266,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
   ⟨ret, s0, x, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
-    ABIReturn s0 s' ∧ s'.getV 0 64 = Fv256.B.float64Bits (val256 s0.mem x.toNat) ∧
+    ABIReturn s0 s' ∧ s'.getV 0 64 = Fv256.B.float64BitsTrunc (val256 s0.mem x.toNat) ∧
       OnlyWrites s0.mem s'.mem (s0.sp.toNat - 88) 88 :=
   correctness x ret hret s0 setup hpre
 

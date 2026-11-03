@@ -11,7 +11,7 @@ import Fv256.UtilB
 check falls through (`StackGuardOK s 0`), the window `[RSP-80, RSP+8)` (the 0x50-byte frame with the saved frame pointer and the
 pushed return address of the callee, plus the caller's return-address slot) is writable, `x` does not overlap it, and the SSE control
 word has the Go ABI's control bits (`GoMXCSR`): the call returns (no fault, no panic), obeys the ABI, the low 64 bits of `XMM0` are
-`Fv256.B.float64Bits` of the number at `x` (IEEE 754 binary64 bits: round-to-nearest-even `convertFromInt` below `2^64`, truncation
+`Fv256.B.float64BitsTrunc` of the number at `x` (IEEE 754 binary64 bits: round-to-nearest-even `convertFromInt` below `2^64`, truncation
 of the 52 bits after the leading one from `2^64` on, as the library does), and no byte outside the window changes.
 
 **Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns with the stated result.
@@ -26,7 +26,7 @@ theorem correctness (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 80 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧ GoMXCSR s)
-      (fun s s' => (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64Bits (valueAt s x 32) ∧
+      (fun s s' => (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsTrunc (valueAt s x 32) ∧
         Util.OnlyWrites2 s.mem s'.mem ((s.regs regSP).toNat - 80) 88 ((s.regs regSP).toNat - 80) 88) := by
   intro ret hret s hs ⟨hg, ⟨hlow, hnw, hacc⟩, ⟨hxw, hx⟩, hds, hm⟩
   janus64_intro hs
@@ -57,7 +57,7 @@ theorem correctness (x : BitVec 64) :
           subst hxt
           have hc : IEEEMode (⟨.rne, false, false⟩ : Ctl) := ⟨rfl, rfl⟩
           have hfl := fromInt_lt binary64 .rne
-          unfold Fv256.B.float64Bits
+          unfold Fv256.B.float64BitsTrunc
           rw [if_pos xv.isLt]
           have hmsb : xv.msb = true := by assumption
           have hx : 2 ^ 63 ≤ xv.toNat := by
@@ -88,7 +88,7 @@ theorem correctness (x : BitVec 64) :
           have hxt : (BitVec.ofNat 64 X).toNat = X := by rw [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt hX0
           have hc : IEEEMode (⟨.rne, false, false⟩ : Ctl) := ⟨rfl, rfl⟩
           have hfl := fromInt_lt binary64 .rne
-          unfold Fv256.B.float64Bits
+          unfold Fv256.B.float64BitsTrunc
           rw [if_pos (by simpa using hX0)]
           rw [ofInt_ieee hc]
           have hmsb : ¬ (BitVec.ofNat 64 X).msb = true := by assumption
@@ -304,7 +304,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
   ⟨ret, s0, x, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
-    ABIReturn s0 s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64Bits (valueAt s0 x 32) ∧
+    ABIReturn s0 s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsTrunc (valueAt s0 x 32) ∧
       Util.OnlyWrites2 s0.mem s'.mem ((s0.regs regSP).toNat - 80) 88 ((s0.regs regSP).toNat - 80) 88 :=
   correctness x ret hret s0 setup hpre
 
