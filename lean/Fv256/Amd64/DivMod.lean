@@ -73,7 +73,36 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     have hdzp := InRanges.disjoint cin hzo
     refine Fv256.Amd64.DivModB.partB impl rt z x y m ptr.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
       (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
-      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
+      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
+    have hOut : ∀ a n, (s.regs 4).toNat - 4248 ≤ a → a + n ≤ (s.regs 4).toNat + 40 → Outside a n rt :=
+      fun a n h1 h2 => Outside.of_sub hout h1 (by omega)
+    have hOc : ∀ a n, (s.regs 4).toNat - 136 ≤ a → a + n ≤ (s.regs 4).toNat + 40 →
+        Outside a n (rt ++ [((s.regs 4).toNat - 152 - 4096, (s.regs 4).toNat - 152),
+          ((s.regs 4).toNat - 152 + 8, (s.regs 4).toNat - 152 + 8 + 8)]) := fun a n h1 h2 => by
+      simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
+      exact ⟨hOut a n (by omega) h2, by omega, by omega⟩
+    have hsp8 : mm.readLE ((s.regs 4).toNat + 8) 8 = z.toNat := by
+      rw [cfr.readLE _ _ (hOc _ _ (by omega) (by omega))]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+      exact Nat.mod_eq_of_lt (by simpa using z.isLt)
+    have hsp16 : mm.readLE ((s.regs 4).toNat + 16) 8 = x.toNat := by
+      rw [cfr.readLE _ _ (hOc _ _ (by omega) (by omega))]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+      exact Nat.mod_eq_of_lt (by simpa using x.isLt)
+    have hsp24 : mm.readLE ((s.regs 4).toNat + 24) 8 = y.toNat := by
+      rw [cfr.readLE _ _ (hOc _ _ (by omega) (by omega))]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+      exact Nat.mod_eq_of_lt (by simpa using y.isLt)
+    have hsp0 : mm.readLE (s.regs 4).toNat 8 = ret := by
+      rw [cfr.readLE _ _ (hOc _ _ (by omega) (by omega))]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+      exact h_ret
+    have hspm8 : mm.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+      rw [cfr.readLE _ _ (hOc _ _ (by omega) (by omega))]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+      exact Nat.mod_eq_of_lt (by simpa using (s.regs 5).isLt)
+    all_goals (first | rfl | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]; done) | (try simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]))
+    all_goals (first | janus_frame | skip)
     all_goals trace_state
     all_goals sorry
   · trace_state
