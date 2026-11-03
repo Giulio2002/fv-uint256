@@ -43,6 +43,7 @@ theorem pro2 (s0 : State) (dp n sf qp ql qcap up remp : Nat) (R : Nat → W64) (
   have t7 : (R 7).toNat = up := by rw [e7, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt hup
   have t10 : (R 10).toNat = remp := by rw [e10, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt hremp
   janus64_run [e2, e9, e4, hdtop, hdt0] until [ku + 0x140]
+  all_goals (try simp only [hdt0, if_false, ite_false, ↓reduceIte])
   all_goals refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   all_goals generalize Janus.Arm64.clzNat 64 dtop = sv at *
   all_goals first
