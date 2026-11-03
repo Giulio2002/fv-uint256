@@ -83,13 +83,14 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b1 : Nat) (z bp : BitVec 64)
       | (obtain ⟨hAw, hPw⟩ : Apart (BitVec.toNat _) 16 A' 32 ∧ Apart P 32 (BitVec.toNat _) 16 :=
            ⟨(‹Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32›).2,
             Or.symm (‹Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32›).1⟩
-         set_option maxHeartbeats 600000 in exact ⟨tail1_bigout (sp := s.sp.toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb'
-            ‹MemFrame _ _ _› ‹LiveFrame _ _ _ _› ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ ‹InRanges (BitVec.toNat _) 16 R.rt›
-            (‹LiveFrame _ _ _ _›.readLE (P + 16) 8 hPi16 trivial) (‹LiveFrame _ _ _ _›.readLE (P + 24) 8 hPi24 trivial) (Or.symm hAw) hPw,
-          tail1_frame hfr2 hb' ‹MemFrame _ _ _› ‹InRanges (BitVec.toNat _) 16 R.rt›⟩)
-      | (refine ⟨tail1_bigout (sp := s.sp.toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb' ?hF3 ?hLive ?hAL1 ?hs ?hPk16 ?hPk24 ?hAs ?hPs,
-            tail1_frame hfr2 hb' ?hF3' ?hs'⟩
-         all_goals (try assumption)
-         all_goals (trace_state; fail "tail1-dbg"))
+         have hLv : LiveFrame (M1 S2.mem P len) _ [(P, P + 32), (A', A' + 32)] [] := ‹LiveFrame _ _ _ _›
+         set_option maxHeartbeats 600000 in
+         exact ⟨tail1_bigout (s := s.mem) (W := S2.mem) (sp := s.sp.toNat) (bp := bp.toNat) (z := z.toNat) (P := P) (A' := A') (len := len) (rt := R.rt)
+              (L1 := [(P, P + 32), (A', A' + 32)]) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb'
+              ‹MemFrame _ _ _› hLv ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ ‹InRanges (BitVec.toNat _) 16 R.rt›
+              (hLv.readLE (P + 16) 8 ⟨(P, P + 32), by simp, by omega, by omega⟩ trivial)
+              (hLv.readLE (P + 24) 8 ⟨(P, P + 32), by simp, by omega, by omega⟩ trivial) (Or.symm hAw) hPw,
+            tail1_frame (s := s.mem) (W := S2.mem) (sp := s.sp.toNat) (bp := bp.toNat) (P := P) (A' := A') (len := len) (rt := R.rt)
+              hfr2 hb' ‹MemFrame _ _ _› ‹InRanges (BitVec.toNat _) 16 R.rt›⟩)
 
 end Fv256.Arm64.IntoBig
