@@ -49,20 +49,28 @@ def hexSum (b : Nat → Nat) (a : Nat) : Nat → Nat
 /-- every byte of `[a, c)` is a hexadecimal digit. -/
 def allHex (b : Nat → Nat) (a c : Nat) : Prop := ∀ k, a ≤ k → k < c → (hexNib (b k)).isSome
 
-/-- the errors `SetFromHex` can report (the package's sentinel errors). -/
-inductive HexErr | emptyString | missingPrefix | emptyNumber | leadingZero | big256 | syntax
-  deriving DecidableEq
-
 open Classical in
 /-- `SetFromHex(s)` for the string whose bytes are `b 0, ..., b (n-1)`: the number, or the error.
 `"0x"` or `"0X"` prefix required, at least one digit, no leading zero digit (except the single digit `"0x0"`),
-at most 64 digits, only hexadecimal digits. -/
-noncomputable def parseHex (b : Nat → Nat) (n : Nat) : Except HexErr Nat :=
-  if n = 0 then .error .emptyString
-  else if n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88) then .error .missingPrefix
-  else if n = 2 then .error .emptyNumber
-  else if 3 < n ∧ b 2 = 48 then .error .leadingZero
-  else if 66 < n then .error .big256
-  else if allHex b 2 n then .ok (hexSum b 2 (n - 2)) else .error .syntax
+at most 64 digits, only hexadecimal digits. The errors are the package's sentinel errors, tagged by a number:
+`0` `ErrEmptyString`, `1` `ErrMissingPrefix`, `2` `ErrEmptyNumber`, `3` `ErrLeadingZero`, `4` `ErrBig256Range`,
+`5` `ErrSyntax`. -/
+noncomputable def parseHex (b : Nat → Nat) (n : Nat) : Except Nat Nat :=
+  if n = 0 then .error 0
+  else if n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88) then .error 1
+  else if n = 2 then .error 2
+  else if 3 < n ∧ b 2 = 48 then .error 3
+  else if 66 < n then .error 4
+  else if allHex b 2 n then .ok (hexSum b 2 (n - 2)) else .error 5
+
+/-- the ASCII code of the lower-case hexadecimal digit `d` (`0-9a-f`) -/
+def hexChar (d : Nat) : Nat := if d < 10 then 48 + d else 87 + d
+
+/-- `Hex()`: the bytes of `"0x"` followed by the `n` hexadecimal digits of `v`, most significant first. -/
+def hexStrBytes (v n : Nat) : List Nat :=
+  48 :: 120 :: (List.range n).map (fun k => hexChar (v / 16 ^ (n - 1 - k) % 16))
+
+/-- `n` is the number of hexadecimal digits of `v` (`v = 0` has one): `16^(n-1) <= v < 16^n`, or `n = 1`. -/
+def hexDigits (v n : Nat) : Prop := 1 ≤ n ∧ v < 16 ^ n ∧ (n = 1 ∨ 16 ^ (n - 1) ≤ v)
 
 end Fv256.C

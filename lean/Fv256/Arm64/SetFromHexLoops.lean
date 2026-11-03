@@ -3,6 +3,7 @@ import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
 import Fv256.UtilC
+import Fv256.HexLemmas
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Fv256.C
 
@@ -33,87 +34,11 @@ theorem err_addrs : errAddr 8 = eEmpty ∧ errAddr 22 = ePrefix ∧ errAddr 30 =
 abbrev innerHead : Nat := fh + 0x144
 abbrev tbl : Nat := 1001813
 
-/-- the byte sequence of the string -/
-def bytesAt (m : Memory) (hp : Nat) : Nat → Nat := fun k => m.readLE (hp + k) 1
-
-theorem allHex_join {b : Nat → Nat} {a c d : Nat} (h1 : allHex b a c) (h2 : allHex b c d) : allHex b a d := by
-  intro k hk1 hk2
-  by_cases h : k < c
-  · exact h1 k hk1 h
-  · exact h2 k (by omega) hk2
-
-theorem allHex_step {b : Nat → Nat} {a r : Nat} (h : allHex b a r) (hr : (hexNib (b r)).isSome) :
-    allHex b a (r + 1) := by
-  intro k hk1 hk2
-  by_cases h' : k < r
-  · exact h k hk1 h'
-  · have : k = r := by omega
-    subst this; exact hr
-
-theorem allHex_nil (b : Nat → Nat) (a : Nat) : allHex b a a := fun k h1 h2 => by omega
-
-theorem hexNib_lt16 {c v : Nat} (h : hexNib c = some v) : v < 16 := by
-  unfold hexNib at h
-  by_cases h1 : 48 ≤ c ∧ c ≤ 57
-  · simp [h1] at h; omega
-  · by_cases h2 : 97 ≤ c ∧ c ≤ 102
-    · simp [h1, h2] at h; omega
-    · by_cases h3 : 65 ≤ c ∧ c ≤ 70
-      · simp [h1, h2, h3] at h; omega
-      · simp [h1, h2, h3] at h
-
-theorem hexNib_none_of {c : Nat} (h : (hexNib c).getD 255 = 255) : hexNib c = none := by
-  cases h' : hexNib c with
-  | none => rfl
-  | some v => rw [h'] at h; simp at h; have := hexNib_lt16 h'; omega
-
-theorem hexNib_some_of {c : Nat} (h : (hexNib c).getD 255 ≠ 255) :
-    (hexNib c).isSome = true ∧ (hexNib c).getD 255 = (hexNib c).getD 0 := by
-  cases h' : hexNib c with
-  | none => rw [h'] at h; simp at h
-  | some v => simp
-
-
-theorem hexNib_getD_lt (c : Nat) : (hexNib c).getD 255 < 256 := by
-  cases h : hexNib c with
-  | none => simp
-  | some v => have := hexNib_lt16 h; simp; omega
-
-theorem toInt_sub16 (e : Nat) (h : e < 2^32) : (BitVec.ofNat 64 e - 16#64).toInt = (e : Int) - 16 := by
-  rw [BitVec.toInt_eq_toNat_cond]
-  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
-  split <;> omega
-
-theorem ofNat_sub16 (e : Nat) (h : 16 ≤ e) (h2 : e < 2^32) : BitVec.ofNat 64 e - 16#64 = BitVec.ofNat 64 (e - 16) := by
-  apply BitVec.eq_of_toNat_eq
-  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
-  omega
-
-theorem ofNat_add1 (i : Nat) : BitVec.ofNat 64 i + 1#64 = BitVec.ofNat 64 (i + 1) := by
-  apply BitVec.eq_of_toNat_eq
-  simp only [BitVec.toNat_add, BitVec.toNat_ofNat]
-  omega
-
-theorem sp_add16 (a t : BitVec 64) (h : a.toNat + 16 = t.toNat) : a + 16#64 = t := by
-  apply BitVec.eq_of_toNat_eq
-  have := t.isLt
-  simp only [BitVec.toNat_add, BitVec.toNat_ofNat]
-  omega
-
-theorem sp_sub24 (t : BitVec 64) (h : 24 ≤ t.toNat) : (t - 24#64).toNat = t.toNat - 24 := by
-  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
-  have := t.isLt
-  omega
-
-theorem sw32 (N : Nat) (h : N < 256) : (BitVec.setWidth 32 (BitVec.ofNat 64 N)).toNat = N := by
-  simp only [BitVec.toNat_setWidth, BitVec.toNat_ofNat]
-  omega
-
 /-- postcondition of the digit loop (relative to the entry state `s` of `fromHex`) -/
 def LoopQ (s : State) (z hp len : BitVec 64) (s' : State) : Prop :=
   s'.pc = s.regs regLR ∧ s'.sp = s.sp ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.regs 29 ∧
   s'.regs 30 = s.regs 30 ∧ s'.regs 18 = s.regs 18 ∧
-  MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat)] ∧
+  MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat - 8)] ∧
   ((s'.regs 0 = 0 ∧ s'.regs 1 = 0 ∧ allHex (bytesAt s.mem hp.toNat) 2 len.toNat ∧
       ∀ j, j < 4 → s'.mem.readLE (z.toNat + 8 * j) 8 = hexLimb (bytesAt s.mem hp.toNat) len.toNat j) ∨
    (s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE 1792768 8) ∧ s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE 1792776 8) ∧
@@ -121,7 +46,7 @@ def LoopQ (s : State) (z hp len : BitVec 64) (s' : State) : Prop :=
 
 /- the loop invariant at the inner-loop head (`CMP end, ri`): limb `i` is being accumulated, `ri` digits (from `e (i+1)`) done -/
 set_option maxHeartbeats 16000000 in
-theorem loop (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : len.toNat ≤ 66)
+theorem loop (impl : List Segment) (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : len.toNat ≤ 66)
     (h30a : (s.regs 30).toNat % 4 = 0) (h30b : (s.regs 30).toNat < 2 ^ 56)
     (hz' : z.toNat + 32 ≤ 2 ^ 48) (hs' : hp.toNat + len.toNat ≤ 2 ^ 48)
     (hsa : s.mem.accessible hp.toNat len.toNat false = true)
@@ -146,13 +71,13 @@ theorem loop (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : le
         if j < i then hexLimb (bytesAt s.mem hp.toNat) len.toNat j
         else if j = i then hexSum (bytesAt s.mem hp.toNat) e1 (ri - e1)
         else 0) →
-      MemFrame s.mem S.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat)] →
+      MemFrame s.mem S.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat - 8)] →
       S.mem.readLE S.sp.toNat 8 = (s.regs 30).toNat → S.mem.readLE (S.sp.toNat - 8) 8 = (s.regs 29).toNat →
       (∀ c, c < 256 → S.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255) →
       s.mem.accessible (s.sp.toNat - 24) 48 true = true → s.mem.accessible z.toNat 32 true = true →
       s.mem.accessible hp.toNat len.toNat false = true → s.mem.accessible 1001813 256 false = true →
       s.mem.accessible 1792752 96 false = true →
-      ReachesRet Extracted.program (s.regs regLR) S (LoopQ s z hp len) := by
+      ReachesRet (Extracted.program.link impl) (s.regs regLR) S (LoopQ s z hp len) := by
   intro n
   induction n using Nat.strongRecOn with
   | _ n ih =>
@@ -340,34 +265,6 @@ theorem loop (s : State) (z hp len : BitVec 64) (hL : 3 ≤ len.toNat) (hL2 : le
         exact htab c hc
 
 
-theorem toInt_sub16' (x : BitVec 64) (h : x.toNat < 2 ^ 32) : (x - 16#64).toInt = (x.toNat : Int) - 16 := by
-  rw [BitVec.toInt_eq_toNat_cond]
-  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
-  split <;> omega
-
-theorem ofNat_sub16' (x : BitVec 64) (h : 16 ≤ x.toNat) : x - 16#64 = BitVec.ofNat 64 (x.toNat - 16) := by
-  apply BitVec.eq_of_toNat_eq
-  have := x.isLt
-  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
-  omega
-
-theorem sp_sub16 (t : BitVec 64) (h : 16 ≤ t.toNat) : (t - 16#64).toNat = t.toNat - 16 := by
-  have := t.isLt
-  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
-  omega
-
-theorem zero_read (m : Memory) (z j : Nat) (hj : j < 4) :
-    ((((m.writeLE (z + 16) 8 0).writeLE (z + 24) 8 0).writeLE z 8 0).writeLE (z + 8) 8 0).readLE (z + 8 * j) 8 = 0 := by
-  have h8 : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
-  obtain rfl | rfl | rfl | rfl : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 := by omega
-  · rw [show z + 8 * 0 = z by omega, Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
-  · rw [show z + 8 * 1 = z + 8 by omega, Memory.readLE_writeLE_self]
-  · rw [show z + 8 * 2 = z + 16 by omega, Memory.readLE_writeLE_of_disjoint _ _ (by omega),
-      Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega),
-      Memory.readLE_writeLE_self]
-  · rw [show z + 8 * 3 = z + 24 by omega, Memory.readLE_writeLE_of_disjoint _ _ (by omega),
-      Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
-
 set_option maxRecDepth 100000 in
 theorem tabData : ∀ c, c < 256 → (dataRead Extracted.program (1001813 + c) 1).isSome = true ∧
     dataReadD Extracted.program (1001813 + c) 1 = (hexNib c).getD 255 := by
@@ -402,77 +299,59 @@ theorem disj_data {p : Program} {m : Memory} (h : p.DataLoaded m) {t k : Nat}
     · omega
     · omega
 
-theorem pe_empty (b : Nat → Nat) : parseHex b 0 = .error .emptyString := by
-  unfold parseHex; simp
-
-theorem pe_missing (b : Nat → Nat) (n : Nat) (hn : n ≠ 0) (h : n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88)) :
-    parseHex b n = .error .missingPrefix := by
-  unfold parseHex; rw [if_neg hn, if_pos h]
-
-theorem pe_emptyNum (b : Nat → Nat) (n : Nat) (hn : n = 2) (h0 : b 0 = 48) (h1 : b 1 = 120 ∨ b 1 = 88) :
-    parseHex b n = .error .emptyNumber := by
-  subst hn; unfold parseHex
-  have : ¬ (2 < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88)) := by omega
-  rw [if_neg (by decide), if_neg this, if_pos rfl]
-
-theorem pe_lead (b : Nat → Nat) (n : Nat) (hn : 3 < n) (h0 : b 0 = 48) (h1 : b 1 = 120 ∨ b 1 = 88) (h2 : b 2 = 48) :
-    parseHex b n = .error .leadingZero := by
-  unfold parseHex
-  have : ¬ (n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88)) := by omega
-  rw [if_neg (by omega), if_neg this, if_neg (by omega), if_pos ⟨hn, h2⟩]
-
-theorem pe_big (b : Nat → Nat) (n : Nat) (hn : 66 < n) (h0 : b 0 = 48) (h1 : b 1 = 120 ∨ b 1 = 88) (h2 : b 2 ≠ 48) :
-    parseHex b n = .error .big256 := by
-  unfold parseHex
-  have : ¬ (n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88)) := by omega
-  rw [if_neg (by omega), if_neg this, if_neg (by omega), if_neg (by omega), if_pos hn]
-
-open Classical in
-theorem pe_body (b : Nat → Nat) (n : Nat) (hn : 3 ≤ n) (hn2 : n ≤ 66) (h0 : b 0 = 48) (h1 : b 1 = 120 ∨ b 1 = 88)
-    (h2 : 3 < n → b 2 ≠ 48) :
-    parseHex b n = if allHex b 2 n then Except.ok (hexSum b 2 (n - 2)) else Except.error HexErr.syntax := by
-  unfold parseHex
-  have : ¬ (n < 2 ∨ b 0 ≠ 48 ∨ (b 1 ≠ 120 ∧ b 1 ≠ 88)) := by omega
-  have h3 : ¬ (3 < n ∧ b 2 = 48) := fun ⟨a, c⟩ => h2 a c
-  rw [if_neg (by omega), if_neg this, if_neg (by omega), if_neg h3, if_neg (by omega)]
-
 /-- the address of the package variable (an `error` interface value) for each parse error -/
-def errAddrOf : HexErr → Nat
-  | .emptyString => 1792752
-  | .syntax => 1792768
-  | .missingPrefix => 1792784
-  | .emptyNumber => 1792800
-  | .leadingZero => 1792816
-  | .big256 => 1792832
+def errAddrOf (e : Nat) : Nat :=
+  if e = 0 then 1792752 else if e = 1 then 1792784 else if e = 2 then 1792800
+  else if e = 3 then 1792816 else if e = 4 then 1792832 else 1792768
+
+theorem errAddrOf_bounds (e : Nat) : 1792752 ≤ errAddrOf e ∧ errAddrOf e + 16 ≤ 1792848 := by
+  unfold errAddrOf
+  by_cases h0 : e = 0
+  · simp [h0]
+  by_cases h1 : e = 1
+  · simp [h1]
+  by_cases h2 : e = 2
+  · simp [h2]
+  by_cases h3 : e = 3
+  · simp [h3]
+  by_cases h4 : e = 4
+  · simp [h4]
+  simp [h0, h1, h2, h3, h4]
 
 def FromHexPre (z hp len : BitVec 64) (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ s.regs 0 = z ∧ s.regs 1 = hp ∧ s.regs 2 = len ∧
-  Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧ Extracted.program.DataLoaded s.mem ∧
+  Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧
+  (∀ c, c < 256 → s.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255) ∧ s.mem.accessible 1001813 256 false = true ∧
+  (z.toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ z.toNat) ∧
+  (s.sp.toNat - 24 + 48 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 24) ∧
   s.mem.accessible 1792752 96 false = true ∧ GuardOK s 0 ∧ StackOK s 24 24 ∧
   Disjoint z.toNat 32 hp.toNat len.toNat ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
   Disjoint hp.toNat len.toNat (s.sp.toNat - 24) 48 ∧ Disjoint z.toNat 32 1792752 96 ∧
-  Disjoint 1792752 96 (s.sp.toNat - 24) 48 ∧ (∀ e, s.mem.readLE (errAddrOf e) 8 ≠ 0)
+  Disjoint 1792752 96 (s.sp.toNat - 24) 48 ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0)
 
 def FromHexPost (z hp len : BitVec 64) (s s' : State) : Prop :=
   s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.regs 29 ∧
   s'.regs 30 = s.regs 30 ∧ s'.regs 18 = s.regs 18 ∧
-  MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat)] ∧
+  MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat - 8)] ∧
   (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
       s'.regs 0 = 0 ∧ s'.regs 1 = 0 ∧ val256 s'.mem z.toNat = v) ∧
   (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
       s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
       s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))
 
+theorem link_nil (p : Program) : p.link [] = p := by
+  cases p; simp [Program.link]
+
 theorem rr_mono {p : Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
     (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
   obtain ⟨k, s', a, b, c⟩ := h
   exact ⟨k, s', a, b, hQ _ c⟩
 
-theorem post_err (s s' : State) (z hp len : BitVec 64) (E : HexErr)
+theorem post_err (s s' : State) (z hp len : BitVec 64) (E : Nat)
     (hpar : parseHex (bytesAt s.mem hp.toNat) len.toNat = .error E)
     (hpc : s'.pc = s.regs 30) (hsp : s'.sp = s.sp) (h28 : s'.regs 28 = s.regs 28) (h29 : s'.regs 29 = s.regs 29)
     (h30 : s'.regs 30 = s.regs 30) (h18 : s'.regs 18 = s.regs 18)
-    (hfr : MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat)])
+    (hfr : MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat - 8)])
     (r0 : s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf E) 8))
     (r1 : s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf E + 8) 8)) : FromHexPost z hp len s s' := by
   refine ⟨hpc, hsp, h28, h29, h30, h18, hfr, ?_, ?_⟩
@@ -513,51 +392,47 @@ theorem post_of_loopQ (s s' : State) (z hp len : BitVec 64) (hn3 : 3 ≤ len.toN
     · rw [if_neg hnall] at he; cases he; exact ⟨r0, r1⟩
 
 set_option maxHeartbeats 16000000 in
-theorem fromHex_sum (z hp len : BitVec 64) :
-    Summary Extracted.program fh (FromHexPre z hp len) (FromHexPost z hp len) := by
-  intro s hpc ⟨h30a, h30b, hz0, hp0, hl0, ⟨hz, hz'⟩, ⟨hs, hs'⟩, hd, herr, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩,
+theorem fromHex_sum (impl : List Segment) (z hp len : BitVec 64) :
+    Summary (Extracted.program.link impl) fh (FromHexPre z hp len) (FromHexPost z hp len) := by
+  intro s hpc ⟨h30a, h30b, hz0, hp0, hl0, ⟨hz, hz'⟩, ⟨hs, hs'⟩, htab0, hSt0, hzt, hst, herr, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩,
     hdzh, hdzs, hdhs, hdzg, hdgs, hnn⟩
   subst hz0 hp0 hl0
   simp only [Disjoint] at hdzh hdzs hdhs hdzg hdgs
-  have hn1 : s.mem.readLE 1792752 8 ≠ 0 := hnn .emptyString
-  have hn2 : s.mem.readLE 1792768 8 ≠ 0 := hnn .syntax
-  have hn3 : s.mem.readLE 1792784 8 ≠ 0 := hnn .missingPrefix
-  have hn4 : s.mem.readLE 1792800 8 ≠ 0 := hnn .emptyNumber
-  have hn5 : s.mem.readLE 1792816 8 ≠ 0 := hnn .leadingZero
-  have hn6 : s.mem.readLE 1792832 8 ≠ 0 := hnn .big256
+  have hn1 : s.mem.readLE 1792752 8 ≠ 0 := hnn 0 (by decide)
+  have hn2 : s.mem.readLE 1792768 8 ≠ 0 := hnn 5 (by decide)
+  have hn3 : s.mem.readLE 1792784 8 ≠ 0 := hnn 1 (by decide)
+  have hn4 : s.mem.readLE 1792800 8 ≠ 0 := hnn 2 (by decide)
+  have hn5 : s.mem.readLE 1792816 8 ≠ 0 := hnn 3 (by decide)
+  have hn6 : s.mem.readLE 1792832 8 ≠ 0 := hnn 4 (by decide)
   have hb0 : s.mem.readLE (s.regs 1).toNat 1 < 256 := by simpa using Memory.readLE_lt s.mem (s.regs 1).toNat 1
   have hb1 : s.mem.readLE ((s.regs 1).toNat + 1) 1 < 256 := by simpa using Memory.readLE_lt s.mem ((s.regs 1).toNat + 1) 1
   have hb2 : s.mem.readLE ((s.regs 1).toNat + 2) 1 < 256 := by simpa using Memory.readLE_lt s.mem ((s.regs 1).toNat + 2) 1
   have e0 : bytesAt s.mem (s.regs 1).toNat 0 = s.mem.readLE (s.regs 1).toNat 1 := rfl
   have e1 : bytesAt s.mem (s.regs 1).toNat 1 = s.mem.readLE ((s.regs 1).toNat + 1) 1 := rfl
   have e2 : bytesAt s.mem (s.regs 1).toNat 2 = s.mem.readLE ((s.regs 1).toNat + 2) 1 := rfl
-  have htab0 := tab_vals hd
-  have hSt0 : s.mem.accessible 1001813 256 false = true := accessible_of_dataRead hd tab_isSome
-  have hzt : (s.regs 0).toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ (s.regs 0).toNat := disj_data hd (t := 1001813) (k := 256) tab_isSome hz
-  have hst : s.sp.toNat - 24 + 48 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 24 := disj_data hd (t := 1001813) (k := 256) tab_isSome hw
   janus_run until [innerHead]
   all_goals (try simp only [sw32 _ hb0, sw32 _ hb1, sw32 _ hb2] at *)
   all_goals first
-    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error .emptyString := by
+    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error 0 := by
          have h : (s.regs 2).toNat = 0 := by omega
          rw [h]; exact pe_empty _
        exact post_err _ _ _ _ _ _ hpar rfl rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply])
          (by simp [setReg_apply]) (by janus_frame) (by simp [errAddrOf, setReg_apply]) (by simp [errAddrOf, setReg_apply]))
-    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error .missingPrefix := pe_missing _ _ (by omega) (by omega)
+    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error 1 := pe_missing _ _ (by omega) (by omega)
        exact post_err _ _ _ _ _ _ hpar rfl rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply])
          (by simp [setReg_apply]) (by janus_frame) (by simp [errAddrOf, setReg_apply]) (by simp [errAddrOf, setReg_apply]))
-    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error .emptyNumber := pe_emptyNum _ _ (by omega) (by omega) (by omega)
+    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error 2 := pe_emptyNum _ _ (by omega) (by omega) (by omega)
        exact post_err _ _ _ _ _ _ hpar rfl rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply])
          (by simp [setReg_apply]) (by janus_frame) (by simp [errAddrOf, setReg_apply]) (by simp [errAddrOf, setReg_apply]))
-    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error .leadingZero := pe_lead _ _ (by omega) (by omega) (by omega) (by omega)
+    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error 3 := pe_lead _ _ (by omega) (by omega) (by omega) (by omega)
        exact post_err _ _ _ _ _ _ hpar rfl rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply])
          (by simp [setReg_apply]) (by janus_frame) (by simp [errAddrOf, setReg_apply]) (by simp [errAddrOf, setReg_apply]))
-    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error .big256 := pe_big _ _ (by omega) (by omega) (by omega) (by omega)
+    | (have hpar : parseHex (bytesAt s.mem (s.regs 1).toNat) (s.regs 2).toNat = Except.error 4 := pe_big _ _ (by omega) (by omega) (by omega) (by omega)
        exact post_err _ _ _ _ _ _ hpar rfl rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply])
          (by simp [setReg_apply]) (by janus_frame) (by simp [errAddrOf, setReg_apply]) (by simp [errAddrOf, setReg_apply]))
     | skip
   all_goals
-    refine rr_mono (loop s (s.regs 0) (s.regs 1) (s.regs 2) (by omega) (by omega) h30a h30b hz' hs' hs hdzh (by omega)
+    refine rr_mono (loop impl s (s.regs 0) (s.regs 1) (s.regs 2) (by omega) (by omega) h30a h30b hz' hs' hs hdzh (by omega)
            (by omega) hzt hdzg (by omega) (by omega) (by omega) hal
            (17 * (3 - 0) + ((s.regs 2).toNat - hexEnd (s.regs 2).toNat 1)) _ 0 (s.regs 2).toNat
            (hexEnd (s.regs 2).toNat 1) (hexEnd (s.regs 2).toNat 1) rfl (by omega) (by unfold hexEnd; omega) rfl

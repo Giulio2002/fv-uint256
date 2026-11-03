@@ -10,22 +10,22 @@ Update (main, upstream design report DESIGN-U4-PARSE-CONTRACTS): SetFromDecimal,
 |---|---|---|---|---|
 | `uint256.FromBig` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/FromBig.lean; runtime.newobject contract + SetFromBig as callee summary; `Witness`: toy allocator + concrete call, `example := correctness ...` fires (hnew and precondition jointly satisfiable) |
 | `uint256.FromDecimal` | (b) | todo | todo | fromDecimal loop + mapaccess/ifaceeq, not extractable without contracts for runtime.mapaccess2_fast32/ifaceeq |
-| `uint256.FromHex` | (b) | todo | todo | newobject (z escapes) + fromHex loop; error values are globals (ErrSyntax...) in .data |
+| `uint256.FromHex` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/FromHex.lean; runtime.newobject contract + the fromHex callee summary (`SetFromHexLoops.fromHex_sum`, spec `parseHex`); preconditions: the package error variables are non-nil, outside `rt`, disjoint from the stack; `Witness`: toy allocator + concrete call on `"0x1f"`, `example := correctness ...` fires |
 | `uint256.MustFromBig` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromBig.lean; EnsuresGo with PanicRuntime P: returns when x=nil or len<=4, else panics with the \"overflow\" eface; same Witness pattern |
 | `uint256.MustFromDecimal` | (b) | todo | todo | as FromDecimal |
-| `uint256.MustFromHex` | (b) | todo | todo | newobject + fromHex + gopanic(err) |
+| `uint256.MustFromHex` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MustFromHex.lean; EnsuresGo with PanicRuntime P: returns exactly when `parseHex` succeeds, otherwise panics with the eface `(itab.Type, data)` of the sentinel error (`itab+8` read from the error variable's itab: the itabs must be readable, outside `rt` and the stack); same Witness pattern as FromHex |
 | `(*uint256.Int).CmpBig` | (a) | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).Dec` | (d) | todo | todo | strconv.FormatUint/AppendUint/formatBits + udivrem(Knuth) loops + slicebytetostring (String contract exists); ~15 functions |
 | `(*uint256.Int).PrettyDec` | (d) | todo | todo | as Dec |
-| `(*uint256.Int).Hex` | (b) | todo | todo | makeslice(66) + slicebytetostring (RtLive string contracts) + 64-nibble table lookups |
+| `(*uint256.Int).Hex` | (b) | blocked U16 | todo | arm64: loop lemma (hexstep) and string/postcondition lemmas done (wip/ArmHex.lean.wip), but the base-case theorem fails the kernel check (deep recursion in the symbolic nibble-count/pointer prefix, also on Janus f65043ca); repro /srv/janus-ops/repros/U16-hex-deeprec/. No Live variant of slicebytetostring exists. |
 | `(*uint256.Int).String` | (d) | todo | todo | = Dec |
 | `(*uint256.Int).Format` | (d) | out of scope | out of scope | math/big Format through a dynamic fmt.State (interface calls into fmt/strconv/big): not provable at reasonable cost (upstream analysis DESIGN-U5-U6) |
-| `(*uint256.Int).IntoBig` | (b) | todo | todo | newobject, write barrier, big.Int.Bits/SetBits layout; needs a big.Int memory model |
-| `(*uint256.Int).ToBig` | (b) | todo | todo | IntoBig + newobject |
+| `(*uint256.Int).IntoBig` | (b) | blocked | blocked | newobject, write barrier, big.Int.Bits/SetBits layout; needs a big.Int memory model BLOCKED (U14): newobject then gcWriteBarrier2 on the same path; the second contract call needs readiness at a memory view that does not exist at entry. Provable partial paths (z == nil; *b != nil and cap >= 4) planned last. |
+| `(*uint256.Int).ToBig` | (b) | blocked | blocked | IntoBig + newobject BLOCKED (U14): newobject then gcWriteBarrier2 on the same path; the second contract call needs readiness at a memory view that does not exist at entry. Provable partial paths (z == nil; *b != nil and cap >= 4) planned last. |
 | `(*uint256.Int).Scan` | (b) | todo | todo | type switch on interface{}, mapaccess2_fast32, ifaceeq, Exp, MulOverflow, SetFromDecimal |
 | `(*uint256.Int).SetFromBig` | (a) | verified | verified | reads big.Int {neg, abs nat} layout; no runtime call |
 | `(*uint256.Int).SetFromDecimal` | (b) | todo | todo | as FromDecimal |
-| `(*uint256.Int).SetFromHex` | (a) | todo | todo | fromHex loop; error returns are interface values loaded from globals ErrXxx (writable .data: precondition must supply) |
+| `(*uint256.Int).SetFromHex` | (a) | verified | verified | lean/Fv256/{Arm64,Amd64}/{SetFromHexLoops,SetFromHex}.lean; fromHex proved as a callee summary (`fromHex_sum`: digit loop invariant over the 4 limbs, specification `parseHex` in SpecC); preconditions beyond the usual pointers: the six package error variables are non-nil and disjoint from z and the stack, enough stack for the callee (`GuardOK s 48`); Witness: `"0x1f"` parses to 31 |
 | `(*uint256.Int).MarshalJSON` | (d) | todo | todo | Dec + concatbyte3 + string/slice runtime |
 | `(*uint256.Int).MarshalSSZ` | (b) | verified | verified | lean/Fv256/{Arm64,Amd64}/MarshalSSZ.lean; runtime.makeslice contract (growslice calls are inlined away: capacity is known); allocator witness inside |
 | `(*uint256.Int).MarshalSSZAppend` | (b) | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
