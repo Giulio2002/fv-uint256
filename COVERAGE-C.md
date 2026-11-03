@@ -53,3 +53,9 @@ When `*bp == 0` the freshly allocated object is separated from `g+16` by the new
 No conjunct is false for a real caller, so none needs to be proved instead.
 
 Witness: the nonvacuous witness must instantiate `PreX` concretely, i.e. a `g` placed away from `bp`, `P` and `ap`, and `cap` as a small natural number. This is still to do and is tracked with the IntoBig Witness; the proof is `pending Janus pin 689b0f67`.
+
+## Spec-completeness review (user clarification 2026-11-03: bug finding comes from the spec)
+
+- `FromBig`, `MustFromBig`, `SetFromBig`, `CmpBig`: the NEGATIVE case is stated, not excluded. The sign byte is read from memory (`< 2`, not assumed 0), the value is `Fv256.C.fromBig neg abs` (negative: two's complement of `abs mod 2^256`), the overflow flag / panic depends only on the word count (`4 < len`), never on the sign. Boundary facts are kernel-checked in `SpecChecks.lean`: `fromBig true 1 = 2^256-1`, `fromBigOv 1 = false` (so `FromBig(-1)` returns `(2^256-1, false)` and `MustFromBig(-1)` does not panic: bug-hunter H-1, logged in UINT256-FINDINGS), `fromBig true (2^256-1) = 1`. Status: spec complete for the sign question.
+- `SetFromHex` / `FromHex` / `MustFromHex`: SPEC INCOMPLETE. The success value is `parseHex`; on the error path the theorems give only the error value and a MemFrame, they do not say what `z` holds after a failed `SetFromHex` (the library's doc says nothing either; to be stated from the code once the intended behaviour is decided). Same for the other parsers (`SetFromDecimal`, `Scan`, `UnmarshalText`, `UnmarshalJSON` incl. `null`).
+- `MarshalSSZAppend` (`len + 32 <= cap` only), `MarshalSSZInto`, `UnmarshalSSZ`: PARTIAL, spec incomplete (realloc, error paths, receiver state on error).
