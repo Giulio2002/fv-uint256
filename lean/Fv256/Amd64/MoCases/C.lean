@@ -32,10 +32,10 @@ theorem caseC (z x : BitVec 64) :
   have := Util.readLE8_lt s.mem (x.toNat + 8)
   have := Util.readLE8_lt s.mem (x.toNat + 16)
   have := Util.readLE8_lt s.mem (x.toNat + 24)
-  have hvz : Janus.Arm64.Memory.readLE s.mem z.toNat 32 < 2 ^ 256 := by
-    simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem z.toNat 32
   have hvx : Janus.Arm64.Memory.readLE s.mem x.toNat 32 < 2 ^ 256 := by
     simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem x.toNat 32
+  have hvz : Janus.Arm64.Memory.readLE s.mem z.toNat 32 < 2 ^ 256 := by
+    simpa [Nat.reducePow] using Janus.Arm64.Memory.readLE_lt s.mem z.toNat 32
   all_goals (simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.mod_mod])
   refine ⟨?_, ?_, ?_⟩
   · refine Util.mo_flag8 _ _ _ _ _ _ hvx hvz ?_ ?_ ?_ ?_

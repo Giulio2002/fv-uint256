@@ -51,6 +51,58 @@ theorem correctness (z x y : BitVec 64) :
         exact caseD _ _ ret hret s hs ⟨hg, hst, hal, hz, hx, hy, hzx, hd1, hd2⟩
       · exact caseA _ _ _ ret hret s hs ⟨hg, hst, hal, hz, hx, hy, hzx, hzy, hxy, hd1, hd2, hd3⟩
 
--- Witness: to be added once the cases verify (state as in Clone/amd64: guard register, stack window, wmem64-style memory).
+namespace Witness
+
+def ret : Nat := 0x200000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x300000
+def zp : Nat := 0x30800
+
+/-- the return address in the slot at `[SP]`, everything else zero -/
+def bytes (a : Nat) : Byte := if a = sp0 + 2 then 0x20 else 0
+
+def z : BitVec 64 := BitVec.ofNat 64 zp
+def x : BitVec 64 := BitVec.ofNat 64 (zp + 32)
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then z else if i = 3 then x else if i = 1 then x else if i = 4 then BitVec.ofNat 64 sp0
+      else if i = 14 then BitVec.ofNat 64 g0 else 0,
+    rip := BitVec.ofNat 64 Extracted.entry, flags := ⟨none, none, none, none, none, none⟩, xmm := fun _ => 0,
+    mem := ⟨bytes, [⟨sp0 - 152, 152 + 16, true⟩, ⟨g0, 0x100, false⟩, ⟨zp, 0x100, true⟩]⟩ }
+
+theorem hret : RetAddr Extracted.program ret := RetAddr.of_check (by decide)
+
+theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, x] s0 :=
+  ⟨rfl, by decide, rfl, by decide, by intro i h; simp at h; rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2) with rfl | rfl | rfl <;> rfl, rfl⟩
+
+set_option maxRecDepth 100000 in
+theorem hpre : StackGuardOK s0 0 ∧ StackWritable s0 152 16 ∧ (s0.regs regSP).toNat % 8 = 0 ∧
+    Buffer s0 z 32 true ∧ Buffer s0 x 32 false ∧ Buffer s0 x 32 false ∧ Alias z x ∧ Alias z x ∧ Alias x x ∧
+    (z.toNat + 32 ≤ (s0.regs regSP).toNat - 152 ∨ (s0.regs regSP).toNat + 16 ≤ z.toNat) ∧
+    (x.toNat + 32 ≤ (s0.regs regSP).toNat - 152 ∨ (s0.regs regSP).toNat + 16 ≤ x.toNat) ∧
+    (x.toNat + 32 ≤ (s0.regs regSP).toNat - 152 ∨ (s0.regs regSP).toNat + 16 ≤ x.toNat) :=
+  ⟨⟨by decide, by decide, by unfold stackguard0 stackguard0Offset regG regSP; decide⟩, ⟨by decide, by decide, by decide⟩, by decide,
+    ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, Or.inr (Or.inl (by decide)), Or.inr (Or.inl (by decide)), Or.inl rfl,
+    by decide, by decide, by decide⟩
+
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Extracted.program ret ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y] s ∧
+    (StackGuardOK s 0 ∧ StackWritable s 152 16 ∧ (s.regs regSP).toNat % 8 = 0 ∧
+      Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Alias z x ∧ Alias z y ∧ Alias x y ∧
+      (z.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ z.toNat) ∧
+      (x.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ x.toNat) ∧
+      (y.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ y.toNat)) :=
+  ⟨ret, s0, z, x, x, hret, setup, hpre⟩
+
+set_option maxRecDepth 100000 in
+theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
+    ABIReturn s0 s' ∧ s'.regs 0 = z ∧ (s'.regs 3).toNat % 256 = 0 ∧ valueAt s' z 32 = 0 := by
+  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  intro s' h
+  refine ⟨h.1, h.2.1, ?_, ?_⟩
+  · rw [h.2.2.1]; unfold valueAt; decide
+  · rw [h.2.2.2.1]; unfold valueAt Spec.mul; decide
+
+end Witness
 
 end Fv256.Amd64.MulOverflow
