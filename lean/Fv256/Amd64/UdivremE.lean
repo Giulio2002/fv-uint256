@@ -82,12 +82,13 @@ theorem midB1 (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl
         MemFrame M M' [(qp, qp + 8 * ulen), (sf - 16, sf + 8), (sf + 24, sf + 32)]) := by
   have hcode := ku_lt
   janus64_run [Fv256.B.wv_writeLE_outside, e2, e3, e10, e9, e4, m_f8, m_98] until [ku + 0x355] calls [Fv256.Amd64.DivWork2.by1_summary]
-  rename_i rr R2 fl2 M2 h0 h4 h8 hk hlt hwv hfr
-  refine ⟨R2, fl2, M2, rr, rfl, h0, h4, ?_, hlt, hwv, ?_⟩
-  · have := hk 14 (by simp)
-    simpa using this
-  · refine Janus.MemFrame.trans (rs := [(sf - 8, sf)]) ?_ hfr ?_
-    · janus_frame
-    · intro a n' h; simp [Outside] at h ⊢; omega
+  rename_i rr R2 fl2 M2
+  refine ⟨R2, fl2, M2, rr, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals first
+    | assumption
+    | (simpa using (‹∀ i, i ∉ _ → R2 i = _› 14 (by simp)))
+    | (refine Janus.MemFrame.trans (rs := [(sf - 8, sf)]) ?_ ‹MemFrame _ _ _› ?_
+       · janus_frame
+       · intro a n' h; simp [Outside] at h ⊢; omega)
 
 end Fv256.Amd64.UdivremE
