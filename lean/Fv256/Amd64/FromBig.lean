@@ -192,22 +192,27 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
   · simp only [rt, outside_cons, outside_nil]; decide
   · simp only [rt, outside_cons, outside_nil]; decide
 
+/-- pins the type of an existential variable of `nonvacuous` -/
+def pinBitVec64 (_k : BitVec 64) : Prop := True
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
-theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (x : BitVec 64) (ret : Nat) (s : State),
+theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (x : BitVec 64) (pw : BitVec 64) (len : BitVec 64) (ret : Nat) (s : State),
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [x] s ∧
-    (StackGuardOK s 0 ∧ StackWritable s 4136 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    (pinBitVec64 pw ∧
+    pinBitVec64 len ∧
+    StackGuardOK s 0 ∧ StackWritable s 4136 24 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4136) 4160 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
         H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem) ∧
         (x.toNat ≠ 0 → Buffer s x 32 false ∧ s.mem.readLE x.toNat 1 < 2 ∧
-          s.mem.readLE (x.toNat + 8) 8 = (pw : BitVec 64).toNat ∧ s.mem.readLE (x.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
-          Buffer s (pw : BitVec 64) (8 * (2 : BitVec 64).toNat) false ∧ Outside x.toNat 32 rt ∧ Outside (pw : BitVec 64).toNat (8 * (2 : BitVec 64).toNat) rt ∧
+          s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
+          Buffer s pw (8 * len.toNat) false ∧ Outside x.toNat 32 rt ∧ Outside pw.toNat (8 * len.toNat) rt ∧
           (x.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ x.toNat) ∧
-          ((pw : BitVec 64).toNat + 8 * (2 : BitVec 64).toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ (pw : BitVec 64).toNat))) :=
-  ⟨impl, rt, H, xp, ret, s0, hnew, hret, setup, pre⟩
+          (pw.toNat + 8 * len.toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ pw.toNat))) :=
+  ⟨impl, rt, H, xp, pw, 2, ret, s0, hnew, hret, setup, ⟨trivial, trivial, pre⟩⟩
 
 end Witness
 

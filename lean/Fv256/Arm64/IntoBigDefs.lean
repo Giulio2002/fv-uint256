@@ -101,7 +101,7 @@ def PreX (z bp : BitVec 64) (s : State) : Prop :=
 def Post (R : RtInv) (z bp : BitVec 64) (s s' : State) : Prop :=
   (z.toNat = 0 → s'.mem.readLE bp.toNat 8 = 0) ∧
   (z.toNat ≠ 0 → ∃ P : Nat, BigOut s'.mem bp.toNat P (val256 s.mem z.toNat)) ∧
-  MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
+  MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
     (s.mem.readLE bp.toNat 8, s.mem.readLE bp.toNat 8 + 32),
     (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)])
 
@@ -185,26 +185,26 @@ theorem read_wb {M0 w2 : Memory} {rt : List (Nat × Nat)} {wl wh w6 x n v1 v2 : 
   exact ⟨hx, hxw⟩
 
 /-- The frame of the exits: the stores to the `big.Int` block and the barrier slots. -/
-theorem frame_wb {m S M0 w2 : Memory} {rt : List (Nat × Nat)} {sl sh bl bh al ah wl wh : Nat}
+theorem frame_wb {m S M0 w2 : Memory} {rt : List (Nat × Nat)} {sl sh tl th bl bh al ah wl wh : Nat}
     {P len cap w6 a b A' : Nat}
-    (h1 : MemFrame m S (rt ++ [(sl, sh), (bl, bh), (al, ah)]))
+    (h1 : MemFrame m S (rt ++ [(sl, sh), (tl, th), (bl, bh), (al, ah)]))
     (hM0 : M0 = (S.writeLE (P + 16) 8 len).writeLE (P + 24) 8 cap)
     (h2 : MemFrame M0 w2 (rt ++ [(wl, wh)])) (hwin : sl ≤ wl ∧ wh ≤ sh)
     (hs : InRanges w6 16 rt) :
     MemFrame m ((((w2.writeLE w6 8 a).writeLE (w6 + 8) 8 b).writeLE (P + 8) 8 A').writeLE P 1 0)
-      (rt ++ [(sl, sh), (bl, bh), (P, P + 32), (al, ah)]) := by
-  have hL : ∀ a n, Outside a n (rt ++ [(sl, sh), (bl, bh), (P, P + 32), (al, ah)]) →
-      Outside a n (rt ++ [(sl, sh), (bl, bh), (al, ah)]) := by
+      (rt ++ [(sl, sh), (tl, th), (bl, bh), (P, P + 32), (al, ah)]) := by
+  have hL : ∀ a n, Outside a n (rt ++ [(sl, sh), (tl, th), (bl, bh), (P, P + 32), (al, ah)]) →
+      Outside a n (rt ++ [(sl, sh), (tl, th), (bl, bh), (al, ah)]) := by
     intro a n hh
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.2⟩
-  have hA : MemFrame m S (rt ++ [(sl, sh), (bl, bh), (P, P + 32), (al, ah)]) := h1.mono hL
-  have hB : MemFrame m M0 (rt ++ [(sl, sh), (bl, bh), (P, P + 32), (al, ah)]) := by
+    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1, hh.2.2.2.2.2⟩
+  have hA : MemFrame m S (rt ++ [(sl, sh), (tl, th), (bl, bh), (P, P + 32), (al, ah)]) := h1.mono hL
+  have hB : MemFrame m M0 (rt ++ [(sl, sh), (tl, th), (bl, bh), (P, P + 32), (al, ah)]) := by
     rw [hM0]
     refine (hA.writeLE_inRanges _ ?_).writeLE_inRanges _ ?_
     · exact ⟨(P, P + 32), by simp, by omega, by omega⟩
     · exact ⟨(P, P + 32), by simp, by omega, by omega⟩
-  have hC : MemFrame m w2 (rt ++ [(sl, sh), (bl, bh), (P, P + 32), (al, ah)]) := by
+  have hC : MemFrame m w2 (rt ++ [(sl, sh), (tl, th), (bl, bh), (P, P + 32), (al, ah)]) := by
     refine hB.trans h2 ?_
     intro a n hh
     refine ⟨hh, ?_⟩
@@ -214,7 +214,7 @@ theorem frame_wb {m S M0 w2 : Memory} {rt : List (Nat × Nat)} {sl sh bl bh al a
     · left; omega
     · right; omega
   obtain ⟨r, hr, hr1, hr2⟩ := hs
-  have hr' : r ∈ rt ++ [(sl, sh), (bl, bh), (P, P + 32), (al, ah)] := by simp [hr]
+  have hr' : r ∈ rt ++ [(sl, sh), (tl, th), (bl, bh), (P, P + 32), (al, ah)] := by simp [hr]
   refine (((hC.writeLE_inRanges _ ⟨r, hr', by omega, by omega⟩).writeLE_inRanges _
     ⟨r, hr', by omega, by omega⟩).writeLE_inRanges _ ⟨(P, P + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
     ⟨(P, P + 32), by simp, by omega, by omega⟩
@@ -247,21 +247,21 @@ theorem read_words4 (M : Memory) (A v0 v1 v2 v3 x n : Nat) (h : x + n ≤ A ∨ 
   rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
     Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
 
-theorem frame_add {m S : Memory} {rt : List (Nat × Nat)} {sl sh bl bh al ah : Nat}
-    (h : MemFrame m S (rt ++ [(sl, sh), (bl, bh)])) : MemFrame m S (rt ++ [(sl, sh), (bl, bh), (al, ah)]) :=
+theorem frame_add {m S : Memory} {rt : List (Nat × Nat)} {sl sh tl th bl bh al ah : Nat}
+    (h : MemFrame m S (rt ++ [(sl, sh), (tl, th), (bl, bh)])) : MemFrame m S (rt ++ [(sl, sh), (tl, th), (bl, bh), (al, ah)]) :=
   h.mono fun a n hh => by
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    exact ⟨hh.1, hh.2.1, hh.2.2.1⟩
+    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1⟩
 
 theorem view_words4 (rt L : List (Nat × Nat)) (M : Memory) (A v0 v1 v2 v3 : Nat) (hA : Outside A 32 rt) :
     view rt L ((((M.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3) = view rt L M := by
   rw [view_writeLE_out (Outside.of_sub hA (by omega) (by omega)), view_writeLE_out (Outside.of_sub hA (by omega) (by omega)),
     view_writeLE_out (Outside.of_sub hA (by omega) (by omega)), view_writeLE_out (Outside.of_sub hA (by omega) (by omega))]
 
-theorem frame_words4 {m S : Memory} {rt : List (Nat × Nat)} {sl sh bl bh A : Nat} {v0 v1 v2 v3 : Nat}
-    (h : MemFrame m S (rt ++ [(sl, sh), (bl, bh), (A, A + 32)])) :
+theorem frame_words4 {m S : Memory} {rt : List (Nat × Nat)} {sl sh tl th bl bh A : Nat} {v0 v1 v2 v3 : Nat}
+    (h : MemFrame m S (rt ++ [(sl, sh), (tl, th), (bl, bh), (A, A + 32)])) :
     MemFrame m ((((S.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3)
-      (rt ++ [(sl, sh), (bl, bh), (A, A + 32)]) :=
+      (rt ++ [(sl, sh), (tl, th), (bl, bh), (A, A + 32)]) :=
   (((h.writeLE_inRanges _ ⟨(A, A + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
     ⟨(A, A + 32), by simp, by omega, by omega⟩).writeLE_inRanges _ ⟨(A, A + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
     ⟨(A, A + 32), by simp, by omega, by omega⟩
@@ -276,7 +276,7 @@ def Rel (R : RtInv) (ret : Nat) (z bp : BitVec 64) (s S : State) : Prop :=
   S.sp = s.sp - 48#64 ∧ S.regs 28 = s.regs 28 ∧ S.regs 29 = s.sp - 56#64 ∧ S.regs 18 = s.regs 18 ∧
     S.mem.readLE (s.sp.toNat - 48) 8 = ret ∧ S.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat ∧
     S.mem.readLE (s.sp.toNat + 8) 8 = z.toNat ∧ S.mem.readLE (s.sp.toNat + 16) 8 = bp.toNat ∧
-    MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)])
+    MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)])
 
 theorem reaches_mono {p : Program} {s : State} {Q Q' : Outcome → Prop} (h : Reaches p s Q) (hQ : ∀ o, Q o → Q' o) :
     Reaches p s Q' := by
@@ -287,11 +287,11 @@ theorem reaches_mono {p : Program} {s : State} {Q Q' : Outcome → Prop} (h : Re
 theorem post_of_tail (R : RtInv) (z bp : BitVec 64) (s : State) (P : Nat) (hz0 : z.toNat ≠ 0) :
     ∀ o : Outcome,
       IsReturn (fun s' => ABIReturn s s' ∧ BigOut s'.mem bp.toNat P (val256 s.mem z.toNat) ∧
-        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) o →
-      (∀ a n, Outside a n (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
+        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) o →
+      (∀ a n, Outside a n (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
           (s.mem.readLE bp.toNat 8, s.mem.readLE bp.toNat 8 + 32),
           (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)]) →
-        Outside a n (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) →
+        Outside a n (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) →
       IsReturn (fun s' => ABIReturn s s' ∧ Post R z bp s s') o := by
   intro o ho hw
   cases o with

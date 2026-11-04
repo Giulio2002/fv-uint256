@@ -434,14 +434,18 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4144 24 ∧ Extracted.progr
     obtain rfl | rfl | rfl | rfl | rfl | rfl : e = 0 ∨ e = 1 ∨ e = 2 ∨ e = 3 ∨ e = 4 ∨ e = 5 := by omega
     all_goals (refine ⟨by decide, ?_, by decide⟩; (simp only [rt, outside_cons, outside_nil]; decide))
 
+/-- pins the type of an existential variable of `nonvacuous` -/
+def pinJanusSpecPanicRuntime (_k : Janus.Spec.PanicRuntime) : Prop := True
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
-theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (ret : Nat) (s : State),
+theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (P : Janus.Spec.PanicRuntime) (ret : Nat) (s : State),
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [hp, len] s ∧
-    (StackGuardOK s 0 ∧ StackWritable s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    (pinJanusSpecPanicRuntime P ∧
+    StackGuardOK s 0 ∧ StackWritable s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4144) 4168 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
         H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 48) (rtView rt s.mem) ∧
         Buffer s hp len.toNat false ∧ Outside hp.toNat len.toNat rt ∧
@@ -452,7 +456,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
         (∀ e, e < 6 → s.mem.accessible (s.mem.readLE (errAddrOf e) 8 + 8) 8 false = true ∧
           Outside (s.mem.readLE (errAddrOf e) 8 + 8) 8 rt ∧
           ((s.mem.readLE (errAddrOf e) 8 + 8) + 8 ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ s.mem.readLE (errAddrOf e) 8 + 8))) :=
-  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre⟩
+  ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ⟨trivial, pre⟩⟩
 
 end Witness
 

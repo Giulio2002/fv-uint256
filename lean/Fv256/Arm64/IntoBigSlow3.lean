@@ -21,7 +21,7 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (h18 : S.regs 18 = s.regs 18) (h_rd1 : S.mem.readLE (s.sp.toNat - 48) 8 = ret)
     (h_rd2 : S.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat)
     (h_rd3 : S.mem.readLE (s.sp.toNat + 8) 8 = z.toNat) (h_rd4 : S.mem.readLE (s.sp.toNat + 16) 8 = bp.toNat)
-    (hfr : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
+    (hfr : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
     (hpc : S.pc = BitVec.ofNat 64 pcLoad) (h0 : S.regs 0 = z) (h1 : S.regs 1 = bp)
     (P c : Nat) (h_rdP : S.mem.readLE bp.toNat 8 = P) (h_rdc : S.mem.readLE (P + 24) 8 = c)
     (hc : c < 4)
@@ -32,7 +32,7 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (hLP : (L0 = [] ∧ Outside P 32 R.rt) ∨ (L0 = [(P, P + 32)] ∧ InRanges P 32 R.rt))
     (hPs : (L0 = [] ∧ s.mem.readLE bp.toNat 8 = P) ∨ (L0 = [(P, P + 32)] ∧ s.mem.readLE bp.toNat 8 = 0))
     (hinv : R.inv b0 L0 (s.regs 28).toNat (view R.rt L0 S.mem)) (hb0 : 32 ≤ b0)
-    (hPfr : InRanges P 32 (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
+    (hPfr : InRanges P 32 (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
       (s.mem.readLE bp.toNat 8, s.mem.readLE bp.toNat 8 + 32),
       (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)])) :
     Reaches ((Extracted.program.link impl).withExit ret) S
@@ -102,7 +102,7 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     intro a n hh
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
     rw [hPs1] at hh
-    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1⟩
+    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1, hh.2.2.2.2.1⟩
   · subst hL
     have hPs1 : s.mem.readLE bp.toNat 8 = 0 := by
       rcases hPs with ⟨h, -⟩ | ⟨-, h⟩
@@ -143,7 +143,7 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
     obtain ⟨r, hr', hr1', hr2'⟩ := hX
     have hro := MemFrame.outside_mem hh.1 hr'
-    refine ⟨hh.1, hh.2.1, hh.2.2.1, ?_⟩
+    refine ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1, ?_⟩
     omega
 
 end Fv256.Arm64.IntoBig
