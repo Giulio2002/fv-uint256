@@ -19,7 +19,7 @@ theorem finF (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret
     (h18 : S.regs 18 = s.regs 18) (h_rd1 : S.mem.readLE (s.sp.toNat - 48) 8 = ret)
     (h_rd2 : S.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat)
     (A P len cap : Nat)
-    (hfr : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
+    (hfr : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
       (A, A + 32)]))
     (hpc : S.pc = BitVec.ofNat 64 pcFinF) (h0 : S.regs 0 = BitVec.ofNat 64 len) (h1 : S.regs 1 = bp)
     (h2 : S.regs 2 = BitVec.ofNat 64 A) (h3 : S.regs 3 = BitVec.ofNat 64 cap)
@@ -33,7 +33,7 @@ theorem finF (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret
     (hword : ∀ i, i < 4 → S.mem.readLE (A + 8 * i) 8 = s.mem.readLE (z.toNat + 8 * i) 8)
     (hnorm : len = 0 ∨ s.mem.readLE (z.toNat + 8 * (len - 1)) 8 ≠ 0)
     (hzero : ∀ i, len ≤ i → i < 4 → s.mem.readLE (z.toNat + 8 * i) 8 = 0)
-    (hinv : R.inv b [] (s.regs 28).toNat (view R.rt [] S.mem)) :
+    (hinv : R.inv b [] (s.regs 28).toNat (view R.rt [] S.mem)) (hP0 : P ≠ 0) :
     Reaches (((Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).IntoBig"]).link impl).withExit ret) S
       (IsReturn fun s' => ABIReturn s s' ∧ Post R z bp s s') := by
   obtain ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb', ha, hw⟩, hd, hout, hga, hgr, hflag, hty1, hty2, hok1, hok2, hok3, hok4,
@@ -61,7 +61,7 @@ theorem finF (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret
   all_goals (have hPvC : ReadEq S.mem bp.toNat 8 P := hPv)
   all_goals (try simp only [hPv])
   all_goals (try simp only [hPs, hAs])
-  all_goals (refine ⟨fun h => absurd h hz0, fun _ => ⟨P, ?_⟩, ?_⟩)
+  all_goals (refine ⟨fun h => absurd h hz0, fun _ => ⟨P, ?_⟩, ?_, fun h0 => absurd (hPs.symm.trans h0) hP0⟩)
   all_goals (try (refine bigout_of _ bp.toNat P A len cap _ (fun i => s.mem.readLE (z.toNat + 8 * i) 8) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ (val256_bigAbs s.mem z.toNat)))
   all_goals (try simp only [hPv] at *)
   all_goals (try simp only [hPs, hAs])

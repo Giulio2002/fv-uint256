@@ -21,7 +21,7 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (h18 : S.regs 18 = s.regs 18) (h_rd1 : S.mem.readLE (s.sp.toNat - 48) 8 = ret)
     (h_rd2 : S.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat)
     (h_rd3 : S.mem.readLE (s.sp.toNat + 8) 8 = z.toNat) (h_rd4 : S.mem.readLE (s.sp.toNat + 16) 8 = bp.toNat)
-    (hfr : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
+    (hfr : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
     (hpc : S.pc = BitVec.ofNat 64 pcLoad) (h0 : S.regs 0 = z) (h1 : S.regs 1 = bp)
     (P c : Nat) (h_rdP : S.mem.readLE bp.toNat 8 = P) (h_rdc : S.mem.readLE (P + 24) 8 = c)
     (hc : c < 4)
@@ -30,9 +30,9 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (hPd : Apart (s.sp.toNat - 4144) 4168 P 32) (hPb : Apart bp.toNat 8 P 32) (hPz : Apart z.toNat 32 P 32)
     (L0 : List (Nat × Nat)) (b0 : Nat)
     (hLP : (L0 = [] ∧ Outside P 32 R.rt) ∨ (L0 = [(P, P + 32)] ∧ InRanges P 32 R.rt))
-    (hPs : (L0 = [] ∧ s.mem.readLE bp.toNat 8 = P) ∨ (L0 = [(P, P + 32)] ∧ s.mem.readLE bp.toNat 8 = 0))
+    (hPs : (L0 = [] ∧ s.mem.readLE bp.toNat 8 = P ∧ P ≠ 0) ∨ (L0 = [(P, P + 32)] ∧ s.mem.readLE bp.toNat 8 = 0))
     (hinv : R.inv b0 L0 (s.regs 28).toNat (view R.rt L0 S.mem)) (hb0 : 32 ≤ b0)
-    (hPfr : InRanges P 32 (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
+    (hPfr : InRanges P 32 (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
       (s.mem.readLE bp.toNat 8, s.mem.readLE bp.toNat 8 + 32),
       (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)])) :
     Reaches (((Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).IntoBig"]).link impl).withExit ret) S
@@ -64,9 +64,9 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
   rw [hbs] at hblk
   rcases hLP with ⟨hL, hX⟩ | ⟨hL, hX⟩
   · subst hL
-    have hPs1 : s.mem.readLE bp.toNat 8 = P := by
-      rcases hPs with ⟨-, h⟩ | ⟨h, -⟩
-      · exact h
+    obtain ⟨hPs1, hP0⟩ : s.mem.readLE bp.toNat 8 = P ∧ P ≠ 0 := by
+      rcases hPs with ⟨-, h, h'⟩ | ⟨h, -⟩
+      · exact ⟨h, h'⟩
       · simp at h
     janus_run until [pcLoopHead] calls [hnew.pos]
     unfold Hidden at hfacts
@@ -98,14 +98,16 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
       hPa hP48 hAcc (le48 _ hLe) hPd ha1 hgP (Or.symm ha2) (Or.symm h_apart) hPb' (by rw [hm]; exact hwd)
       hn (fun i h1 h2 => hz i h1 h2) [] (Or.inl ⟨rfl, hX⟩)
       (by rw [hm]; rw [view_words4_live _ _ _ _ _ _ _ _ ⟨(BitVec.toNat w6, BitVec.toNat w6 + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩]; exact hInv))
-      (fun o ho => post_of_tail R z bp s P hz0 o ho ?_)
-    intro a n hh
-    simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    rw [hPs1] at hh
-    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1⟩
+      (fun o ho => post_of_tail R z bp s P hz0 ?hn o ho ?hw)
+    case hn => exact fun h0 => absurd (hPs1.symm.trans h0) hP0
+    case hw =>
+      intro a n hh
+      simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
+      rw [hPs1] at hh
+      exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1, hh.2.2.2.2.1⟩
   · subst hL
     have hPs1 : s.mem.readLE bp.toNat 8 = 0 := by
-      rcases hPs with ⟨h, -⟩ | ⟨-, h⟩
+      rcases hPs with ⟨h, -, -⟩ | ⟨-, h⟩
       · simp at h
       · exact h
     janus_run until [pcLoopHead] calls [hnew.pos]
@@ -138,12 +140,20 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
       hPa hP48 hAcc (le48 _ hLe) hPd ha1 hgP (Or.symm ha2) hPw hPb' (by rw [hm]; exact hwd)
       hn (fun i h1 h2 => hz i h1 h2) [(P, P + 32)] (Or.inr ⟨rfl, hX⟩)
       (by rw [hm]; rw [view_words4_live _ _ _ _ _ _ _ _ ⟨(BitVec.toNat w6, BitVec.toNat w6 + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩]; exact hInv))
-      (fun o ho => post_of_tail R z bp s P hz0 o ho ?_)
-    intro a n hh
-    simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    obtain ⟨r, hr', hr1', hr2'⟩ := hX
-    have hro := MemFrame.outside_mem hh.1 hr'
-    refine ⟨hh.1, hh.2.1, hh.2.2.1, ?_⟩
-    omega
+      (fun o ho => post_of_tail R z bp s P hz0 ?hn o ho ?hw)
+    case hn =>
+      intro _ a n hh
+      simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
+      obtain ⟨r, hr', hr1', hr2'⟩ := hX
+      have hro := MemFrame.outside_mem hh.1 hr'
+      refine ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2, ?_⟩
+      omega
+    case hw =>
+      intro a n hh
+      simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
+      obtain ⟨r, hr', hr1', hr2'⟩ := hX
+      have hro := MemFrame.outside_mem hh.1 hr'
+      refine ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1, ?_⟩
+      omega
 
 end Fv256.Arm64.IntoBig

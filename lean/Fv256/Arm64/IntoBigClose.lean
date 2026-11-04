@@ -88,7 +88,7 @@ set_option maxRecDepth 100000 in
 theorem slow0_bigout {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp z P A' len v0 v1 v2 v3 : Nat}
     (hsp : 4144 ≤ sp)
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (h_rdP : S.readLE bp 8 = P)
     (hbpo : Outside bp 8 rt) (hbpd : bp + 8 ≤ sp - 4144 ∨ sp - 4144 + 4168 ≤ bp)
     (hzo : Outside z 32 rt) (hzd : z + 32 ≤ sp - 4144 ∨ sp - 4144 + 4168 ≤ z) (hzb : z + 32 ≤ bp ∨ bp + 8 ≤ z)
@@ -106,7 +106,7 @@ theorem slow0_bigout {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp z P A' le
   have hzr : ∀ i, i < 4 → w2.readLE (z + 8 * i) 8 = s.readLE (z + 8 * i) 8 := by
     intro i hi
     rw [read_call hF (Outside.of_sub hzo (by omega) (by omega)) (by omega) (by omega)]
-    have hz1 : Outside (z + 8 * i) 8 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]) := by
+    have hz1 : Outside (z + 8 * i) 8 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]) := by
       simp only [outside_append, outside_cons, outside_nil, and_true]
       exact ⟨Outside.of_sub hzo (by omega) (by omega), by omega, by omega⟩
     exact hfr.readLE (z + 8 * i) 8 hz1
@@ -131,18 +131,18 @@ set_option maxRecDepth 100000 in
 theorem m0_frame {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp P0 A0 P A' len v0 v1 v2 v3 : Nat}
     (hsp : 4144 ≤ sp)
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (hAin : InRanges A' 32 rt)
-    (hPin : InRanges P 32 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)])) :
+    (hPin : InRanges P 32 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)])) :
     MemFrame s (M0 w2 A' P len v0 v1 v2 v3)
-      (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
-  have hL : ∀ a n, Outside a n (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) →
-      Outside a n (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]) := by
+      (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
+  have hL : ∀ a n, Outside a n (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) →
+      Outside a n (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]) := by
     intro a n hh
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    exact ⟨hh.1, hh.2.1, hh.2.2.1⟩
-  have h1 : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := hfr.mono hL
-  have h2 : MemFrame s w2 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
+    exact ⟨hh.1, hh.2.1, hh.2.2.1, hh.2.2.2.1⟩
+  have h1 : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := hfr.mono hL
+  have h2 : MemFrame s w2 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
     refine h1.trans hF ?_
     intro a n hh
     refine ⟨hh, ?_⟩
@@ -155,7 +155,7 @@ theorem m0_frame {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp P0 A0 P A' le
       · left; omega
       · right; omega
   obtain ⟨rA, hrA, hrA1, hrA2⟩ := hAin
-  have hrA' : rA ∈ rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)] := by simp [hrA]
+  have hrA' : rA ∈ rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)] := by simp [hrA]
   obtain ⟨rP, hrP, hrP1, hrP2⟩ := hPin
   unfold M0
   exact (((((h2.writeLE_inRanges _ ⟨rA, hrA', by omega, by omega⟩).writeLE_inRanges _ ⟨rA, hrA', by omega, by omega⟩).writeLE_inRanges _
@@ -167,11 +167,11 @@ set_option maxRecDepth 100000 in
 theorem slow0_frame {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp P0 A0 P A' len v0 v1 v2 v3 : Nat}
     (hsp : 4144 ≤ sp)
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (hAin : InRanges A' 32 rt)
-    (hPin : InRanges P 32 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)])) :
+    (hPin : InRanges P 32 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)])) :
     MemFrame s (((M0 w2 A' P len v0 v1 v2 v3).writeLE (P + 8) 8 A').writeLE P 1 0)
-      (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
+      (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
   have h3 := m0_frame (len := len) (v0 := v0) (v1 := v1) (v2 := v2) (v3 := v3) hsp hF hfr hAin hPin
   obtain ⟨rP, hrP, hrP1, hrP2⟩ := hPin
   exact (h3.writeLE_inRanges _ ⟨rP, hrP, by omega, by omega⟩).writeLE_inRanges _ ⟨rP, hrP, by omega, by omega⟩
@@ -182,16 +182,16 @@ theorem slow1_frame {s S w2 M w3 : Memory} {rt : List (Nat × Nat)}
     {sp bp P0 A0 P A' len v0 v1 v2 v3 w6 a b : Nat}
     (hsp : 4144 ≤ sp)
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (hAin : InRanges A' 32 rt)
-    (hPin : InRanges P 32 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]))
+    (hPin : InRanges P 32 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]))
     (hM : M = M0 w2 A' P len v0 v1 v2 v3)
     (hF3 : MemFrame M w3 (rt ++ [(sp - 48 - 4096, sp - 48 - 8)])) (hs : InRanges w6 16 rt) :
     MemFrame s ((((w3.writeLE w6 8 a).writeLE (w6 + 8) 8 b).writeLE (P + 8) 8 A').writeLE P 1 0)
-      (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
+      (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
   have h3 := m0_frame (len := len) (v0 := v0) (v1 := v1) (v2 := v2) (v3 := v3) hsp hF hfr hAin hPin
   rw [← hM] at h3
-  have h4 : MemFrame s w3 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
+  have h4 : MemFrame s w3 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
     refine h3.trans hF3 ?_
     intro a' n hh
     refine ⟨hh, ?_⟩
@@ -202,7 +202,7 @@ theorem slow1_frame {s S w2 M w3 : Memory} {rt : List (Nat × Nat)}
     · right; omega
   obtain ⟨rP, hrP, hrP1, hrP2⟩ := hPin
   obtain ⟨rS, hrS, hrS1, hrS2⟩ := hs
-  have hrS' : rS ∈ rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)] := by simp [hrS]
+  have hrS' : rS ∈ rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)] := by simp [hrS]
   exact (((h4.writeLE_inRanges _ ⟨rS, hrS', by omega, by omega⟩).writeLE_inRanges _ ⟨rS, hrS', by omega, by omega⟩).writeLE_inRanges _
     ⟨rP, hrP, by omega, by omega⟩).writeLE_inRanges _ ⟨rP, hrP, by omega, by omega⟩
 
@@ -215,7 +215,7 @@ set_option maxRecDepth 100000 in
 theorem slow1_bigout {s S w2 M w3 : Memory} {rt L1 : List (Nat × Nat)} {sp bp z P A' len v0 v1 v2 v3 w6 a b : Nat}
     (hsp : 4144 ≤ sp)
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (h_rdP : S.readLE bp 8 = P)
     (hbpo : Outside bp 8 rt) (hbpd : bp + 8 ≤ sp - 4144 ∨ sp - 4144 + 4168 ≤ bp)
     (hzo : Outside z 32 rt) (hzd : z + 32 ≤ sp - 4144 ∨ sp - 4144 + 4168 ≤ z) (hzb : z + 32 ≤ bp ∨ bp + 8 ≤ z)
@@ -238,7 +238,7 @@ theorem slow1_bigout {s S w2 M w3 : Memory} {rt L1 : List (Nat × Nat)} {sp bp z
   have hzr : ∀ i, i < 4 → w2.readLE (z + 8 * i) 8 = s.readLE (z + 8 * i) 8 := by
     intro i hi
     rw [read_call hF (Outside.of_sub hzo (by omega) (by omega)) (by omega) (by omega)]
-    have hz1 : Outside (z + 8 * i) 8 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]) := by
+    have hz1 : Outside (z + 8 * i) 8 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]) := by
       simp only [outside_append, outside_cons, outside_nil, and_true]
       exact ⟨Outside.of_sub hzo (by omega) (by omega), by omega, by omega⟩
     exact hfr.readLE (z + 8 * i) 8 hz1
@@ -274,7 +274,7 @@ def M1 (W : Memory) (P len : Nat) : Memory := (W.writeLE (P + 16) 8 len).writeLE
 set_option maxRecDepth 100000 in
 /-- The tail's result, no barrier call. -/
 theorem tail0_bigout {s W : Memory} {sp bp z P A' len : Nat} {rt : List (Nat × Nat)}
-    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (h_rdP : W.readLE bp 8 = P)
     (hPa : s.accessible P 32 true = true) (hP48 : P + 32 ≤ 2 ^ 48)
     (hAacc : s.accessible A' 32 true = true) (hA48 : A' + 32 ≤ 2 ^ 48)
@@ -304,7 +304,7 @@ theorem tail0_bigout {s W : Memory} {sp bp z P A' len : Nat} {rt : List (Nat × 
 set_option maxRecDepth 100000 in
 /-- The tail's result with the barrier call. -/
 theorem tail1_bigout {s W w3 : Memory} {sp bp z P A' len w6 a b : Nat} {rt L1 : List (Nat × Nat)}
-    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (h_rdP : W.readLE bp 8 = P)
     (hPa : s.accessible P 32 true = true) (hP48 : P + 32 ≤ 2 ^ 48)
     (hAacc : s.accessible A' 32 true = true) (hA48 : A' + 32 ≤ 2 ^ 48)
@@ -352,9 +352,9 @@ theorem tail1_bigout {s W w3 : Memory} {sp bp z P A' len w6 a b : Nat} {rt L1 : 
 set_option maxRecDepth 100000 in
 /-- The frame of the tail, no barrier call. -/
 theorem tail0_frame {s W : Memory} {sp bp P A' len : Nat} {rt : List (Nat × Nat)}
-    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)])) :
+    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)])) :
     MemFrame s (((M1 W P len).writeLE (P + 8) 8 A').writeLE P 1 0)
-      (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
+      (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
   have h1 := frame_add (al := P) (ah := P + 32) hfr2
   unfold M1
   exact (((h1.writeLE_inRanges _ ⟨(P, P + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
@@ -364,16 +364,16 @@ theorem tail0_frame {s W : Memory} {sp bp P A' len : Nat} {rt : List (Nat × Nat
 set_option maxRecDepth 100000 in
 /-- The frame of the tail with the barrier call. -/
 theorem tail1_frame {s W w3 : Memory} {sp bp P A' len w6 a b : Nat} {rt : List (Nat × Nat)}
-    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)])) (hsp : 4144 ≤ sp)
+    (hfr2 : MemFrame s W (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)])) (hsp : 4144 ≤ sp)
     (hF3 : MemFrame (M1 W P len) w3 (rt ++ [(sp - 48 - 4096, sp - 48 - 8)])) (hs : InRanges w6 16 rt) :
     MemFrame s ((((w3.writeLE w6 8 a).writeLE (w6 + 8) 8 b).writeLE (P + 8) 8 A').writeLE P 1 0)
-      (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
+      (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
   have h1 := frame_add (al := P) (ah := P + 32) hfr2
-  have h2 : MemFrame s (M1 W P len) (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
+  have h2 : MemFrame s (M1 W P len) (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
     unfold M1
     exact (h1.writeLE_inRanges _ ⟨(P, P + 32), by simp, by omega, by omega⟩).writeLE_inRanges _
       ⟨(P, P + 32), by simp, by omega, by omega⟩
-  have h4 : MemFrame s w3 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
+  have h4 : MemFrame s w3 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
     refine h2.trans hF3 ?_
     intro a' n hh
     refine ⟨hh, ?_⟩
@@ -383,7 +383,7 @@ theorem tail1_frame {s W w3 : Memory} {sp bp P A' len w6 a b : Nat} {rt : List (
     · left; omega
     · right; omega
   obtain ⟨rS, hrS, hrS1, hrS2⟩ := hs
-  have hrS' : rS ∈ rt ++ [(sp - 4144, sp + 24), (bp, bp + 8), (P, P + 32)] := by simp [hrS]
+  have hrS' : rS ∈ rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)] := by simp [hrS]
   exact (((h4.writeLE_inRanges _ ⟨rS, hrS', by omega, by omega⟩).writeLE_inRanges _ ⟨rS, hrS', by omega, by omega⟩).writeLE_inRanges _
     ⟨(P, P + 32), by simp, by omega, by omega⟩).writeLE_inRanges _ ⟨(P, P + 32), by simp, by omega, by omega⟩
 
@@ -392,11 +392,11 @@ set_option maxRecDepth 100000 in
 theorem frame_s2 {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp A v0 v1 v2 v3 : Nat}
     (hsp : 4144 ≤ sp)
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (hA : InRanges A 32 rt) :
     MemFrame s ((((w2.writeLE A 8 v0).writeLE (A + 8) 8 v1).writeLE (A + 16) 8 v2).writeLE (A + 24) 8 v3)
-      (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]) := by
-  have h2 : MemFrame s w2 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]) := by
+      (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]) := by
+  have h2 : MemFrame s w2 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]) := by
     refine hfr.trans hF ?_
     intro a n hh
     refine ⟨hh, ?_⟩
@@ -409,7 +409,7 @@ theorem frame_s2 {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp A v0 v1 v2 v3
       · left; omega
       · right; omega
   obtain ⟨rA, hrA, hrA1, hrA2⟩ := hA
-  have hrA' : rA ∈ rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)] := by simp [hrA]
+  have hrA' : rA ∈ rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)] := by simp [hrA]
   exact (((h2.writeLE_inRanges _ ⟨rA, hrA', by omega, by omega⟩).writeLE_inRanges _ ⟨rA, hrA', by omega, by omega⟩).writeLE_inRanges _
     ⟨rA, hrA', by omega, by omega⟩).writeLE_inRanges _ ⟨rA, hrA', by omega, by omega⟩
 
@@ -423,13 +423,13 @@ set_option maxRecDepth 100000 in
 /-- The limbs of `z` are the same in `s`, `S` and `w2` (across the first runtime call). -/
 theorem s2_zr {s S w2 : Memory} {rt : List (Nat × Nat)} {sp bp z : Nat}
     (hF : MemFrame S w2 (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
-    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]))
+    (hfr : MemFrame s S (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]))
     (hsp : 4144 ≤ sp) (hzo : Outside z 32 rt) (hzd : z + 32 ≤ sp - 4144 ∨ sp - 4144 + 4168 ≤ z)
     (hzb : z + 32 ≤ bp ∨ bp + 8 ≤ z) :
     ∀ i, i < 4 → w2.readLE (z + 8 * i) 8 = s.readLE (z + 8 * i) 8 := by
   intro i hi
   rw [read_call hF (Outside.of_sub hzo (by omega) (by omega)) (by omega) (by omega)]
-  have hz1 : Outside (z + 8 * i) 8 (rt ++ [(sp - 4144, sp + 24), (bp, bp + 8)]) := by
+  have hz1 : Outside (z + 8 * i) 8 (rt ++ [(sp - 4144, sp - 8), (sp + 8, sp + 24), (bp, bp + 8)]) := by
     simp only [outside_append, outside_cons, outside_nil, and_true]
     exact ⟨Outside.of_sub hzo (by omega) (by omega), by omega, by omega⟩
   exact hfr.readLE (z + 8 * i) 8 hz1

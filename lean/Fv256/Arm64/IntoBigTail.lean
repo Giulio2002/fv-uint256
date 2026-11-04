@@ -21,7 +21,7 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b b1 : Nat) (z bp : BitVec 6
     (h18 : S2.regs 18 = s.regs 18) (h_rd1 : S2.mem.readLE (s.sp.toNat - 48) 8 = ret)
     (h_rd2 : S2.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat)
     (h_rd3 : S2.mem.readLE (s.sp.toNat + 8) 8 = z.toNat) (h_rd4 : S2.mem.readLE (s.sp.toNat + 16) 8 = bp.toNat)
-    (hfr2 : MemFrame s.mem S2.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
+    (hfr2 : MemFrame s.mem S2.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
     (hpc : S2.pc = BitVec.ofNat 64 pcTail)
     (A' P len : Nat) (hA0 : (S2.regs 0).toNat = A') (hA1 : (S2.regs 1).toNat = len)
     (hlen : len ≤ 4) (h_rdP : S2.mem.readLE bp.toNat 8 = P)
@@ -37,7 +37,7 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b b1 : Nat) (z bp : BitVec 6
     (hinv : R.inv b1 (L0 ++ [(A', A' + 32)]) (s.regs 28).toNat (view R.rt (L0 ++ [(A', A' + 32)]) S2.mem)) :
     Reaches ((Extracted.program.link impl).withExit ret) S2
       (IsReturn fun s' => ABIReturn s s' ∧ BigOut s'.mem bp.toNat P (val256 s.mem z.toNat) ∧
-        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) := by
+        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) := by
   have h0 : S2.regs 0 = BitVec.ofNat 64 A' := by rw [← hA0]; simp
   have h1 : S2.regs 1 = BitVec.ofNat 64 len := by rw [← hA1]; simp
   obtain ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb', ha, hw⟩, hd, hout, hga, hgr, hflag, hty1, hty2, hok1, hok2, hok3, hok4,

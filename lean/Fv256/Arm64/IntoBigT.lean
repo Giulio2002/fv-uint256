@@ -71,14 +71,14 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
       | (exact ZeroBytes.writeLE_apart ‹_› (by unfold Apart at *; omega))
       | (unfold Apart at *; janus_clear_irrel2; omega)
       | (trace_state; fail "x3")
-  · refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_⟩
+  · refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_, fun _ => ?_⟩
     all_goals (try janus_simp)
     all_goals first
       | (with_reducible assumption)
       | janus_live
       | janus_frame
       | (trace_state; fail "x4")
-  · refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_⟩
+  · refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_, fun _ => ?_⟩
     all_goals (try janus_simp)
     all_goals first
       | (with_reducible assumption)

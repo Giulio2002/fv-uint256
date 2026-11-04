@@ -439,14 +439,18 @@ theorem pre : GuardOK s0 48 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoa
     obtain rfl | rfl | rfl | rfl | rfl | rfl : e = 0 ∨ e = 1 ∨ e = 2 ∨ e = 3 ∨ e = 4 ∨ e = 5 := by omega
     all_goals (refine ⟨by decide, ?_, ?_⟩; (simp only [rt, outside_cons, outside_nil]; decide); (unfold Disjoint; decide))
 
+/-- pins the type of an existential variable of `nonvacuous` -/
+def pinPanicRuntime (_k : PanicRuntime) : Prop := True
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (ret : Nat) (s : State),
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (P : PanicRuntime) (ret : Nat) (s : State),
     NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [hp, len] s ∧
-    (GuardOK s 48 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    (pinPanicRuntime P ∧
+    GuardOK s 48 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4144) 4168 rt ∧ s.regs 29 = s.sp - 8#64 ∧
         H [intType] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem) ∧
         Ptr s.mem hp len.toNat false ∧ Outside hp.toNat len.toNat rt ∧
@@ -457,7 +461,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         (∀ e, e < 6 → s.mem.accessible (s.mem.readLE (errAddrOf e) 8 + 8) 8 false = true ∧
           Outside (s.mem.readLE (errAddrOf e) 8 + 8) 8 rt ∧
           Disjoint (s.mem.readLE (errAddrOf e) 8 + 8) 8 (s.sp.toNat - 4144) 4168)) :=
-  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre⟩
+  ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ⟨trivial, pre⟩⟩
 
 end Witness
 
