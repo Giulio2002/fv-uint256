@@ -90,7 +90,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
     try set_option maxHeartbeats 300000 in simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside,
       Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
       Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod])
-  all_goals (try clear hdz hdx hdy hdm hzm hdg hgo hout hxo hyo hzo hm' hm'r hacc hlow hnw hnw2 hgl hgb hgr hzw hz hxw hx hyw hy hmw hm hfr hrip hspill hretslot hbp h0 h3 h1 h7 h7' h4 h5 h14 e8 e16 e24 f8 f16 f24)
+  all_goals (try clear hdz hdx hdy hdm hzm hdg hgo hout hxo hyo hzo hm' hm'r hacc hlow hnw hnw2 hgl hgb hgr hzw hz hxw hx hyw hy hmw hm hfr hrip h0 h3 h1 h7 h7' h4 h5 h14 e8 e16 e24 f8 f16 f24)
   all_goals (
     first
     | with_reducible assumption
