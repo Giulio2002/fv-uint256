@@ -12,6 +12,7 @@ if 'namespace Witness' in s:
     i=s.index('namespace Witness'); j=s.index('end Witness')+len('end Witness')
     s=s[:i]+s[j:]
 s=s.replace('Extracted.entry','(Extracted.entry + 0x60)')
+s=s.replace('Extracted.program.link impl','(Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).IntoBig"]).link impl')
 s=re.sub(r'import Fv256\.Arm64\.(IntoBig\w+)',r'import Fv256.Arm64.TB.\1',s)
 open(sys.argv[2],'w').write(s)
 PY
