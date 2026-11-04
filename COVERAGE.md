@@ -172,7 +172,10 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 | DivMod amd64 | 2579 s (FV-B, Janus 50db36a6) | 1884 s end to end (Janus 4d43ed7e; DivModB 926 s, dominated by janus64_run) | TOP optimisation item (heaviest proof; target < 300 s); engine work on DivModB ongoing |
 | MulOverflow amd64 | > 3000 s (value closer `janus_arith` on stores not peeled) | 696 s full (cases 70-331 s) | FIXED: 16-byte stores split via janus64_simp + mul_limbs per-limb janus_carry |
 | MulOverflow arm64 | > 3300 s (timeout, exit 124; case E alone OOM > 33 GB) | 295 s (closers ~20 s per aliasing case) | FIXED: cause was `refine mo_flag … <;> first \| omega \| …` running omega on the huge limb goals; now one bullet per goal |
-| WriteToSlice arm64 | 429 s | - | profile pass pending |
+| WriteToSlice arm64 | 429 s (old byte-store code) | 115 s on master 48f3f44 (f1d61dc1) | FIXED by the master rewrite plus closers: per-byte `Util.wbN` lemmas (clean context, no big omega), `Util.rc8_mem_byte`/`rev_byte` for the BSWAP stores. Precondition gained `len <= cap` (master's slice-bounds check panics otherwise) |
+| WriteToSlice amd64 | not measured | 93 s on master | same closers (`rb8_mem_byte`); the len>=32 case now takes the generic per-byte path (master stores 4 x 8 bytes) |
+| PaddedBytes arm64 | not measured | 256 s on master (cases ~100-250 s) | master's 8-byte stores: `Util.pad_big2`; makeslice clamp needs `BitVec.sub_self`/`add_sub_cancel`/`bv_add_sub_left` in `janus_run` |
+| Bytes20 arm64 / amd64 | - | 37 s / 35 s | master copies through a local array; arm64 needs `Util.b20_locC`, amd64 reads are resolved by `janus64_run` |
 | ExtendSign amd64 / arm64 | 262 / 238 s, 144 / 127 s | - | profile pass pending |
 | SRsh amd64 | 175 s | - | profile pass pending |
 | Slt, Sgt amd64 | ~80-104 s each | - | profile pass pending |
