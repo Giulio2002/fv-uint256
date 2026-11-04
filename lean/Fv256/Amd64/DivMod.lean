@@ -103,9 +103,15 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       exact Nat.mod_eq_of_lt (by simpa using (s.regs 5).isLt)
     refine Fv256.Amd64.DivModB.partB impl rt z x y m ptr.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
       (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
-      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_
-    all_goals (first | with_reducible rfl | (exact hx0') | bv_omega | (dsimp only [Extracted.entry]; rfl) | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]; done) | (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8]))
-    all_goals (first | janus_frame | skip)
+      ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin)
+      ?hrip ?h0 ?h3 ?h1 ?h7 ?h4 ?h5 ?h14 ?hx15 ?hdf ?hsx15 ?hfr ?hspill ?hretslot ?hbp
+    case hrip => show (4946924#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140); unfold Extracted.entry; decide
+    case h4 => bv_omega
+    case hx15 => exact hx0'
+    case hsx15 => exact hx0'
+    case hdf => rfl
+    case hfr => janus_frame
+    all_goals (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8])
     all_goals sorry
   · -- no allocation: z != m, the numbers stay where they are
     have hne : z.toNat ≠ m.toNat := by omega
@@ -129,7 +135,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       hmw hm hxo hyo hzo hdz hdx hdy hdm hzm2 hdg hgo
       ⟨fun _ => rfl, fun h => absurd (by rw [h]) hne⟩ (Or.inr rfl)
       ?hrip ?h0 ?h3 ?h1 ?h7 ?h4 ?h5 ?h14 ?hx15 ?hdf ?hsx15 ?hfr ?hspill ?hretslot ?hbp
-    case hrip => unfold Extracted.entry; decide
+    case hrip => show (4946924#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140); unfold Extracted.entry; decide
     case h0 => exact h_a0
     case h3 => exact h_a1
     case h1 => exact h_a2
@@ -138,7 +144,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     case h5 => rfl
     case h14 => rfl
     case hx15 => exact hx0'
-    case hdf => exact h_df
+    case hdf => rfl
     case hsx15 => exact hx0'
     case hfr => janus_frame
     case hspill => exact hsp8
