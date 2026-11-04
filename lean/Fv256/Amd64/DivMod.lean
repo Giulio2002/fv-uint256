@@ -112,7 +112,6 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     case hdf => rfl
     case hfr => janus_frame
     all_goals (simp (disch := omega) [callRegs64, setRegF, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hsp8, hsp16, hsp24, hsp0, hspm8])
-    all_goals sorry
   · -- no allocation: z != m, the numbers stay where they are
     have hne : z.toNat ≠ m.toNat := by omega
     have hzm2 : z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat := by
