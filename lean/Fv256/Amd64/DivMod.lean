@@ -104,7 +104,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       (by omega) cacc hxo hyo hzo hdz hdx hdy (by omega) (by omega) hdg hgo
       ⟨fun h => absurd hzm' h, fun _ => ⟨cin, by omega, cacc⟩⟩ (Or.inl cin)
       ?hrip ?h0 ?h3 ?h1 ?h7 ?h4 ?h5 ?h14 ?hx15 ?hdf ?hsx15 ?hfr ?hspill ?hretslot ?hbp
-    case hrip => exact (by decide : (4946924#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140))
+    case hrip => exact (by decide : (4948460#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140))
     case h4 => simp [callRegs64, setRegF]; bv_omega
     case hx15 => simp [hx0']
     case hsx15 => exact hx0'
@@ -133,7 +133,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       hmw hm hxo hyo hzo hdz hdx hdy hdm hzm2 hdg hgo
       ⟨fun _ => rfl, fun h => absurd (by rw [h]) hne⟩ (Or.inr rfl)
       ?n_hrip ?n_h0 ?n_h3 ?n_h1 ?n_h7 ?n_h4 ?n_h5 ?n_h14 ?n_hx15 ?n_hdf ?n_hsx15 ?n_hfr ?n_hspill ?n_hretslot ?n_hbp
-    case n_hrip => exact (by decide : (4946924#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140))
+    case n_hrip => exact (by decide : (4948460#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140))
     case n_h0 => exact h_a0
     case n_h3 => exact h_a1
     case n_h1 => exact h_a2
