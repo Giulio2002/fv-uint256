@@ -31,7 +31,7 @@ theorem correctness (z : BitVec 64) :
   simp only [valueAt]
   janus64_run [Util.readLE_32]
   refine ⟨?_, ?_⟩
-  · rw [Util.b20a_res, Util.b20a_loc1 _ _ _ _ _ (by omega), Util.b20a_loc2 _ _ _ _ _ (by omega)]
+  · rw [Util.b20a_res]
     have l0 := Util.readLE8_lt s.mem z.toNat
     have l1 := Util.readLE8_lt s.mem (z.toNat + 8)
     have l2 := Util.readLE8_lt s.mem (z.toNat + 16)
@@ -46,7 +46,7 @@ theorem correctness (z : BitVec 64) :
     generalize Janus.Arm64.revBytesNat 4 (s.mem.readLE (z.toNat + 16) 8 % 4294967296) = r4 at *
     generalize Janus.Arm64.revBytesNat 8 (s.mem.readLE (z.toNat + 8) 8) = R1 at *
     generalize Janus.Arm64.revBytesNat 8 (s.mem.readLE z.toNat 8) = R0 at *
-    have e1 : (r4 % 4294967296 % 4294967296 + 4294967296 * (R1 % 18446744073709551616) +
+    have e1 : (r4 % 4294967296 + 4294967296 * (R1 % 18446744073709551616) +
         79228162514264337593543950336 * (R0 % 4294967296)) % 4294967296 = r4 := by omega
     have e2 : (R1 % 18446744073709551616 + 18446744073709551616 * (R0 % 18446744073709551616)) % 18446744073709551616 = R1 := by omega
     have e3 : (R1 % 18446744073709551616 + 18446744073709551616 * (R0 % 18446744073709551616)) / 18446744073709551616 % 18446744073709551616 = R0 := by omega
