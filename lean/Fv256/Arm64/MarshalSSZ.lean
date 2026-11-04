@@ -180,8 +180,18 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoad
     by simp only [rt, outside_cons, outside_nil]; decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by unfold Disjoint; decide, hH⟩
 
-/-- The theorem fires: for this call and this allocator, `MarshalSSZ` returns a fresh 32-byte slice in `rt`. -/
-example := correctness impl rt H zp hmk ret hret s0 setup pre
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
+return address, a call state and the precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64) (ret : Nat) (s : State),
+    MakesliceContract (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (GuardOK s 0 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4144) 4168 rt ∧ Ptr32 s.mem z false ∧ Outside z.toNat 32 rt ∧
+        Disjoint z.toNat 32 (s.sp.toNat - 4144) 4168 ∧
+        H [byteType, 0, 32] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, zp, ret, s0, hmk, hret, setup, pre⟩
 
 end Witness
 

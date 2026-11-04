@@ -21,12 +21,12 @@ namespace Fv256.Amd64.FromHex
 def intType : Nat := dataBase Extracted.program 0
 
 set_option maxRecDepth 100000 in
-theorem tabData : ∀ c, c < 256 → (dataRead Extracted.program (5175774 + c) 1).isSome = true ∧
-    dataReadD Extracted.program (5175774 + c) 1 = (hexNib c).getD 255 := by
+theorem tabData : ∀ c, c < 256 → (dataRead Extracted.program (5176782 + c) 1).isSome = true ∧
+    dataReadD Extracted.program (5176782 + c) 1 = (hexNib c).getD 255 := by
   decide
 
 theorem tab_vals {m : Janus.Arm64.Memory} (h : Extracted.program.DataLoaded m) :
-    ∀ c, c < 256 → m.readLE (5175774 + c) 1 = (hexNib c).getD 255 := by
+    ∀ c, c < 256 → m.readLE (5176782 + c) 1 = (hexNib c).getD 255 := by
   intro c hc
   obtain ⟨h1, h2⟩ := tabData c hc
   rw [readLE_dataReadD h _ _ h1, h2]
@@ -89,9 +89,9 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
         H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 48) (rtView rt s.mem) ∧
         Buffer s hp len.toNat false ∧ Outside hp.toNat len.toNat rt ∧
         (hp.toNat + len.toNat ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ hp.toNat) ∧
-        s.mem.accessible 5987120 96 false = true ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
-        Outside 5987120 96 rt ∧ (5987216 ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ 5987120) ∧
-        Outside 5175774 256 rt)
+        s.mem.accessible errBase 96 false = true ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
+        Outside errBase 96 rt ∧ ((errBase + 96) ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ errBase) ∧
+        Outside tabBase 256 rt)
       (fun s s' =>
         (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
           ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
@@ -101,6 +101,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
           s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
         Janus.MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24)])) := by
   intro ret hret s hs ⟨hg, ⟨hlow, hnw, hacc⟩, hd, hout, hal, hH, ⟨hpw, hps⟩, hout1, hd1, herr, hnn, hout2, hd2, hout3⟩
+  simp only [errBase_val, tabBase_val] at *
   janus64_intro hs
   janus_eval_nat h_pt : intType
   rw [h_pt] at hH
@@ -112,16 +113,16 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
   janus64_data hd [hacc]
   janus64_run until [Extracted.entry + 0x25] calls [hnew.pos]
   rename_i wa wb wc wd we wf wg wh hfr hin hle hacc h8 h16 hz rr
-  have htb : ∀ c, c < 256 → s.mem.readLE (5175774 + c) 1 = (hexNib c).getD 255 := tab_vals hd
+  have htb : ∀ c, c < 256 → s.mem.readLE (5176782 + c) 1 = (hexNib c).getD 255 := tab_vals hd
   have e1 := InRanges.disjoint hin hout3
   have e2 := InRanges.disjoint hin hout1
   have e3 := InRanges.disjoint hin hout
   have e4 := InRanges.disjoint hin hout2
   have f1 : ∀ c, c < 256 → ((wf.writeLE ((s.regs 4).toNat - 16) 8 (BitVec.toNat wa)).writeLE
-      ((s.regs 4).toNat - 48) 8 4922649).readLE (5175774 + c) 1 = (hexNib c).getD 255 := by
+      ((s.regs 4).toNat - 48) 8 4922745).readLE (5176782 + c) 1 = (hexNib c).getD 255 := by
     intro c hc
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
-    rw [hfr.readLE (5175774 + c) 1 (by
+    rw [hfr.readLE (5176782 + c) 1 (by
       rw [outside_append]
       refine ⟨Outside.of_sub hout3 (by omega) (by omega), ?_⟩
       simp only [outside_cons, outside_nil]
@@ -129,7 +130,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     exact htb c hc
   have f2 : ∀ e, e < 6 → ¬ ((wf.writeLE ((s.regs 4).toNat - 16) 8 (BitVec.toNat wa)).writeLE
-      ((s.regs 4).toNat - 48) 8 4922649).readLE (errAddrOf e) 8 = 0 := by
+      ((s.regs 4).toNat - 48) 8 4922745).readLE (errAddrOf e) 8 = 0 := by
     intro e he
     have hb := errAddrOf_bounds e
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
@@ -141,7 +142,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     exact hnn e he
   have hB : parseHex (bytesAt ((wf.writeLE ((s.regs 4).toNat - 16) 8 (BitVec.toNat wa)).writeLE
-      ((s.regs 4).toNat - 48) 8 4922649) hp.toNat) len.toNat = parseHex (bytesAt s.mem hp.toNat) len.toNat := by
+      ((s.regs 4).toNat - 48) 8 4922745) hp.toNat) len.toNat = parseHex (bytesAt s.mem hp.toNat) len.toNat := by
     apply parseHex_congr
     intro k hk
     unfold bytesAt
@@ -153,9 +154,9 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
       refine ⟨?_, ?_, trivial⟩ <;> omega)]
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   have hEE : ∀ e, e < 6 → (((wf.writeLE ((s.regs 4).toNat - 16) 8 (BitVec.toNat wa)).writeLE
-      ((s.regs 4).toNat - 48) 8 4922649).readLE (errAddrOf e) 8 = s.mem.readLE (errAddrOf e) 8) ∧
+      ((s.regs 4).toNat - 48) 8 4922745).readLE (errAddrOf e) 8 = s.mem.readLE (errAddrOf e) 8) ∧
       (((wf.writeLE ((s.regs 4).toNat - 16) 8 (BitVec.toNat wa)).writeLE
-      ((s.regs 4).toNat - 48) 8 4922649).readLE (errAddrOf e + 8) 8 = s.mem.readLE (errAddrOf e + 8) 8) := by
+      ((s.regs 4).toNat - 48) 8 4922745).readLE (errAddrOf e + 8) 8 = s.mem.readLE (errAddrOf e + 8) 8) := by
     intro e he
     have hb := errAddrOf_bounds e
     constructor
@@ -184,7 +185,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
     omega
   have hA : Janus.MemFrame s.mem ((((Janus.Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE
       ((s.regs 4).toNat + 16) 8 len.toNat).writeLE ((s.regs 4).toNat + 8) 8 hp.toNat).writeLE
-      ((s.regs 4).toNat - 48) 8 4922629) [((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24)] := by
+      ((s.regs 4).toNat - 48) 8 4922725) [((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24)] := by
     refine (((((Janus.MemFrame.refl s.mem _).writeLE _ (r := ((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24)) (by simp)
       (by dsimp only; omega) (by dsimp only; omega)).writeLE _ (r := ((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24))
       (by simp) (by dsimp only; omega) (by dsimp only; omega)).writeLE _
@@ -208,7 +209,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
          have h00 : s'.regs 0 = 0 := BitVec.eq_of_toNat_eq (by simpa using hbr)
          rw [h00] at h0
          exact hnz e hlt h0.symm
-       · exact frame_comp s.mem _ wf s'.mem rt (BitVec.toNat (s.regs 4)) (BitVec.toNat wa) (BitVec.toNat wa) 4922649 hlow hin hA hfr hfr2)
+       · exact frame_comp s.mem _ wf s'.mem rt (BitVec.toNat (s.regs 4)) (BitVec.toNat wa) (BitVec.toNat wa) 4922745 hlow hin hA hfr hfr2)
     | (refine ⟨?_, ?_, ?_⟩
        · intro v hv
          exfalso
@@ -219,7 +220,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
          rw [(hEE e hlt).1] at a
          rw [(hEE e hlt).2] at b
          exact ⟨a, b⟩
-       · exact frame_comp s.mem _ wf s'.mem rt (BitVec.toNat (s.regs 4)) (BitVec.toNat wa) (BitVec.toNat wa) 4922649 hlow hin hA hfr hfr2)
+       · exact frame_comp s.mem _ wf s'.mem rt (BitVec.toNat (s.regs 4)) (BitVec.toNat wa) (BitVec.toNat wa) 4922745 hlow hin hA hfr hfr2)
     all_goals (trace_state; fail "x")
 
 /-! ## Non-vacuity: the allocation contract and the precondition are jointly satisfiable
@@ -276,10 +277,10 @@ theorem hnew : NewobjectContract64 (Extracted.program.link impl)
     by simp only [heap]; omega, Janus.Arm64.Memory.accessible_mono _ hacc (Nat.le_refl _) (by omega),
     fun _ => by decide, fun _ _ => by decide, fun _ => fun i hi => hz' i (by omega), hle⟩
 
-/-- the string `"0x1f"` at `0x30800`, and non-nil package error variables at `5987120 + 16 k` -/
+/-- the string `"0x1f"` at `0x30800`, and non-nil package error variables at `5995344 + 16 k` -/
 def wEntries : List (Nat × Nat) :=
   [(0x30800, 0x30), (0x30801, 0x78), (0x30802, 0x31), (0x30803, 0x66),
-   (5987120, 1), (5987136, 1), (5987152, 1), (5987168, 1), (5987184, 1), (5987200, 1)]
+   (5995344, 1), (5995360, 1), (5995376, 1), (5995392, 1), (5995408, 1), (5995424, 1)]
 
 theorem wEntries_none (a : Nat) (h : a < 0x20000) : wEntries.lookup a = none := by
   unfold wEntries
@@ -287,12 +288,12 @@ theorem wEntries_none (a : Nat) (h : a < 0x20000) : wEntries.lookup a = none := 
   have h1 : (a == 198657) = false := by simp; omega
   have h2 : (a == 198658) = false := by simp; omega
   have h3 : (a == 198659) = false := by simp; omega
-  have h4 : (a == 5987120) = false := by simp; omega
-  have h5 : (a == 5987136) = false := by simp; omega
-  have h6 : (a == 5987152) = false := by simp; omega
-  have h7 : (a == 5987168) = false := by simp; omega
-  have h8 : (a == 5987184) = false := by simp; omega
-  have h9 : (a == 5987200) = false := by simp; omega
+  have h4 : (a == 5995344) = false := by simp; omega
+  have h5 : (a == 5995360) = false := by simp; omega
+  have h6 : (a == 5995376) = false := by simp; omega
+  have h7 : (a == 5995392) = false := by simp; omega
+  have h8 : (a == 5995408) = false := by simp; omega
+  have h9 : (a == 5995424) = false := by simp; omega
   simp [List.lookup, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9]
 
 def ret : Nat := 0x200000
@@ -315,7 +316,7 @@ def s0 : Janus.Amd64.State :=
       else if i = 14 then BitVec.ofNat 64 g0 else 0,
     rip := BitVec.ofNat 64 Extracted.entry, flags := ⟨none, none, none, none, none, none⟩, xmm := fun _ => 0,
     mem := ⟨bytes, [⟨sp0 - 4144, 4144 + 24, true⟩, ⟨g0, 0x100, false⟩, ⟨heap, 0x10000, true⟩, ⟨0x30800, 4, false⟩,
-      ⟨5987120, 96, false⟩] ++ dregs⟩ }
+      ⟨5995344, 96, false⟩] ++ dregs⟩ }
 
 theorem hret : RetAddr linked ret := RetAddr.of_check (by decide)
 
@@ -358,9 +359,9 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4144 24 ∧ Extracted.progr
     H [intType] (s0.regs 14).toNat ((s0.regs 4).toNat - 48) (rtView rt s0.mem) ∧
     Buffer s0 hpp (4 : BitVec 64).toNat false ∧ Outside hpp.toNat (4 : BitVec 64).toNat rt ∧
     (hpp.toNat + (4 : BitVec 64).toNat ≤ (s0.regs 4).toNat - 4144 ∨ (s0.regs 4).toNat + 24 ≤ hpp.toNat) ∧
-    s0.mem.accessible 5987120 96 false = true ∧ (∀ e, e < 6 → s0.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
-    Outside 5987120 96 rt ∧ (5987216 ≤ (s0.regs 4).toNat - 4144 ∨ (s0.regs 4).toNat + 24 ≤ 5987120) ∧
-    Outside 5175774 256 rt := by
+    s0.mem.accessible errBase 96 false = true ∧ (∀ e, e < 6 → s0.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
+    Outside errBase 96 rt ∧ ((errBase + 96) ≤ (s0.regs 4).toNat - 4144 ∨ (s0.regs 4).toNat + 24 ≤ errBase) ∧
+    Outside tabBase 256 rt := by
   refine ⟨⟨by decide, by decide, by unfold stackguard0 stackguard0Offset regG regSP; decide⟩,
     ⟨by decide, by decide, by decide⟩, dataLoaded,
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, hH, ⟨by decide, by decide⟩, ?_, by decide,
@@ -372,8 +373,22 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4144 24 ∧ Extracted.progr
   · simp only [rt, outside_cons, outside_nil]; decide
   · simp only [rt, outside_cons, outside_nil]; decide
 
-/-- The theorem fires: for this call and this allocator, `FromHex` returns a fresh object in `rt`. -/
-example := correctness impl rt H hpp 4 hnew ret hret s0 setup pre
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
+return address, a call state and the precondition. -/
+theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (ret : Nat) (s : State),
+    NewobjectContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [hp, len] s ∧
+    (StackGuardOK s 0 ∧ StackWritable s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4144) 4168 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 48) (rtView rt s.mem) ∧
+        Buffer s hp len.toNat false ∧ Outside hp.toNat len.toNat rt ∧
+        (hp.toNat + len.toNat ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ hp.toNat) ∧
+        s.mem.accessible errBase 96 false = true ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
+        Outside errBase 96 rt ∧ ((errBase + 96) ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ errBase) ∧
+        Outside tabBase 256 rt) :=
+  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre⟩
 
 end Witness
 
