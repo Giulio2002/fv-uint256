@@ -33,7 +33,7 @@ open Fv256.Arm64.IntoBig
 address at any of its instructions. -/
 def ImplOK (impl : List Segment) : Prop :=
   (Extracted.program.segments ++ impl).Pairwise Segment.Apart ∧
-    ∀ seg ∈ impl, ∀ i < seg.words.length,
+    ∀ seg ∈ Extracted.program.segments ++ impl, ∀ i < seg.words.length,
       Extracted.program.stubAt (seg.base + 4 * i) = none ∧ seg.base + 4 * i ≠ Extracted.program.exitAddr
 
 /-- the callee's name -/
@@ -64,22 +64,135 @@ theorem impl_fetch_none {impl : List Segment} (hI : ImplOK impl) {seg : Segment}
   unfold Segment.Apart at hap
   omega
 
-theorem hc_IB (impl : List Segment) (hI : ImplOK impl) : CodeIn (P0 impl) (Extracted.program.link impl) := by
-  apply codeIn_restrict Extracted.program [nmIB] impl hI.1
-  intro seg hs i hi
-  rcases List.mem_append.1 hs with h | h
-  · exact ⟨by revert seg i; sorry, by revert seg i; sorry⟩
-  · exact hI.2 seg h i hi
+theorem hc_IB (impl : List Segment) (hI : ImplOK impl) : CodeIn (P0 impl) (Extracted.program.link impl) :=
+  codeIn_restrict Extracted.program [nmIB] impl hI.1 hI.2
 
 theorem hx_IB (impl : List Segment) (hI : ImplOK impl) : (P0 impl).fetch (P0 impl).exitAddr = none := by
-  sorry
+  apply fetchIn_none_of
+  intro seg hseg i hi
+  have hm : seg ∈ Extracted.program.segments ++ impl := by
+    rcases List.mem_append.1 hseg with h | h
+    · exact List.mem_append_left _ (List.mem_filter.1 h).1
+    · exact List.mem_append_right _ h
+  exact fun h => (hI.2 seg hm i hi).2 h.symm
+
+theorem retAddr_filter : ∀ seg ∈ (Extracted.program.onlySegments [nmIB]).segments,
+    Extracted.entry + 0x28 < seg.base ∨ seg.base + 4 * seg.words.length ≤ Extracted.entry + 0x28 := by decide
+
+theorem retAddr_stub : ∀ st ∈ Extracted.program.stubs, st.addr ≠ Extracted.entry + 0x28 := by decide
+
+theorem retAddr_seg : ∃ a ∈ Extracted.program.segments, a.base ≤ Extracted.entry + 0x28 ∧
+    Extracted.entry + 0x28 < a.base + 4 * a.words.length := by decide
+
+/-- the return site of the call to `IntoBig` is an admissible return address of the callee's program -/
+theorem retAddr_call (impl : List Segment) (hI : ImplOK impl) : RetAddr (P0 impl) (Extracted.entry + 0x28) := by
+  have h1 : (Extracted.entry + 0x28) % 4 = 0 := by decide
+  have h2 : Extracted.entry + 0x28 < 2 ^ 48 := by decide
+  refine ⟨h1, h2, ?_, fun st hst => retAddr_stub st hst⟩
+  intro seg hseg
+  rcases List.mem_append.1 hseg with h | h
+  · exact retAddr_filter seg h
+  · obtain ⟨a, ha, h3, h4⟩ := retAddr_seg
+    have hap := apart_of hI ha h
+    unfold Segment.Apart at hap
+    omega
 
 theorem hside (impl : List Segment) (hI : ImplOK impl) :
     ∀ seg ∈ impl, ∀ i < seg.words.length,
       (Extracted.program.onlySegments [nmIB]).fetch (seg.base + 4 * i) = none ∧
       Extracted.program.stubAt (seg.base + 4 * i) = none ∧ seg.base + 4 * i ≠ Extracted.program.exitAddr := by
   intro seg hs i hi
-  refine ⟨impl_fetch_none hI hs hi _ (fun x hx => (List.mem_filter.1 hx).1), hI.2 seg hs i hi⟩
+  refine ⟨impl_fetch_none hI hs hi _ (fun x hx => (List.mem_filter.1 hx).1), hI.2 seg (List.mem_append_right _ hs) i hi⟩
+
+theorem dataLoaded_writeLE {p : Program} {m : Memory} (hd : p.DataLoaded m) {a n v : Nat}
+    (hw : m.accessible a n true = true) : p.DataLoaded (m.writeLE a n v) := by
+  intro d hdm
+  obtain ⟨hreg, hb⟩ := hd d hdm
+  refine ⟨by simpa using hreg, fun i hi => ?_⟩
+  obtain ⟨k, hk, hkd⟩ := List.getElem_of_mem hdm
+  have hdis := disjoint_of_dataLoaded hd k hk hw
+  rw [hkd] at hdis
+  rw [Janus.Arm64.Memory.bytes_writeLE_outside _ (by omega)]
+  exact hb i hi
+
+/-- The call state of `IntoBig(z, &b)` satisfies the callee's precondition. -/
+theorem call_pre (R : RtInv) (b : Nat) (z : BitVec 64) (s sc : State) (X Y : Nat)
+    (hsp : sc.sp = s.sp - 48#64) (hg : sc.regs 28 = s.regs 28)
+    (hmem : sc.mem = ((s.mem.writeLE (s.sp.toNat - 48) 8 X).writeLE (s.sp.toNat - 56) 8 Y).writeLE
+      (s.sp.toNat - 16) 8 0)
+    (hg1 : (s.regs 28).toNat + 24 ≤ 2 ^ 48) (hg2 : s.mem.accessible ((s.regs 28).toNat + 16) 8 false = true)
+    (hg3 : s.mem.readLE ((s.regs 28).toNat + 16) 8 + 4192 < s.sp.toNat)
+    (hal : s.sp.toNat % 16 = 0) (hb' : 4192 ≤ s.sp.toNat) (ha : s.sp.toNat + 0 ≤ 2 ^ 48)
+    (hw : s.mem.accessible (s.sp.toNat - 4192) (4192 + 0) true = true)
+    (hd : Extracted.program.DataLoaded s.mem) (hout : Outside (s.sp.toNat - 4192) 4192 R.rt)
+    (hga : Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4192) 4192)
+    (hgr : Outside ((s.regs 28).toNat + 16) 8 R.rt)
+    (hflag : s.mem.accessible flagAddr 4 false = true) (hty1 : Outside bigType 16 R.rt)
+    (hty2 : Outside arrType 16 R.rt)
+    (hok1 : R.ok (Extracted.program.contractAddr "runtime.newobject") [bigType])
+    (hok2 : R.ok (Extracted.program.contractAddr "runtime.newobject") [arrType])
+    (hok3 : R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1])
+    (hok4 : R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2])
+    (hinv : R.inv b [] (s.regs 28).toNat (view R.rt [] s.mem))
+    (hbud : blockSize 32 false + blockSize 32 true ≤ b)
+    (hz : z.toNat ≠ 0 → Ptr s.mem z 32 false ∧ Outside z.toNat 32 R.rt ∧
+      Disjoint z.toNat 32 (s.sp.toNat - 4192) 4192) :
+    Pre R b z (s.sp - 16#64) sc ∧ PreX z (s.sp - 16#64) sc := by
+  have hsp' : sc.sp.toNat = s.sp.toNat - 48 := by rw [hsp, BitVec.toNat_sub]; simp; omega
+  have hbp : (s.sp - 16#64).toNat = s.sp.toNat - 16 := by rw [BitVec.toNat_sub]; simp; omega
+  have e : s.sp.toNat - 48 - 4144 = s.sp.toNat - 4192 := by omega
+  have hacc : ∀ a n w, sc.mem.accessible a n w = s.mem.accessible a n w := by
+    intro a n w; rw [hmem]; simp
+  have hrd : ∀ a n, (a + n ≤ s.sp.toNat - 56 ∨ (s.sp.toNat - 40 ≤ a ∧ a + n ≤ s.sp.toNat - 16) ∨
+      s.sp.toNat - 8 ≤ a) → sc.mem.readLE a n = s.mem.readLE a n := by
+    intro a n h
+    rw [hmem, Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+      Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+  have hview : view R.rt [] sc.mem = view R.rt [] s.mem := by
+    rw [hmem, view_writeLE_out (Outside.of_sub hout (by omega) (by omega)),
+      view_writeLE_out (Outside.of_sub hout (by omega) (by omega)),
+      view_writeLE_out (Outside.of_sub hout (by omega) (by omega))]
+  have hOut : ∀ a n, s.sp.toNat - 4192 ≤ a → a + n ≤ s.sp.toNat → Outside a n R.rt :=
+    fun a n h1 h2 => Outside.of_sub hout h1 (by omega)
+  have hwin : ∀ a n, s.sp.toNat - 4192 ≤ a → a + n ≤ s.sp.toNat → s.mem.accessible a n true = true :=
+    fun a n h1 h2 => Janus.Arm64.Memory.accessible_sub s.mem hw (Or.inr rfl) h1 (by omega)
+  have hbp0 : sc.mem.readLE (s.sp.toNat - 16) 8 = 0 := by
+    rw [hmem, Janus.Arm64.Memory.readLE_writeLE_self]
+  unfold Apart at hga
+  refine ⟨?_, ?_⟩
+  · unfold Pre
+    refine ⟨⟨?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hok1, hok2, hok3, hok4, ?_, hbud, ?_, ?_, ?_, ?_⟩
+    · rw [hg]; exact hg1
+    · rw [hacc, hg]; exact hg2
+    · rw [hg, hrd _ _ (by omega), hsp']; omega
+    · rw [hsp']; omega
+    · rw [hsp']; omega
+    · rw [hsp']; omega
+    · rw [hacc, hsp', e]; exact hwin _ _ (by omega) (by omega)
+    · rw [hmem]
+      exact dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE hd (hwin _ _ (by omega) (by omega)))
+        (by simpa using hwin _ _ (by omega) (by omega))) (by simpa using hwin _ _ (by omega) (by omega))
+    · rw [hsp', e]; exact hOut _ _ (by omega) (by omega)
+    · rw [hg, hsp', e]; unfold Apart; omega
+    · rw [hg]; exact hgr
+    · rw [hacc]; exact hflag
+    · exact hty1
+    · exact hty2
+    · rw [hg, hview]; exact hinv
+    · refine ⟨?_, ?_⟩
+      · rw [hacc, hbp]; exact hwin _ _ (by omega) (by omega)
+      · rw [hbp]; omega
+    · rw [hbp]; exact hOut _ _ (by omega) (by omega)
+    · unfold Disjoint; rw [hbp, hsp', e]; omega
+    · intro hz0
+      obtain ⟨hzP, hzO, hzD⟩ := hz hz0
+      unfold Disjoint at hzD
+      refine ⟨⟨by rw [hacc]; exact hzP.1, hzP.2⟩, hzO, ?_, ?_, fun h => absurd (by rw [hbp]; exact hbp0) h⟩
+      · unfold Disjoint; rw [hsp', e]; omega
+      · unfold Disjoint; rw [hbp]; omega
+  · unfold PreX
+    refine ⟨?_, fun _ h => absurd (by rw [hbp]; exact hbp0) h⟩
+    unfold Apart; rw [hg, hbp]; omega
 
 set_option maxRecDepth 20000 in
 theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
@@ -104,7 +217,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
         (z.toNat ≠ 0 → Ptr s.mem z 32 false ∧ Outside z.toNat 32 R.rt ∧ Disjoint z.toNat 32 (s.sp.toNat - 4192) 4192))
       (fun s s' => (z.toNat = 0 → s'.regs 0 = 0) ∧
         (z.toNat ≠ 0 → ∃ P : Nat, (s'.regs 0).toNat = P ∧ BigObj s'.mem P (val256 s.mem z.toNat)) ∧
-        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4192, s.sp.toNat), (0, 32)])) := by
+        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4192, s.sp.toNat)])) := by
   intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb', ha, hw⟩, hd, hout, hga, hgr, hflag, hty1, hty2, hok1, hok2, hok3, hok4, hinv, hbud, hz⟩
   have hcn := codeIn_ofImpl Extracted.program (Extracted.program.onlySegments [nmIB]) impl ⟨rfl, rfl⟩ (hside impl hI)
   have hnew' := NewobjectLiveContract.of_codeIn hcn hnew
@@ -115,6 +228,70 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
   janus_intro hs
   janus_data hd [hw]
   janus_run until [Extracted.entry + 0x60]
-  all_goals ((try clear hnew hwb1 hwb2 hnew' hwb1' hwb2' hcn S hI hok1 hok2 hok3 hok4 hty1 hty2 hout hga hgr hflag hinv hbud); trace_state; fail "probe")
+  · refine ⟨fun h => h.elim, ?_⟩
+    janus_frame
+  · have Sw := Summary.withExit S hret
+    refine Reaches.call Sw (by rfl) ⟨?hRet, ?hArgs, call_pre R b z s _ ret (s.regs 29).toNat rfl (by simp [setReg])
+      rfl hg1 hg2 hg3 hal hb' ha hw hd hout hga hgr hflag hty1 hty2 hok1 hok2 hok3 hok4 hinv hbud hz⟩
+      (fun s' hpc' hpost => ?hcont)
+    case hRet =>
+      have e : BitVec.toNat (743240#64) = Extracted.entry + 0x28 := by decide
+      show RetAddr _ (BitVec.toNat (743240#64))
+      rw [e]; exact retAddr_call impl hI
+    case hArgs =>
+      simp [ArgsFrom, setReg, h_x0]
+    case hcont =>
+      obtain ⟨⟨hsp1, hg1', hfp1, h18'⟩, hzpost, hbig, hfr, hfr0⟩ := hpost
+      dsimp only at hpc' hsp1 hg1' hfp1 h18' hbig hfr hfr0
+      have hbpn : (s.sp - 16#64).toNat = s.sp.toNat - 16 := by rw [BitVec.toNat_sub]; simp; omega
+      have hbp0 : (((s.mem.writeLE (s.sp.toNat - 48) 8 ret).writeLE (s.sp.toNat - 56) 8 (s.regs 29).toNat).writeLE
+          (s.sp.toNat - 16) 8 0).readLE (s.sp.toNat - 16) 8 = 0 := by
+        rw [Janus.Arm64.Memory.readLE_writeLE_self]
+      have hfrn := hfr0 (by rw [hbpn]; exact hbp0)
+      obtain ⟨P, hbo⟩ := hbig hbr
+      have hbo0 := BigObj.of_bigOut hbo
+      obtain ⟨ap, len, cap, hP, -⟩ := hbo
+      rw [hbpn] at hP
+      simp only [setReg, regLR] at hpc' hg1' hfp1 h18'
+      simp at hpc' hg1' hfp1 h18'
+      have hspn : (s.sp - 48#64).toNat = s.sp.toNat - 48 := by rw [BitVec.toNat_sub]; simp; omega
+      simp only [hspn, hbpn] at hfrn
+      have hret48 := hret.user
+      have hX29 : s'.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat := by
+        rw [hfrn.readLE (s.sp.toNat - 56) 8 (by
+          simp only [outside_append, outside_cons, outside_nil, and_true]
+          exact ⟨Outside.of_sub hout (by omega) (by omega), by omega, by omega, by omega⟩)]
+        rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_self]
+        exact Nat.mod_eq_of_lt (by simpa using (s.regs 29).isLt)
+      have hX30 : s'.mem.readLE (s.sp.toNat - 48) 8 = ret := by
+        rw [hfrn.readLE (s.sp.toNat - 48) 8 (by
+          simp only [outside_append, outside_cons, outside_nil, and_true]
+          exact ⟨Outside.of_sub hout (by omega) (by omega), by omega, by omega, by omega⟩)]
+        rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_self]
+        exact Nat.mod_eq_of_lt (by simp; omega)
+      have haccS : s'.mem.accessible (s.sp.toNat - 4192) 4192 true = true := by
+        rw [hfrn.accessible]; simpa using hw
+      janus_run
+      have hv : val256 (((s.mem.writeLE (s.sp.toNat - 48) 8 ret).writeLE (s.sp.toNat - 56) 8 (s.regs 29).toNat).writeLE
+          (s.sp.toNat - 16) 8 0) z.toNat = val256 s.mem z.toNat := by
+        have hzD := (hz hbr).2.2
+        unfold Disjoint at hzD
+        unfold val256
+        rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      have hf1 : MemFrame s.mem (((s.mem.writeLE (s.sp.toNat - 48) 8 ret).writeLE (s.sp.toNat - 56) 8
+          (s.regs 29).toNat).writeLE (s.sp.toNat - 16) 8 0) (R.rt ++ [(s.sp.toNat - 4192, s.sp.toNat)]) :=
+        (((MemFrame.refl _ _).writeLE_inRanges _ ⟨(s.sp.toNat - 4192, s.sp.toNat), by simp, by omega, by omega⟩).writeLE_inRanges
+          _ ⟨(s.sp.toNat - 4192, s.sp.toNat), by simp, by omega, by omega⟩).writeLE_inRanges _
+          ⟨(s.sp.toNat - 4192, s.sp.toNat), by simp, by omega, by omega⟩
+      refine ⟨fun h => h.elim, ⟨P, hP, ?_⟩, ?_⟩
+      · rw [hv] at hbo0
+        rw [Janus.Spec.val256_limbs] at hbo0
+        simpa using hbo0
+      · refine hf1.trans hfrn (fun a n hh => ?_)
+        simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
+        refine ⟨hh, hh.1, ?_, ?_, ?_⟩ <;> omega
 
 end Fv256.Arm64.ToBig

@@ -63,7 +63,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
       janus_run until [Extracted.entry + 0x74, Extracted.entry + 0xa0]
       janus_run until [Extracted.entry + 0x168]
       all_goals first
-        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 0 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv
+        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 0 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => rfl
            case h28 => simp [setReg_apply, h28]
            case h29 => simp [setReg_apply, h29]
@@ -89,7 +89,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
              intro i h1 h2
              obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
              all_goals (simp; try omega))
-        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 1 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv
+        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 1 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => rfl
            case h28 => simp [setReg_apply, h28]
            case h29 => simp [setReg_apply, h29]
@@ -115,7 +115,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
              intro i h1 h2
              obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
              all_goals (simp; try omega))
-        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 2 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv
+        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 2 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => rfl
            case h28 => simp [setReg_apply, h28]
            case h29 => simp [setReg_apply, h29]
@@ -141,7 +141,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
              intro i h1 h2
              obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
              all_goals (simp; try omega))
-        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 3 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv
+        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 3 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => rfl
            case h28 => simp [setReg_apply, h28]
            case h29 => simp [setReg_apply, h29]
@@ -167,7 +167,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
              intro i h1 h2
              obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
              all_goals (simp; try omega))
-        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 4 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv
+        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 4 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => rfl
            case h28 => simp [setReg_apply, h28]
            case h29 => simp [setReg_apply, h29]
@@ -193,7 +193,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
              intro i h1 h2
              obtain rfl | rfl | rfl | rfl : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 := by omega
              all_goals (simp; try omega))
-        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 0 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv
+        | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?h18 ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 0 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => rfl
            case h28 => simp [setReg_apply, h28]
            case h29 => simp [setReg_apply, h29]
@@ -232,7 +232,7 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
         omega
       exact slowHead3 impl R b z bp ret hret s hnew hwb2 hpre0 hz0 S hsp h28 h29 h18 h_rd1 h_rd2 h_rd3 h_rd4 hfr hpc h0 h1
         P (S.mem.readLE (P + 24) 8) h_rdP rfl (by rw [hcapS]; omega) hPpa hPpb hpx.1 hgP (Or.symm hPd) (Or.symm hPb)
-        (Or.symm hPz) [] b (Or.inl ⟨rfl, hPo⟩) (Or.inl ⟨rfl, hP⟩) hinvS hb0
+        (Or.symm hPz) [] b (Or.inl ⟨rfl, hPo⟩) (Or.inl ⟨rfl, hP, hP0⟩) hinvS hb0
         ⟨(P, P + 32), by simp [hP], Nat.le_refl _, Nat.le_refl _⟩
   · have hb0 : 32 ≤ b - 32 := by
       have e1 : blockSize 32 false = 32 := by decide

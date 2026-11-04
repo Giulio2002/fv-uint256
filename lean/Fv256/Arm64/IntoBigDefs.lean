@@ -103,7 +103,9 @@ def Post (R : RtInv) (z bp : BitVec 64) (s s' : State) : Prop :=
   (z.toNat ≠ 0 → ∃ P : Nat, BigOut s'.mem bp.toNat P (val256 s.mem z.toNat)) ∧
   MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8),
     (s.mem.readLE bp.toNat 8, s.mem.readLE bp.toNat 8 + 32),
-    (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)])
+    (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)]) ∧
+  (s.mem.readLE bp.toNat 8 = 0 →
+    MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]))
 
 theorem ZeroBytes.writeLE_apart {m : Memory} {a n x k v : Nat} (h : ZeroBytes m a n)
     (hd : a + n ≤ x ∨ x + k ≤ a) : ZeroBytes (m.writeLE x k v) a n := by
@@ -284,7 +286,10 @@ theorem reaches_mono {p : Program} {s : State} {Q Q' : Outcome → Prop} (h : Re
   exact ⟨n, o, h1, hQ o h2⟩
 
 /-- From the tail's result (`BigOut` and a frame with the new block) to `Post`. -/
-theorem post_of_tail (R : RtInv) (z bp : BitVec 64) (s : State) (P : Nat) (hz0 : z.toNat ≠ 0) :
+theorem post_of_tail (R : RtInv) (z bp : BitVec 64) (s : State) (P : Nat) (hz0 : z.toNat ≠ 0)
+    (hn : s.mem.readLE bp.toNat 8 = 0 → ∀ a n,
+      Outside a n (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8)]) →
+        Outside a n (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) :
     ∀ o : Outcome,
       IsReturn (fun s' => ABIReturn s s' ∧ BigOut s'.mem bp.toNat P (val256 s.mem z.toNat) ∧
         MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4144, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24), (bp.toNat, bp.toNat + 8), (P, P + 32)])) o →
@@ -295,7 +300,7 @@ theorem post_of_tail (R : RtInv) (z bp : BitVec 64) (s : State) (P : Nat) (hz0 :
       IsReturn (fun s' => ABIReturn s s' ∧ Post R z bp s s') o := by
   intro o ho hw
   cases o with
-  | returned s' => exact ⟨ho.1, fun h => absurd h hz0, fun _ => ⟨P, ho.2.1⟩, ho.2.2.mono hw⟩
+  | returned s' => exact ⟨ho.1, fun h => absurd h hz0, fun _ => ⟨P, ho.2.1⟩, ho.2.2.mono hw, fun h0 => ho.2.2.mono (hn h0)⟩
   | stub n k s' => exact ho.elim
 
 end Fv256.Arm64.IntoBig

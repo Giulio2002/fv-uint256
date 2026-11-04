@@ -33,7 +33,7 @@ theorem finF (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret
     (hword : ∀ i, i < 4 → S.mem.readLE (A + 8 * i) 8 = s.mem.readLE (z.toNat + 8 * i) 8)
     (hnorm : len = 0 ∨ s.mem.readLE (z.toNat + 8 * (len - 1)) 8 ≠ 0)
     (hzero : ∀ i, len ≤ i → i < 4 → s.mem.readLE (z.toNat + 8 * i) 8 = 0)
-    (hinv : R.inv b [] (s.regs 28).toNat (view R.rt [] S.mem)) :
+    (hinv : R.inv b [] (s.regs 28).toNat (view R.rt [] S.mem)) (hP0 : P ≠ 0) :
     Reaches ((Extracted.program.link impl).withExit ret) S
       (IsReturn fun s' => ABIReturn s s' ∧ Post R z bp s s') := by
   obtain ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb', ha, hw⟩, hd, hout, hga, hgr, hflag, hty1, hty2, hok1, hok2, hok3, hok4,
@@ -61,7 +61,7 @@ theorem finF (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret
   all_goals (have hPvC : ReadEq S.mem bp.toNat 8 P := hPv)
   all_goals (try simp only [hPv])
   all_goals (try simp only [hPs, hAs])
-  all_goals (refine ⟨fun h => absurd h hz0, fun _ => ⟨P, ?_⟩, ?_⟩)
+  all_goals (refine ⟨fun h => absurd h hz0, fun _ => ⟨P, ?_⟩, ?_, fun h0 => absurd (hPs.symm.trans h0) hP0⟩)
   all_goals (try (refine bigout_of _ bp.toNat P A len cap _ (fun i => s.mem.readLE (z.toNat + 8 * i) 8) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ (val256_bigAbs s.mem z.toNat)))
   all_goals (try simp only [hPv] at *)
   all_goals (try simp only [hPs, hAs])
