@@ -164,6 +164,9 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 
 Type `uint256.Int` is `[4]uint64` (little-endian limbs); no code.
 
+## Spec note: WriteToSlice `len <= cap`
+Both ISAs: master 48f3f44 slices `dest[off-8:off]` with a bounds check against `cap`, so the call panics when `cap < len`. The theorem therefore assumes the Go slice invariant `len <= cap` (`len.toNat <= cap.toNat`); it excludes only ill-formed slices and hides no behaviour. Witnesses use `cap = len = 8`.
+
 ## Proof times (optimisation log)
 Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix pass. Times are `janus verify` wall seconds, base f65043ca vs head 9c4be184, as measured by main; "after" is filled in when a fix lands.
 
