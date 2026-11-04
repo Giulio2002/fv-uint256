@@ -184,3 +184,8 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 ## Pin bump to Janus c7950624 (2026-11-03)
 `scripts/verify-all.sh` against Janus `c7950624d0f8d6cb1bb439ee343923be94a52fdc`, 11 parallel chunks: **122 PASS / 0 FAIL** (62 functions, both ISAs, plus the GOAMD64=v3 BitLen proof). Nothing that passed on the earlier pins fails here (no U18 dependency).
 Chunk wall times (s, 6 functions each, 3 chunks at a time): 1338 (incl. framework build), 273, 509, 507, 1569, 266, 814, 225, 390, 139, 528.
+
+## Witness audit (contract-assuming theorems), 2026-11-04
+Light check by grep on every branch (`namespace Witness`, `nonvacuous`, `returns`). Janus will require a kernel-checked non-vacuity witness for each theorem that assumes runtime contracts.
+* **fv/master (main):** every contract-assuming proof (Clone, NewInt, FromBig, MustFromBig, Bytes, PaddedBytes, MarshalSSZ, MarshalSSZAppend, MarshalSSZInto, UnmarshalSSZ, HashTreeRoot, SetFromBig, FromHex, MustFromHex, SetFromHex, both ISAs) has a `Witness` namespace with a firing theorem. NAMING: FromBig, MustFromBig, FromHex, MustFromHex and MarshalSSZ (both ISAs) prove the firing as `theorem returns`/`example := correctness …` and have no theorem literally named `nonvacuous`; rename or add one if Janus matches by name.
+* **witness missing:** amd64 Bytes and amd64 PaddedBytes (not yet proved, so no witness yet); fv/wb `Amd64/DivMod` (WIP, no Witness); fv/wc `Arm64/IntoBigT` (WIP, no Witness); fv/wb `Clone` and `NewInt` (older copies on the branch without witnesses; main has them). Owners: FV-A (Bytes, PaddedBytes amd64), FV-B (DivMod), FV-C (IntoBig).
