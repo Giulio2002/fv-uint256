@@ -18,3 +18,7 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
 | `(*uint256.Int).Exp` | todo | todo | |
 | `(*uint256.Int).Sqrt` | todo | todo | |
+
+## Known speed debt (family B)
+* `Fv256.Amd64.DivModB.partB` (the dominant cost of `(*Int).DivMod` amd64): 1437 s on f65043ca, 1319 s on 50db36a6, 926 s on 4d43ed7e, 504 s on f1d61dc1 (engine gains: overlap forwarding, S3/S3b, janus_exact; consumer closers unchanged). About 295 s is `janus64_run`, about 250 s is `janus_frame` (four leaves of 52-71 s, `omega` over the whole context), about 200 s is the arithmetic closers (one leaf 311 s because `exact mod_congr` unifies `?a % ?b` against a sum with `c * 0` limbs). Consumer-side attempts that did NOT help (all measured on f1d61dc1): `with_reducible exact` in the closers (broke a leaf), `simp only [Nat.mul_zero, Nat.add_zero]` prefix (trace -20%, wall +50%), `clear`+`janus_clear_irrel` before `janus_frame` (no gain), dedicated `mod_leaf_eq`/`div_leaf_eq` lemmas (timeout > 3300 s), `Janus.Amd64.CABI.readLE_32` in the run (917 s). Target 5 min; parked at 504 s pending the engine-side `janus_frame` reordering (S6).
+
