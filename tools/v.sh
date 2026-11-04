@@ -11,4 +11,6 @@ case "$F" in NewInt|FromBig|MustFromBig|FromHex|MustFromHex) full="github.com/ho
 . "$FV_ROOT/scripts/contract-flags.sh"
 if [ ! -f build/ex-$I-$F/identity.json ]; then $J extract build/harness-$I "$full" build/ex-$I-$F $FV_CONTRACTS $(contract_flags $F) >/dev/null 2>&1; fi
 MC=""; command -v memcap >/dev/null && MC=memcap
-timeout ${FV_TIMEOUT:-1800} $MC $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness
+# WITNESS=1: also verify the named non-vacuity witness theorem (needs a Janus that accepts several --theorem; agent/speed-witness)
+WT=""; if [ -n "${WITNESS:-}" ] && grep -q "theorem nonvacuous" lean/Fv256/$D/$F.lean; then WT="--theorem Fv256.$D.$F.Witness.nonvacuous"; fi
+timeout ${FV_TIMEOUT:-1800} $MC $J verify build/ex-$I-$F --proof lean/Fv256/$D/$F.lean --proof-root lean --theorem Fv256.$D.$F.correctness $WT

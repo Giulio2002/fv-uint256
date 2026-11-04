@@ -8,8 +8,8 @@ def val : Nat := 12345
 
 /-- the tables `pows64`/`pows` hold the powers of ten, `zp` holds `val`, everything else is zero -/
 def bytes (a : Nat) : Byte :=
-  if 1772992 ≤ a ∧ a < 1772992 + 160 then BitVec.ofNat 8 (10 ^ ((a - 1772992) / 8) / 256 ^ ((a - 1772992) % 8) % 256)
-  else if 1777472 ≤ a ∧ a < 1777472 + 1920 then BitVec.ofNat 8 (10 ^ (20 + (a - 1777472) / 32) / 256 ^ ((a - 1777472) % 32) % 256)
+  if P64 ≤ a ∧ a < P64 + P64sz then BitVec.ofNat 8 (10 ^ ((a - P64) / 8) / 256 ^ ((a - P64) % 8) % 256)
+  else if PB ≤ a ∧ a < PB + PBsz then BitVec.ofNat 8 (10 ^ (20 + (a - PB) / 32) / 256 ^ ((a - PB) % 32) % 256)
   else if zp ≤ a ∧ a < zp + 32 then BitVec.ofNat 8 (val / 256 ^ (a - zp) % 256) else 0
 
 def x : BitVec 64 := BitVec.ofNat 64 zp
@@ -19,7 +19,7 @@ def s0 : State :=
       else if i = 29 then BitVec.ofNat 64 sp0 - 8#64 else if i = 30 then BitVec.ofNat 64 ret else 0,
     sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
     flags := ⟨false, false, false, false⟩,
-    mem := ⟨bytes, [⟨sp0 - 32, 32, true⟩, ⟨g0, 0x100, false⟩, ⟨1772992, 160, false⟩, ⟨1777472, 1920, false⟩, ⟨zp, 0x100, false⟩]⟩ }
+    mem := ⟨bytes, [⟨sp0 - 32, 32, true⟩, ⟨g0, 0x100, false⟩, ⟨P64, P64sz, false⟩, ⟨PB, PBsz, false⟩, ⟨zp, 0x100, false⟩]⟩ }
 
 theorem hret : RetAddr Extracted.program ret := RetAddr.of_check (by decide)
 
@@ -29,7 +29,7 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s
 set_option maxRecDepth 100000 in
 theorem hpre : GuardOK s0 0 ∧ StackOK s0 32 0 ∧ Extracted.program.DataLoaded s0.mem ∧ Ptr32 s0.mem x false ∧
     Disjoint x.toNat 32 (s0.sp.toNat - 32) 32 ∧ Tabs64 s0.mem ∧ TabsBig s0.mem ∧
-    Disjoint 1772992 160 (s0.sp.toNat - 32) 32 ∧ Disjoint 1777472 1920 (s0.sp.toNat - 32) 32 :=
+    Disjoint P64 P64sz (s0.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s0.sp.toNat - 32) 32 :=
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide, by decide⟩, by unfold Program.DataLoaded; decide,
     ⟨by decide, by decide⟩, by unfold Disjoint; decide, by unfold Tabs64; decide, by unfold TabsBig; decide,
     by unfold Disjoint; decide, by unfold Disjoint; decide⟩
@@ -38,7 +38,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧
     (GuardOK s 0 ∧ StackOK s 32 0 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem x false ∧
       Disjoint x.toNat 32 (s.sp.toNat - 32) 32 ∧ Tabs64 s.mem ∧ TabsBig s.mem ∧
-      Disjoint 1772992 160 (s.sp.toNat - 32) 32 ∧ Disjoint 1777472 1920 (s.sp.toNat - 32) 32) :=
+      Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32) :=
   ⟨ret, s0, x, hret, setup, hpre⟩
 
 set_option maxRecDepth 100000 in

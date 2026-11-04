@@ -1,8 +1,11 @@
 #!/usr/bin/env python3 -I
 # l10_amd.py [k:m ...] : writes lean/Fv256/Amd64/L10Cases/C<k>_<m>.lean (one module per top nonzero limb k and its bit length m) and Zero.lean
-import os, sys
+import os, re, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-A64, ABIG = 5967168, 5971840
+def _addr(sym):
+    t = open(os.environ.get('L10_EXTRACTED', ROOT + '/build/ex-amd64-Log10/Extracted.lean')).read()
+    return int(re.search(r'def dataAddr\.«github\.com/holiman/uint256\.' + sym + r'» : Nat := (0x[0-9a-f]+|\d+)', t).group(1), 0)
+A64, ABIG = _addr('pows64'), _addr('pows')
 args = sys.argv[1:]
 cases = [tuple(map(int, a.split(':'))) for a in args] or [(k, m) for k in range(4) for m in range(1, 65)]
 HDR = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Amd64.L10Defs\n"
@@ -19,8 +22,8 @@ def limbs(k, m):
 PRE = """(fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840)"""
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB)"""
 def pat(k):
     return ', '.join([f'hz{j}' for j in range(3, k, -1)] + ['hl1', 'hl2'])
 def zs(k): return ''.join(f', hz{j}' for j in range(3, k, -1))
@@ -29,6 +32,7 @@ def hw(name, addr):
             "    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]\n")
 COMMON = ("  intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, %s⟩\n"
           "  janus64_intro hs\n"
+          "  simp only [Tabs64, TabsBig, P64, P64sz, PB, PBsz, Extracted.dataAddr.«github.com/holiman/uint256.pows64», Extracted.dataSize.«github.com/holiman/uint256.pows64», Extracted.dataAddr.«github.com/holiman/uint256.pows», Extracted.dataSize.«github.com/holiman/uint256.pows»] at hT64 hTB hd64 hdB\n"
           "  simp only [regSP, Nat.sub_zero, Nat.zero_add] at hge hacc hnw hdis hd64 hdB\n")
 WR = ("  have hwr : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE (s.regs 4).toNat 8) = s.mem.readLE (s.regs 4).toNat 8 := fun v => by\n"
       "    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]\n")

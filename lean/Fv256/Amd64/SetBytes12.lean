@@ -37,7 +37,7 @@ theorem correctness (z ptr len cap : BitVec 64) :
   simp only [valueAt]
   janus64_run [Util.readLE_32]
   refine ⟨?_, ?_⟩
-  · exact Util.sb_val12 s.mem ptr.toNat z.toNat
+  · simpa only [Nat.sub_self, Nat.pow_zero, Nat.div_one] using Util.sb_val12 s.mem ptr.toNat z.toNat
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
 /-- Out of bounds (`len < 12`): `runtime.panicBounds`. -/

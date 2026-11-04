@@ -2718,4 +2718,12 @@ theorem mul_limbs (a b c d P : Nat) (ha : a = P % 2 ^ 64) (hb : b = P / 2 ^ 64 %
   simp only [Spec.W, Nat.reducePow]
   omega
 
+theorem xor_zero_iff (a b : Nat) : a ^^^ b = 0 ↔ a = b := by
+  constructor
+  · intro h
+    have : a ^^^ (a ^^^ b) = b := by rw [← Nat.xor_assoc, Nat.xor_self, Nat.zero_xor]
+    rw [h, Nat.xor_zero] at this
+    exact this
+  · intro h; subst h; exact Nat.xor_self a
+
 end Fv256.Util

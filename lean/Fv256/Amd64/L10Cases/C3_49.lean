@@ -13,12 +13,13 @@ theorem c3_49 (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840) ∧
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB) ∧
         2 ^ 48 ≤ s.mem.readLE (x.toNat + 24) 8 ∧ s.mem.readLE (x.toNat + 24) 8 < 2 ^ 49)
       (fun s s' => 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) := by
   intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hl1, hl2⟩
   janus64_intro hs
+  simp only [Tabs64, TabsBig, P64, P64sz, PB, PBsz, Extracted.dataAddr.«github.com/holiman/uint256.pows64», Extracted.dataSize.«github.com/holiman/uint256.pows64», Extracted.dataAddr.«github.com/holiman/uint256.pows», Extracted.dataSize.«github.com/holiman/uint256.pows»] at hT64 hTB hd64 hdB
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hge hacc hnw hdis hd64 hdB
   have hc : Janus.Arm64.clzNat 64 (s.mem.readLE (x.toNat + 24) 8) = 15 := by
     have := Util.clz_bl 64 (s.mem.readLE (x.toNat + 24) 8) (Util.readLE8_lt s.mem _)
@@ -34,35 +35,35 @@ theorem c3_49 (x : BitVec 64) :
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   have hw3 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE (x.toNat + 24) 8) = s.mem.readLE (x.toNat + 24) 8 := fun v => by
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
-  have hTv : s.mem.readLE 5973504 32 = 1000000000000000000000000000000000000000000000000000000000000000000000000 := by simpa using hTB.2 52 (by decide)
-  have hTa : s.mem.accessible 5973504 32 false = true := Janus.Arm64.Memory.accessible_mono _ hTB.1 (by omega) (by omega)
-  have hl0 := Util.readLE8_lt s.mem 5973504
-  have hl1 := Util.readLE8_lt s.mem 5973512
-  have hl2 := Util.readLE8_lt s.mem 5973520
-  have hl3 := Util.readLE8_lt s.mem 5973528
-  obtain ⟨hT0, hT1', hT2', hT3'⟩ := Util.limbs_of_readLE32 s.mem 5973504 0 3588752519208427776 4200376900514301694 159309191113245 (hTv.trans (by decide)) (by decide) (by decide) (by decide) (by decide)
-  have hT1 : s.mem.readLE 5973512 8 = 3588752519208427776 := hT1'
-  have hT2 : s.mem.readLE 5973520 8 = 4200376900514301694 := hT2'
-  have hT3 : s.mem.readLE 5973528 8 = 159309191113245 := hT3'
-  obtain ⟨T0, hET0⟩ : ∃ T, s.mem.readLE 5973504 8 = T := ⟨_, rfl⟩
+  have hTv : s.mem.readLE 5981728 32 = 1000000000000000000000000000000000000000000000000000000000000000000000000 := by simpa using hTB.2 52 (by decide)
+  have hTa : s.mem.accessible 5981728 32 false = true := Janus.Arm64.Memory.accessible_mono _ hTB.1 (by omega) (by omega)
+  have hl0 := Util.readLE8_lt s.mem 5981728
+  have hl1 := Util.readLE8_lt s.mem 5981736
+  have hl2 := Util.readLE8_lt s.mem 5981744
+  have hl3 := Util.readLE8_lt s.mem 5981752
+  obtain ⟨hT0, hT1', hT2', hT3'⟩ := Util.limbs_of_readLE32 s.mem 5981728 0 3588752519208427776 4200376900514301694 159309191113245 (hTv.trans (by decide)) (by decide) (by decide) (by decide) (by decide)
+  have hT1 : s.mem.readLE 5981736 8 = 3588752519208427776 := hT1'
+  have hT2 : s.mem.readLE 5981744 8 = 4200376900514301694 := hT2'
+  have hT3 : s.mem.readLE 5981752 8 = 159309191113245 := hT3'
+  obtain ⟨T0, hET0⟩ : ∃ T, s.mem.readLE 5981728 8 = T := ⟨_, rfl⟩
   have hVT0 : T0 = 0 := by rw [← hET0]; exact hT0
   have hBT0 : T0 < 18446744073709551616 := by rw [hVT0]; decide
-  have hwT0 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5973504 8) = T0 := fun v => by
+  have hwT0 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5981728 8) = T0 := fun v => by
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hET0
-  obtain ⟨T1, hET1⟩ : ∃ T, s.mem.readLE 5973512 8 = T := ⟨_, rfl⟩
+  obtain ⟨T1, hET1⟩ : ∃ T, s.mem.readLE 5981736 8 = T := ⟨_, rfl⟩
   have hVT1 : T1 = 3588752519208427776 := by rw [← hET1]; exact hT1
   have hBT1 : T1 < 18446744073709551616 := by rw [hVT1]; decide
-  have hwT1 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5973512 8) = T1 := fun v => by
+  have hwT1 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5981736 8) = T1 := fun v => by
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hET1
-  obtain ⟨T2, hET2⟩ : ∃ T, s.mem.readLE 5973520 8 = T := ⟨_, rfl⟩
+  obtain ⟨T2, hET2⟩ : ∃ T, s.mem.readLE 5981744 8 = T := ⟨_, rfl⟩
   have hVT2 : T2 = 4200376900514301694 := by rw [← hET2]; exact hT2
   have hBT2 : T2 < 18446744073709551616 := by rw [hVT2]; decide
-  have hwT2 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5973520 8) = T2 := fun v => by
+  have hwT2 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5981744 8) = T2 := fun v => by
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hET2
-  obtain ⟨T3, hET3⟩ : ∃ T, s.mem.readLE 5973528 8 = T := ⟨_, rfl⟩
+  obtain ⟨T3, hET3⟩ : ∃ T, s.mem.readLE 5981752 8 = T := ⟨_, rfl⟩
   have hVT3 : T3 = 159309191113245 := by rw [← hET3]; exact hT3
   have hBT3 : T3 < 18446744073709551616 := by rw [hVT3]; decide
-  have hwT3 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5973528 8) = T3 := fun v => by
+  have hwT3 : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE 5981752 8) = T3 := fun v => by
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hET3
   have b0 := Util.readLE8_lt s.mem x.toNat
   have b1 := Util.readLE8_lt s.mem (x.toNat + 8)

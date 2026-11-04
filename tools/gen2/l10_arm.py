@@ -1,9 +1,12 @@
 #!/usr/bin/env python3 -I
 # l10_arm.py [k:m ...] : writes lean/Fv256/Arm64/Log10.lean and lean/Fv256/Arm64/L10Cases/C<k>_<m>.lean
 # (one module per (index k of the top nonzero limb, bit length m of that limb); the zero input is case Zero)
-import os, sys
+import os, re, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-A64, ABIG = 1772992, 1777472
+def _addr(sym):
+    t = open(os.environ.get('L10_EXTRACTED', ROOT + '/build/ex-arm64-Log10/Extracted.lean')).read()
+    return int(re.search(r'def dataAddr\.«github\.com/holiman/uint256\.' + sym + r'» : Nat := (0x[0-9a-f]+|\d+)', t).group(1), 0)
+A64, ABIG = _addr('pows64'), _addr('pows')
 args = sys.argv[1:]
 cases = [tuple(map(int, a.split(':'))) for a in args] or [(k, m) for k in range(4) for m in range(1, 65)]
 HDR = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Arm64.L10Defs\n"
@@ -30,11 +33,12 @@ def case(k, m):
     L.append(f"theorem c{k}_{m} (x : BitVec 64) :")
     L.append("    Ensures Extracted.program Extracted.entry [x]")
     L.append("      (fun s => GuardOK s 0 ∧ StackOK s 32 0 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem x false ∧ Disjoint x.toNat 32 (s.sp.toNat - 32) 32 ∧")
-    L.append("        Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint 1772992 160 (s.sp.toNat - 32) 32 ∧ Disjoint 1777472 1920 (s.sp.toNat - 32) 32 ∧")
+    L.append("        Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32 ∧")
     L.append("        " + limbs(k, m) + ")")
     L.append("      (fun s s' => 10 ^ (s'.regs 0).toNat ≤ val256 s.mem x.toNat ∧ val256 s.mem x.toNat < 10 ^ ((s'.regs 0).toNat + 1)) := by")
     L.append("  intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hd, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, " + pat(k) + "⟩")
     L.append("  janus_intro hs")
+    L.append("  simp only [Tabs64, TabsBig, P64, P64sz, PB, PBsz, Extracted.dataAddr.«github.com/holiman/uint256.pows64», Extracted.dataSize.«github.com/holiman/uint256.pows64», Extracted.dataAddr.«github.com/holiman/uint256.pows», Extracted.dataSize.«github.com/holiman/uint256.pows»] at hT64 hTB hd64 hdB")
     L.append("  simp only [Disjoint] at hdis hd64 hdB")
     L.append("  janus_data hd [hw]")
     L.append(f"  have hc : clzNat 64 ({top}) = {64-m} := by")

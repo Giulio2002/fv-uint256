@@ -13,8 +13,8 @@ theorem zero (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840) ∧
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB) ∧
         s.mem.readLE x.toNat 8 = 0 ∧ s.mem.readLE (x.toNat + 8) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 = 0 ∧ s.mem.readLE (x.toNat + 24) 8 = 0)
       (fun s s' => (s'.regs 0).toNat = 0) := by
   intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hz0, hz1, hz2, hz3⟩

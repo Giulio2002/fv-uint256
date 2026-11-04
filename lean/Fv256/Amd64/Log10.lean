@@ -268,7 +268,7 @@ and the callee's 8-byte frame word are writable and do not overlap `x`, the call
 `r` satisfies, with `v` the 256-bit number at `x` read before the call: `v = 0 → r = 0` and `v ≠ 0 → 10^r ≤ v < 10^(r+1)`
 (so `r = ⌊log10 v⌋`, determined uniquely).
 
-**Requirements.** The Go globals `uint256.pows64` (`[20]uint64`, at `0x5b0d40`) and `uint256.pows` (`[60]Int`, at `0x5b1f80`) live in writable
+**Requirements.** The Go globals `uint256.pows64` (`[20]uint64`) and `uint256.pows` (`[60]Int`), addressed by `Extracted.dataAddr` live in writable
 `.noptrdata`, which the extractor does not copy; `Tabs64`/`TabsBig` (Fv256.Amd64.L10Defs) assume that they are readable, disjoint from the
 callee's stack window and hold the powers of ten (only `10^20..10^77` of `pows` are claimed and read).
 
@@ -288,8 +288,8 @@ theorem disp0 (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840) ∧ s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 = 0 ∧ s.mem.readLE (x.toNat + 8) 8 = 0 ∧ s.mem.readLE x.toNat 8 ≠ 0)
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB) ∧ s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 = 0 ∧ s.mem.readLE (x.toNat + 8) 8 = 0 ∧ s.mem.readLE x.toNat 8 ≠ 0)
       (fun s s' => 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) := by
   intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hz3, hz2, hz1, hnz⟩
   have hbd := Util.bitLen_bounds (s.mem.readLE x.toNat 8) hnz
@@ -374,8 +374,8 @@ theorem disp1 (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840) ∧ s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 = 0 ∧ s.mem.readLE (x.toNat + 8) 8 ≠ 0)
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB) ∧ s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 = 0 ∧ s.mem.readLE (x.toNat + 8) 8 ≠ 0)
       (fun s s' => 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) := by
   intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hz3, hz2, hnz⟩
   have hbd := Util.bitLen_bounds (s.mem.readLE (x.toNat + 8) 8) hnz
@@ -460,8 +460,8 @@ theorem disp2 (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840) ∧ s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 ≠ 0)
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB) ∧ s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 ≠ 0)
       (fun s s' => 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) := by
   intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hz3, hnz⟩
   have hbd := Util.bitLen_bounds (s.mem.readLE (x.toNat + 16) 8) hnz
@@ -546,8 +546,8 @@ theorem disp3 (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840) ∧ s.mem.readLE (x.toNat + 24) 8 ≠ 0)
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB) ∧ s.mem.readLE (x.toNat + 24) 8 ≠ 0)
       (fun s s' => 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) := by
   intro ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hnz⟩
   have hbd := Util.bitLen_bounds (s.mem.readLE (x.toNat + 24) 8) hnz
@@ -632,8 +632,8 @@ theorem correctness (x : BitVec 64) :
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840))
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB))
       (fun s s' => (valueAt s x 32 = 0 → (s'.regs 0).toNat = 0) ∧
         (valueAt s x 32 ≠ 0 → 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1))) := by
   intro ret hret s hs hpre
@@ -668,8 +668,8 @@ def val : Nat := 12345
 /-- the return address in the slot at `[SP]`, the tables `pows64`/`pows` hold the powers of ten, `zp` holds `val`, everything else is zero -/
 def bytes (a : Nat) : Byte :=
   if a = sp0 + 2 then 0x20
-  else if 5967168 ≤ a ∧ a < 5967168 + 160 then BitVec.ofNat 8 (10 ^ ((a - 5967168) / 8) / 256 ^ ((a - 5967168) % 8) % 256)
-  else if 5971840 ≤ a ∧ a < 5971840 + 1920 then BitVec.ofNat 8 (10 ^ (20 + (a - 5971840) / 32) / 256 ^ ((a - 5971840) % 32) % 256)
+  else if P64 ≤ a ∧ a < P64 + P64sz then BitVec.ofNat 8 (10 ^ ((a - P64) / 8) / 256 ^ ((a - P64) % 8) % 256)
+  else if PB ≤ a ∧ a < PB + PBsz then BitVec.ofNat 8 (10 ^ (20 + (a - PB) / 32) / 256 ^ ((a - PB) % 32) % 256)
   else if zp ≤ a ∧ a < zp + 32 then BitVec.ofNat 8 (val / 256 ^ (a - zp) % 256) else 0
 
 def x : BitVec 64 := BitVec.ofNat 64 zp
@@ -678,7 +678,7 @@ def s0 : State :=
   { regs := fun i => if i = 0 then x else if i = 4 then BitVec.ofNat 64 sp0 else 0,
     rip := BitVec.ofNat 64 Extracted.entry, flags := ⟨none, none, none, none, none, none⟩,
     xmm := fun _ => 0,
-    mem := ⟨bytes, [⟨sp0 - 8, 16, true⟩, ⟨5967168, 160, false⟩, ⟨5971840, 1920, false⟩, ⟨zp, 0x100, false⟩]⟩ }
+    mem := ⟨bytes, [⟨sp0 - 8, 16, true⟩, ⟨P64, P64sz, false⟩, ⟨PB, PBsz, false⟩, ⟨zp, 0x100, false⟩]⟩ }
 
 theorem hret : RetAddr Extracted.program ret := RetAddr.of_check (by decide)
 
@@ -689,8 +689,8 @@ set_option maxRecDepth 100000 in
 theorem hpre : StackWritable s0 8 8 ∧ Buffer s0 x 32 false ∧
     (x.toNat + 32 ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 8 ≤ x.toNat) ∧
     Tabs64 s0.mem ∧ TabsBig s0.mem ∧
-    (5967168 + 160 ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 8 ≤ 5967168) ∧
-    (5971840 + 1920 ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 8 ≤ 5971840) :=
+    (P64 + P64sz ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 8 ≤ P64) ∧
+    (PB + PBsz ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 8 ≤ PB) :=
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, by unfold Tabs64; decide, by unfold TabsBig; decide,
     by decide, by decide⟩
 
@@ -699,8 +699,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     (StackWritable s 8 8 ∧ Buffer s x 32 false ∧
       (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
       Tabs64 s.mem ∧ TabsBig s.mem ∧
-      (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-      (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840)) :=
+      (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+      (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB)) :=
   ⟨ret, s0, x, hret, setup, hpre⟩
 
 set_option maxRecDepth 100000 in

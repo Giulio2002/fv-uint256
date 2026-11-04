@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the harness for both ISAs, then extract and `janus verify` every function whose COVERAGE.md row says
 # `verified` for an ISA. Usage: JANUS=/path/to/janus scripts/verify-all.sh [FN ...]   (default: all verified)
-# Env: SKIP_HARNESS=1 (reuse build/harness-*, for parallel chunks), PER_FN_TIMEOUT (seconds, default 1800), LEAN_NUM_THREADS (4), JANUS_JOBS (2).
+# Env: WITNESS=1 (also verify Witness.nonvacuous where the proof has it; needs the Janus witness rule), SKIP_HARNESS=1 (reuse build/harness-*, for parallel chunks), PER_FN_TIMEOUT (seconds, default 1800), LEAN_NUM_THREADS (4), JANUS_JOBS (2).
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
@@ -38,9 +38,10 @@ for row in "${rows[@]}"; do
     case "$st" in verified*|partial*) ;; *) continue;; esac
     out="build/ex-$isa-$fn"
     cflags="$(contract_flags "$fn")"
+    wt=(); if [ -n "${WITNESS:-}" ] && grep -q "theorem nonvacuous" "lean/Fv256/$dir/$fn.lean"; then wt=(--theorem "Fv256.$dir.$fn.Witness.nonvacuous"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
        timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$fn.lean" --proof-root lean \
-         --theorem "Fv256.$dir.$fn.correctness" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
+         --theorem "Fv256.$dir.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
     table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "$r")"$'\n'
   done
 done

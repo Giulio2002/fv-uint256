@@ -5,7 +5,7 @@ ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirn
 OPEN = "\nopen Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec\n\n"
 def la(j): return f"s.mem.readLE (x.toNat + {8*j}) 8" if j else "s.mem.readLE x.toNat 8"
 PRE = ("GuardOK s 0 ∧ StackOK s 32 0 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem x false ∧ Disjoint x.toNat 32 (s.sp.toNat - 32) 32 ∧\n"
-       "        Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint 1772992 160 (s.sp.toNat - 32) 32 ∧ Disjoint 1777472 1920 (s.sp.toNat - 32) 32")
+       "        Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32")
 INTRO = "⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hd, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB"
 # --- zero case
 z = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Arm64.L10Defs\n" + OPEN + "namespace Fv256.Arm64.Log10\n\n"

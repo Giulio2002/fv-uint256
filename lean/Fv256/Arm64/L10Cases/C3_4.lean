@@ -11,23 +11,24 @@ set_option maxHeartbeats 64000000 in
 theorem c3_4 (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => GuardOK s 0 ∧ StackOK s 32 0 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem x false ∧ Disjoint x.toNat 32 (s.sp.toNat - 32) 32 ∧
-        Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint 1772992 160 (s.sp.toNat - 32) 32 ∧ Disjoint 1777472 1920 (s.sp.toNat - 32) 32 ∧
+        Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32 ∧
         2 ^ 3 ≤ s.mem.readLE (x.toNat + 24) 8 ∧ s.mem.readLE (x.toNat + 24) 8 < 2 ^ 4)
       (fun s s' => 10 ^ (s'.regs 0).toNat ≤ val256 s.mem x.toNat ∧ val256 s.mem x.toNat < 10 ^ ((s'.regs 0).toNat + 1)) := by
   intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hd, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, hl1, hl2⟩
   janus_intro hs
+  simp only [Tabs64, TabsBig, P64, P64sz, PB, PBsz, Extracted.dataAddr.«github.com/holiman/uint256.pows64», Extracted.dataSize.«github.com/holiman/uint256.pows64», Extracted.dataAddr.«github.com/holiman/uint256.pows», Extracted.dataSize.«github.com/holiman/uint256.pows»] at hT64 hTB hd64 hdB
   simp only [Disjoint] at hdis hd64 hdB
   janus_data hd [hw]
   have hc : clzNat 64 (s.mem.readLE (x.toNat + 24) 8) = 60 := by
     have := Util.clz_bl 64 (s.mem.readLE (x.toNat + 24) 8) (Util.readLE8_lt s.mem _)
     have h2 : Spec.bitLen (s.mem.readLE (x.toNat + 24) 8) = 4 := Util.bitLen_of_range _ 4 (by omega) (by omega) (by omega)
     omega
-  have hTv : s.mem.readLE 1778720 32 = 100000000000000000000000000000000000000000000000000000000000 := by simpa using hTB.2 39 (by decide)
-  have hTa : s.mem.accessible 1778720 32 false = true := Memory.accessible_mono _ hTB.1 (by omega) (by omega)
-  obtain ⟨hT0, hT1', hT2', hT3'⟩ := Util.limbs_of_readLE32 s.mem 1778720 16717361816799281152 3396678409881738056 17172426599928602752 15 (hTv.trans (by decide)) (by decide) (by decide) (by decide) (by decide)
-  have hT1 : s.mem.readLE 1778728 8 = 3396678409881738056 := hT1'
-  have hT2 : s.mem.readLE 1778736 8 = 17172426599928602752 := hT2'
-  have hT3 : s.mem.readLE 1778744 8 = 15 := hT3'
+  have hTv : s.mem.readLE 1778752 32 = 100000000000000000000000000000000000000000000000000000000000 := by simpa using hTB.2 39 (by decide)
+  have hTa : s.mem.accessible 1778752 32 false = true := Memory.accessible_mono _ hTB.1 (by omega) (by omega)
+  obtain ⟨hT0, hT1', hT2', hT3'⟩ := Util.limbs_of_readLE32 s.mem 1778752 16717361816799281152 3396678409881738056 17172426599928602752 15 (hTv.trans (by decide)) (by decide) (by decide) (by decide) (by decide)
+  have hT1 : s.mem.readLE 1778760 8 = 3396678409881738056 := hT1'
+  have hT2 : s.mem.readLE 1778768 8 = 17172426599928602752 := hT2'
+  have hT3 : s.mem.readLE 1778776 8 = 15 := hT3'
   janus_run [hc]
   all_goals (
     have := Util.readLE8_lt s.mem x.toNat

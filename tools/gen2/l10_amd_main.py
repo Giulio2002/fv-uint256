@@ -8,8 +8,8 @@ def la(j): return f"s.mem.readLE {xa(j)} 8"
 PRE = """StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧
-        (5967168 + 160 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5967168) ∧
-        (5971840 + 1920 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ 5971840)"""
+        (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
+        (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB)"""
 INTRO = "⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB"
 HDR = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Amd64.L10Defs\n"
 # zero case
@@ -34,7 +34,7 @@ and the callee's 8-byte frame word are writable and do not overlap `x`, the call
 `r` satisfies, with `v` the 256-bit number at `x` read before the call: `v = 0 → r = 0` and `v ≠ 0 → 10^r ≤ v < 10^(r+1)`
 (so `r = ⌊log10 v⌋`, determined uniquely).
 
-**Requirements.** The Go globals `uint256.pows64` (`[20]uint64`, at `0x5b0d40`) and `uint256.pows` (`[60]Int`, at `0x5b1f80`) live in writable
+**Requirements.** The Go globals `uint256.pows64` (`[20]uint64`) and `uint256.pows` (`[60]Int`), addressed by `Extracted.dataAddr` live in writable
 `.noptrdata`, which the extractor does not copy; `Tabs64`/`TabsBig` (Fv256.Amd64.L10Defs) assume that they are readable, disjoint from the
 callee's stack window and hold the powers of ten (only `10^20..10^77` of `pows` are claimed and read).
 
