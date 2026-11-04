@@ -25,25 +25,25 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     (hnew : NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, x, y, m]
-      (fun s => StackGuardOK s 0x190 ∧ StackWritable s 4248 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
-        Outside ((s.regs 4).toNat - 4248) (4248 + 0x28) rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+      (fun s => StackGuardOK s 0x198 ∧ StackWritable s 4256 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4256) (4256 + 0x28) rt ∧ (s.regs 4).toNat % 8 = 0 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 true ∧
         Outside z.toNat 32 rt ∧ Outside x.toNat 32 rt ∧ Outside y.toNat 32 rt ∧ Outside m.toNat 32 rt ∧
-        (z.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ z.toNat) ∧
-        (x.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ y.toNat) ∧
-        (m.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ m.toNat) ∧
+        (z.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ z.toNat) ∧
+        (x.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ x.toNat) ∧
+        (y.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ y.toNat) ∧
+        (m.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ m.toNat) ∧
         (z = m ∨ z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧
-        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 14).toNat + 16) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 14).toNat + 16) ∧
         Outside ((s.regs 14).toNat + 16) 8 rt ∧
-        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 0x98) (rtView rt s.mem))
+        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 0xa0) (rtView rt s.mem))
       (fun s s' => s'.regs 0 = z ∧
         ∃ m' : Nat, (s'.regs 3).toNat = m' ∧ (z ≠ m → m' = m.toNat) ∧
           (z = m → InRanges m' 32 rt ∧ m' % 16 = 0 ∧ s'.mem.accessible m' 32 true = true) ∧
           valueAt s' z 32 = Fv256.B.divSpec (valueAt s x 32) (valueAt s y 32) ∧
           s'.mem.readLE m' 32 = Fv256.B.modSpec (valueAt s x 32) (valueAt s y 32) ∧
           MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
-            ((s.regs 4).toNat - 4248, (s.regs 4).toNat + 0x28)])) := by
+            ((s.regs 4).toNat - 4256, (s.regs 4).toNat + 0x28)])) := by
   intro ret hret s hs ⟨hg, ⟨hlow, hnw, hacc⟩, hd, hout, hal, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩,
     hzo, hxo, hyo, hmo, hdz, hdx, hdy, hdm, hzm, hdg, hgo, hH⟩
   janus64_intro hs
@@ -73,11 +73,11 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     have hzm' : z = m := BitVec.eq_of_toNat_eq (by omega)
     have hdj := InRanges.disjoint cin hout
     have hdzp := InRanges.disjoint cin hzo
-    have hOut : ∀ a n, (s.regs 4).toNat - 4248 ≤ a → a + n ≤ (s.regs 4).toNat + 40 → Outside a n rt :=
+    have hOut : ∀ a n, (s.regs 4).toNat - 4256 ≤ a → a + n ≤ (s.regs 4).toNat + 40 → Outside a n rt :=
       fun a n h1 h2 => Outside.of_sub hout h1 (by omega)
-    have hOc : ∀ a n, (s.regs 4).toNat - 136 ≤ a → a + n ≤ (s.regs 4).toNat + 40 →
-        Outside a n (rt ++ [((s.regs 4).toNat - 152 - 4096, (s.regs 4).toNat - 152),
-          ((s.regs 4).toNat - 152 + 8, (s.regs 4).toNat - 152 + 8 + 8)]) := fun a n h1 h2 => by
+    have hOc : ∀ a n, (s.regs 4).toNat - 144 ≤ a → a + n ≤ (s.regs 4).toNat + 40 →
+        Outside a n (rt ++ [((s.regs 4).toNat - 160 - 4096, (s.regs 4).toNat - 160),
+          ((s.regs 4).toNat - 160 + 8, (s.regs 4).toNat - 160 + 8 + 8)]) := fun a n h1 h2 => by
       simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
       exact ⟨hOut a n (by omega) h2, by omega, by omega⟩
     have hsp8 : mm.readLE ((s.regs 4).toNat + 8) 8 = z.toNat := by
@@ -118,7 +118,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       · exact absurd (congrArg BitVec.toNat h) hne
       · exact Or.inl h
       · exact Or.inr h
-    have hOut : ∀ a n, (s.regs 4).toNat - 4248 ≤ a → a + n ≤ (s.regs 4).toNat + 40 → Outside a n rt :=
+    have hOut : ∀ a n, (s.regs 4).toNat - 4256 ≤ a → a + n ≤ (s.regs 4).toNat + 40 → Outside a n rt :=
       fun a n h1 h2 => Outside.of_sub hout h1 (by omega)
     have hsp8 : (Arm64.Memory.writeLE (Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat) ((s.regs 4).toNat + 8) 8 z.toNat).readLE ((s.regs 4).toNat + 8) 8 = z.toNat := by
       rw [Janus.Arm64.Memory.readLE_writeLE_self]
@@ -161,25 +161,25 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     NewobjectContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, x, y, m] s ∧
-    (StackGuardOK s 0x190 ∧ StackWritable s 4248 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
-        Outside ((s.regs 4).toNat - 4248) (4248 + 0x28) rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+    (StackGuardOK s 0x198 ∧ StackWritable s 4256 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4256) (4256 + 0x28) rt ∧ (s.regs 4).toNat % 8 = 0 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 true ∧
         Outside z.toNat 32 rt ∧ Outside x.toNat 32 rt ∧ Outside y.toNat 32 rt ∧ Outside m.toNat 32 rt ∧
-        (z.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ z.toNat) ∧
-        (x.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ y.toNat) ∧
-        (m.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ m.toNat) ∧
+        (z.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ z.toNat) ∧
+        (x.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ x.toNat) ∧
+        (y.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ y.toNat) ∧
+        (m.toNat + 32 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ m.toNat) ∧
         (z = m ∨ z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧
-        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 14).toNat + 16) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4256 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 14).toNat + 16) ∧
         Outside ((s.regs 14).toNat + 16) 8 rt ∧
-        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 0x98) (rtView rt s.mem)) ∧
+        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 0xa0) (rtView rt s.mem)) ∧
     Returns ((Extracted.program.link impl).withExit ret) s (fun s' => ABIReturn s s' ∧ (s'.regs 0 = z ∧
         ∃ m' : Nat, (s'.regs 3).toNat = m' ∧ (z ≠ m → m' = m.toNat) ∧
           (z = m → InRanges m' 32 rt ∧ m' % 16 = 0 ∧ s'.mem.accessible m' 32 true = true) ∧
           valueAt s' z 32 = Fv256.B.divSpec (valueAt s x 32) (valueAt s y 32) ∧
           s'.mem.readLE m' 32 = Fv256.B.modSpec (valueAt s x 32) (valueAt s y 32) ∧
           MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
-            ((s.regs 4).toNat - 4248, (s.regs 4).toNat + 0x28)]))) :=
+            ((s.regs 4).toNat - 4256, (s.regs 4).toNat + 0x28)]))) :=
   ⟨impl, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW,
     correctness impl rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
 

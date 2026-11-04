@@ -114,7 +114,7 @@ def bytesW (a : Nat) : Arm64.Byte :=
   | none => if a = wsp + 1 then 0x10 else 0
 
 def memW : Memory :=
-  ⟨bytesW, [⟨wsp - 4248, 4248 + 0x28, true⟩, ⟨wg, 0x100, false⟩, ⟨heap, 0x10000, true⟩, ⟨zA, 32, true⟩, ⟨xA, 32, false⟩,
+  ⟨bytesW, [⟨wsp - 4256, 4256 + 0x28, true⟩, ⟨wg, 0x100, false⟩, ⟨heap, 0x10000, true⟩, ⟨zA, 32, true⟩, ⟨xA, 32, false⟩,
     ⟨yA, 32, false⟩, ⟨mA, 32, true⟩] ++ Extracted.data.map fun d => ⟨d.base, d.bytes.length, false⟩⟩
 
 def s0 : Amd64.State :=
@@ -148,18 +148,18 @@ theorem typSizeW : typSize (rtView rtW memW) intTy ≤ 32768 := by decide
 
 set_option maxRecDepth 100000 in
 /-- The whole precondition of `DivMod.correctness` holds for the witness call (`intType` is `intTy`). -/
-theorem preW : StackGuardOK s0 0x190 ∧ StackWritable s0 4248 0x28 ∧ Extracted.program.DataLoaded s0.mem ∧
-    Outside ((s0.regs 4).toNat - 4248) (4248 + 0x28) rtW ∧ (s0.regs 4).toNat % 8 = 0 ∧
+theorem preW : StackGuardOK s0 0x198 ∧ StackWritable s0 4256 0x28 ∧ Extracted.program.DataLoaded s0.mem ∧
+    Outside ((s0.regs 4).toNat - 4256) (4256 + 0x28) rtW ∧ (s0.regs 4).toNat % 8 = 0 ∧
     Buffer s0 zW 32 true ∧ Buffer s0 xW 32 false ∧ Buffer s0 yW 32 false ∧ Buffer s0 mW 32 true ∧
     Outside zW.toNat 32 rtW ∧ Outside xW.toNat 32 rtW ∧ Outside yW.toNat 32 rtW ∧ Outside mW.toNat 32 rtW ∧
-    (zW.toNat + 32 ≤ (s0.regs 4).toNat - 4248 ∨ (s0.regs 4).toNat + 0x28 ≤ zW.toNat) ∧
-    (xW.toNat + 32 ≤ (s0.regs 4).toNat - 4248 ∨ (s0.regs 4).toNat + 0x28 ≤ xW.toNat) ∧
-    (yW.toNat + 32 ≤ (s0.regs 4).toNat - 4248 ∨ (s0.regs 4).toNat + 0x28 ≤ yW.toNat) ∧
-    (mW.toNat + 32 ≤ (s0.regs 4).toNat - 4248 ∨ (s0.regs 4).toNat + 0x28 ≤ mW.toNat) ∧
+    (zW.toNat + 32 ≤ (s0.regs 4).toNat - 4256 ∨ (s0.regs 4).toNat + 0x28 ≤ zW.toNat) ∧
+    (xW.toNat + 32 ≤ (s0.regs 4).toNat - 4256 ∨ (s0.regs 4).toNat + 0x28 ≤ xW.toNat) ∧
+    (yW.toNat + 32 ≤ (s0.regs 4).toNat - 4256 ∨ (s0.regs 4).toNat + 0x28 ≤ yW.toNat) ∧
+    (mW.toNat + 32 ≤ (s0.regs 4).toNat - 4256 ∨ (s0.regs 4).toNat + 0x28 ≤ mW.toNat) ∧
     (zW = mW ∨ zW.toNat + 32 ≤ mW.toNat ∨ mW.toNat + 32 ≤ zW.toNat) ∧
-    ((s0.regs 14).toNat + 24 ≤ (s0.regs 4).toNat - 4248 ∨ (s0.regs 4).toNat + 0x28 ≤ (s0.regs 14).toNat + 16) ∧
+    ((s0.regs 14).toNat + 24 ≤ (s0.regs 4).toNat - 4256 ∨ (s0.regs 4).toNat + 0x28 ≤ (s0.regs 14).toNat + 16) ∧
     Outside ((s0.regs 14).toNat + 16) 8 rtW ∧
-    HW [intTy] (s0.regs 14).toNat ((s0.regs 4).toNat - 0x98) (rtView rtW s0.mem) := by
+    HW [intTy] (s0.regs 14).toNat ((s0.regs 4).toNat - 0xa0) (rtView rtW s0.mem) := by
   refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide⟩, dataLoadedW, ?_, by decide,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩,
     ?_, ?_, ?_, ?_, by decide, by decide, by decide, by decide, Or.inr (Or.inl (by decide)), by decide, ?_, ?_⟩
