@@ -2075,6 +2075,14 @@ theorem rc8_byte (x q : Nat) (hx : x < 18446744073709551616) (hq : q < 8) :
     rw [h8]; exact hx
   rw [hV, rev_byte 8 x q hx8 hq]
 
+/-- reading byte `a` of an 8-byte store of the byte-reversed limb `x` (amd64 BSWAP form). -/
+theorem rb8_mem_byte (m : Memory) (p a x : Nat) (hx : x < 18446744073709551616) (h1 : p ≤ a) (h2 : a < p + 8) :
+    (m.writeLE p 8 (revBytesNat 8 x)).readLE a 1 = x / 256 ^ (7 - (a - p)) % 256 := by
+  have hx8 : x < 256 ^ 8 := by
+    have h8 : (256 : Nat) ^ 8 = 18446744073709551616 := by decide
+    rw [h8]; exact hx
+  rw [Memory.readLE_writeLE_inside _ _ h1 (by omega), Nat.pow_one, rev_byte 8 x (a - p) hx8 (by omega)]
+
 /-- reading byte `a` of an 8-byte store of the byte-reversed limb `x`. -/
 theorem rc8_mem_byte (m : Memory) (p a x : Nat) (hx : x < 18446744073709551616) (h1 : p ≤ a) (h2 : a < p + 8) :
     (m.writeLE p 8 (revContainersNat 8 1 x)).readLE a 1 = x / 256 ^ (7 - (a - p)) % 256 := by
@@ -2148,6 +2156,8 @@ theorem wb240 (h i j k : Nat) (hh : h < 18446744073709551616) (hi : i < 18446744
     (h + 18446744073709551616 * i + 340282366920938463463374607431768211456 * j + 6277101735386680763835789423207666416102355444464034512896 * k) / 1766847064778384329583297500742918515827483896875618958121606201292619776 % 256 = k / 281474976710656 % 256 := by omega
 theorem wb248 (h i j k : Nat) (hh : h < 18446744073709551616) (hi : i < 18446744073709551616) (hj : j < 18446744073709551616) (hk : k < 18446744073709551616) :
     (h + 18446744073709551616 * i + 340282366920938463463374607431768211456 * j + 6277101735386680763835789423207666416102355444464034512896 * k) / 452312848583266388373324160190187140051835877600158453279131187530910662656 % 256 = k / 72057594037927936 % 256 := by omega
+
+theorem add_sub_norm (a d c : Nat) (h : c ≤ a) : a + d - c = d + (a - c) := by omega
 
 -- Bytes20 helpers
 section B20

@@ -12,10 +12,10 @@ theorem case0 (z d cap : BitVec 64) :
       (fun s => StackWritable s 8 24 ∧ Buffer s z 32 false ∧ Buffer s d 0 true ∧
         (z.toNat + 32 ≤ d.toNat ∨ d.toNat + 0 ≤ z.toNat) ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
-        (d.toNat + 0 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat))
+        (d.toNat + 0 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat) ∧ 0 ≤ cap.toNat)
       (fun s s' => Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) 0 = valueAt s z 32 % 2 ^ (8 * 0) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat 0 ((s.regs regSP).toNat - 8) 32) := by
-  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hdw, hd⟩, hzd, hzs, hds⟩
+  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hdw, hd⟩, hzd, hzs, hds, hcap⟩
   janus64_intro hs
   simp only [regSP] at hacc hlow hnw hzs hds
   simp only [valueAt, Disjoint]

@@ -12,10 +12,10 @@ theorem case1 (z d cap : BitVec 64) :
       (fun s => StackWritable s 8 24 ∧ Buffer s z 32 false ∧ Buffer s d 1 true ∧
         (z.toNat + 32 ≤ d.toNat ∨ d.toNat + 1 ≤ z.toNat) ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
-        (d.toNat + 1 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat))
+        (d.toNat + 1 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat) ∧ 1 ≤ cap.toNat)
       (fun s s' => Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) 1 = valueAt s z 32 % 2 ^ (8 * 1) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat 1 ((s.regs regSP).toNat - 8) 32) := by
-  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hdw, hd⟩, hzd, hzs, hds⟩
+  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hdw, hd⟩, hzd, hzs, hds, hcap⟩
   janus64_intro hs
   simp only [regSP] at hacc hlow hnw hzs hds
   simp only [valueAt, Disjoint]
@@ -29,8 +29,8 @@ theorem case1 (z d cap : BitVec 64) :
     intro a ha
     rcases (show a = 0 by omega) with rfl
     · (try simp only [Nat.add_zero])
-      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
-      omega
+      simp (disch := omega) only [Util.rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reducePow, Nat.reduceMul, Util.add_sub_norm, Nat.reduceSub, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      first | (rw [Util.wb0 _ _ _ _ l0 l1 l2 l3]; done) | (rw [Util.wb0 _ _ _ _ l0 l1 l2 l3]; omega) | omega
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
 end Fv256.Amd64.WriteToSlice

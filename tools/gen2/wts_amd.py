@@ -6,7 +6,7 @@ ks = [int(a) for a in sys.argv[1:]] or list(range(33))
 PRE = """(fun s => StackWritable s 8 24 ∧ Buffer s z 32 false ∧ Buffer s d {K} true ∧
         (z.toNat + 32 ≤ d.toNat ∨ d.toNat + {K} ≤ z.toNat) ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
-        (d.toNat + {K} ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat))"""
+        (d.toNat + {K} ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat) ∧ {CK} ≤ cap.toNat)"""
 POST = """(fun s s' => Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) {N} = valueAt s z 32 % 2 ^ (8 * {N}) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat {N} ((s.regs regSP).toNat - 8) 32)"""
 def cname(k): return f"case{k}" if k < 32 else "caseBig"
@@ -19,24 +19,14 @@ def lemma(k):
     L = ["set_option maxHeartbeats 64000000 in",
          f"theorem {cname(k)} (z d {'len ' if big else ''}cap : BitVec 64)" + (" (h32 : 32 ≤ len.toNat) (hlen : len.toNat < 2 ^ 48)" if big else "") + " :",
          f"    Ensures Extracted.program Extracted.entry [z, d, {lenarg}, cap]",
-         "      " + PRE.replace("{K}", K),
+         "      " + PRE.replace("{K}", K).replace("{CK}", "len.toNat" if big else str(k)),
          "      " + POST.replace("{N}", str(n)) + " := by",
-         "  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hdw, hd⟩, hzd, hzs, hds⟩",
+         "  intro ret hret s hs ⟨⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hdw, hd⟩, hzd, hzs, hds, hcap⟩",
          "  janus64_intro hs",
          "  simp only [regSP] at hacc hlow hnw hzs hds",
          "  simp only [valueAt, Disjoint]"]
     if big:
-        L += ["  have e1 : (len - 1#64).toNat = len.toNat - 1 := by",
-              "    rw [BitVec.toNat_sub]; simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; have := len.isLt; omega",
-              "  have hmin : (if 31 < ((len.toNat - 1 : Nat) : Int) then 31#64 else len - 1#64) = 31#64 := by",
-              "    split",
-              "    · rfl",
-              "    · apply BitVec.eq_of_toNat_eq",
-              "      rw [e1]; simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; omega",
-              "  " + RUN.replace("{X}", "") + " until [Extracted.entry + 0x1a]",
-              "  rw [hmin]",
-              ] + sum([["  " + RUN.replace("{X}", "") + " until [Extracted.entry + 0x7c]", "  all_goals try clear hbr"] for _ in range(32)], []) + [
-              "  " + RUN.replace("{X}", "") + " (budget := 4000000)", "  all_goals try clear hbr"]
+        L.append("  " + RUN.replace("{X}", ""))
     else:
         L.append("  " + RUN.replace("{X}", ""))
     L += ["  have l0 := Util.readLE8_lt s.mem z.toNat", "  have l1 := Util.readLE8_lt s.mem (z.toNat + 8)",
@@ -44,21 +34,15 @@ def lemma(k):
           "  refine ⟨?_, ?_⟩"]
     if n == 0:
         L.append("  · simp [Spec.fromBE, Nat.mod_one]")
-    elif big:
-        L.append("  · exact Util.chain32d _ d.toNat _ _ _ _ l0 l1 l2 l3")
     else:
         L += ["  · refine (Util.fromBE_congr ?_).trans (Util.fromBE_bytes _ _)", "    intro a ha"]
         alts = " ∨ ".join(f"a = {j}" for j in range(n))
         L.append(f"    rcases (show {alts} by omega) with " + " | ".join(["rfl"] * n))
         for j in range(n):
             L += ["    · (try simp only [Nat.add_zero])",
-                  "      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]",
-                  "      omega"]
-    if big:
-        L.append("  · refine Util.chain32d_ow2 _ _ _ _ _ _ _ _ _ l0 l1 l2 l3 ?_")
-        L.append("    simp (disch := omega) only [Util.ow2_wr_iff, Util.ow2_self_iff]")
-    else:
-        L.append("  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]")
+                  "      simp (disch := omega) only [Util.rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reducePow, Nat.reduceMul, Util.add_sub_norm, Nat.reduceSub, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]",
+                  f"      first | (rw [Util.wb{8*(n-1-j)} _ _ _ _ l0 l1 l2 l3]; done) | (rw [Util.wb{8*(n-1-j)} _ _ _ _ l0 l1 l2 l3]; omega) | omega"]
+    L.append("  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]")
     return "\n".join(L)
 HDR = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\n"
 OPEN = "\nopen Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic\n\n"
@@ -91,20 +75,21 @@ theorem correctness (z d len cap : BitVec 64) :
       (fun s => StackWritable s 8 24 ∧ Buffer s z 32 false ∧ len.toNat < 2 ^ 48 ∧ Buffer s d len.toNat true ∧
         (z.toNat + 32 ≤ d.toNat ∨ d.toNat + len.toNat ≤ z.toNat) ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
-        (d.toNat + len.toNat ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat))
+        (d.toNat + len.toNat ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat) ∧
+        len.toNat ≤ cap.toNat)
       (fun s s' => Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min len.toNat 32) =
           valueAt s z 32 % 2 ^ (8 * min len.toNat 32) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat (min len.toNat 32) ((s.regs regSP).toNat - 8) 32) := by
-  intro ret hret s hs ⟨hst, hz, hl, hd, hzd, hzs, hds⟩
+  intro ret hret s hs ⟨hst, hz, hl, hd, hzd, hzs, hds, hcap⟩
   by_cases h32 : 32 ≤ len.toNat
-  · have := caseBig z d len cap h32 hl ret hret s hs ⟨hst, hz, ⟨by have := hd.1; omega, Janus.Arm64.Memory.accessible_mono _ hd.2 (Nat.le_refl _) (by omega)⟩, by omega, by omega, by omega⟩
+  · have := caseBig z d len cap h32 hl ret hret s hs ⟨hst, hz, ⟨by have := hd.1; omega, Janus.Arm64.Memory.accessible_mono _ hd.2 (Nat.le_refl _) (by omega)⟩, by omega, by omega, by omega, hcap⟩
     simpa [Nat.min_eq_right h32] using this
   · have e : len = BitVec.ofNat 64 len.toNat := by simp
     rcases (show """ + " ∨ ".join(f"len.toNat = {k}" for k in range(32)) + """ by omega) with """ + " | ".join(f"h{k}" for k in range(32)) + "\n"
     for k in range(32):
         main += f"""    · have e{k} : len = {k}#64 := by rw [e, h{k}]
       subst e{k}
-      have := case{k} z d cap ret hret s hs ⟨hst, hz, hd, hzd, hzs, hds⟩
+      have := case{k} z d cap ret hret s hs ⟨hst, hz, hd, hzd, hzs, hds, by simpa using hcap⟩
       simpa using this
 """
     main += """
@@ -134,15 +119,17 @@ theorem hpre : StackWritable s0 8 24 ∧ Buffer s0 z 32 false ∧ (8 : BitVec 64
     Buffer s0 d (8 : BitVec 64).toNat true ∧
     (z.toNat + 32 ≤ d.toNat ∨ d.toNat + (8 : BitVec 64).toNat ≤ z.toNat) ∧
     (z.toNat + 32 ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ z.toNat) ∧
-    (d.toNat + (8 : BitVec 64).toNat ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ d.toNat) :=
-  ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, ⟨by decide, by decide⟩, by decide, by decide, by decide⟩
+    (d.toNat + (8 : BitVec 64).toNat ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ d.toNat) ∧
+    (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat :=
+  ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, ⟨by decide, by decide⟩, by decide, by decide, by decide, by decide⟩
 
 theorem nonvacuous : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, d, 8, 8] s0 ∧
     (StackWritable s0 8 24 ∧ Buffer s0 z 32 false ∧ (8 : BitVec 64).toNat < 2 ^ 48 ∧
     Buffer s0 d (8 : BitVec 64).toNat true ∧
     (z.toNat + 32 ≤ d.toNat ∨ d.toNat + (8 : BitVec 64).toNat ≤ z.toNat) ∧
     (z.toNat + 32 ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ z.toNat) ∧
-    (d.toNat + (8 : BitVec 64).toNat ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ d.toNat)) :=
+    (d.toNat + (8 : BitVec 64).toNat ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ d.toNat) ∧
+    (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat) :=
   ⟨setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧
