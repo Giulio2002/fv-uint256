@@ -29,7 +29,7 @@ theorem correctness (z : BitVec 64) :
   simp only [Disjoint] at hdis
   janus_run
   refine ⟨?_, ?_⟩
-  · rw [Util.b20_res, Util.b20_locA _ _ _ _ (by omega), Util.b20_locB _ _ _ _ _ (by omega)]
+  · rw [Util.b20_res, Util.b20_locC _ _ _ _ (by omega)]
     simp only [Util.rc4_val, Nat.reducePow]
     have l0 := Util.readLE8_lt s.mem z.toNat
     have l1 := Util.readLE8_lt s.mem (z.toNat + 8)

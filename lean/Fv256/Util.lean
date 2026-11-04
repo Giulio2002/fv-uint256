@@ -2093,6 +2093,21 @@ theorem b20_locA (base : Memory) (sp V0 V1 : Nat) (h : 28 ≤ sp) :
   rw [e1, e2]
   exact b20_locA0 base q V0 V1
 
+theorem b20_locA3 (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
+    ((((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).writeLE (sp - 16) 8 V2).readLE (sp - 28) 8) =
+      V0 % 4294967296 + 4294967296 * (V1 % 4294967296) := by
+  rw [Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+  exact b20_locA base sp V0 V1 h
+
+theorem b20_locC (base : Memory) (sp V0 V1 : Nat) (h : 28 ≤ sp) :
+    (((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).readLE (sp - 20) 4) = V1 / 4294967296 % 4294967296 := by
+  obtain ⟨q, rfl⟩ : ∃ q, sp = q + 28 := ⟨sp - 28, by omega⟩
+  have e2 : q + 28 - 24 = q + 4 := by omega
+  have e4 : q + 28 - 20 = q + 8 := by omega
+  rw [e2, e4, Memory.readLE_writeLE_inside _ _ (by omega) (by omega)]
+  have : q + 8 - (q + 4) = 4 := by omega
+  rw [this]
+
 theorem b20_locB (base : Memory) (sp V0 V1 V2 : Nat) (h : 28 ≤ sp) :
     ((((base.writeLE (sp - 28) 4 V0).writeLE (sp - 24) 8 V1).writeLE (sp - 16) 8 V2).readLE (sp - 20) 8) =
       V1 / 4294967296 % 4294967296 + 4294967296 * (V2 % 4294967296) := by
