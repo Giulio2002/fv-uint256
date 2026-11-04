@@ -31,7 +31,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).CmpUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
 | `(*uint256.Int).Dec` | todo | todo | |
 | `(*uint256.Int).Div` | todo (needs bits.Div64 summary, U10) | on branch fv/wb: verified (pending merge) | proofs on branch fv/wb (family B, COVERAGE-B.md); not merged to main until the pin moves |
-| `(*uint256.Int).DivMod` | todo | todo | |
+| `(*uint256.Int).DivMod` | todo | verified, witness pending (Janus integ/speed15) | amd64 (FV-B, branch fv/wb-s15): `janus verify` on Janus integ/speed15 50db36a6, 2579 s, standard axioms, kernel replay 273 modules; main theorem assumes the runtime.newobject contract; spec divSpec/modSpec (division by zero gives 0 for both outputs); restriction: z == m or disjoint |
 | `(*uint256.Int).EncodeRLP` | todo | todo | |
 | `(*uint256.Int).Eq` | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | todo | todo | |
@@ -169,6 +169,7 @@ Standing duty: every proof over ~5 min (or >2x its peers) gets a profile-and-fix
 
 | item | before | after | status / plan |
 |---|---|---|---|
+| DivMod amd64 | 2579 s (FV-B, Janus 50db36a6) | - | TOP optimisation item (heaviest proof; target < 300 s); engine work on DivModB ongoing |
 | MulOverflow amd64 | > 3000 s (value closer `janus_arith` on stores not peeled) | 696 s full (cases 70-331 s) | FIXED: 16-byte stores split via janus64_simp + mul_limbs per-limb janus_carry |
 | MulOverflow arm64 | > 3300 s (timeout, exit 124; case E alone OOM > 33 GB) | 295 s (closers ~20 s per aliasing case) | FIXED: cause was `refine mo_flag … <;> first \| omega \| …` running omega on the huge limb goals; now one bullet per goal |
 | WriteToSlice arm64 | 429 s | - | profile pass pending |
