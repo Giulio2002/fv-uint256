@@ -30,13 +30,11 @@ theorem correctness (z : BitVec 64) :
   simp only [valueAt]
   janus64_run [Util.readLE_32]
   refine ⟨?_, ?_⟩
-  · simp only [Nat.add_assoc, Nat.reduceAdd]
-    simp (disch := omega) only [Util.rd16, Util.w16_lo, Util.w16_hi, Util.readLE_writeLE_eq, Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
-    have h0 := Util.readLE8_lt s.mem z.toNat
+  · have h0 := Util.readLE8_lt s.mem z.toNat
     have h1 := Util.readLE8_lt s.mem (z.toNat + 8)
     have h2 := Util.readLE8_lt s.mem (z.toNat + 16)
     have h3 := Util.readLE8_lt s.mem (z.toNat + 24)
-    simp only [Nat.sub_self, Nat.pow_zero, Nat.div_one, Nat.reducePow, Util.readLE8_mod]
+    simp only [Nat.div_one]
     omega
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
