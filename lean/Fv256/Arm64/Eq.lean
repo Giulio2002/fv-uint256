@@ -23,7 +23,7 @@ theorem correctness (z x : BitVec 64) :
   intro ret hret s hs ⟨⟨hz, hz'⟩, ⟨hx, hx'⟩⟩
   janus_intro hs
   janus_run
-  all_goals (have := Util.readLE8_lt s.mem (z.toNat ); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat ); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); simp only [Spec.eq, Util.beq_toNat, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; (repeat' split) <;> first | omega | (simp only [Util.xor_zero_iff] at *; omega) | (simp; omega) | simp_all)
+  all_goals (have := Util.readLE8_lt s.mem (z.toNat ); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat ); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); simp only [Spec.eq, Util.beq_toNat, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; (repeat' split) <;> first | omega | (simp only [Nat.or_eq_zero_iff, Util.xor_zero_iff, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at * <;> omega))
 
 namespace Witness
 

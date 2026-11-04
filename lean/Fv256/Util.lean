@@ -2726,4 +2726,36 @@ theorem xor_zero_iff (a b : Nat) : a ^^^ b = 0 ↔ a = b := by
     exact this
   · intro h; subst h; exact Nat.xor_self a
 
+theorem bv_xor_zero_iff {w : Nat} (a b : BitVec w) : a ^^^ b = 0 ↔ a = b := by
+  constructor
+  · intro h
+    apply BitVec.eq_of_toNat_eq
+    have := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_xor, BitVec.toNat_ofNat, Nat.zero_mod] at this
+    exact (xor_zero_iff _ _).1 this
+  · intro h; subst h; simp
+
+theorem bvofnat_eq (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    BitVec.ofNat 64 a = BitVec.ofNat 64 b ↔ a = b := by
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_ofNat] at this
+    rwa [Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb] at this
+  · intro h; rw [h]
+
+theorem bv_toNat_zero {w : Nat} (x : BitVec w) : x.toNat = 0 ↔ x = 0 := by
+  constructor
+  · intro h; apply BitVec.eq_of_toNat_eq; simpa using h
+  · intro h; subst h; simp
+
+theorem bv_or_zero_iff {w : Nat} (a b : BitVec w) : a ||| b = 0 ↔ a = 0 ∧ b = 0 := by
+  constructor
+  · intro h
+    have h' := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.zero_mod] at h'
+    have := Nat.or_eq_zero_iff.mp h'
+    exact ⟨BitVec.eq_of_toNat_eq (by simpa using this.1), BitVec.eq_of_toNat_eq (by simpa using this.2)⟩
+  · rintro ⟨rfl, rfl⟩; simp
+
 end Fv256.Util
