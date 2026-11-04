@@ -134,21 +134,21 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     refine Fv256.Amd64.DivModB.partB impl rt z x y m m.toNat ret hret s _ hg hlow hnw hacc hout hzw hz hxw hx hyw hy
       hmw hm hxo hyo hzo hdz hdx hdy hdm hzm2 hdg hgo
       ⟨fun _ => rfl, fun h => absurd (by rw [h]) hne⟩ (Or.inr rfl)
-      ?hrip ?h0 ?h3 ?h1 ?h7 ?h4 ?h5 ?h14 ?hx15 ?hdf ?hsx15 ?hfr ?hspill ?hretslot ?hbp
-    case hrip => exact (by decide : (4946924#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140))
-    case h0 => exact h_a0
-    case h3 => exact h_a1
-    case h1 => exact h_a2
-    case h7 => exact congrArg BitVec.toNat h_a3
-    case h4 => rfl
-    case h5 => rfl
-    case h14 => rfl
-    case hx15 => exact hx0'
-    case hdf => rfl
-    case hsx15 => exact hx0'
-    case hfr => janus_frame
-    case hspill => exact hsp8
-    case hretslot => exact hsp0
-    case hbp => exact hspm8
+      ?n_hrip ?n_h0 ?n_h3 ?n_h1 ?n_h7 ?n_h4 ?n_h5 ?n_h14 ?n_hx15 ?n_hdf ?n_hsx15 ?n_hfr ?n_hspill ?n_hretslot ?n_hbp
+    case n_hrip => exact (by decide : (4946924#64 : BitVec 64) = BitVec.ofNat 64 (Extracted.entry + 140))
+    case n_h0 => exact h_a0
+    case n_h3 => exact h_a1
+    case n_h1 => exact h_a2
+    case n_h7 => exact congrArg BitVec.toNat h_a3
+    case n_h4 => rfl
+    case n_h5 => rfl
+    case n_h14 => rfl
+    case n_hx15 => exact hx0'
+    case n_hdf => rfl
+    case n_hsx15 => exact hx0'
+    case n_hfr => janus_frame
+    case n_hspill => exact hsp8
+    case n_hretslot => exact hsp0
+    case n_hbp => exact hspm8
 
 end Fv256.Amd64.DivMod
