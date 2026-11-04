@@ -45,7 +45,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).IntoBig` | todo | todo | |
 | `(*uint256.Int).IsUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
-| `(*uint256.Int).Log10` | verified | verified | arm64: lean/Fv256/Arm64/Log10.lean (+ L10Cases/C<k>_<m>.lean, one per top nonzero limb k and its bit length m, + Zero); assumes the writable powers-of-ten tables (L10Defs.lean). amd64: lean/Fv256/Amd64/Log10.lean (same layout), verified on Janus c7950624 (the lowest limb's BSR may see zero); same table assumption. |
+| `(*uint256.Int).Log10` | pending Janus datasym (07f71534) | pending Janus datasym (07f71534) | arm64/amd64: lean/Fv256/{Arm64,Amd64}/Log10.lean (+ L10Cases, 256 modules per ISA); table addresses come from `Extracted.dataAddr/dataSize` (no literals in statements); assumes the writable powers-of-ten tables (L10Defs.lean). Verified on master 48f3f44 with Janus 07f71534: arm64 785 s, amd64 851 s (first-of-cache excluded: framework already built) |
 | `(*uint256.Int).Lsh` | verified | verified | arm64: lean/Fv256/Arm64/Lsh.lean; amd64: machine code uses mask/SHLD idioms (`&&& (if .. then -1 else 0)`), proof not yet done (probe in wip/) |
 | `(*uint256.Int).Lt` | verified | verified | lean/Fv256/{Arm64,Amd64}/Lt.lean |
 | `(*uint256.Int).LtUint64` | verified | verified | lean/Fv256/{Arm64,Amd64}/LtUint64.lean |
