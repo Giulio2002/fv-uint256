@@ -294,4 +294,148 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
         simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
         refine ⟨hh, hh.1, ?_, ?_, ?_⟩ <;> omega
 
+
+namespace Witness
+
+set_option maxRecDepth 100000
+
+open Janus.Contracts.Toy Janus.Contracts.LiveSat Janus.Contracts.LiveStub
+
+def newA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.newobject")
+def w1A : Nat := janus_eval% (Extracted.program.contractAddr "runtime.gcWriteBarrier1")
+def w2A : Nat := janus_eval% (Extracted.program.contractAddr "runtime.gcWriteBarrier2")
+
+/-- the stub runtime: generic code placed at `Extracted.program`'s own contract addresses -/
+def implAt : List Segment := [newobjectSeg newA, wbSeg w1A, wbSeg w2A]
+
+def ok : Nat → List Nat → Prop := fun a args =>
+  (a = newA ∧ (args = [bigType] ∨ args = [arrType])) ∨ (a = w1A ∧ args = [1]) ∨ (a = w2A ∧ args = [2])
+
+def R : RtInv := toyR [] ok
+
+def linked : Program := Extracted.program.link implAt
+
+theorem addr_new : Extracted.program.contractAddr "runtime.newobject" = newA := by decide
+theorem addr_w1 : Extracted.program.contractAddr "runtime.gcWriteBarrier1" = w1A := by decide
+theorem addr_w2 : Extracted.program.contractAddr "runtime.gcWriteBarrier2" = w2A := by decide
+
+theorem model_new : NewobjectLiveContract (Extracted.program.ofImpl implAt) newA 4096 R := by janus_live_newobject
+theorem model_wb1 : WbLiveContract (Extracted.program.ofImpl implAt) w1A 4096 R 1 := by janus_live_wb 1
+theorem model_wb2 : WbLiveContract (Extracted.program.ofImpl implAt) w2A 4096 R 2 := by janus_live_wb 2
+
+theorem implOK : ImplOK implAt := by
+  unfold ImplOK; constructor <;> decide
+
+def ret : Nat := 0x1000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x200000
+def zA : Nat := 0x300000
+
+def dataByte (a : Nat) : Option Byte :=
+  match Extracted.data.find? (fun d => decide (d.base ≤ a) && decide (a < d.base + d.bytes.length)) with
+  | some d => some (BitVec.ofNat 8 (d.bytes.getD (a - d.base) 0))
+  | none => none
+
+def bytes0 (a : Nat) : Byte :=
+  match dataByte a with
+  | some v => v
+  | none => if a = BUMP + 3 then 0x10 else 0
+
+def mem0 : Memory :=
+  ⟨bytes0, [⟨sp0 - 4192, 4192, true⟩, ⟨g0, 0x100, false⟩, ⟨flagAddr, 8, false⟩, ⟨BUMP, 0x200, true⟩,
+    ⟨HEAP, HSIZE, true⟩, ⟨zA, 32, false⟩] ++ Extracted.data.map fun d => ⟨d.base, d.bytes.length, false⟩⟩
+
+def zV : BitVec 64 := BitVec.ofNat 64 zA
+
+/-- `ToBig` of a non-nil `*uint256.Int` -/
+def s0 : State :=
+  { regs := fun i => if i = 0 then zV else if i = 28 then BitVec.ofNat 64 g0
+      else if i = 30 then BitVec.ofNat 64 ret else 0,
+    sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩, mem := mem0 }
+
+theorem hret : RetAddr linked ret := RetAddr.of_check (by decide)
+
+theorem setup : CallSetup (linked.withExit ret) Extracted.entry [zV] s0 :=
+  ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | r <;> simp [s0] at h ⊢ <;> omega⟩
+
+theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
+  unfold Program.DataLoaded
+  decide
+
+theorem dataByte_none (a : Nat) (ha : 0x500000 ≤ a) : dataByte a = none := by
+  unfold dataByte
+  have : Extracted.data.find? (fun d => decide (d.base ≤ a) && decide (a < d.base + d.bytes.length)) = none := by
+    rw [List.find?_eq_none]
+    intro d hd
+    have h2 : d.base + d.bytes.length < 0x500000 := by
+      have : ∀ d' ∈ Extracted.data, d'.base + d'.bytes.length < 0x500000 := by decide
+      exact this d hd
+    simp only [Bool.not_eq_true, Bool.and_eq_false_iff, decide_eq_false_iff_not]
+    right; omega
+  rw [this]
+
+theorem bytes0_bump : mem0.readLE BUMP 8 = HEAP := by decide
+
+theorem inv0 : R.inv 0x400 [] (s0.regs 28).toNat (view R.rt [] s0.mem) := by
+  refine toyInv_init (m := mem0) (g := (s0.regs 28).toNat) (by decide) bytes0_bump (fun i hi hi' => ?_) (by decide) (by decide) (by decide)
+  show bytes0 i = 0
+  simp only [bytes0, dataByte_none i (by simp only [HEAP] at hi; omega)]
+  rw [if_neg (by simp only [BUMP, HEAP] at *; omega)]
+
+theorem rt_eq : R.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] := rfl
+
+theorem pre : GuardOK s0 4192 ∧ StackOK s0 4192 0 ∧ Extracted.program.DataLoaded s0.mem ∧
+    Outside (s0.sp.toNat - 4192) 4192 R.rt ∧ Apart ((s0.regs 28).toNat + 16) 8 (s0.sp.toNat - 4192) 4192 ∧
+    Outside ((s0.regs 28).toNat + 16) 8 R.rt ∧
+    s0.mem.accessible flagAddr 4 false = true ∧ Outside bigType 16 R.rt ∧ Outside arrType 16 R.rt ∧
+    R.ok (Extracted.program.contractAddr "runtime.newobject") [bigType] ∧
+    R.ok (Extracted.program.contractAddr "runtime.newobject") [arrType] ∧
+    R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+    R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+    R.inv 0x400 [] (s0.regs 28).toNat (view R.rt [] s0.mem) ∧
+    blockSize 32 false + blockSize 32 true ≤ 0x400 ∧
+    (zV.toNat ≠ 0 → Ptr s0.mem zV 32 false ∧ Outside zV.toNat 32 R.rt ∧ Disjoint zV.toNat 32 (s0.sp.toNat - 4192) 4192) := by
+  refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide, by decide⟩, dataLoaded, ?_, ?_, ?_,
+    by decide, ?_, ?_, ?_, ?_, ?_, ?_, inv0, by decide, fun _ => ⟨⟨by decide, by decide⟩, ?_, ?_⟩⟩
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · simp only [Apart]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · rw [addr_new]; exact Or.inl ⟨rfl, Or.inl rfl⟩
+  · rw [addr_new]; exact Or.inl ⟨rfl, Or.inr rfl⟩
+  · rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩)
+  · rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩)
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · unfold Disjoint; decide
+
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget and a call of `ToBig` on a
+non-nil receiver satisfying the precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64) (ret : Nat) (s : State),
+    ImplOK impl ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (GuardOK s 4192 ∧ StackOK s 4192 0 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4192) 4192 R.rt ∧ Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4192) 4192 ∧
+        Outside ((s.regs 28).toNat + 16) 8 R.rt ∧
+        s.mem.accessible flagAddr 4 false = true ∧ Outside bigType 16 R.rt ∧ Outside arrType 16 R.rt ∧
+        R.ok (Extracted.program.contractAddr "runtime.newobject") [bigType] ∧
+        R.ok (Extracted.program.contractAddr "runtime.newobject") [arrType] ∧
+        R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+        R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+        R.inv b [] (s.regs 28).toNat (view R.rt [] s.mem) ∧
+        blockSize 32 false + blockSize 32 true ≤ b ∧
+        (z.toNat ≠ 0 → Ptr s.mem z 32 false ∧ Outside z.toNat 32 R.rt ∧ Disjoint z.toNat 32 (s.sp.toNat - 4192) 4192)) :=
+  ⟨implAt, R, 0x400, zV, ret, s0, implOK, by rw [addr_new]; exact model_new, by rw [addr_w1]; exact model_wb1,
+    by rw [addr_w2]; exact model_wb2, hret, setup, pre⟩
+
+end Witness
+
 end Fv256.Arm64.ToBig
