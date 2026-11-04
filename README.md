@@ -36,7 +36,7 @@ Forms of guarantee beyond the plain `Ensures`:
 | input | value |
 |---|---|
 | uint256 | tag `v1.3.2`, commit `a17fcfb6f8b0245533928fa96aace2cd4c2e9b18` (pure Go, no assembly) |
-| Janus | `4d43ed7e2e46f0897e1c40bda23f0bd3ed2c346d` (`lean/lakefile.toml`, `lean/lake-manifest.json`) |
+| Janus | `52c7e53aa2a24bed348d607afbcb681300750322` (`lean/lakefile.toml`, `lean/lake-manifest.json`) |
 | Go toolchain | `go1.26.0` (`GOTOOLCHAIN`), `CGO_ENABLED=0`, `-trimpath`; Lean `v4.34.1` |
 
 ## Spec vs impl
@@ -60,7 +60,7 @@ as an *input*: we verify the produced binary, not the compiler. Single-threaded 
 
 ## Reproduce
 ```sh
-git clone https://github.com/Giulio2002/Janus && git -C Janus checkout 4d43ed7e2e46f0897e1c40bda23f0bd3ed2c346d
+git clone https://github.com/Giulio2002/Janus && git -C Janus checkout 52c7e53aa2a24bed348d607afbcb681300750322
 (cd Janus && go build -o bin/janus ./cmd/janus)
 # requirements: a Go toolchain (GO=/path/to/go, or `go` on PATH, or /usr/local/go/bin/go; the script pins GOTOOLCHAIN=go1.26.0),
 # the Janus binary (JANUS=), lake/Lean (via elan) and network access for the first `lake update janus`
