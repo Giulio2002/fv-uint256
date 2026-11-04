@@ -46,6 +46,18 @@ def BigOut (m : Memory) (bp P v : Nat) : Prop :=
     (len = 0 ∨ m.readLE (ap + 8 * (len - 1)) 8 ≠ 0) ∧
     Fv256.C.bigAbs (fun i => m.readLE (ap + 8 * i) 8) len = v
 
+/-- The content of the `big.Int` object at `P` alone (without the slot that points to it). -/
+def BigObj (m : Memory) (P v : Nat) : Prop :=
+  ∃ ap len cap : Nat, m.accessible P 32 true = true ∧ P + 32 ≤ 2 ^ 48 ∧
+    m.readLE P 1 = 0 ∧ m.readLE (P + 8) 8 = ap ∧ m.readLE (P + 16) 8 = len ∧ m.readLE (P + 24) 8 = cap ∧
+    4 ≤ cap ∧ m.accessible ap 32 true = true ∧ ap + 32 ≤ 2 ^ 48 ∧ len ≤ 4 ∧
+    (len = 0 ∨ m.readLE (ap + 8 * (len - 1)) 8 ≠ 0) ∧
+    Fv256.C.bigAbs (fun i => m.readLE (ap + 8 * i) 8) len = v
+
+theorem BigObj.of_bigOut {m : Memory} {bp P v : Nat} (h : BigOut m bp P v) : BigObj m P v := by
+  obtain ⟨ap, len, cap, -, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13⟩ := h
+  exact ⟨ap, len, cap, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13⟩
+
 /-- The precondition of `correctness`. -/
 def Pre (R : RtInv) (b : Nat) (z bp : BitVec 64) (s : State) : Prop :=
   GuardOK s 4144 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧

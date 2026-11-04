@@ -170,8 +170,19 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, hH⟩
 
-/-- The theorem fires: for this call and this allocator, `MarshalSSZ` returns a fresh 32-byte slice in `rt`. -/
-example := correctness impl rt H zp hmk ret hret s0 setup pre
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
+return address, a call state and the precondition. -/
+theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64) (ret : Nat) (s : State),
+    MakesliceContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (StackGuardOK s 0 ∧ StackWritable s 4136 24 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4136) 4160 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+        Buffer s z 32 false ∧ Outside z.toNat 32 rt ∧
+        (z.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ z.toNat) ∧
+        H [byteType, 0, 32] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, zp, ret, s0, hmk, hret, setup, pre⟩
 
 end Witness
 

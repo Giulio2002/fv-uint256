@@ -15,13 +15,9 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus
 namespace Fv256.Arm64.MustFromBig
 
 /-- the type descriptor and data pointer `MustFromBig` passes to `runtime.gopanic` for `panic("overflow")`, recomputed from the extracted words. -/
-def panicType : Nat :=
-  adrpLdTarget (Extracted.entry + 0x5c) (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 23)
-    (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 24) 0
+def panicType : Nat := Extracted.dataAddr.«type:string#f88732b8»
 
-def panicData : Nat :=
-  adrpLdTarget (Extracted.entry + 0x64) (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 25)
-    (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 26) 0
+def panicData : Nat := Extracted.dataAddr.«.rodata#ee30ac37»
 
 def intType : Nat :=
   adrpLdTarget (Extracted.entry + 0x30) (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 12)
@@ -70,9 +66,10 @@ theorem correctness (P : PanicRuntime) (impl : List Segment) (rt : List (Nat × 
     · rename_i g hxn wa wb wc wd we wf wg hfr hin hle hacc h8 h16 hz rr a cpc csp c28 c29 c30 c18 cflag cval cfr
       have hov := Fv256.C.flag_false _ _ cflag hbr
       have h4 := Fv256.C.ovT _ hov
-      refine ⟨⟨834016, 1006664⟩, ?_, h4, ?_⟩
-      · show (⟨834016, 1006664⟩ : Eface) = ⟨_, _⟩
-        simp [setReg]
+      refine ⟨⟨panicType, panicData⟩, ?_, h4, ?_⟩
+      · show (⟨panicType, panicData⟩ : Eface) = ⟨_, _⟩
+        simp [setReg, panicType, panicData]
+        exact ⟨by decide, by decide⟩
       · rw [hpt, hpd]
     · rename_i g wa wb wc wd we wf wg hfr hin hle hacc h8 h16 hz rr a cpc csp c28 c29 c30 c18 cflag cval cfr
       have hov := Fv256.C.flag_true _ _ cflag hbr
@@ -223,8 +220,21 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoad
   · unfold Disjoint; decide
   · unfold Disjoint; decide
 
-/-- The theorem fires: for this call and this allocator, `FromBig` returns a fresh object in `rt` holding `-(5 + 2^64)`. -/
-example := correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H xp pw 2 hnew ret hret s0 setup pre
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
+return address, a call state and the precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (x : BitVec 64) (ret : Nat) (s : State),
+    NewobjectContract (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [x] s ∧
+    (GuardOK s 0 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4144) 4168 rt ∧ s.regs 29 = s.sp - 8#64 ∧
+        H [intType] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem) ∧
+        (x.toNat ≠ 0 → Ptr s.mem x 32 false ∧ s.mem.readLE x.toNat 1 < 2 ∧
+          s.mem.readLE (x.toNat + 8) 8 = (pw : BitVec 64).toNat ∧ s.mem.readLE (x.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
+          Ptr s.mem (pw : BitVec 64) (8 * (2 : BitVec 64).toNat) false ∧ Outside x.toNat 32 rt ∧ Outside (pw : BitVec 64).toNat (8 * (2 : BitVec 64).toNat) rt ∧
+          Disjoint x.toNat 32 (s.sp.toNat - 4144) 4168 ∧ Disjoint (pw : BitVec 64).toNat (8 * (2 : BitVec 64).toNat) (s.sp.toNat - 4144) 4168)) :=
+  ⟨impl, rt, H, xp, ret, s0, hnew, hret, setup, pre⟩
 
 end Witness
 

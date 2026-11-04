@@ -19,12 +19,12 @@ def errAddr (i : Nat) : Nat :=
 
 /-- the six sentinel error variables (`ErrEmptyString`, `ErrSyntax`, `ErrMissingPrefix`, `ErrEmptyNumber`, `ErrLeadingZero`, `ErrBig256Range`)
 are consecutive 16-byte interface values at these addresses (`.data`, not copied by the extraction: the precondition provides them). -/
-def eEmpty : Nat := 1792752
-def eSyn : Nat := 1792768
-def ePrefix : Nat := 1792784
-def eNum : Nat := 1792800
-def eLead : Nat := 1792816
-def eBig : Nat := 1792832
+def eEmpty : Nat := 1792784
+def eSyn : Nat := 1792800
+def ePrefix : Nat := 1792816
+def eNum : Nat := 1792832
+def eLead : Nat := 1792848
+def eBig : Nat := 1792864
 
 theorem err_addrs : errAddr 8 = eEmpty ∧ errAddr 22 = ePrefix ∧ errAddr 30 = eNum ∧ errAddr 39 = eLead ∧ errAddr 54 = eBig ∧
     errAddr 98 = eSyn := by
@@ -32,7 +32,7 @@ theorem err_addrs : errAddr 8 = eEmpty ∧ errAddr 22 = ePrefix ∧ errAddr 30 =
 
 
 abbrev innerHead : Nat := fh + 0x144
-abbrev tbl : Nat := 1001813
+abbrev tbl : Nat := 1002789
 
 /-- postcondition of the digit loop (relative to the entry state `s` of `fromHex`) -/
 def LoopQ (s : State) (z hp len : BitVec 64) (s' : State) : Prop :=
@@ -41,7 +41,7 @@ def LoopQ (s : State) (z hp len : BitVec 64) (s' : State) : Prop :=
   MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat - 8)] ∧
   ((s'.regs 0 = 0 ∧ s'.regs 1 = 0 ∧ allHex (bytesAt s.mem hp.toNat) 2 len.toNat ∧
       ∀ j, j < 4 → s'.mem.readLE (z.toNat + 8 * j) 8 = hexLimb (bytesAt s.mem hp.toNat) len.toNat j) ∨
-   (s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE 1792768 8) ∧ s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE 1792776 8) ∧
+   (s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE 1792800 8) ∧ s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE 1792808 8) ∧
       ¬ allHex (bytesAt s.mem hp.toNat) 2 len.toNat))
 
 /- the loop invariant at the inner-loop head (`CMP end, ri`): limb `i` is being accumulated, `ri` digits (from `e (i+1)`) done -/
@@ -53,9 +53,9 @@ theorem loop (impl : List Segment) (s : State) (z hp len : BitVec 64) (hL : 3 �
     (hdz : z.toNat + 32 ≤ hp.toNat ∨ hp.toNat + len.toNat ≤ z.toNat)
     (hdst : hp.toNat + len.toNat ≤ s.sp.toNat - 24 ∨ s.sp.toNat + 24 ≤ hp.toNat)
     (hdzs : z.toNat + 32 ≤ s.sp.toNat - 24 ∨ s.sp.toNat + 24 ≤ z.toNat)
-    (hzt : z.toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ z.toNat)
-    (hgz : z.toNat + 32 ≤ 1792752 ∨ 1792848 ≤ z.toNat)
-    (hgs : s.sp.toNat + 24 ≤ 1792752 ∨ 1792848 ≤ s.sp.toNat - 24)
+    (hzt : z.toNat + 32 ≤ 1002789 ∨ 1002789 + 256 ≤ z.toNat)
+    (hgz : z.toNat + 32 ≤ 1792784 ∨ 1792880 ≤ z.toNat)
+    (hgs : s.sp.toNat + 24 ≤ 1792784 ∨ 1792880 ≤ s.sp.toNat - 24)
     (hsp : 24 ≤ s.sp.toNat) (hspa : s.sp.toNat + 24 ≤ 2 ^ 48) (hal : s.sp.toNat % 16 = 0) :
     ∀ n (S : State) (i e0 e1 ri : Nat), n = 17 * (3 - i) + (e0 - ri) → i ≤ 3 →
       e0 = hexEnd len.toNat i → e1 = hexEnd len.toNat (i + 1) → e1 ≤ e0 → e0 ≤ len.toNat → 2 ≤ e1 → e0 ≤ e1 + 16 →
@@ -73,10 +73,10 @@ theorem loop (impl : List Segment) (s : State) (z hp len : BitVec 64) (hL : 3 �
         else 0) →
       MemFrame s.mem S.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 24, s.sp.toNat - 8)] →
       S.mem.readLE S.sp.toNat 8 = (s.regs 30).toNat → S.mem.readLE (S.sp.toNat - 8) 8 = (s.regs 29).toNat →
-      (∀ c, c < 256 → S.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255) →
+      (∀ c, c < 256 → S.mem.readLE (1002789 + c) 1 = (hexNib c).getD 255) →
       s.mem.accessible (s.sp.toNat - 24) 48 true = true → s.mem.accessible z.toNat 32 true = true →
-      s.mem.accessible hp.toNat len.toNat false = true → s.mem.accessible 1001813 256 false = true →
-      s.mem.accessible 1792752 96 false = true →
+      s.mem.accessible hp.toNat len.toNat false = true → s.mem.accessible 1002789 256 false = true →
+      s.mem.accessible 1792784 96 false = true →
       ReachesRet (Extracted.program.link impl) (s.regs regLR) S (LoopQ s z hp len) := by
   intro n
   induction n using Nat.strongRecOn with
@@ -266,18 +266,18 @@ theorem loop (impl : List Segment) (s : State) (z hp len : BitVec 64) (hL : 3 �
 
 
 set_option maxRecDepth 100000 in
-theorem tabData : ∀ c, c < 256 → (dataRead Extracted.program (1001813 + c) 1).isSome = true ∧
-    dataReadD Extracted.program (1001813 + c) 1 = (hexNib c).getD 255 := by
+theorem tabData : ∀ c, c < 256 → (dataRead Extracted.program (1002789 + c) 1).isSome = true ∧
+    dataReadD Extracted.program (1002789 + c) 1 = (hexNib c).getD 255 := by
   decide
 
 theorem tab_vals {m : Memory} (h : Extracted.program.DataLoaded m) :
-    ∀ c, c < 256 → m.readLE (1001813 + c) 1 = (hexNib c).getD 255 := by
+    ∀ c, c < 256 → m.readLE (1002789 + c) 1 = (hexNib c).getD 255 := by
   intro c hc
   obtain ⟨h1, h2⟩ := tabData c hc
   rw [readLE_dataReadD h _ _ h1, h2]
 
 set_option maxRecDepth 100000 in
-theorem tab_isSome : (dataRead Extracted.program 1001813 256).isSome = true := by decide
+theorem tab_isSome : (dataRead Extracted.program 1002789 256).isSome = true := by decide
 
 theorem disj_data {p : Program} {m : Memory} (h : p.DataLoaded m) {t k : Nat}
     (hv : (dataRead p t k).isSome = true) {a n : Nat} (hw : m.accessible a n true = true) :
@@ -301,10 +301,10 @@ theorem disj_data {p : Program} {m : Memory} (h : p.DataLoaded m) {t k : Nat}
 
 /-- the address of the package variable (an `error` interface value) for each parse error -/
 def errAddrOf (e : Nat) : Nat :=
-  if e = 0 then 1792752 else if e = 1 then 1792784 else if e = 2 then 1792800
-  else if e = 3 then 1792816 else if e = 4 then 1792832 else 1792768
+  if e = 0 then 1792784 else if e = 1 then 1792816 else if e = 2 then 1792832
+  else if e = 3 then 1792848 else if e = 4 then 1792864 else 1792800
 
-theorem errAddrOf_bounds (e : Nat) : 1792752 ≤ errAddrOf e ∧ errAddrOf e + 16 ≤ 1792848 := by
+theorem errAddrOf_bounds (e : Nat) : 1792784 ≤ errAddrOf e ∧ errAddrOf e + 16 ≤ 1792880 := by
   unfold errAddrOf
   by_cases h0 : e = 0
   · simp [h0]
@@ -321,13 +321,13 @@ theorem errAddrOf_bounds (e : Nat) : 1792752 ≤ errAddrOf e ∧ errAddrOf e + 1
 def FromHexPre (z hp len : BitVec 64) (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ s.regs 0 = z ∧ s.regs 1 = hp ∧ s.regs 2 = len ∧
   Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧
-  (∀ c, c < 256 → s.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255) ∧ s.mem.accessible 1001813 256 false = true ∧
-  (z.toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ z.toNat) ∧
-  (s.sp.toNat - 24 + 48 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 24) ∧
-  s.mem.accessible 1792752 96 false = true ∧ GuardOK s 0 ∧ StackOK s 24 24 ∧
+  (∀ c, c < 256 → s.mem.readLE (1002789 + c) 1 = (hexNib c).getD 255) ∧ s.mem.accessible 1002789 256 false = true ∧
+  (z.toNat + 32 ≤ 1002789 ∨ 1002789 + 256 ≤ z.toNat) ∧
+  (s.sp.toNat - 24 + 48 ≤ 1002789 ∨ 1002789 + 256 ≤ s.sp.toNat - 24) ∧
+  s.mem.accessible 1792784 96 false = true ∧ GuardOK s 0 ∧ StackOK s 24 24 ∧
   Disjoint z.toNat 32 hp.toNat len.toNat ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
-  Disjoint hp.toNat len.toNat (s.sp.toNat - 24) 48 ∧ Disjoint z.toNat 32 1792752 96 ∧
-  Disjoint 1792752 96 (s.sp.toNat - 24) 48 ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0)
+  Disjoint hp.toNat len.toNat (s.sp.toNat - 24) 48 ∧ Disjoint z.toNat 32 1792784 96 ∧
+  Disjoint 1792784 96 (s.sp.toNat - 24) 48 ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0)
 
 def FromHexPost (z hp len : BitVec 64) (s s' : State) : Prop :=
   s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.regs 29 ∧
@@ -398,12 +398,12 @@ theorem fromHex_sum (impl : List Segment) (z hp len : BitVec 64) :
     hdzh, hdzs, hdhs, hdzg, hdgs, hnn⟩
   subst hz0 hp0 hl0
   simp only [Disjoint] at hdzh hdzs hdhs hdzg hdgs
-  have hn1 : s.mem.readLE 1792752 8 ≠ 0 := hnn 0 (by decide)
-  have hn2 : s.mem.readLE 1792768 8 ≠ 0 := hnn 5 (by decide)
-  have hn3 : s.mem.readLE 1792784 8 ≠ 0 := hnn 1 (by decide)
-  have hn4 : s.mem.readLE 1792800 8 ≠ 0 := hnn 2 (by decide)
-  have hn5 : s.mem.readLE 1792816 8 ≠ 0 := hnn 3 (by decide)
-  have hn6 : s.mem.readLE 1792832 8 ≠ 0 := hnn 4 (by decide)
+  have hn1 : s.mem.readLE 1792784 8 ≠ 0 := hnn 0 (by decide)
+  have hn2 : s.mem.readLE 1792800 8 ≠ 0 := hnn 5 (by decide)
+  have hn3 : s.mem.readLE 1792816 8 ≠ 0 := hnn 1 (by decide)
+  have hn4 : s.mem.readLE 1792832 8 ≠ 0 := hnn 2 (by decide)
+  have hn5 : s.mem.readLE 1792848 8 ≠ 0 := hnn 3 (by decide)
+  have hn6 : s.mem.readLE 1792864 8 ≠ 0 := hnn 4 (by decide)
   have hb0 : s.mem.readLE (s.regs 1).toNat 1 < 256 := by simpa using Memory.readLE_lt s.mem (s.regs 1).toNat 1
   have hb1 : s.mem.readLE ((s.regs 1).toNat + 1) 1 < 256 := by simpa using Memory.readLE_lt s.mem ((s.regs 1).toNat + 1) 1
   have hb2 : s.mem.readLE ((s.regs 1).toNat + 2) 1 < 256 := by simpa using Memory.readLE_lt s.mem ((s.regs 1).toNat + 2) 1
@@ -488,5 +488,29 @@ theorem fromHex_sum (impl : List Segment) (z hp len : BitVec 64) :
       simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
       exact htab0 c hc
 
+
+
+/-! ## The package error variables and the hex table, by their names in the extraction
+
+`Extracted.dataAddr.«…»` are the symbols' addresses in the binary (the error variables are `.data`, not copied: the
+preconditions say what memory holds there). The statements of the hex theorems use `errBase` / `tabBase`; the proofs
+rewrite them to the numerals with `errBase_val` / `tabBase_val`. -/
+abbrev errBase : Nat := Extracted.dataAddr.«github.com/holiman/uint256.ErrEmptyString»
+abbrev tabBase : Nat := Extracted.dataAddr.«.rodata#23145917»
+theorem errBase_val : errBase = 1792784 := by decide
+theorem tabBase_val : tabBase = 1002789 := by decide
+/-- the six error variables are consecutive 16-byte slots in the order `ErrEmptyString`, `ErrSyntax`, `ErrMissingPrefix`,
+`ErrEmptyNumber`, `ErrLeadingZero`, `ErrBig256Range`, and `errAddrOf` indexes them by the tags of `parseHex` -/
+theorem errVars_layout :
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrSyntax» = errBase + 16 ∧
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrMissingPrefix» = errBase + 32 ∧
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrEmptyNumber» = errBase + 48 ∧
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrLeadingZero» = errBase + 64 ∧
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range» = errBase + 80 ∧
+    errAddrOf 0 = errBase ∧ errAddrOf 5 = Extracted.dataAddr.«github.com/holiman/uint256.ErrSyntax» ∧
+    errAddrOf 1 = Extracted.dataAddr.«github.com/holiman/uint256.ErrMissingPrefix» ∧
+    errAddrOf 2 = Extracted.dataAddr.«github.com/holiman/uint256.ErrEmptyNumber» ∧
+    errAddrOf 3 = Extracted.dataAddr.«github.com/holiman/uint256.ErrLeadingZero» ∧
+    errAddrOf 4 = Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range» := by decide
 
 end Fv256.Arm64.SetFromHexLoops
