@@ -79,4 +79,50 @@ def Post (R : RtInv) (z bp : BitVec 64) (s s' : State) : Prop :=
       (bp.toNat, bp.toNat + 8)]))
 
 
+theorem ptr_of {s : State} {x n : Nat} {w : Bool} (hx : x < 2 ^ 64) (h : Buffer s (BitVec.ofNat 64 x) n w) :
+    s.mem.accessible x n w = true ∧ x + n ≤ 2 ^ 48 := by
+  obtain ⟨h1, h2⟩ := h
+  simp only [BitVec.toNat_ofNat, Nat.mod_eq_of_lt hx] at h1 h2
+  exact ⟨h2, h1⟩
+
+/-- The pc after `*b` was loaded (or allocated) and stored: `mov (%rbx),%rcx` (`IntoBig+0x68`). -/
+abbrev pcLoad : Nat := Extracted.entry + 0x68
+
+/-- What every segment boundary state `S` has in common with the call state `s`: the frame (`RSP`, `RBP`,
+the goroutine register, the saved frame pointer and the two spilled arguments) and the memory frame. -/
+def Rel (R : RtInv) (z bp : BitVec 64) (s S : State) : Prop :=
+  S.regs 4 = s.regs 4 - 24#64 ∧ S.regs 5 = s.regs 4 - 8#64 ∧ S.regs 14 = s.regs 14 ∧
+    S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
+    S.mem.readLE ((s.regs 4).toNat + 8) 8 = z.toNat ∧ S.mem.readLE ((s.regs 4).toNat + 16) 8 = bp.toNat ∧
+    MemFrame s.mem S.mem (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),
+      (bp.toNat, bp.toNat + 8)])
+
+theorem reaches_mono {p : Amd64.Program} {s : State} {Q Q' : Amd64.Outcome → Prop} (h : Reaches p s Q) (hQ : ∀ o, Q o → Q' o) :
+    Reaches p s Q' := by
+  obtain ⟨n, o, h1, h2⟩ := h
+  exact ⟨n, o, h1, hQ o h2⟩
+
+/-- From the tail's result (`BigOut` and a frame with the new block) to `Post`. -/
+theorem post_of_tail (R : RtInv) (z bp : BitVec 64) (s : State) (P : Nat) (hz0 : z.toNat ≠ 0)
+    (hn : s.mem.readLE bp.toNat 8 = 0 → ∀ a n,
+      Outside a n (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),
+        (bp.toNat, bp.toNat + 8)]) →
+        Outside a n (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),
+          (bp.toNat, bp.toNat + 8), (P, P + 32)])) :
+    ∀ o : Amd64.Outcome,
+      IsReturn (fun s' => ABIReturn s s' ∧ BigOut s'.mem bp.toNat P (val256 s.mem z.toNat) ∧
+        MemFrame s.mem s'.mem (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),
+          (bp.toNat, bp.toNat + 8), (P, P + 32)])) o →
+      (∀ a n, Outside a n (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),
+          (bp.toNat, bp.toNat + 8),
+          (s.mem.readLE bp.toNat 8, s.mem.readLE bp.toNat 8 + 32),
+          (s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8, s.mem.readLE (s.mem.readLE bp.toNat 8 + 8) 8 + 32)]) →
+        Outside a n (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),
+          (bp.toNat, bp.toNat + 8), (P, P + 32)])) →
+      IsReturn (fun s' => ABIReturn s s' ∧ Post R z bp s s') o := by
+  intro o ho hw
+  cases o with
+  | returned s' => exact ⟨ho.1, fun h => absurd h hz0, fun _ => ⟨P, ho.2.1⟩, ho.2.2.mono hw, fun h0 => ho.2.2.mono (hn h0)⟩
+  | stub n k s' => exact ho.elim
+
 end Fv256.Amd64.IntoBig
