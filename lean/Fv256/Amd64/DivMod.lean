@@ -10,18 +10,17 @@ import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
 import Fv256.Amd64.UdivremM
 import Fv256.Amd64.DivModB
+import Fv256.Amd64.DivModW
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 
 namespace Fv256.Amd64.DivMod
 
 /-- The address of `uint256.Int`'s type descriptor (the `LEA` before the call loads it): the extraction's only data object. -/
-def intType : Nat := dataBase Extracted.program 0
+def intType : Nat := Extracted.dataAddr.«type:uint256.Int#33f34945»
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-set_option profiler true in
-set_option profiler.threshold 8000 in
 theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
     (hnew : NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
@@ -149,5 +148,41 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     case n_hspill => exact hsp8
     case n_hretslot => exact hsp0
     case n_hbp => exact hspm8
+
+
+namespace Witness
+
+open Fv256.Amd64.DivModW
+
+/-- Non-vacuity of `correctness`: every hypothesis holds together for a concrete runtime (a toy allocator at
+`runtime.newobject`'s address), a concrete call of `DivMod` (distinct `z`, `x`, `y`, `m`), and the call returns. -/
+theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
+    (ret : Nat) (s : Amd64.State),
+    NewobjectContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, x, y, m] s ∧
+    ((fun s => StackGuardOK s 0x190 ∧ StackWritable s 4248 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4248) (4248 + 0x28) rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+        Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 true ∧
+        Outside z.toNat 32 rt ∧ Outside x.toNat 32 rt ∧ Outside y.toNat 32 rt ∧ Outside m.toNat 32 rt ∧
+        (z.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ z.toNat) ∧
+        (x.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ x.toNat) ∧
+        (y.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ y.toNat) ∧
+        (m.toNat + 32 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ m.toNat) ∧
+        (z = m ∨ z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4248 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 14).toNat + 16) ∧
+        Outside ((s.regs 14).toNat + 16) 8 rt ∧
+        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 0x98) (rtView rt s.mem)) s) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s (fun s' => ABIReturn s s' ∧ (fun s s' => s'.regs 0 = z ∧
+        ∃ m' : Nat, (s'.regs 3).toNat = m' ∧ (z ≠ m → m' = m.toNat) ∧
+          (z = m → InRanges m' 32 rt ∧ m' % 16 = 0 ∧ s'.mem.accessible m' 32 true = true) ∧
+          valueAt s' z 32 = Fv256.B.divSpec (valueAt s x 32) (valueAt s y 32) ∧
+          s'.mem.readLE m' 32 = Fv256.B.modSpec (valueAt s x 32) (valueAt s y 32) ∧
+          MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
+            ((s.regs 4).toNat - 4248, (s.regs 4).toNat + 0x28)])) s s') :=
+  ⟨impl, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW,
+    correctness impl rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
+
+end Witness
 
 end Fv256.Amd64.DivMod
