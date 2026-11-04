@@ -19,7 +19,7 @@ def post(K, zero):
         Spec.fromBE (fun i => s'.mem.readLE (ptr + i) 1) {K} = val256 s.mem z.toNat % 2 ^ (8 * {K}) ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]))"""
 INTRO = "  intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hd, hout, ⟨hz, hz'⟩, hzo, hzd, hH⟩\n  janus_intro hs\n  janus_eval_nat h_pt : byteType\n  rw [h_pt] at hH\n  janus_data hd [hw]\n  simp only [Disjoint] at hzd\n"
-RUN = "  janus_run [Util.readLE8_mod, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]\n"
+RUN = "  janus_run [Util.readLE8_mod, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.sub_self, BitVec.zero_add, BitVec.add_sub_cancel, Util.bv_add_sub_left]\n"
 LIMBS = "".join(f"  have l{j} := Util.readLE8_lt s.mem {'z.toNat' if j == 0 else '(z.toNat + %d)' % (8*j)}\n" for j in range(4))
 def case(k):
     big = k == 32
@@ -40,13 +40,14 @@ def case(k):
             body += "  have hbs : n.toNat ≤ blockSize n.toNat true := by\n    unfold blockSize; split\n    · exact Nat.le_refl _\n    · exact le_roundupsize _ _\n"
         body += "  refine ⟨_, rfl, hin.sub (Nat.le_refl _) (by omega), Memory.accessible_mono _ hacc (Nat.le_refl _) (by omega), ?_, ?_⟩\n"
         if big:
-            body += "  · exact Util.pad_big wmem _ n.toNat _ _ _ _ h32 hzb l0 l1 l2 l3\n"
+            body += "  · exact Util.pad_big2 wmem _ n.toNat _ _ _ _ h32 hzb l0 l1 l2 l3\n"
         else:
             body += "  · refine (Util.fromBE_congr ?_).trans (Util.fromBE_bytes _ _)\n    intro a ha\n"
             alts = " ∨ ".join(f"a = {j}" for j in range(k))
             body += f"    rcases (show {alts} by omega) with " + " | ".join(["rfl"] * k) + "\n"
             for j in range(k):
-                body += "    · (try simp only [Nat.add_zero])\n      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]\n      omega\n"
+                e = 8*(k-1-j)
+                body += "    · (try simp only [Nat.add_zero])\n      (try simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Util.rc8_mem_byte, Janus.Arm64.Memory.readLE_writeLE_self, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul])\n" + f"      first | (rw [Util.wb{e} _ _ _ _ l0 l1 l2 l3]; done) | (rw [Util.wb{e} _ _ _ _ l0 l1 l2 l3]; omega) | omega\n"
         body += "  · janus_frame\n"
     L.append(body.rstrip("\n"))
     return "\n".join(L)

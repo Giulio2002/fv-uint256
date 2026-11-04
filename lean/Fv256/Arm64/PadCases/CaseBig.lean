@@ -31,7 +31,7 @@ theorem caseBig (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z 
   rename_i wobj wregs wflags wvreg wmem wo wx hmf hin hle hacc h8 h16 hzb htr
   have hdj := InRanges.disjoint hin hout
   have hdz := InRanges.disjoint hin hzo
-  janus_run [Util.readLE8_mod, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]
+  janus_run [Util.readLE8_mod, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.sub_self, BitVec.zero_add, BitVec.add_sub_cancel, Util.bv_add_sub_left]
   have l0 := Util.readLE8_lt s.mem z.toNat
   have l1 := Util.readLE8_lt s.mem (z.toNat + 8)
   have l2 := Util.readLE8_lt s.mem (z.toNat + 16)
@@ -41,7 +41,7 @@ theorem caseBig (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z 
     · exact Nat.le_refl _
     · exact le_roundupsize _ _
   refine ⟨_, rfl, hin.sub (Nat.le_refl _) (by omega), Memory.accessible_mono _ hacc (Nat.le_refl _) (by omega), ?_, ?_⟩
-  · exact Util.pad_big wmem _ n.toNat _ _ _ _ h32 hzb l0 l1 l2 l3
+  · exact Util.pad_big2 wmem _ n.toNat _ _ _ _ h32 hzb l0 l1 l2 l3
   · janus_frame
 
 end Fv256.Arm64.PaddedBytes

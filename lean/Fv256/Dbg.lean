@@ -40,3 +40,30 @@ elab "goal_summary" : tactic => do
     let s ← (try pure (toString (← ppExpr t)) catch _ => pure "<unprintable>")
     logInfo m!"goal {i}/{gs.length}: {s.take 300}"
     i := i + 1
+
+open Lean Meta Elab Tactic in
+/-- `print_chains`: for every `Memory.readLE m a n` in the goal, prints `a`, `n` (raw `dbgToString`, robust to loose bvars) and the (addr, size) of each write in `m`, values omitted. -/
+elab "print_chains" : tactic => do
+  let g ← getMainTarget
+  let acc ← IO.mkRef (#[] : Array String)
+  let rec go (e : Expr) : MetaM Unit := do
+    if e.getAppFn.constName?.any (fun n => n.toString.endsWith "Memory.readLE") && e.getAppNumArgs == 3 then
+      let args := e.getAppArgs
+      let mut m := args[0]!
+      let mut ws : Array String := #[]
+      while m.getAppFn.constName?.any (fun n => n.toString.endsWith "Memory.writeLE") && m.getAppNumArgs == 4 do
+        let a := m.getAppArgs
+        ws := ws.push s!"({a[1]!.dbgToString} , {a[2]!.dbgToString})"
+        m := a[0]!
+      acc.modify (·.push s!"READ {args[1]!.dbgToString} {args[2]!.dbgToString} <- {ws}")
+    match e with
+    | .app f a => go f; go a
+    | .lam _ t b _ => go t; go b
+    | .forallE _ t b _ => go t; go b
+    | .letE _ t v b _ => go t; go v; go b
+    | .mdata _ b => go b
+    | .proj _ _ b => go b
+    | _ => pure ()
+  go g
+  let r ← acc.get
+  throwError m!"CHAINS:\n{"\n".intercalate r.toList}"
