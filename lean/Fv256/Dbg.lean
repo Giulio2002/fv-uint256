@@ -29,3 +29,14 @@ open Lean Elab Tactic in
 elab "log_goal " tag:str : tactic => do
   let g ← getMainTarget
   logError m!"{tag.getString}: {g}"
+
+open Lean Meta Elab Tactic in
+/-- `goal_summary`: logs, for each open goal, its index and the head symbol / first 200 chars of its target, then continues. -/
+elab "goal_summary" : tactic => do
+  let gs ← getGoals
+  let mut i : Nat := 0
+  for g in gs do
+    let t ← g.getType
+    let s ← (try pure (toString (← ppExpr t)) catch _ => pure "<unprintable>")
+    logInfo m!"goal {i}/{gs.length}: {s.take 300}"
+    i := i + 1

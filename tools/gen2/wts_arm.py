@@ -6,7 +6,7 @@ ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirn
 ks = [int(a) for a in sys.argv[1:]] or list(range(33))
 PRE = """(fun s => GuardOK s 0 ∧ StackOK s 24 24 ∧ Ptr32 s.mem z false ∧
         Ptr s.mem d {K} true ∧ Disjoint z.toNat 32 d.toNat {K} ∧
-        Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧ Disjoint d.toNat {K} (s.sp.toNat - 24) 48)"""
+        Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧ Disjoint d.toNat {K} (s.sp.toNat - 24) 48 ∧ {K} ≤ cap.toNat)"""
 POST = """(fun s s' => Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) {N} = val256 s.mem z.toNat % 2 ^ (8 * {N}) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat {N} (s.sp.toNat - 24) 48)"""
 def cname(k): return f"case{k}" if k < 32 else "caseBig"
@@ -22,7 +22,7 @@ def lemma(k):
     L.append(f"    Ensures Extracted.program Extracted.entry [z, d, {lenarg}, cap]")
     L.append("      " + PRE.replace("{K}", K))
     L.append("      " + POST.replace("{N}", str(n)) + " := by")
-    L.append("  intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, ⟨hz, hz'⟩, ⟨hd, hd'⟩, hzd, hzs, hds⟩")
+    L.append("  intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, ⟨hz, hz'⟩, ⟨hd, hd'⟩, hzd, hzs, hds, hcap⟩")
     L.append("  janus_intro hs")
     L.append("  simp only [Disjoint] at *")
     if big:
@@ -50,8 +50,8 @@ def lemma(k):
         L.append(f"    rcases (show {alts} by omega) with " + " | ".join(["rfl"] * n))
         for j in range(n):
             L.append("    · (try simp only [Nat.add_zero])")
-            L.append("      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]")
-            L.append("      omega")
+            L.append("      (try simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Util.rc8_mem_byte, Janus.Arm64.Memory.readLE_writeLE_self, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul])")
+            L.append(f"      first | (rw [Util.wb{8*(n-1-j)} _ _ _ _ l0 l1 l2 l3]; done) | (rw [Util.wb{8*(n-1-j)} _ _ _ _ l0 l1 l2 l3]; omega) | omega")
     L.append("  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]")
     return "\n".join(L)
 HDR = """import Extracted
@@ -74,7 +74,7 @@ if len(ks) == 33:
 
 **Guarantee.** For every pointer `z` (the receiver, `X0`) and slice `dest = (d, len, cap)` (`X1`-`X3`), every Go call whose
 stack-growth check falls through (`GuardOK s 0`) and whose stack window `[SP-24, SP+24)` is writable and aligned
-(`StackOK s 24 24`): if the 32 bytes at `z` are readable, the `len` bytes at `d` writable, `len < 2^48`, and neither `z` nor `dest`
+(`StackOK s 24 24`): if the 32 bytes at `z` are readable, the `len` bytes at `d` writable, `len < 2^48`, `len ≤ cap` (a valid slice), and neither `z` nor `dest`
 overlaps the other or the stack window, then the call returns (no fault, no panic), obeys the ABI, with `n = min len 32` the first `n`
 bytes of `dest` read as the big-endian number `Fv256.Spec.fromBE` equal to the low `8n` bits of the number at `z` (the last
 `n` bytes are written, i.e. `dest[n-1-j]` is byte `j` of `z`), and no byte changes outside `dest[0..n)` and the stack window
@@ -91,20 +91,21 @@ theorem correctness (z d len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, d, len, cap]
       (fun s => GuardOK s 0 ∧ StackOK s 24 24 ∧ Ptr32 s.mem z false ∧ len.toNat < 2 ^ 48 ∧
         Ptr s.mem d len.toNat true ∧ Disjoint z.toNat 32 d.toNat len.toNat ∧
-        Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧ Disjoint d.toNat len.toNat (s.sp.toNat - 24) 48)
+        Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧ Disjoint d.toNat len.toNat (s.sp.toNat - 24) 48 ∧
+        len.toNat ≤ cap.toNat)
       (fun s s' => Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min len.toNat 32) =
           val256 s.mem z.toNat % 2 ^ (8 * min len.toNat 32) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat (min len.toNat 32) (s.sp.toNat - 24) 48) := by
-  intro ret hret s hs ⟨hg, hst, hz, hl, hd, hzd, hzs, hds⟩
+  intro ret hret s hs ⟨hg, hst, hz, hl, hd, hzd, hzs, hds, hcap⟩
   by_cases h32 : 32 ≤ len.toNat
-  · have := caseBig z d len cap h32 hl ret hret s hs ⟨hg, hst, hz, hd, hzd, hzs, hds⟩
+  · have := caseBig z d len cap h32 hl ret hret s hs ⟨hg, hst, hz, hd, hzd, hzs, hds, hcap⟩
     simpa [Nat.min_eq_right h32] using this
   · have e : len = BitVec.ofNat 64 len.toNat := by simp
     rcases (show """ + " ∨ ".join(f"len.toNat = {k}" for k in range(32)) + """ by omega) with """ + " | ".join(f"h{k}" for k in range(32)) + "\n"
     for k in range(32):
         main += f"""    · have e{k} : len = {k}#64 := by rw [e, h{k}]
       subst e{k}
-      have := case{k} z d cap ret hret s hs ⟨hg, hst, hz, hd, hzd, hzs, hds⟩
+      have := case{k} z d cap ret hret s hs ⟨hg, hst, hz, hd, hzd, hzs, hds, by simpa using hcap⟩
       simpa using this
 """
     main += """
@@ -132,14 +133,16 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, d
 
 theorem hpre : GuardOK s0 0 ∧ StackOK s0 24 24 ∧ Ptr32 s0.mem z false ∧ (8 : BitVec 64).toNat < 2 ^ 48 ∧
     Ptr s0.mem d (8 : BitVec 64).toNat true ∧ Disjoint z.toNat 32 d.toNat (8 : BitVec 64).toNat ∧
-    Disjoint z.toNat 32 (s0.sp.toNat - 24) 48 ∧ Disjoint d.toNat (8 : BitVec 64).toNat (s0.sp.toNat - 24) 48 := by
+    Disjoint z.toNat 32 (s0.sp.toNat - 24) 48 ∧ Disjoint d.toNat (8 : BitVec 64).toNat (s0.sp.toNat - 24) 48 ∧
+    (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat := by
   refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, ⟨by decide, by decide⟩, by decide,
-    ⟨by decide, by decide⟩, ?_, ?_, ?_⟩ <;> (unfold Disjoint; decide)
+    ⟨by decide, by decide⟩, ?_, ?_, ?_, by decide⟩ <;> (try unfold Disjoint) <;> decide
 
 theorem nonvacuous : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, d, 8, 8] s0 ∧
     (GuardOK s0 0 ∧ StackOK s0 24 24 ∧ Ptr32 s0.mem z false ∧ (8 : BitVec 64).toNat < 2 ^ 48 ∧
     Ptr s0.mem d (8 : BitVec 64).toNat true ∧ Disjoint z.toNat 32 d.toNat (8 : BitVec 64).toNat ∧
-    Disjoint z.toNat 32 (s0.sp.toNat - 24) 48 ∧ Disjoint d.toNat (8 : BitVec 64).toNat (s0.sp.toNat - 24) 48) :=
+    Disjoint z.toNat 32 (s0.sp.toNat - 24) 48 ∧ Disjoint d.toNat (8 : BitVec 64).toNat (s0.sp.toNat - 24) 48 ∧
+    (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat) :=
   ⟨setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧
