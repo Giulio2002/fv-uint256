@@ -2758,4 +2758,51 @@ theorem bv_or_zero_iff {w : Nat} (a b : BitVec w) : a ||| b = 0 ↔ a = 0 ∧ b 
     exact ⟨BitVec.eq_of_toNat_eq (by simpa using this.1), BitVec.eq_of_toNat_eq (by simpa using this.2)⟩
   · rintro ⟨rfl, rfl⟩; simp
 
+theorem sb_core (R F t z : Nat) (ht : t = 0)
+    (h : R + 340282366920938463463374607431768211456 * (t / 256 ^ (z - z) % 18446744073709551616) +
+      6277101735386680763835789423207666416102355444464034512896 * (t / 18446744073709551616) = F) :
+    R + 340282366920938463463374607431768211456 * t +
+      6277101735386680763835789423207666416102355444464034512896 * (t / 18446744073709551616) = F := by
+  subst ht
+  simp only [Nat.sub_self, Nat.pow_zero, Nat.zero_div, Nat.zero_mod, Nat.mul_zero, Nat.add_zero] at h ⊢
+  exact h
+
+theorem sb_val4_t (m : Janus.Arm64.Memory) (p t : Nat) (ht : t = 0) :
+    Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296 +
+        340282366920938463463374607431768211456 * t +
+      6277101735386680763835789423207666416102355444464034512896 * (t / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
+  have h := sb_val4 m p p
+  rw [bv128_zero_toNat] at h
+  exact sb_core _ _ t p ht (by rw [ht]; exact h)
+
+theorem sb_val8_t (m : Janus.Arm64.Memory) (p t : Nat) (ht : t = 0) :
+    Janus.Arm64.revBytesNat 8 (m.readLE p 8) % 18446744073709551616 +
+        340282366920938463463374607431768211456 * t +
+      6277101735386680763835789423207666416102355444464034512896 * (t / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 8 := by
+  have h := sb_val8 m p p
+  rw [bv128_zero_toNat] at h
+  exact sb_core _ _ t p ht (by rw [ht]; exact h)
+
+theorem sb_val12_t (m : Janus.Arm64.Memory) (p t : Nat) (ht : t = 0) :
+    Janus.Arm64.revBytesNat 8 (m.readLE (p + 4) 8) % 18446744073709551616 +
+          18446744073709551616 * (Janus.Arm64.revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296) +
+        340282366920938463463374607431768211456 * t +
+      6277101735386680763835789423207666416102355444464034512896 * (t / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 12 := by
+  have h := sb_val12 m p p
+  rw [bv128_zero_toNat] at h
+  exact sb_core _ _ t p ht (by rw [ht]; exact h)
+
+theorem sb_val16_t (m : Janus.Arm64.Memory) (p t : Nat) (ht : t = 0) :
+    Janus.Arm64.revBytesNat 8 (m.readLE (p + 8) 8) % 18446744073709551616 +
+          18446744073709551616 * (Janus.Arm64.revBytesNat 8 (m.readLE p 8) % 18446744073709551616) +
+        340282366920938463463374607431768211456 * t +
+      6277101735386680763835789423207666416102355444464034512896 * (t / 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 16 := by
+  have h := sb_val16 m p p
+  rw [bv128_zero_toNat] at h
+  exact sb_core _ _ t p ht (by rw [ht]; exact h)
+
 end Fv256.Util
