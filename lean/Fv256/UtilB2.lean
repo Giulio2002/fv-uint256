@@ -110,4 +110,19 @@ theorem ne_zero_of_limbs (a b c d : Nat) (h : ¬(((a = 0 ∧ b = 0) ∧ c = 0) �
 
 theorem sub_off (n a c b : Nat) (h1 : c ≤ n) (h2 : a + b = c) : n - a = n - c + b := by omega
 
+theorem xor_eq_zero_nat (a b : Nat) : a ^^^ b = 0 ↔ a = b := by
+  constructor
+  · intro h
+    apply Nat.eq_of_testBit_eq
+    intro i
+    have := congrArg (fun n => n.testBit i) h
+    simp only [Nat.testBit_xor, Nat.zero_testBit] at this
+    cases ha : a.testBit i <;> cases hb : b.testBit i <;> simp_all
+  · rintro rfl; simp
+
+theorem xor_ofNat_zero_iff (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    (BitVec.ofNat 64 a ^^^ BitVec.ofNat 64 b).toNat = 0 ↔ a = b := by
+  rw [BitVec.toNat_xor, BitVec.toNat_ofNat, BitVec.toNat_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
+  exact xor_eq_zero_nat a b
+
 end Fv256.B

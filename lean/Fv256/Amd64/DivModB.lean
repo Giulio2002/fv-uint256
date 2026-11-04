@@ -75,7 +75,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.B.summary_link impl Fv256.Amd64.UdivremM.udivrem_rem_s]
+  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.B.summary_link impl Fv256.Amd64.UdivremM.udivrem_rem_s]
   all_goals (try clear hdx hdy hdg hgo hxo hyo)
   all_goals (first | refine ⟨?_, m', rfl, hm'.1, hm'.2, ?_, ?_, ?_⟩ | refine ⟨m', rfl, hm'.1, hm'.2, ?_, ?_, ?_⟩)
   all_goals (first
