@@ -2805,4 +2805,36 @@ theorem sb_val16_t (m : Janus.Arm64.Memory) (p t : Nat) (ht : t = 0) :
   rw [bv128_zero_toNat] at h
   exact sb_core _ _ t p ht (by rw [ht]; exact h)
 
+theorem tb63 (x : Nat) (hx : x < 2 ^ 64) : x.testBit 63 = decide (2 ^ 63 ≤ x) := by
+  rw [Nat.testBit_eq_decide_div_mod_eq]
+  by_cases h : 2 ^ 63 ≤ x
+  · have : x / 2 ^ 63 = 1 := Nat.div_eq_of_lt_le (by simpa using h) (by simpa using hx)
+    simp [this, h]
+  · have : x / 2 ^ 63 = 0 := Nat.div_eq_zero_iff.mpr (by omega)
+    simp [this, h]
+
+theorem xor_top (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    (a < 2 ^ 63 → b < 2 ^ 63 → a ^^^ b < 2 ^ 63) ∧ (2 ^ 63 ≤ a → 2 ^ 63 ≤ b → a ^^^ b < 2 ^ 63) ∧
+    (a < 2 ^ 63 → 2 ^ 63 ≤ b → 2 ^ 63 ≤ a ^^^ b) ∧ (2 ^ 63 ≤ a → b < 2 ^ 63 → 2 ^ 63 ≤ a ^^^ b) := by
+  have hx : a ^^^ b < 2 ^ 64 := Nat.xor_lt_two_pow ha hb
+  have t := tb63 (a ^^^ b) hx
+  rw [Nat.testBit_xor, tb63 a ha, tb63 b hb] at t
+  refine ⟨fun h1 h2 => ?_, fun h1 h2 => ?_, fun h1 h2 => ?_, fun h1 h2 => ?_⟩
+  · refine Classical.byContradiction fun hc => ?_
+    have : ¬ (2 ^ 63 ≤ a) := by omega
+    have : ¬ (2 ^ 63 ≤ b) := by omega
+    simp_all
+  · refine Classical.byContradiction fun hc => ?_
+    simp_all
+  · refine Classical.byContradiction fun hc => ?_
+    have : ¬ (2 ^ 63 ≤ a) := by omega
+    simp_all
+  · refine Classical.byContradiction fun hc => ?_
+    have : ¬ (2 ^ 63 ≤ b) := by omega
+    simp_all
+
+theorem bvxor_toNat (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    (BitVec.ofNat 64 a ^^^ BitVec.ofNat 64 b).toNat = a ^^^ b := by
+  simp only [BitVec.toNat_xor, BitVec.toNat_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
+
 end Fv256.Util

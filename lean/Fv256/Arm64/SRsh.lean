@@ -41,14 +41,14 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (z.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       obtain rfl : m = 0 := (by omega)
       simp only [Spec.rsh, Nat.pow_zero, Nat.div_one]
     · rename_i _ hsg _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (z.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       by_cases hlt : m - 192 < 64
       · obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 192 + t := ⟨m - 192, (by omega), (by omega)⟩
@@ -63,7 +63,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (z.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 128 + t := ⟨m - 128, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (128 + t) - 18446744073709551424 = 64 - t := (by omega)
@@ -76,7 +76,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (z.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       have ht1 : 1 ≤ m := (by omega)
       have ht : m < 64 := (by omega)
@@ -89,7 +89,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (z.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 64 + t := ⟨m - 64, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (64 + t) - 18446744073709551488 = 64 - t := (by omega)
@@ -102,7 +102,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (z.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain rfl : m = 0 := (by clear hsg; omega)
       rw [Util.srsh_neg _ _ (by omega) (by omega) (by omega)]
@@ -110,13 +110,13 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (z.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       rw [Util.srsh_neg_big _ _ (by omega) (by omega) (by omega)]
     · rename_i _ hsg _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (z.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 192 + t := ⟨m - 192, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (192 + t) - 18446744073709551360 = 64 - t := Util.sub_aux 192 t ht (by omega)
@@ -143,7 +143,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (z.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 128 + t := ⟨m - 128, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (128 + t) - 18446744073709551424 = 64 - t := Util.sub_aux 128 t ht (by omega)
@@ -171,7 +171,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (z.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       have ht1 : 1 ≤ m := (by omega)
       have ht : m < 64 := (by clear hsg; omega)
@@ -196,7 +196,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (z.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (z.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 64 + t := ⟨m - 64, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (64 + t) - 18446744073709551488 = 64 - t := Util.sub_aux 64 t ht (by omega)
@@ -226,14 +226,14 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (x.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       obtain rfl : m = 0 := (by omega)
       simp only [Spec.rsh, Nat.pow_zero, Nat.div_one]
     · rename_i _ hsg _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (x.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       by_cases hlt : m - 192 < 64
       · obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 192 + t := ⟨m - 192, (by omega), (by omega)⟩
@@ -248,7 +248,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (x.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 128 + t := ⟨m - 128, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (128 + t) - 18446744073709551424 = 64 - t := (by omega)
@@ -261,7 +261,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (x.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       have ht1 : 1 ≤ m := (by omega)
       have ht : m < 64 := (by omega)
@@ -274,7 +274,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      rw [Util.srsh_pos _ _ (by have := Util.msb_pos _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg; omega)]
+      rw [Util.srsh_pos _ _ (by have := Util.readLE8_lt s.mem (x.toNat + 24); omega)]
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 64 + t := ⟨m - 64, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (64 + t) - 18446744073709551488 = 64 - t := (by omega)
@@ -287,7 +287,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (x.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain rfl : m = 0 := (by clear hsg; omega)
       rw [Util.srsh_neg _ _ (by omega) (by omega) (by omega)]
@@ -295,13 +295,13 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (x.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       rw [Util.srsh_neg_big _ _ (by omega) (by omega) (by omega)]
     · rename_i _ hsg _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (x.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 192 + t := ⟨m - 192, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (192 + t) - 18446744073709551360 = 64 - t := Util.sub_aux 192 t ht (by omega)
@@ -328,7 +328,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (x.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 128 + t := ⟨m - 128, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (128 + t) - 18446744073709551424 = 64 - t := Util.sub_aux 128 t ht (by omega)
@@ -356,7 +356,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (x.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       have ht1 : 1 ≤ m := (by omega)
       have ht : m < 64 := (by clear hsg; omega)
@@ -381,7 +381,7 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
     · rename_i _ hsg _ _ _ _
       have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); 
       refine ⟨?_, by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]⟩
-      have hs3 := Util.msb_neg _ (Util.readLE8_lt s.mem (x.toNat + 24)) hsg
+      have hs3 : 9223372036854775808 ≤ s.mem.readLE (x.toNat + 24) 8 := by omega
       generalize hm : n.toNat = m at *
       obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 64 + t := ⟨m - 64, (by omega), (by omega)⟩
       have hc : 18446744073709551616 - (64 + t) - 18446744073709551488 = 64 - t := Util.sub_aux 64 t ht (by omega)
