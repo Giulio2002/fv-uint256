@@ -9,7 +9,7 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 | `(*uint256.Int).Float64` | verified, pending Janus pin (deeprec 35083b3f) | verified, pending Janus pin (deeprec 35083b3f; re-checked with f65043ca) | spec `Fv256.B.float64Bits` (SpecB.lean); both ISAs checked with `janus verify` against the unmerged deeprec framework |
 | `(*uint256.Int).Div` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.divSpec`; amd64 chain udivremBy1/udivremKnuth/udivrem all proven (summaries), Div wrapper theorem compiles; arm64 chain pending |
 | `(*uint256.Int).Mod` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.modSpec` |
-| `(*uint256.Int).DivMod` | todo | todo | extraction needs `--max-functions` (reaches >64 functions via new(Int)/Set) |
+| `(*uint256.Int).DivMod` | todo (needs bits.Div64 summary) | verified, witness pending (Janus integ/speed15 50db36a6, 2579 s) | spec divSpec/modSpec; assumes runtime.newobject contract (NewobjectContract64); z=m or disjoint; branch fv/wb-s15; non-vacuity Witness TODO |
 | `(*uint256.Int).SDiv` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.sdivSpec`; uses the Div summary proved in-file (DivSum.lean) |
 | `(*uint256.Int).SMod` | todo (needs bits.Div64 summary, U10) | verified, pending Janus pin (deeprec f65043ca) | spec `Fv256.B.smodSpec`; uses the Mod summary proved in-file (ModSum.lean) |
 | `(*uint256.Int).AddMod` | todo | todo | |
