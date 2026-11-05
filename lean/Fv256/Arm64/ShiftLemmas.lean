@@ -68,4 +68,10 @@ theorem un_val (x y s : Nat) (hs : s ≤ 63) (hx : x < 2 ^ 64) (hy : y < 2 ^ 64)
     rw [e] at this
     exact this
 
+/-- `y >> s` as the arm64 code computes it (guard `s < 64`). -/
+theorem shr_val' (y s : Nat) (hs : s ≤ 63) (hy : y < 2 ^ 64) :
+    (if s < 64 then BitVec.ofNat 64 y >>> (s % 64) else 0#64).toNat = y / 2 ^ s := by
+  have hs64 : s % 64 = s := Nat.mod_eq_of_lt (by omega)
+  rw [if_pos (by omega), hs64, BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow, BitVec.toNat_ofNat, Nat.mod_eq_of_lt hy]
+
 end Fv256.Arm64.Shift
