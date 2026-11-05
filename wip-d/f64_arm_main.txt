@@ -1,0 +1,13 @@
+set_option maxHeartbeats 8000000 in
+theorem correctness (x : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [x]
+      (fun s => Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0)
+      (fun s s' => s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s.mem x.toNat) ∧
+        OnlyWrites s.mem s'.mem (s.sp.toNat - 88) 88) := by
+  intro ret hret s hs ⟨⟨hx, hx'⟩, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hdis, hf⟩
+  janus_intro hs
+  simp only [Disjoint] at hdis
+  janus_run calls [hS := Fv256.Arm64.Float64.lsh_summary (s.sp - 40#64) x]
+  all_goals (simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat] at *)
+  all_goals (trace_state; sorry)
+
