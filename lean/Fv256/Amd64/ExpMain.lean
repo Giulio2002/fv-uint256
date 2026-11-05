@@ -70,8 +70,10 @@ theorem exp_summary :
       · simp [setRegF, setXmmF, hx15]
       · simp only []
         rw [Janus.Arm64.Memory.readLE_add _ _ 16 16]
+        have e1 : BitVec.toNat (s.regs 4) - 104 + 16 = BitVec.toNat (s.regs 4) - 88 := by omega
+        rw [e1]
         simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
-        simp
+        try simp
       · simp only []
         rw [Janus.Arm64.Memory.readLE_add _ _ 16 16]
         have e1 : BitVec.toNat (s.regs 4) - 72 + 16 = BitVec.toNat (s.regs 4) - 56 := by omega
@@ -97,7 +99,10 @@ theorem exp_summary :
         have := Fv256.Util.readLE8_lt s.mem (BitVec.toNat (s.regs 3))
         omega
       · janus_frame
-    · sorry
+    · intro S' hI
+      obtain ⟨hpc, hk64, hr, hb, hw, hev, r3, r7, r8, r9, r0, r1, r2, r6, r4, r5, r14, x15', mr, mb, mz, mep, mn, mev, hfr⟩ := hI
+      trace_state
+      sorry
   · sorry
   · rename_i hg e3z e2z e1z hev hbl
     exact ⟨Fv256.F.early0 _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.F.even_of_lsb _ hev) _ hbl, by janus_frame⟩
