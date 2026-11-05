@@ -86,7 +86,8 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
          (repeat' split at hbr) <;> (try simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, not_true_eq_false, and_false, false_and, and_true, true_and, not_false_eq_true] at *) <;> omega)
       | skip
   all_goals
-    refine ⟨_, ‹_›, ‹_›, ‹_›, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨_, ‹InRanges _ 32 rt›, ‹_ % 16 = 0›, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    · simp only [Janus.Arm64.Memory.accessible_writeLE]; exact ‹Janus.Arm64.Memory.accessible s.mem _ 32 true = true›
     · blclr; blg1
     · blclr; blamd
     · blclr; blamd
@@ -107,9 +108,9 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         simp only [valueAt, Util.readLE_32]
         clear hzd hdj hdz h_ddisj0_0
         refine Util.fin_all _ _ _ _ _ _ _ ?_ ?_ ?_
-        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
-        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
-        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
+        · first | exact Or.inr ⟨‹_ = 0›, rfl⟩ | exact Or.inl rfl
+        · first | exact Or.inr ⟨‹_ = 0›, rfl⟩ | exact Or.inl rfl
+        · first | exact Or.inr ⟨‹_ = 0›, rfl⟩ | exact Or.inl rfl
       )
     · janus_frame
 
