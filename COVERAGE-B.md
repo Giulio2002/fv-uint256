@@ -35,3 +35,14 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 | SDiv | Amd64/SDiv.lean (+SDivSum.sdiv_summary) | same three | 2405 s | n or d zero -> 0 |
 | SMod | Amd64/SMod.lean (+SModSum.smod_summary) | same three | 2266 s | sign of x; y=0 -> 0 |
 Speed debt: all above the 5-min bar; verify wall is dominated by the per-extraction chain rebuild (library form removes it) and by janus64_run leaf closers.
+
+## Speed pass 1 (family B amd64): library-only proofs (Janus 6365855c, warm machine)
+Cause of no speedup from the library programs: DivSum/SDivSum/SModSum still imported `Extracted`, so every consumer recompiled the summary chain.
+Fix: those modules no longer import `Extracted` (stated over DivProg/ModProg/SDivProg/SModProg), and Div/Mod correctness is derived from the library summary by `EnsuresOf.ensures3` (no chain import).
+| symbol | before (s) | after (s) |
+|---|---|---|
+| SDiv (3 theorems) | 2611 | 192 |
+| SMod | 2924 | 12 (module cache) |
+| Div | 2519 (1505 with cached chain) | 114 |
+| Mod | 2637 (1719) | 240 |
+DivMod (2625 s) still imports the chain through DivModB.partB (non-live newobject path); DivModB compile 452-490 s; profile: janus64_run 140-160 s (omega in janus_omega_cap 60-75 s), janus_frame ~35 s, ~290 s of failing `exact` in the mod leaves.
