@@ -475,6 +475,7 @@ theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : 
       M'.readLE (T.sp.toNat + 80) 8 = (M0.readLE up 8 * 2 ^ s) % 2 ^ 64 →
       (∀ j, 1 ≤ j → j < 9 → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = M.readLE (T.sp.toNat + 80 + 8 * j) 8) →
       M'.readLE (T.sp.toNat + 288) 8 = remp → M'.readLE (T.sp.toNat + 208) 8 = s →
+      M'.readLE (T.sp.toNat + 160) 8 = M.readLE (T.sp.toNat + 160) 8 →
       ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 by1pc, flags := fl', mem := M' } Q)
     (hK2 : n ≠ 1 → ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory), R' 3 = BitVec.ofNat 64 (T.sp.toNat + 80) → R' 4 = BitVec.ofNat 64 (ulen + 1) →
       R' 5 = 9#64 → R' 6 = BitVec.ofNat 64 (T.sp.toNat + 160) → R' 7 = BitVec.ofNat 64 n → R' 8 = 4#64 →
@@ -506,7 +507,7 @@ theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : 
     have hv : (if s < 64 then BitVec.ofNat 64 (M0.readLE up 8 * 2 ^ (s % 64)) else 0#64).toNat = (M0.readLE up 8 * 2 ^ s) % 2 ^ 64 := by
       have hs64 : s % 64 = s := Nat.mod_eq_of_lt (by omega)
       rw [if_pos (by omega), BitVec.toNat_ofNat, hs64]
-    refine hK1 rfl _ _ _ ?_ ?_ ?_ ?_ ?_ ?_
+    refine hK1 rfl _ _ _ ?_ ?_ ?_ ?_ ?_ ?_ ?_
     · intro k hk; simp [setReg, hk]
     · have h0 := MemFrame.of_writeLE M (k := 8) remp (rs := [(T.sp.toNat + 80, T.sp.toNat + 216), (T.sp.toNat + 288, T.sp.toNat + 296)]) (a := T.sp.toNat + 288) (r := (T.sp.toNat + 288, T.sp.toNat + 296)) (by simp) (by simp <;> omega) (by simp <;> omega)
       have h1 := h0.writeLE (a := T.sp.toNat + 208) (k := 8) s (r := (T.sp.toNat + 80, T.sp.toNat + 216)) (by simp) (by simp <;> omega) (by simp <;> omega)
@@ -520,6 +521,7 @@ theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : 
       exact Nat.mod_eq_of_lt hremp
     · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
       exact Nat.mod_eq_of_lt (by omega)
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   · janus_run [r3, r7, r9, r11, r5, r13, r15, r12, r14, hu0, hu0'] until [ku + 0x20c]
     have hv : (if s < 64 then BitVec.ofNat 64 (M0.readLE up 8 * 2 ^ (s % 64)) else 0#64).toNat = (M0.readLE up 8 * 2 ^ s) % 2 ^ 64 := by
       have hs64 : s % 64 = s := Nat.mod_eq_of_lt (by omega)
