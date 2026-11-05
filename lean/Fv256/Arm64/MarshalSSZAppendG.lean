@@ -71,7 +71,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     (hgr : Outside ((s.regs 28).toNat + 16) 8 R.rt)
     (hdt : Apart u8T 16 (s.sp.toNat - 4232) 4272)
     (hgd : Apart ((s.regs 28).toNat + 16) 8 dp cap0) (hdtd : Apart u8T 16 dp cap0)
-    (hd : Extracted.program.DataLoaded s.mem) (hdto : Outside u8T 16 R.rt)
+    (hd : Extracted.program.DataLoaded s.mem) (hdto : Outside u8T 256 R.rt)
     (hl0 : len.toNat = len0) (hk : len.toNat + 16 ≤ len0 + 32) (hl0b : len0 < 2 ^ 40)
     (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x24))
     (m : Nat) (hI : BI R s S z ret dp len0 cap0 len pp cc b L (m + 1))
@@ -84,7 +84,6 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     hdj, hroom, hgrow, hbud, hwho, hpre, hmid⟩ := hI
   have hlen8 : (len + 8#64).toNat = len.toNat + 8 := by
     rw [BitVec.toNat_add]; simp; omega
-  have hw0 : s.mem.accessible (s.sp.toNat - 4232) (4232 + 40) true = true := by rw [← hfr.accessible]; exact hw
   have hz8 : S.mem.readLE z.toNat 8 = s.mem.readLE z.toNat 8 := by simpa using hzs 0 (by omega)
   by_cases hl : len.toNat + 8 ≤ cc.toNat
   · obtain ⟨hacc, hdest⟩ := hroom hl
@@ -94,7 +93,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
       rcases hwho with ⟨h1, h2⟩ | ⟨r, hr, h1, h2⟩
       · exact ⟨(dp, dp + cap0), by simp, by simp only []; omega, by simp only []; omega⟩
       · exact ⟨r, by simp [hr], by omega, by omega⟩
-    janus_data hd [hw0, hacc]
+    janus_data hd [hw, hacc]
     janus_run until [Extracted.entry + 0x70]
     refine hcont _ pp cc b L (by first | rfl | decide) ?_ (by omega)
     have hacc8 : S.mem.accessible (pp.toNat + len.toNat) 8 true = true :=
@@ -148,11 +147,25 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
         simp only [outside_append, outside_cons, outside_nil, and_true]
         refine ⟨hgr, ?_, ?_⟩ <;> (unfold Apart at hga hgd; omega))
     have hg3' : S.mem.readLE ((s.regs 28).toNat + 16) 8 + 4096 < s.sp.toNat - 128 := by rw [hgS]; omega
-    janus_data hd [hw0]
-    janus_run until [Extracted.entry + 0x70] calls [hg]
+    janus_eval_nat h_ut : u8T
+    rw [h_ut] at hdto hdt hdtd
+    simp only [h_ut] at hok
+    janus_data hd [hw]
+    janus_run until [Extracted.entry + 0x64] calls [hg]
     rename_i r0 r1 r2 jk fl vr M ex epm hfr' hpost hlf hfresh hapart hinv2
     obtain ⟨hr1, hr2, hin, hlim, hacc2, hcopy, hz1, hz2⟩ := hpost
     have hle := le_growCap 1 true (len.toNat + 8) cc.toNat (by omega)
+    have hst : M.accessible (r0.toNat + len.toNat) 8 true = true :=
+      Memory.accessible_sub M hacc2 (Or.inr rfl) (by omega) (by rw [Nat.mul_one]; omega)
+    have hin16 : InRanges (s.sp.toNat - 16) 8 (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp, dp + cap0)]) :=
+      ⟨(s.sp.toNat - 4232, s.sp.toNat + 40), by simp, by omega, by omega⟩
+    have hsM : MemFrame s.mem M (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp, dp + cap0)]) :=
+      MemFrame.trans (hfr.writeLE_inRanges (S.mem.readLE z.toNat 8) hin16) hfr' (fun a n h => ⟨h, by
+        simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+        obtain ⟨h1, h2, h3⟩ := h
+        refine ⟨h1, ?_, ?_⟩ <;> omega⟩)
+    janus_data hd [hw, hst]
+    janus_run until [Extracted.entry + 0x70]
     have hr2pos : 0 < r2.toNat := by omega
     simp only [Nat.mul_one, Nat.add_sub_cancel] at hin hlim hacc2 hcopy
     rw [if_neg (by omega)] at hfresh hinv2
@@ -190,7 +203,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     · simp [setReg, hrd3]
     · simp [setReg]
     · simp [setReg]
-    · simp [setReg, hr1v]; bv_omega
+    · simp [setReg, hr1v]
     · simp [setReg, callRegs, h18]
     · simp [setReg, callRegs, h28]
     · simp [setReg, callRegs, h29]
@@ -245,7 +258,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     · intro _ h0'; dsimp only; rw [Memory.accessible_writeLE, hlen8]
       exact Memory.accessible_sub M hacc2 (Or.inl rfl) (Nat.le_refl _) (by omega)
     · rw [Nat.succ_mul] at hbud; omega
-    · exact Or.inr ⟨rr, List.mem_append_left _ hrr, hrr1, hrr2⟩
+    · exact Or.inr ⟨rr, hrr, hrr1, hrr2⟩
     · intro i hi; dsimp only
       rw [Memory.bytes_writeLE_outside _ (Or.inl (by omega)), hcopy i (by omega),
         Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega)]
