@@ -44,7 +44,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).GtUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/GtUint64.lean |
 | `(*uint256.Int).HashTreeRoot` | FV-A | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) ; amd64 re-proved on master 48f3f44 (frameless leaf: no stack check, window [SP-40, SP+40), 9 s, Janus f1d61dc1) |
 | `(*uint256.Int).Hex` | FV-E | blocked U16 (fv/wc) | todo | FV-C; see COVERAGE-C.md on fv/wc |
-| `(*uint256.Int).IntoBig` | FV-C | todo | todo | |
+| `(*uint256.Int).IntoBig` | FV-C | verified (+ witness) | todo | arm64 (fv/wc cfef22a, merged; Janus ffaae554, correctness + Witness.nonvacuous in one run each): IntoBig arm64: Post has the nil-case frame conjunct and a split caller window; shared lemmas IntoBigCommon. amd64 in progress |
 | `(*uint256.Int).IsUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | FV-A | pending Janus datasym (07f71534) | pending Janus datasym (07f71534) | arm64/amd64: lean/Fv256/{Arm64,Amd64}/Log10.lean (+ L10Cases, 256 modules per ISA); table addresses come from `Extracted.dataAddr/dataSize` (no literals in statements); assumes the writable powers-of-ten tables (L10Defs.lean). Verified on master 48f3f44 with Janus 07f71534: arm64 785 s, amd64 851 s (first-of-cache excluded: framework already built) |
@@ -122,7 +122,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Sub` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
 | `(*uint256.Int).SubOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubOverflow.lean |
 | `(*uint256.Int).SubUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubUint64.lean |
-| `(*uint256.Int).ToBig` | FV-C | todo | todo | |
+| `(*uint256.Int).ToBig` | FV-C | verified (+ witness) | todo | arm64 (fv/wc cfef22a, merged; Janus ffaae554, correctness + Witness.nonvacuous in one run each): ToBig arm64: premise `ImplApart Extracted.program impl`; the internal call to IntoBig goes through ofImpl / Ensures.toSummaryIn (first fully verified internal-call proof); shared lemmas IntoBigCommon. amd64 in progress |
 | `(*uint256.Int).Uint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |
 | `(*uint256.Int).Uint64WithOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64WithOverflow.lean |
 | `(*uint256.Int).UnmarshalJSON` | FV-E | todo | todo | |
