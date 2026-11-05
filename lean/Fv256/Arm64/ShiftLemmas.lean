@@ -39,4 +39,33 @@ theorem dn_val (x y s : Nat) (hs : s ≤ 63) (hx : x < 2 ^ 64) (hy : y < 2 ^ 64)
     rw [h1, Fv256.Util.or_hi _ _ _ h2]
     omega
 
+/-- `y >> (64 - s)` as the arm64 code computes it (guarded). -/
+theorem shr_val (y s : Nat) (hs : s ≤ 63) (hy : y < 2 ^ 64) :
+    (if 18446744073709551552 - s - 18446744073709551488 < 64 then
+        BitVec.ofNat 64 y >>> ((18446744073709551552 - s - 18446744073709551488) % 64) else 0#64).toNat = y / 2 ^ (64 - s) := by
+  by_cases h0 : s = 0
+  · subst h0
+    simp only [Nat.sub_zero]
+    rw [if_neg (by omega)]
+    simp only [BitVec.toNat_ofNat, Nat.reducePow]
+    exact (Nat.div_eq_of_lt (by simpa using hy)).symm
+  · have e : 18446744073709551552 - s - 18446744073709551488 = 64 - s := by omega
+    rw [e, if_pos (by omega), BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow, BitVec.toNat_ofNat,
+      Nat.mod_eq_of_lt hy, Nat.mod_eq_of_lt (by omega : 64 - s < 64)]
+
+/-- The same funnel shift when the right shift amount is the register `64 - s` (guard `64 - s < 64`). -/
+theorem un_val (x y s : Nat) (hs : s ≤ 63) (hx : x < 2 ^ 64) (hy : y < 2 ^ 64) :
+    ((if 64 - s < 64 then BitVec.ofNat 64 y >>> ((64 - s) % 64) else 0#64).toNat |||
+      (if s < 64 then BitVec.ofNat 64 (x * 2 ^ (s % 64)) else 0#64).toNat) =
+      (x * 2 ^ s) % 2 ^ 64 + y / 2 ^ (64 - s) := by
+  have := dn_val x y s hs hx hy
+  by_cases h0 : s = 0
+  · subst h0
+    simp only [Nat.sub_zero] at this ⊢
+    rw [if_neg (by omega)] at this ⊢
+    exact this
+  · have e : 18446744073709551552 - s - 18446744073709551488 = 64 - s := by omega
+    rw [e] at this
+    exact this
+
 end Fv256.Arm64.Shift

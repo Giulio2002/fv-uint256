@@ -18,6 +18,9 @@ abbrev nhead : Nat := ku + 0xb4
 abbrev nexit : Nat := ku + 0xbc
 abbrev uhead : Nat := ku + 0xe0
 abbrev uexit : Nat := ku + 0xf8
+abbrev ltpc : Nat := ku + 0x158
+abbrev lhead : Nat := ku + 0x1bc
+abbrev lexit : Nat := ku + 0x1c4
 
 theorem ku_lt : ku + 0x440 < 2 ^ 47 := by decide
 
@@ -325,5 +328,127 @@ theorem pro3 (T : State) (ret : W64) (Q : State → Prop) (dp n s L : Nat) (M0 M
     exact Nat.mod_eq_of_lt (Nat.mod_lt _ (by omega))
   · intro j hj
     rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+
+
+set_option maxHeartbeats 8000000 in
+theorem un_loop (T : State) (ret : W64) (Q : State → Prop) (up ulen s : Nat) (M0 : Memory) (R0 : Nat → W64)
+    (hu1 : 1 ≤ ulen) (hul : ulen ≤ 8) (hs : s ≤ 63)
+    (hup : up + 8 * ulen ≤ 2 ^ 48) (hua : M0.accessible up (8 * ulen) false = true)
+    (hdisj : up + 8 * ulen ≤ T.sp.toNat + 80 ∨ T.sp.toNat + 152 ≤ up) (hMa0 : M0.accessible (T.sp.toNat + 80) 72 true = true)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
+      R' 16 = 0#64 → (∀ k, k ∉ [10, 16, 17, 19] → R' k = R0 k) →
+      MemFrame M0 M' [(T.sp.toNat + 80, T.sp.toNat + 152)] →
+      (∀ j, 1 ≤ j → j < ulen → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = (M0.readLE (up + 8 * j) 8 * 2 ^ s) % 2 ^ 64 + M0.readLE (up + 8 * (j - 1)) 8 / 2 ^ (64 - s)) →
+      (∀ j, ulen ≤ j → j < 9 → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = M0.readLE (T.sp.toNat + 80 + 8 * j) 8) →
+      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 lexit, flags := fl', mem := M' } Q) :
+    ∀ t (R : Nat → W64) (fl : Flags) (M : Memory), t ≤ ulen - 1 →
+      R 3 = BitVec.ofNat 64 up → R 16 = BitVec.ofNat 64 t → R 11 = BitVec.ofNat 64 s → R 13 = BitVec.ofNat 64 (64 - s) →
+      R 14 = BitVec.ofNat 64 (T.sp.toNat + 80) → (∀ k, k ∉ [10, 16, 17, 19] → R k = R0 k) →
+      MemFrame M0 M [(T.sp.toNat + 80, T.sp.toNat + 152)] →
+      (∀ j, t < j → j < ulen → M.readLE (T.sp.toNat + 80 + 8 * j) 8 = (M0.readLE (up + 8 * j) 8 * 2 ^ s) % 2 ^ 64 + M0.readLE (up + 8 * (j - 1)) 8 / 2 ^ (64 - s)) →
+      (∀ j, ulen ≤ j → j < 9 → M.readLE (T.sp.toNat + 80 + 8 * j) 8 = M0.readLE (T.sp.toNat + 80 + 8 * j) 8) →
+      ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 lhead, flags := fl, mem := M } Q := by
+  have hcode := ku_lt
+  janus_eval_nat hh1 : lhead
+  janus_eval_nat hh2 : lexit
+  simp only [hh2] at hK
+  intro t
+  induction t with
+  | zero =>
+    intro R fl M ht r3 r16 r11 r13 r14 hRu hfr hdn hz
+    simp only [hh1]
+    janus_run [r16] until [ku + 0x1c4]
+    exact hK _ _ _ r16 hRu hfr (fun j h1 h2 => hdn j (by omega) h2) hz
+  | succ t ih =>
+    intro R fl M ht r3 r16 r11 r13 r14 hRu hfr hdn hz
+    simp only [hh1]
+    have hMa : M.accessible (T.sp.toNat + 80) 72 true = true := by rw [hfr.accessible]; exact hMa0
+    have hMu : M.accessible up (8 * ulen) false = true := by rw [hfr.accessible]; exact hua
+    janus_run [r16, r3, r11, r13, r14] until [ku + 0x1bc]
+    have hd1 := Janus.Arm64.Memory.readLE_lt M0 (up + (t + 1) * 8) 8
+    have hd0 := Janus.Arm64.Memory.readLE_lt M0 (up + 8 * t) 8
+    simp only [Nat.reducePow] at hd1 hd0
+    have hval := Fv256.Arm64.Shift.un_val (M0.readLE (up + (t + 1) * 8) 8) (M0.readLE (up + 8 * t) 8) s hs hd1 hd0
+    refine ih _ _ _ (by omega) (by simp [setReg, r3]) ?_ (by simp [setReg, r11]) (by simp [setReg, r13]) (by simp [setReg, r14]) ?_ ?_ ?_ ?_
+    · simp only [setReg]; simp; bv_omega
+    · intro k hk
+      simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hk
+      simp only [setReg]
+      repeat' rw [if_neg (by omega)]
+      exact hRu k (by simp only [List.mem_cons, List.not_mem_nil, or_false, not_or]; omega)
+    · exact hfr.writeLE _ (List.mem_cons_self ..) (by omega) (by omega)
+    · intro j hj1 hj2
+      by_cases hjt : j = t + 1
+      · subst hjt
+        rw [show T.sp.toNat + 80 + (t + 1) * 8 = T.sp.toNat + 80 + 8 * (t + 1) by omega, Janus.Arm64.Memory.readLE_writeLE_self]
+        have hd1' : M0.readLE (up + 8 * (t + 1)) 8 = M0.readLE (up + (t + 1) * 8) 8 := by rw [Nat.mul_comm]
+        rw [show t + 1 - 1 = t by omega, hd1', hval]
+        simp only [Nat.reducePow]
+        exact Nat.mod_eq_of_lt (Fv256.B.shl_carry_lt _ _ s (by omega) hd0)
+      · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+        exact hdn j (by omega) hj2
+    · intro j hj1 hj2
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      exact hz j hj1 hj2
+
+
+set_option maxHeartbeats 8000000 in
+theorem pro4 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L : Nat) (M : Memory) (R : Nat → W64) (fl : Flags)
+    (hn1 : 1 ≤ n) (hn4 : n ≤ 4) (hs : s ≤ 63) (hL8 : L ≤ 8) (hu1 : 1 ≤ ulen) (hul : ulen ≤ L)
+    (hup : up + 8 * L ≤ 2 ^ 48) (hua : M.accessible up (8 * L) false = true)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hMa : M.accessible T.sp.toNat 0x138 true = true)
+    (hdisj : up + 8 * L ≤ T.sp.toNat ∨ T.sp.toNat + 0x138 ≤ up)
+    (r3 : R 3 = BitVec.ofNat 64 up) (r4 : R 4 = BitVec.ofNat 64 L) (r9 : R 9 = BitVec.ofNat 64 n) (r10 : R 10 = BitVec.ofNat 64 ulen)
+    (r11 : R 11 = BitVec.ofNat 64 s) (r13 : R 13 = BitVec.ofNat 64 (s + 64))
+    (hge : n ≤ ulen)
+    (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory), R' 14 = BitVec.ofNat 64 (T.sp.toNat + 80) → R' 15 = BitVec.ofNat 64 (ulen + 1) →
+      R' 16 = BitVec.ofNat 64 (ulen - 1) → R' 13 = BitVec.ofNat 64 (64 - s) → (∀ k, k ∉ [13, 14, 15, 16, 17, 19] → R' k = R k) →
+      MemFrame M M' [(T.sp.toNat + 80, T.sp.toNat + 152)] →
+      M'.readLE (T.sp.toNat + 80 + 8 * ulen) 8 = M.readLE (up + 8 * (ulen - 1)) 8 / 2 ^ (64 - s) →
+      (∀ j, j < ulen → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = 0) → (∀ j, ulen < j → j < 9 → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = 0) →
+      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 lhead, flags := fl', mem := M' } Q) :
+    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 uexit, flags := fl, mem := M } Q := by
+  have hcode := ku_lt
+  janus_eval_nat hh1 : uexit
+  janus_eval_nat hh2 : lhead
+  simp only [hh2] at hK
+  simp only [hh1]
+  have hA : ¬ (ulen < n) := by omega
+  have hup1 : M.readLE (up + (ulen - 1) * 8) 8 = M.readLE (up + 8 * (ulen - 1)) 8 := by rw [Nat.mul_comm]
+  janus_run [r3, r4, r9, r10, r11, r13, hup1] until [ku + 0x1bc]
+  have hyB : M.readLE (up + 8 * (ulen - 1)) 8 < 2 ^ 64 := by
+    have := Janus.Arm64.Memory.readLE_lt M (up + 8 * (ulen - 1)) 8; simpa using this
+  have hsh := Fv256.Arm64.Shift.shr_val _ s hs hyB
+  refine hK _ _ _ (by simp only [setReg]; simp; apply BitVec.eq_of_toNat_eq; simp [BitVec.toNat_add])
+    (by simp [setReg]; bv_omega) (by simp [setReg]; bv_omega) (by simp only [setReg]; simp; bv_omega) ?_ ?_ ?_ ?_ ?_
+  · intro k hk
+    simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hk
+    simp only [setReg]
+    repeat' rw [if_neg (by omega)]
+  · have h0 := MemFrame.of_writeLE M (k := 8) 0 (rs := [(T.sp.toNat + 80, T.sp.toNat + 152)]) (a := T.sp.toNat + 80) (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h1 := h0.writeLE (a := T.sp.toNat + 88) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h2 := h1.writeLE (a := T.sp.toNat + 96) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h3 := h2.writeLE (a := T.sp.toNat + 104) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h4 := h3.writeLE (a := T.sp.toNat + 112) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h5 := h4.writeLE (a := T.sp.toNat + 120) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h6 := h5.writeLE (a := T.sp.toNat + 128) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h7 := h6.writeLE (a := T.sp.toNat + 136) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    have h8 := h7.writeLE (a := T.sp.toNat + 144) (k := 8) 0 (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+    exact h8.writeLE (a := T.sp.toNat + (80 + ulen * 8)) (k := 8) _ (r := (T.sp.toNat + 80, T.sp.toNat + 152)) (by simp) (by simp <;> omega) (by simp <;> omega)
+  · rw [show T.sp.toNat + 80 + 8 * ulen = T.sp.toNat + (80 + ulen * 8) by omega, Janus.Arm64.Memory.readLE_writeLE_self, hsh]
+    simp only [Nat.reducePow]
+    exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) hyB)
+  · intro j hj
+    rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+    have : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 ∨ j = 6 ∨ j = 7 ∨ j = 8 := by omega
+    rcases this with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    first | (exfalso; omega) | simp (disch := omega) only [Nat.reduceMul, Nat.add_assoc, Nat.reduceAdd, Nat.add_zero, Nat.mul_zero, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  · intro j hj1 hj2
+    rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+    have : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 ∨ j = 6 ∨ j = 7 ∨ j = 8 := by omega
+    rcases this with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    first | (exfalso; omega) | simp (disch := omega) only [Nat.reduceMul, Nat.add_assoc, Nat.reduceAdd, Nat.add_zero, Nat.mul_zero, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
 
 end Fv256.Arm64.UdivremA
