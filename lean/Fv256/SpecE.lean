@@ -125,4 +125,14 @@ theorem decLen_le_20 (u : Nat) (hu : u < 2 ^ 64) : decLen u ≤ 20 := by
       have h64 : 2 ^ 64 < 10 ^ 20 := by decide
       omega
 
+/-- A number below `10^k` has at most `k` digits (`k ≥ 1`). -/
+theorem decLen_le_of_lt_pow (n k : Nat) (hk : 1 ≤ k) (h : n < 10 ^ k) : decLen n ≤ k := by
+  by_cases h0 : n = 0
+  · subst h0; simp [decLen, decBytes_lt 0 (by decide)]; omega
+  · have a2 := pow_decLen_le n (by omega)
+    by_cases hc : decLen n ≤ k
+    · exact hc
+    · have : 10 ^ k ≤ 10 ^ (decLen n - 1) := Nat.pow_le_pow_right (by omega) (by omega)
+      omega
+
 end Fv256.E

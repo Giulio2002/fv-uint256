@@ -165,4 +165,45 @@ theorem mod64_read (M : Janus.Arm64.Memory) (a : Nat) : M.readLE a 8 % 184467440
 theorem toNat_sub_lit (x : BitVec 64) (k : Nat) (h : k ≤ x.toNat) : (x - BitVec.ofNat 64 k).toNat = x.toNat - k := by
   rw [bv_sub_lit x k h, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := x.isLt; omega)]
 
+theorem neg98 (q : Nat) (h : q ≤ 98) : 0#64 - (BitVec.ofNat 64 q - 98#64) = BitVec.ofNat 64 (98 - q) := by
+  apply BitVec.eq_of_toNat_eq
+  have e98 : (98#64).toNat = 98 := rfl
+  have e0 : (0#64).toNat = 0 := rfl
+  have hq : (BitVec.ofNat 64 q).toNat = q := by rw [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by omega)
+  have hq2 : (BitVec.ofNat 64 (98 - q)).toNat = 98 - q := by rw [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by omega)
+  rw [BitVec.toNat_sub, BitVec.toNat_sub, e98, hq, hq2, e0]
+  omega
+
+theorem min_ofNat_toInt (a c : Nat) (h : a ≤ c) (hc : c < 2 ^ 62) :
+    (if (BitVec.ofNat 64 a).toInt < (BitVec.ofNat 64 c).toInt then BitVec.ofNat 64 a else BitVec.ofNat 64 c) = BitVec.ofNat 64 a := by
+  split
+  · rfl
+  · rename_i hh
+    have e1 : (BitVec.ofNat 64 a).toInt = a := by
+      rw [BitVec.toInt_eq_toNat_of_lt (by rw [BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega)]; omega)]
+      rw [BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega)]
+    have e2 : (BitVec.ofNat 64 c).toInt = c := by
+      rw [BitVec.toInt_eq_toNat_of_lt (by rw [BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega)]; omega)]
+      rw [BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega)]
+    rw [e1, e2] at hh
+    have : a = c := by omega
+    rw [this]
+
+theorem mask98 : ∀ q, q < 98 → ((BitVec.ofNat 64 q - 98#64).sshiftRight 63).toNat &&& q = q := by decide
+
+theorem or4_toNat_zero_iff (a b c d : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) (hc : c < 2 ^ 64) (hd : d < 2 ^ 64) :
+    (BitVec.ofNat 64 a ||| BitVec.ofNat 64 b ||| BitVec.ofNat 64 c ||| BitVec.ofNat 64 d).toNat = 0 ↔
+      a = 0 ∧ b = 0 ∧ c = 0 ∧ d = 0 := by
+  rw [BitVec.toNat_or, BitVec.toNat_or, BitVec.toNat_or, BitVec.toNat_ofNat, BitVec.toNat_ofNat, BitVec.toNat_ofNat,
+    BitVec.toNat_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb, Nat.mod_eq_of_lt hc, Nat.mod_eq_of_lt hd]
+  simp only [Nat.or_eq_zero_iff]
+  omega
+
+theorem digit_mod (u k m : Nat) (hk : k < m) : u % 10 ^ m / 10 ^ k % 10 = u / 10 ^ k % 10 := by
+  have h1 : 10 ^ m = 10 ^ k * 10 ^ (m - k) := by rw [← Nat.pow_add]; congr 1; omega
+  rw [h1, Nat.mod_mul_right_div_self]
+  have h2 : 10 ^ (m - k) = 10 * 10 ^ (m - k - 1) := by
+    rw [← Nat.pow_succ']; congr 1; omega
+  rw [h2, Nat.mod_mul_right_mod]
+
 end Fv256.E
