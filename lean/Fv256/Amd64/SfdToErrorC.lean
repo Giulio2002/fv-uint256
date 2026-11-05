@@ -4,6 +4,7 @@ import Fv256.Util
 import Fv256.SpecI
 import Fv256.UtilI
 import Fv256.SumC64
+import Fv256.Amd64.SfdEnv
 
 /-!
 # `strconv.toError(fn, s, base, bitSize, err)` for `err == ErrSyntax` (amd64), as a callee of `strconv.ParseUint`
@@ -15,18 +16,12 @@ string copied by `mallocgc` + `memmove`).  The runtime calls are `runtime.ifacee
 write barriers (live contracts, all threaded through one `RtInv`).
 -/
 
-open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64 Fv256.I
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64 Fv256.I Fv256.Amd64.SfdEnv
 
 namespace Fv256.Amd64.SfdToError
 
 abbrev te : Nat := segAddr Extracted.program "strconv.toError"
 
-abbrev numErrType : Nat := Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»
-abbrev numErrItab : Nat := Extracted.dataAddr.«go:itab.*strconv.NumError,error»
-abbrev errItab : Nat := Extracted.dataAddr.«go:itab.internal/strconv.Error,error»
-abbrev synConst : Nat := Extracted.dataAddr.«.rodata#9967e7a3»
-abbrev strconvErrSyntax : Nat := Extracted.dataAddr.«strconv.ErrSyntax»
-abbrev wbFlag : Nat := Extracted.dataAddr.«runtime.writeBarrier»
 
 
 open Fv256.C in

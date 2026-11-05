@@ -121,4 +121,22 @@ theorem Env.frame {R : RtInv} {R2 : IfaceModel} (hl : R2.Laws) {T b : Nat} {L : 
       · exact Or.inl h9
       · simpa using hzR) h17
 
+
+theorem Env.shrink {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi lo' hi' : Nat} {s : State}
+    (h : Env R R2 T b L lo hi s) (h1 : lo ≤ lo') (h2 : hi' ≤ hi) (h3 : lo' ≤ (s.regs 4).toNat)
+    (h4 : (s.regs 4).toNat + 8 ≤ hi') : Env R R2 T b L lo' hi' s := by
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := h
+  have sub : ∀ rs : List (Nat × Nat), Outside lo (hi - lo) rs → Outside lo' (hi' - lo') rs := fun rs h =>
+    Outside.of_sub h (by omega) (by omega)
+  refine ⟨h3, h4, by omega, e4, ?_, e6, e7, by omega, sub _ e9, sub _ e10, e11, e12, by omega, ?_, e15, e16, e17, ?_⟩
+  · exact Arm64.Memory.accessible_mono _ e5 (by omega) (by omega)
+  · intro r hr
+    have := e14 r hr
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
+  · intro r hr
+    have := e18 r hr
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
+
 end Fv256.Amd64.SfdEnv
