@@ -220,13 +220,25 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
           simp only [Janus.outside_cons, Janus.outside_nil, and_true] at hoE
           have hA := hAe
           simp only [Apart, hesn] at hA
+          have hA2 := (by with_reducible assumption : Apart strconvErrSyntax 16 _ 48)
+          simp only [Apart, hesn] at hA2
         case c5 => te_walk
         case c6 => te_walk
         case c7 => te_walk
         case c8 => te_walk
         case c9 => rw [hesn]; te_walk
         case c10 => rw [hesn]; te_walk
-        case c11 => te_inv
+        case c12 => te_inv
+        case c11 =>
+          intro k hk
+          have hCop := (‹Mem.Copied _ _ _ sp.toNat sl.toNat›)
+          have e : ∀ k, k < sl.toNat → _ := fun k hk => congrArg BitVec.toNat (hCop k hk)
+          simp only [← Janus.Arm64.Memory.readLE_one] at e
+          te_walk
+          rw [e k hk]
+          rcases hspR with ho | hi
+          · te_walk
+          · te_walk
         all_goals sorry
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
       all_goals sorry

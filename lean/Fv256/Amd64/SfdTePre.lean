@@ -145,16 +145,26 @@ theorem inRanges_last {a n : Nat} {l : List (Nat × Nat)} {r : Nat × Nat} (h : 
 theorem inRanges_pen {a n : Nat} {l : List (Nat × Nat)} {r r2 : Nat × Nat} (h : r.1 ≤ a ∧ a + n ≤ r.2) :
     InRanges a n (l ++ [r] ++ [r2]) := ⟨r, by simp, h.1, h.2⟩
 
+/-- `omega` after dropping the hypotheses unrelated to the goal (the contexts carry giant memory terms) -/
+macro "te_omega" : tactic => `(tactic| first | (janus_clear_irrel; omega) | omega)
+
+/-- the atomic side conditions of the `te_walk` rewrite rules (cheap structured steps first; `omega` last) -/
+macro "te_atom" : tactic => `(tactic| first
+  | with_reducible assumption
+  | (exact Janus.Outside.of_sub (by with_reducible assumption) (by te_omega) (by te_omega))
+  | (exact Janus.InRanges.sub (by with_reducible assumption) (by te_omega) (by te_omega))
+  | te_omega)
+
 /-- the side conditions of the `te_walk` rewrite rules -/
 macro "te_disch" : tactic => `(tactic| first
+  | with_reducible assumption
   | trivial
-  | omega
-  | (exact inRanges_last ⟨by omega, by omega⟩)
-  | (exact inRanges_pen ⟨by omega, by omega⟩)
-  | assumption
+  | (exact inRanges_last ⟨by te_omega, by te_omega⟩)
+  | (exact inRanges_pen ⟨by te_omega, by te_omega⟩)
   | (simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
      repeat' apply And.intro
-     all_goals first | assumption | omega))
+     all_goals te_atom)
+  | te_omega)
 
 macro "te_close" : tactic => `(tactic| first
   | with_reducible exact Nat.mod_eq_of_lt (Janus.Arm64.Memory.readLE_lt _ _ _)
@@ -165,6 +175,16 @@ theorem inRanges_last2 {a n : Nat} {l : List (Nat × Nat)} {r1 r : Nat × Nat} (
     InRanges a n (l ++ [r1, r]) := ⟨r, by simp, h.1, h.2⟩
 
 theorem append_two {α : Type} (l : List α) (a b : α) : l ++ [a, b] = l ++ [a] ++ [b] := by simp
+
+open Lean Elab Tactic Meta in
+/-- unfold every `Apart` hypothesis of the context into its disjunction (for the `omega` side conditions) -/
+elab "te_unfold_apart" : tactic => withMainContext do
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if ty.isAppOf ``Janus.Apart then
+      let h := mkIdent d.userName
+      evalTactic (← `(tactic| simp only [Janus.Apart] at $h:ident))
 
 open Lean Elab Tactic Meta in
 /-- rewrite memory reads through stores and through the `LiveFrame`/`MemFrame` facts of the context -/
@@ -182,9 +202,17 @@ elab "te_walk" : tactic => withMainContext do
     Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*]))
   evalTactic (← `(tactic| te_close))
 
+open Lean Elab Tactic Meta in
+/-- `te_walk` through the stores only (no frame facts) -/
+elab "te_walk0" : tactic => withMainContext do
+  evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]))
+  evalTactic (← `(tactic| simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
+    Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd]))
+
 /-- the invariant for the finished object: the stores into the fresh object do not change the view -/
 macro "te_inv" : tactic => `(tactic|
-  (rw [blockSize48, append_two]
+  (try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
+   rw [blockSize48, append_two]
    simp (disch := te_disch) only [Janus.Contracts.view_writeLE_live]
    janus_assumption))
 
