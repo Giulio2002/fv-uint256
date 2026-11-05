@@ -14,6 +14,7 @@ import Fv256.Arm64.UdivremE
 import Fv256.Arm64.UdivremF
 import Fv256.Arm64.UdivremFinal
 import Fv256.Arm64.DivLemmas
+import Fv256.Arm64.ModLemmas
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 open Fv256.Arm64.UdivremD
@@ -69,16 +70,47 @@ theorem mod_summary :
     · exact Fv256.Arm64.DivLemmas.mod_early_frame _ _ _ _ _ _ _ _ _ _ _ _ _ hsb (by omega) ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩
   · have hy0n : s.mem.readLE (s.regs 2).toNat 8 ≠ 0 := by omega
     janus_run [Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.wv4_eq, Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div]
-    trace_state
-    sorry
-  · rename_i hr hq hf
-    trace_state
-    sorry
+    refine ⟨?_, ?_, ?_⟩
+    · intro i hi
+      simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hi
+      repeat' rw [if_neg (by omega)]
+    · exact Fv256.Arm64.ModLemmas.mfast_close _ _ _ _ _ hx0 hy0n (by omega)
+    · exact Fv256.Arm64.DivLemmas.mod_early_frame _ _ _ _ _ _ _ _ _ _ _ _ _ hsb (by omega) ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩
+  · rename_i hregs hr hq hf
+    have hsp1 : (s.sp - 144#64).toNat = s.sp.toNat - 144 := by have := s.sp.isLt; simp [BitVec.toNat_sub]; omega
+    have hsp2 : (s.sp - 40#64).toNat = s.sp.toNat - 40 := by have := s.sp.isLt; simp [BitVec.toNat_sub]; omega
+    have hsp3 : (s.sp - 72#64).toNat = s.sp.toNat - 72 := by have := s.sp.isLt; simp [BitVec.toNat_sub]; omega
+    simp only [setReg, hsp1, hsp2, hsp3, Nat.reduceEqDiff, reduceIte, Nat.reduceAdd, Nat.reduceSub] at hf
+    have hz8 : s'.mem.readLE (s.sp.toNat + 8) 8 = (s.regs 0).toNat := by
+      rw [hf.readLE _ _ (by simp only [Outside, and_true]; omega)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      exact Nat.mod_eq_of_lt (by have := (s.regs 0).isLt; simpa using this)
+    janus_run [hz8, Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.wv4_eq, Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div]
+    simp only [setReg, hsp3, reduceIte, Nat.reduceEqDiff] at hq
+    rw [Fv256.Arm64.ModLemmas.wv4_chain11 _ _ _ _ _ _ hdx hsb, Fv256.Arm64.ModLemmas.wv4_chain11 _ _ _ _ _ _ hdy hsb] at hq
+    simp only [Fv256.B.wv4_eq, Util.readLE_32] at hq
+    have e1 : s.sp.toNat - 72 + 8 = s.sp.toNat - 64 := by omega
+    have e2 : s.sp.toNat - 72 + 16 = s.sp.toNat - 56 := by omega
+    have e3 : s.sp.toNat - 72 + 24 = s.sp.toNat - 48 := by omega
+    simp only [e1, e2, e3, Nat.reducePow] at hq
+    refine ⟨?_, ?_, ?_⟩
+    · intro i hi
+      have h := hregs i hi
+      simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hi
+      rw [h]
+      by_cases h30 : i = 30
+      · subst h30; simp
+      · by_cases h29 : i = 29
+        · subst h29; simp
+        · simp only [setReg]
+          repeat' rw [if_neg (by omega)]
+    · exact Fv256.Arm64.DivLemmas.mval_close _ _ _ hq (Fv256.Arm64.DivLemmas.ysum_ne _ _ _ _ (by janus_assumption))
+    · exact Fv256.Arm64.DivLemmas.mod_copy_frame _ _ _ _ _ _ _ _ _ _ _ _ _ _ hsb (by omega) ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ (Fv256.Arm64.ModLemmas.chain11_frame _ _ _ _ _ hsb) hf (fun x n hx => by simp only [Outside, and_true] at hx ⊢; omega)
   · refine ⟨?_, ?_, ?_⟩
     · intro i hi
       simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hi
       repeat' rw [if_neg (by omega)]
-    · exact Fv256.Arm64.DivLemmas.mclose_lt _ _ (by janus_assumption) (by janus_assumption)
+    · exact Fv256.Arm64.DivLemmas.mclose_lt _ _ hbr (by omega)
     · exact Fv256.Arm64.DivLemmas.mod_early_frame _ _ _ _ _ _ _ _ _ _ _ _ _ hsb (by omega) ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩ ⟨by omega, by omega⟩
 
 end Fv256.Arm64.ModSum
