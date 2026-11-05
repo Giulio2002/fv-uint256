@@ -13,7 +13,7 @@ open Fv256.Amd64.UdivremA
 namespace Fv256.Amd64.UdivremC
 
 set_option maxHeartbeats 8000000 in
-theorem mid1_pos {L : Nat} (hL : L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem mid1_pos {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hul : ul ≤ L) (hul1 : 1 ≤ ul)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -59,7 +59,7 @@ theorem mid1_pos {L : Nat} (hL : L ≤ 8) (s0 : State) (dp qp qcap ql up remp n 
     | exact Janus.MemFrame.of_writeLE M _ (r := (sf + 0x98, sf + 0x98 + 8)) (List.Mem.head _) (by omega) (by omega)
 
 set_option maxHeartbeats 8000000 in
-theorem mid1_zero {L : Nat} (hL : L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem mid1_zero {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hn : n ≤ 4) (hn1 : 1 ≤ n) (hul : ul ≤ L) (hul1 : 1 ≤ ul)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -101,7 +101,7 @@ theorem mid1_zero {L : Nat} (hL : L ≤ 8) (s0 : State) (dp qp qcap ql up remp n
 
 
 set_option maxHeartbeats 8000000 in
-theorem mid1 {L : Nat} (hL : L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem mid1 {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hul : ul ≤ L) (hul1 : 1 ≤ ul)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -127,18 +127,18 @@ theorem mid1 {L : Nat} (hL : L ≤ 8) (s0 : State) (dp qp qcap ql up remp n ul s
 
 -- the search for the most significant non-zero word of `u` (head at +0x182, exit at +0x1a0)
 set_option maxHeartbeats 8000000 in
-theorem ulen_loop {L : Nat} (hL : L ≤ 8) (s0 : State) (up qp : Nat) (M : Memory) (sf : Nat)
+theorem ulen_loop {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (up qp : Nat) (M : Memory) (sf : Nat)
     (hup : up + 8 * L ≤ 2 ^ 48) (hua : M.accessible up (8 * L) false = true) (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x20 ≤ sf)
     (hMs : M.accessible sf 0x138 true = true) (hdisj : up + 8 * L ≤ sf ∨ sf + 0x138 ≤ up)
     (m_f8 : M.readLE (sf + 0xf8) 8 = qp) (hqp : qp < 2 ^ 64) :
-    ∀ t (R : Nat → W64) (fl : Flags), t ≤ 4 → R 7 = BitVec.ofNat 64 up → R 4 = BitVec.ofNat 64 sf → R 12 = BitVec.ofNat 64 t - 1 →
+    ∀ t (R : Nat → W64) (fl : Flags), t ≤ L → R 7 = BitVec.ofNat 64 up → R 4 = BitVec.ofNat 64 sf → R 12 = BitVec.ofNat 64 t - 1 →
       R 0 = BitVec.ofNat 64 qp →
-      (∀ j, t ≤ j → j < 4 → M.readLE (up + 8 * j) 8 = 0) →
+      (∀ j, t ≤ j → j < L → M.readLE (up + 8 * j) 8 = 0) →
       ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x1a0))
         { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x182), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (n : Nat),
           S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl', mem := M } ∧
-          R' 12 = BitVec.ofNat 64 n ∧ n ≤ t ∧ (∀ j, n ≤ j → j < 4 → M.readLE (up + 8 * j) 8 = 0) ∧
+          R' 12 = BitVec.ofNat 64 n ∧ n ≤ t ∧ (∀ j, n ≤ j → j < L → M.readLE (up + 8 * j) 8 = 0) ∧
           (0 < n → M.readLE (up + 8 * (n - 1)) 8 ≠ 0) ∧ R' 0 = BitVec.ofNat 64 qp ∧ (∀ k, k ∉ [0, 12] → R' k = R k)) := by
   intro t
   induction t with

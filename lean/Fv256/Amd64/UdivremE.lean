@@ -15,7 +15,7 @@ open Fv256.Amd64.UdivremA
 namespace Fv256.Amd64.UdivremE
 
 set_option maxHeartbeats 16000000 in
-theorem midB {L : Nat} (hL : L ≤ 8) (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem midB {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn2 : 2 ≤ n) (hulen : ulen ≤ L) (hulen1 : n ≤ ulen) (hql : ql = L)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x190 true = true)
     (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M.accessible qp (8 * L) true = true)
@@ -61,7 +61,7 @@ theorem midB {L : Nat} (hL : L ≤ 8) (s0 : State) (qp qcap ql ulen n s sf : Nat
   all_goals trace_state
 
 set_option maxHeartbeats 16000000 in
-theorem midB1 {L : Nat} (hL : L ≤ 8) (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem midB1 {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hulen : ulen ≤ L) (hulen1 : 1 ≤ ulen) (hql : ql = L)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x190 true = true)
     (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M.accessible qp (8 * L) true = true)

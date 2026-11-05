@@ -22,7 +22,7 @@ open Fv256.Amd64.UdivremA Fv256.Amd64.UdivremH Fv256.Amd64.UdivremI
 namespace Fv256.Amd64.UdivremJ
 
 set_option maxHeartbeats 32000000 in
-theorem caseOne {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
+theorem caseOne {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
     (F : Front L R M M0 sp0 dp qp qcap ql up remp n ulen s rbpv ra) (hn1 : n = 1) (hge : n ≤ ulen) (g : W64) (hg : R 14 = g)
     (hql : ql = L)
     (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x190 true = true)
@@ -89,9 +89,9 @@ theorem caseOne {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Fl
     rw [fr13.readLE _ _ (by simp [Outside] <;> omega)]; exact F.dntop
   have hsf8 : M3.readLE (sp0 - 0xf0 + 0xf8) 8 = qp := by
     rw [fr13.readLE _ _ (by simp [Outside] <;> omega)]; exact F.s_f8
-  have hu1 : ∀ j, j ≤ 3 → M1.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
+  have hu1 : ∀ j, j < L → M1.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
     fr1.readLE _ _ (by simp [Outside]; omega)
-  have hu2 : ∀ j, j ≤ 3 → M2.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
+  have hu2 : ∀ j, j < L → M2.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
     (fr2.readLE _ _ (by simp [Outside]; omega)).trans (hu1 j hj)
   have hun : ∀ k, k < ulen → M3.readLE (sp0 - 0xf0 + 0x48 + 8 * k) 8 =
       (M.readLE (up + 8 * k) 8 * 2 ^ s) % 2 ^ 64 + Fv256.B.shc M up s k := by

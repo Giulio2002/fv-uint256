@@ -3,6 +3,7 @@ import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
 import Fv256.UtilB
+import Fv256.UtilF
 import Fv256.KnuthMathB
 import Fv256.UdivMathB
 import Fv256.UdivremMath
@@ -33,7 +34,7 @@ def UPost (L : Nat) (s0 : State) (M0 : Memory) (sp0 dp qp up remp ra rbpv : Nat)
 theorem sp_arith (sp0 : Nat) (h : 0x150 ≤ sp0) : sp0 - 0xf0 + 0xf8 = sp0 + 8 := by omega
 
 set_option maxHeartbeats 16000000 in
-theorem caseL {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
+theorem caseL {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
     (F : Front L R M M0 sp0 dp qp qcap ql up remp n ulen s rbpv ra) (hlt : ulen < n) (g : W64) (hg : R 14 = g)
     (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x190 true = true)
     (hup48 : up + 8 * L ≤ 2 ^ 48) (hua : M0.accessible up (8 * L) false = true) (hdisju : up + 8 * L ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ up)
@@ -95,11 +96,14 @@ theorem caseL {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flag
       rw [hq', hqM, Nat.div_eq_of_lt hUlt]
     · intro _
       rw [Nat.mod_eq_of_lt hUlt, hUw]
-      exact Fv256.B.wv_congr M' M remp up L (fun j hj => hcp j hj)
+      have h4eq : Fv256.B.wv M up 4 = Fv256.B.wv M up L := by
+        rw [Fv256.F.wv_trunc M up ulen 4 L (by omega) hL.1 F.uwv, F.uwv]
+      rw [← h4eq]
+      exact Fv256.B.wv_congr M' M remp up 4 (fun j hj => hcp j hj)
     · exact ⟨fun h => absurd h hr0, fun _ => hfr.trans hf' (by intro a n' h; simp [Outside] at h ⊢; omega)⟩
 
 set_option maxHeartbeats 32000000 in
-theorem caseK {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
+theorem caseK {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flags) (M M0 : Memory) (sp0 dp qp qcap ql up remp n ulen s rbpv ra : Nat)
     (F : Front L R M M0 sp0 dp qp qcap ql up remp n ulen s rbpv ra) (hn2 : 2 ≤ n) (hge : n ≤ ulen) (g : W64) (hg : R 14 = g)
     (hql : ql = L)
     (hsp0 : 0x150 ≤ sp0) (hsp : sp0 + 0x48 ≤ 2 ^ 48) (hMs : M0.accessible (sp0 - 0x148) 0x190 true = true)
@@ -166,9 +170,9 @@ theorem caseK {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flag
     rw [fr13.readLE _ _ (by simp [Outside] <;> omega)]; exact F.dntop
   have hsf8 : M3.readLE (sp0 - 0xf0 + 0xf8) 8 = qp := by
     rw [fr13.readLE _ _ (by simp [Outside] <;> omega)]; exact F.s_f8
-  have hu1 : ∀ j, j ≤ 3 → M1.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
+  have hu1 : ∀ j, j < L → M1.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
     fr1.readLE _ _ (by simp [Outside]; omega)
-  have hu2 : ∀ j, j ≤ 3 → M2.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
+  have hu2 : ∀ j, j < L → M2.readLE (up + 8 * j) 8 = M.readLE (up + 8 * j) 8 := fun j hj =>
     (fr2.readLE _ _ (by simp [Outside]; omega)).trans (hu1 j hj)
   have hun : ∀ k, k < ulen → M3.readLE (sp0 - 0xf0 + 0x48 + 8 * k) 8 =
       (M.readLE (up + 8 * k) 8 * 2 ^ s) % 2 ^ 64 + Fv256.B.shc M up s k := by
@@ -227,7 +231,7 @@ theorem caseK {L : Nat} (hL : L ≤ 8) (s0 : State) (R : Nat → W64) (fl : Flag
   -- the quotient
   have hqw : ∀ j, j < L → M0.readLE (qp + 8 * j) 8 = 0 := Fv256.B.wv_zero_word M0 qp L hq0
   have hq4 : Fv256.B.wv M4 qp L = Fv256.B.wv M4 qp (ulen + 1 - n) := by
-    refine Fv256.B.wv_ext M4 qp (ulen + 1 - n) 4 (by omega) (fun j hj1 hj2 => ?_)
+    refine Fv256.B.wv_ext M4 qp (ulen + 1 - n) L (by omega) (fun j hj1 hj2 => ?_)
     rw [fr4.readLE _ _ (by simp [Outside] <;> omega), fr13.readLE _ _ (by simp [Outside] <;> omega), hfr.readLE _ _ (by simp [Outside] <;> omega)]
     exact hqw j hj2
   have hQ : Fv256.B.wv M4 qp L = Fv256.B.wv M0 up L / Fv256.B.wv M0 dp 4 := by

@@ -13,7 +13,7 @@ open Fv256.Amd64.UdivremA
 namespace Fv256.Amd64.UdivremF
 
 set_option maxHeartbeats 8000000 in
-theorem den_iter_pos {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_iter_pos {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hi : i + 1 < n) (hn : n ≤ 4) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -54,7 +54,7 @@ theorem den_iter_pos {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf i :
   · exact Janus.MemFrame.of_writeLE M _ (r := (remp + 8 * i, remp + 8 * i + 8)) (List.Mem.head _) (by omega) (by omega)
 
 set_option maxHeartbeats 8000000 in
-theorem den_iter_zero {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_iter_zero {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hi : i + 1 < n) (hn : n ≤ 4) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -89,7 +89,7 @@ theorem den_iter_zero {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen sf i : 
 
 
 set_option maxHeartbeats 8000000 in
-theorem den_iter {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_iter {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen s sf i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hi : i + 1 < n) (hn : n ≤ 4) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -111,7 +111,7 @@ theorem den_iter {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf i : Nat
     exact den_iter_pos hL s0 remp n ulen s sf i R fl M hs h hi hn hulen hulen2 hrem hra hsf hMs hsf0 hdisj e9 e2 e3 e0 e6 (by simpa [hne] using e7) e8 e1 e4 (by omega) (by omega)
 
 set_option maxHeartbeats 8000000 in
-theorem den_loop {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
+theorem den_loop {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x20 ≤ sf) (hdisj : remp + 32 ≤ sf ∨ sf + 0x138 ≤ remp) :
     ∀ t i, i + t = n - 1 → ∀ (R : Nat → W64) (fl : Flags) (M : Memory), M.accessible remp 32 true = true → M.accessible sf 0x138 true = true →
       R 9 = BitVec.ofNat 64 i → R 2 = BitVec.ofNat 64 remp → R 3 = BitVec.ofNat 64 (n - 1) →
@@ -157,7 +157,7 @@ theorem den_loop {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) 
     · exact ffr.trans gfr (by intro a n' h; simp [Outside] at h ⊢; omega)
 
 set_option maxHeartbeats 8000000 in
-theorem den_setup {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_setup {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : ulen ≤ L) (hremne : remp ≠ 0) (hremB : remp < 2 ^ 64)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
     (e4 : R 4 = BitVec.ofNat 64 sf)
@@ -192,7 +192,7 @@ theorem den_setup {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : Nat)
   · simp [setRegF]
 
 set_option maxHeartbeats 8000000 in
-theorem den_final_pos {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_final_pos {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hs1 : 1 ≤ s) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -226,7 +226,7 @@ theorem den_final_pos {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : 
     exact Janus.MemFrame.of_writeLE M _ (r := (remp + 8 * (n - 1), remp + 8 * (n - 1) + 8)) (List.Mem.head _) (by omega) (by omega)
 
 set_option maxHeartbeats 8000000 in
-theorem den_final_zero {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_final_zero {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
@@ -257,7 +257,7 @@ theorem den_final_zero {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen sf : N
 
 
 set_option maxHeartbeats 8000000 in
-theorem den_final {L : Nat} (hL : L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+theorem den_final {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (remp n ulen s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hs : s ≤ 63) (hn : n ≤ 4) (hn1 : 1 ≤ n) (hulen : n ≤ ulen) (hulen2 : ulen ≤ L)
     (hrem : remp + 32 ≤ 2 ^ 48) (hra : M.accessible remp 32 true = true)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hMs : M.accessible sf 0x138 true = true) (hsf0 : 0x20 ≤ sf)
