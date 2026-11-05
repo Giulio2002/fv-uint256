@@ -33,6 +33,8 @@ theorem hcMod : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Extra
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
+set_option profiler true in
+set_option profiler.threshold 20000 in
 theorem gen (z x y m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, m]
       (fun s => (fun s => StackGuardOK s 0x300 ∧ 0x380 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x348 0x28 ∧ Extracted.program.DataLoaded s.mem ∧

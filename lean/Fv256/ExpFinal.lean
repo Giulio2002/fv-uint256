@@ -100,4 +100,11 @@ theorem exp_total (b e0 e1 e2 e3 n : Nat) (hb : b < W) (h0 : e0 < 2 ^ 64) (h1 : 
     rw [← Nat.pow_mul, f3, ← Nat.pow_add] at this
     exact this
   exact rr4
+theorem even_exp_zero (b e : Nat) (hb : b % 2 = 0) (he : 256 ≤ e) : b ^ e % 2 ^ 256 = 0 := by
+  have h2 : 2 ∣ b := Nat.dvd_of_mod_eq_zero hb
+  have h1 : 2 ^ 256 ∣ b ^ 256 := (Nat.pow_dvd_pow_iff (by decide)).2 h2
+  have h3 : b ^ 256 ∣ b ^ e := by
+    obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le he
+    exact ⟨b ^ d, by rw [Nat.pow_add]⟩
+  exact Nat.mod_eq_zero_of_dvd (Nat.dvd_trans h1 h3)
 end Fv256.F
