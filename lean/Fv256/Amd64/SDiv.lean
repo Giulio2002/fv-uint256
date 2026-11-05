@@ -41,6 +41,9 @@ theorem sdivSpec_x0 (x y : Nat) (h : x = 0) : sdivSpec x y = 0 := by
 theorem sdivSpec_y0 (x y : Nat) (h : y = 0) : sdivSpec x y = 0 := by
   subst h; unfold sdivSpec; simp [abs_zero, neg_zero, divSpec_zero_right]
 
+theorem sdivSpec_zl (y : Nat) : sdivSpec 0 y = 0 := sdivSpec_x0 0 y rfl
+theorem sdivSpec_zr (x : Nat) : sdivSpec x 0 = 0 := sdivSpec_y0 x 0 rfl
+
 end Local
 
 set_option maxHeartbeats 32000000 in
@@ -76,10 +79,18 @@ theorem correctness (z x y : BitVec 64) :
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
   all_goals (first
-    | (apply Eq.symm; apply Local.sdivSpec_x0; omega)
-    | (apply Eq.symm; apply Local.sdivSpec_y0; omega)
+    | (simp only [Local.sdivSpec_zl, Local.sdivSpec_zr])
     | skip)
-  all_goals (trace_state; sorry)
+  all_goals (
+    have nx := Util.neg_chain _ _ _ _ hx0 hx1 hx2 hx3
+    have ny := Util.neg_chain _ _ _ _ hy0 hy1 hy2 hy3
+    have nz := Util.neg_chain _ _ _ _ (Util.readLE8_lt s'.mem z.toNat) (Util.readLE8_lt s'.mem (z.toNat + 8))
+      (Util.readLE8_lt s'.mem (z.toNat + 16)) (Util.readLE8_lt s'.mem (z.toNat + 24))
+    simp only [nx, ny, nz, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right] at *
+    rw [Fv256.B.sdivSpec]
+    simp only [Fv256.Spec.abs, Fv256.Spec.neg, Fv256.Spec.W, Nat.reducePow]
+    simp (disch := omega) only [if_pos, if_neg, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right]
+    first | omega | (trace_state; sorry))
 
 namespace Witness
 
