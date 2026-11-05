@@ -269,7 +269,44 @@ theorem exp_summary :
         have := (s.regs 5).isLt
         omega_e
       · janus_frame
-    · sorry
+    · intro S' hI
+      obtain ⟨hpc, hk64, hr, hb, hw, hev, r3, r7, r8, r9, r0, r1, r2, r6, r4, r5, r14, x15', mr, mb, mz, mep, mn, mev, hdfS, hmxS, mbp, hfr⟩ := hI
+      have hmin : min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) 64 = 64 := by omega_e
+      simp only [hmin] at r3 mr mb hr hb hw r8
+      have hretS : Arm64.Memory.readLE S'.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
+        rw [hfr.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
+      janus64_run [r3, r7, r8, r9, r0, r1, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev] until [Extracted.entry + 0x1f4]
+      refine Fv256.Amd64.ExpLoop2.loop2 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) 128 - 64) 64 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) _ (by omega_e) ?inv2 ?hex2
+      · unfold Fv256.Amd64.ExpLoop2.Inv2
+        refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Extracted.entry]
+        · omega_e
+        · exact hr
+        · exact hb
+        · exact Fv256.Util.readLE8_lt _ _
+        · exact hev
+        · simp [setRegF, r3]
+        · simp [setRegF, r7]
+        · simp [setRegF]
+        · simp [setRegF, r0]
+        · simp [setRegF, r1]
+        · simp [setRegF, r2]
+        · simp [setRegF, r6]
+        · simp [setRegF, r4]
+        · simp [setRegF, r5]
+        · simp [setRegF, r14]
+        · simp [setRegF, x15']
+        · exact mr
+        · exact mb
+        · exact mz
+        · exact mep
+        · exact mn
+        · exact mev
+        · rfl
+        · rfl
+        · exact mbp
+        · exact hfr
+      · sorry
   · rename_i g1 e3z e2z e1nz hev0
     exact (Fv256.F.contra_big _ 65 (by decide) (by decide) (Fv256.Util.readLE8_lt _ _) hbr).elim
   · rename_i hg e3z e2z e1nz hev hbl
