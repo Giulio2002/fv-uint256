@@ -2661,6 +2661,13 @@ theorem bl_amd (v w : BitVec 64) (hw : w = v + 7#64) (hv : v.toNat ≤ 256) :
   rw [BitVec.toNat_sshiftRight_of_msb_false hmsb, hwn]
   simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow]
 
+theorem bl_amd_bv (v w : BitVec 64) (hw : w = v + 7#64) (hv : v.toNat ≤ 256) :
+    BitVec.sshiftRight (v + (BitVec.sshiftRight w 63 >>> 61) + 7#64) 3 = BitVec.ofNat 64 ((v.toNat + 7) / 8) := by
+  apply BitVec.eq_of_toNat_eq
+  rw [bl_amd v w hw hv]
+  simp only [BitVec.toNat_ofNat, Nat.reducePow]
+  omega
+
 theorem blS_zero' (u : BitVec 64) (hu : u.toNat < 2 ^ 63) :
     ((if u.getLsbD 63 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551614#64 |||
       u.rotateRight 63 &&& 18446744073709551615#64 &&& 1#64) >>> 61 = 0#64 := blS_zero u hu
@@ -2739,6 +2746,32 @@ theorem ptr_arith (w K1 K2 bl : Nat) (hw : w ≤ 281474976710624) (h1 : K1 = bl)
     omega
   · rw [if_neg h, if_neg h, and_ones _ (by omega)]
     omega
+
+/-- amd64 `Bytes` pointer arithmetic: `(32 - n) & mask(n)` where the mask is `(0 - n) >>s 63`. -/
+theorem amd_off (n : Nat) (hn : n ≤ 32) :
+    ((18446744073709551616 - (18446744073709551584 + (BitVec.ofNat 64 n).toNat) % 18446744073709551616) % 18446744073709551616 &&&
+      ((0#64 - BitVec.ofNat 64 n).sshiftRight 63).toNat) = if n = 0 then 0 else 32 - n := by
+  have e : (BitVec.ofNat 64 n).toNat = n := by simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
+  rw [e, mask_asr n hn]
+  by_cases h : n = 0
+  · subst h; simp
+  · rw [if_neg h, if_neg h, and_ones _ (by omega)]
+    omega
+
+theorem byteLen_le_32 (v : Nat) (h : v < 2 ^ 256) : Spec.byteLen v ≤ 32 := by
+  by_cases hv : v = 0
+  · subst hv; simp [Spec.byteLen, Spec.bitLen]
+  · have h1 := (bitLen_bounds v hv).1
+    have h2 : 2 ^ (Spec.bitLen v - 1) < 2 ^ 256 := Nat.lt_of_le_of_lt h1 h
+    have h3 : Spec.bitLen v - 1 < 256 := (Nat.pow_lt_pow_iff_right (by omega)).1 h2
+    unfold Spec.byteLen; omega
+
+theorem rb8_lt (x : Nat) : Janus.Arm64.revBytesNat 8 x < 18446744073709551616 := by
+  have := revBytes_lt 8 x
+  simpa using this
+
+theorem pk_lo (a b : Nat) (ha : a < 18446744073709551616) : (a + 18446744073709551616 * b) % 18446744073709551616 = a := by omega
+theorem pk_hi (a b : Nat) (ha : a < 18446744073709551616) : (a + 18446744073709551616 * b) / 18446744073709551616 % 18446744073709551616 = b % 18446744073709551616 := by omega
 
 theorem byteLen_zero (v : Nat) (h : Spec.byteLen v = 0) : v = 0 := by
   unfold Spec.byteLen at h
@@ -3068,5 +3101,26 @@ theorem xor_top (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
 theorem bvxor_toNat (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
     (BitVec.ofNat 64 a ^^^ BitVec.ofNat 64 b).toNat = a ^^^ b := by
   simp only [BitVec.toNat_xor, BitVec.toNat_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
+
+theorem xor_eq_zero_nat (a b : Nat) : a ^^^ b = 0 ↔ a = b := xor_zero_iff a b
+
+theorem xor_ofNat_zero_iff (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    (BitVec.ofNat 64 a ^^^ BitVec.ofNat 64 b).toNat = 0 ↔ a = b := by
+  rw [bvxor_toNat a b ha hb]; exact xor_zero_iff a b
+
+
+theorem fin0 (x0 x1 x2 x3 : Nat) :
+    x3 * 6277101735386680763835789423207666416102355444464034512896 + x2 * 340282366920938463463374607431768211456 + x1 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+theorem fin1 (x0 x1 x2 x3 : Nat) (h3 : x3 = 0) :
+    0 * 6277101735386680763835789423207666416102355444464034512896 + x2 * 340282366920938463463374607431768211456 + x1 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+theorem fin2 (x0 x1 x2 x3 : Nat) (h3 : x3 = 0) (h2 : x2 = 0) :
+    0 * 6277101735386680763835789423207666416102355444464034512896 + 0 * 340282366920938463463374607431768211456 + x1 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+theorem fin3 (x0 x1 x2 x3 : Nat) (h3 : x3 = 0) (h2 : x2 = 0) (h1 : x1 = 0) :
+    0 * 6277101735386680763835789423207666416102355444464034512896 + 0 * 340282366920938463463374607431768211456 + 0 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+
+theorem fin_all (x0 x1 x2 x3 a b c : Nat) (ha : a = x3 ∨ (x3 = 0 ∧ a = 0)) (hb : b = x2 ∨ (x2 = 0 ∧ b = 0))
+    (hc : c = x1 ∨ (x1 = 0 ∧ c = 0)) :
+    a * 6277101735386680763835789423207666416102355444464034512896 + b * 340282366920938463463374607431768211456 + c * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by
+  rcases ha with rfl | ⟨rfl, rfl⟩ <;> rcases hb with rfl | ⟨rfl, rfl⟩ <;> rcases hc with rfl | ⟨rfl, rfl⟩ <;> omega
 
 end Fv256.Util

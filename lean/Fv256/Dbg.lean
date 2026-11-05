@@ -6,8 +6,9 @@ the main goal, so tools that truncate long error messages (the `janus verify` ou
 -/
 open Lean Elab Tactic in
 elab "print_goal_first" : tactic => do
-  let g ← getMainTarget
-  throwError m!"GOAL: {g}"
+  withMainContext do
+    let g ← getMainTarget
+    throwError m!"GOAL: {g}"
 
 open Lean Meta Elab Tactic in
 /-- `print_ctx_first`: like `print_goal_first` but also lists the hypotheses (props only), skipping simple `x < 2 ^ 64` / `x < 18446744073709551616` bounds, goal first. -/
@@ -27,8 +28,9 @@ elab "print_ctx_first" : tactic => do
 open Lean Elab Tactic in
 /-- `log_goal "tag"`: logs the main goal as an error (so it shows up in truncated verify output) and CONTINUES, so several stages of one proof can be inspected in a single run. The proof still fails. -/
 elab "log_goal " tag:str : tactic => do
-  let g ← getMainTarget
-  logError m!"{tag.getString}: {g}"
+  withMainContext do
+    let g ← getMainTarget
+    logError m!"{tag.getString}: {g}"
 
 open Lean Meta Elab Tactic in
 /-- `goal_summary`: logs, for each open goal, its index and the head symbol / first 200 chars of its target, then continues. -/
@@ -67,3 +69,39 @@ elab "print_chains" : tactic => do
   go g
   let r ← acc.get
   throwError m!"CHAINS:\n{"\n".intercalate r.toList}"
+
+open Lean Meta Elab Tactic in
+/-- `print_ctx_tail n`: like `print_ctx_first` but lists only the last `n` hypotheses (props only), each cut to 400 chars; goal first (cut to 600). Useful right after `janus_run` where the new facts are at the end of the context. -/
+elab "print_ctx_tail " n:num : tactic => do
+  let g ← getMainGoal
+  g.withContext do
+    let mut out : String := s!"GOAL: {(toString (← ppExpr (← g.getType))).take 600}\n"
+    let mut hs : Array String := #[]
+    for d in (← getLCtx) do
+      if d.isImplementationDetail then continue
+      unless (← isProp d.type) do continue
+      let t := toString (← ppExpr d.type)
+      hs := hs.push s!"{(toString d.userName).take 8}: {((t.replace "\n" " ").splitOn "  ").foldl (fun a b => if b == "" then a else a ++ " " ++ b) "" |>.take 1500}"
+    for h in hs.toList.drop (hs.size - n.getNat) do
+      out := out ++ h ++ "\n"
+    throwError out
+
+open Lean Meta Elab Tactic in
+/-- `print_shape d`: prints the main goal as a tree of head symbols down to depth `d` (leaves print via ppExpr, cut to 60 chars). -/
+elab "print_shape " d:num : tactic => withMainContext do
+  let g ← getMainTarget
+  let rec go : Nat → Expr → String → MetaM String
+    | 0, e, ind => do
+      let e ← instantiateMVars e
+      return ind ++ ((toString (← ppExpr e)).replace "\n" " ").take 60 ++ "\n"
+    | k + 1, e, ind => do
+      let e := (← instantiateMVars e).consumeMData
+      match e.getAppFn.consumeMData with
+      | .const n _ =>
+        let mut out := ind ++ n.toString ++ "\n"
+        for a in e.getAppArgs do
+          if a.isSort || (← inferType a).isSort then continue
+          out := out ++ (← go k a (ind ++ "  "))
+        return out
+      | _ => return ind ++ ((toString (← ppExpr e)).replace "\n" " ").take 60 ++ "\n"
+  throwError m!"SHAPE:\n{← go d.getNat g ""}"

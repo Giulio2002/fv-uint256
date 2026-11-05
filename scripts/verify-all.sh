@@ -24,12 +24,12 @@ for a in arm64 amd64; do
 done
 (cd go && GOTOOLCHAIN=go1.26.0 GOAMD64=v3 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build -trimpath -buildvcs=false -o ../build/harness-amd64v3 ./cmd/harness) || { echo "harness build failed (amd64 v3)"; exit 2; }
 fi
-# rows: | `(*uint256.Int).Fn` | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
+# rows: | `(*uint256.Int).Fn` | owner | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
 mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
 fail=0; table=""
 for row in "${rows[@]}"; do
   sym=$(echo "$row" | cut -d'|' -f2 | tr -d ' `')
-  st_arm=$(echo "$row" | cut -d'|' -f3 | tr -d ' '); st_amd=$(echo "$row" | cut -d'|' -f4 | tr -d ' ')
+  st_arm=$(echo "$row" | cut -d'|' -f4 | tr -d ' '); st_amd=$(echo "$row" | cut -d'|' -f5 | tr -d ' ')
   fn="${sym##*.}"
   [ $# -gt 0 ] && { case " $* " in *" $fn "*) ;; *) continue;; esac; }
   case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
