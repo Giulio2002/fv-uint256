@@ -17,7 +17,7 @@ theorem fb10_summary :
     Summary Extracted.program fb
       (fun s => (s.regs 0).toNat + (s.regs 3).toNat ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat (s.regs 3).toNat true = true ∧
         decLen (s.regs 7).toNat ≤ (s.regs 3).toNat ∧ 8 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 16 ≤ 2 ^ 48 ∧
-        s.mem.accessible ((s.regs 4).toNat - 8) 24 true = true ∧ Extracted.program.DataLoaded s.mem ∧
+        s.mem.accessible ((s.regs 4).toNat - 8) 24 true = true ∧ TabsOK s.mem ∧
         ((s.regs 0).toNat + (s.regs 3).toNat ≤ (s.regs 4).toNat - 8 ∨ (s.regs 4).toNat + 16 ≤ (s.regs 0).toNat) ∧
         s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47)
       (fun s s' => s'.regs 0 = BitVec.ofNat 64 ((s.regs 3).toNat - decLen (s.regs 7).toNat) ∧
@@ -27,7 +27,7 @@ theorem fb10_summary :
           s'.mem.readLE ((s.regs 0).toNat + (s.regs 3).toNat - 1 - k) 1 = 48 + (s.regs 7).toNat / 10 ^ k % 10) ∧
         MemFrame s.mem s'.mem [((s.regs 0).toNat + (s.regs 3).toNat - decLen (s.regs 7).toNat, (s.regs 0).toNat + (s.regs 3).toNat),
           ((s.regs 4).toNat - 8, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] ∧
-        Extracted.program.DataLoaded s'.mem) := by
+        TabsOK s'.mem) := by
   intro s hpc ⟨hp, hacc, hdl, hsp, hspu, hsa, hd, hdisj, hret⟩
   have hu64 := (s.regs 7).isLt
   have hs4 := (s.regs 4).isLt

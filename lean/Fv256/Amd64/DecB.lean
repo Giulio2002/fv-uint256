@@ -22,7 +22,7 @@ set_option maxHeartbeats 8000000 in
 theorem inner_loop (s0 : State) (ptr len x0 i0 : Nat) (hi : 8 ≤ i0) (hil : i0 ≤ len) (hlo : x0 < 10 ^ 9)
     (hp : ptr + len ≤ 2 ^ 48) :
     ∀ r j (R : Nat → W64) (fl : Flags) (M : Memory), j + r = 4 →
-      M.accessible ptr len true = true → Extracted.program.DataLoaded M →
+      M.accessible ptr len true = true → TabsOK M →
       R 0 = BitVec.ofNat 64 j → R 3 = BitVec.ofNat 64 (i0 - 2 * j) → R 1 = BitVec.ofNat 64 len →
       R 7 = BitVec.ofNat 64 ptr → R 6 = BitVec.ofNat 64 (x0 / 100 ^ j) →
       ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0xbe))
@@ -32,7 +32,7 @@ theorem inner_loop (s0 : State) (ptr len x0 i0 : Nat) (hi : 8 ≤ i0) (hil : i0 
           R' 0 = BitVec.ofNat 64 4 ∧ R' 3 = BitVec.ofNat 64 (i0 - 8) ∧ R' 6 = BitVec.ofNat 64 (x0 / 10 ^ 8) ∧
           (∀ k, k ∉ [0, 3, 6, 8, 9, 10, 11] → R' k = R k) ∧
           (∀ k, 2 * j ≤ k → k < 8 → M'.readLE (ptr + i0 - 1 - k) 1 = 48 + x0 / 10 ^ k % 10) ∧
-          MemFrame M M' [(ptr + i0 - 8, ptr + i0 - 2 * j)] ∧ Extracted.program.DataLoaded M') := by
+          MemFrame M M' [(ptr + i0 - 8, ptr + i0 - 2 * j)] ∧ TabsOK M') := by
   intro r
   induction r with
   | zero =>

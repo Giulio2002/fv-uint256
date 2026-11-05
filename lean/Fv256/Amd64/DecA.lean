@@ -1,6 +1,7 @@
 import Extracted
 import Fv256.SpecE
 import Fv256.UtilE
+import Fv256.Amd64.DecT
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.Dec
 theorem div100_nat (a : Nat) (h : a < 2^32) : a / 2 * 2748779070 / 137438953472 = a / 100 := by
@@ -28,29 +29,6 @@ theorem div100 (X : BitVec 64) (h : X.toNat < 2^32) :
   have : X.toNat / 100 < 2^32 := by omega
   rw [Nat.mod_eq_of_lt (by omega : X.toNat / 100 < 2^64)]
 
-abbrev smallsDat : Janus.DataSegment := Extracted.data[4]
-abbrev smallsBase : Nat := 5176582
-
-set_option maxRecDepth 100000 in
-theorem smalls_base : smallsDat.base = smallsBase := by decide
-set_option maxRecDepth 100000 in
-theorem smalls_len : smallsDat.bytes.length = 256 := by decide
-theorem smalls_mem : smallsDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
-
-theorem smalls_tab : ∀ d, d < 100 → smallsDat.bytes[2*d]! = 48 + d / 10 ∧ smallsDat.bytes[2*d+1]! = 48 + d % 10 := by
-  decide +kernel
-
-theorem smalls_read {M : Memory} (hd : Extracted.program.DataLoaded M) (d : Nat) (hd100 : d < 100) :
-    M.readLE (smallsBase + 2 * d) 1 = 48 + d / 10 ∧ M.readLE (smallsBase + 2 * d + 1) 1 = 48 + d % 10 := by
-  have h := smalls_tab d hd100
-  have b0 := DataLoaded.byte hd smalls_mem (2 * d) (by rw [smalls_len]; omega)
-  have b1 := DataLoaded.byte hd smalls_mem (2 * d + 1) (by rw [smalls_len]; omega)
-  rw [smalls_base] at b0 b1
-  rw [← Nat.add_assoc] at b1
-  refine ⟨?_, ?_⟩
-  · rw [b0, ← h.1]; exact (getElem!_pos smallsDat.bytes (2*d) (by rw [smalls_len]; omega)).symm
-  · rw [b1, ← h.2]; exact (getElem!_pos smallsDat.bytes (2*d+1) (by rw [smalls_len]; omega)).symm
-
 abbrev fb : Nat := segAddr Extracted.program "internal/strconv.formatBase10"
 
 def Written (M : Memory) (ptr i0 lo c : Nat) : Prop :=
@@ -62,7 +40,7 @@ theorem inner_step (s0 : State) (ptr len x i j : Nat) (R : Nat → W64) (fl : Fl
     (hp : ptr + len ≤ 2 ^ 48) (hacc : M.accessible ptr len true = true)
     (e0 : R 0 = BitVec.ofNat 64 j) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e7 : R 7 = BitVec.ofNat 64 ptr) (e6 : R 6 = BitVec.ofNat 64 x)
-    (hd : Extracted.program.DataLoaded M) :
+    (hd : TabsOK M) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x60))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x60), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
@@ -70,7 +48,7 @@ theorem inner_step (s0 : State) (ptr len x i j : Nat) (R : Nat → W64) (fl : Fl
         R' 0 = BitVec.ofNat 64 (j + 1) ∧ R' 3 = BitVec.ofNat 64 (i - 2) ∧ R' 6 = BitVec.ofNat 64 (x / 100) ∧
         (∀ k, k ∉ [0, 3, 6, 8, 9, 10, 11] → R' k = R k) ∧
         M'.readLE (ptr + i - 2) 1 = 48 + x % 100 / 10 ∧ M'.readLE (ptr + i - 1) 1 = 48 + x % 100 % 10 ∧
-        MemFrame M M' [(ptr + i - 2, ptr + i)] ∧ Extracted.program.DataLoaded M') := by
+        MemFrame M M' [(ptr + i - 2, ptr + i)] ∧ TabsOK M') := by
   have hc : fb + 0x300 < 2 ^ 47 := by decide
   have h9 : 10 ^ 9 < 2 ^ 32 := by decide
   have hx : x < 2 ^ 32 := by omega
@@ -88,17 +66,16 @@ theorem inner_step (s0 : State) (ptr len x i j : Nat) (R : Nat → W64) (fl : Fl
     rw [Nat.mod_eq_of_lt (by omega : x / 100 * 100 < 2^32)]
     omega
   have hjj : (BitVec.ofNat 64 j).toNat = j := by simp; omega
-  janus64_data hd [hacc]
+  tabs_data hd [hacc]
   janus64_run [e0, e3, e1, e7, e6, hq, hq64] until [fb + 0x60]
   have hd2 : (4294967296 - (BitVec.ofNat 32 (x / 100) * 100#32).toNat % 4294967296 + x % 4294967296) % 4294967296 = x % 100 := by
     rw [hm]; omega
   have hk0 : (x % 100 + x % 100) % 4294967296 = 2 * (x % 100) := by omega
-  have hk1 : (2 * (x % 100) + 1) % 4294967296 + 5176582 = smallsBase + 2 * (x % 100) + 1 := by
-    simp only [smallsBase]; omega
+  have hk1 : (2 * (x % 100) + 1) % 4294967296 + 5176582 = 5176582 + 2 * (x % 100) + 1 := by
+    omega
   have hw0 : (i + (18446744073709551614 + ptr) % 18446744073709551616) % 18446744073709551616 = ptr + i - 2 := by omega
   have hw1 : (i + (18446744073709551615 + ptr) % 18446744073709551616) % 18446744073709551616 = ptr + i - 1 := by omega
-  have hsr := smalls_read hd (x % 100) (by omega)
-  simp only [smallsBase] at hsr hk1
+  have hsr := hd.smalls (x % 100) (by omega)
   simp only [hd2, hk0, hk1]
   refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · simp [setRegF] <;> try bv_omega
@@ -117,24 +94,6 @@ theorem inner_step (s0 : State) (ptr len x i j : Nat) (R : Nat → W64) (fl : Fl
   · simp only [hw0, hw1]
     exact ((MemFrame.refl M [(ptr + i - 2, ptr + i)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
       (List.mem_singleton_self _) (by omega) (by omega)
-  · exact Fv256.E.dataLoaded_writeLE (Fv256.E.dataLoaded_writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _) (by simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _
-abbrev digitsDat : Janus.DataSegment := Extracted.data[2]
-abbrev digitsBase : Nat := 5163273
-
-set_option maxRecDepth 100000 in
-theorem digits_base : digitsDat.base = digitsBase := by decide
-set_option maxRecDepth 100000 in
-theorem digits_len : digitsDat.bytes.length = 256 := by decide
-theorem digits_mem : digitsDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
-
-theorem digits_tab : ∀ d, d < 10 → digitsDat.bytes[d]! = 48 + d := by
-  decide +kernel
-
-theorem digits_read {M : Memory} (hd : Extracted.program.DataLoaded M) (d : Nat) (hd10 : d < 10) :
-    M.readLE (digitsBase + d) 1 = 48 + d := by
-  have b0 := DataLoaded.byte hd digits_mem d (by rw [digits_len]; omega)
-  rw [digits_base] at b0
-  rw [b0, ← digits_tab d hd10]
-  exact (getElem!_pos digitsDat.bytes d (by rw [digits_len]; omega)).symm
+  · exact TabsOK.writeLE (TabsOK.writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _) (by simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _
 
 end Fv256.Amd64.Dec

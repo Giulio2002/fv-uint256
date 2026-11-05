@@ -18,7 +18,7 @@ set_option maxRecDepth 20000 in
 theorem append_summary :
     Summary Extracted.program au
       (fun s => s.regs 6 = 10#64 ∧ StackGuardOK s 0 ∧ StackWritable s 0x88 0x20 ∧ (s.regs 4).toNat % 8 = 0 ∧
-        s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧ Extracted.program.DataLoaded s.mem ∧
+        s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧ TabsOK s.mem ∧
         (s.regs 3).toNat + decLen (s.regs 7).toNat ≤ (s.regs 1).toNat ∧
         (s.regs 0).toNat + (s.regs 1).toNat ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat (s.regs 1).toNat true = true ∧
         ((s.regs 0).toNat + (s.regs 1).toNat ≤ (s.regs 4).toNat - 0x88 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 0).toNat) ∧
@@ -32,7 +32,7 @@ theorem append_summary :
         MemFrame s.mem s'.mem [((s.regs 0).toNat + (s.regs 3).toNat,
             (s.regs 0).toNat + (s.regs 3).toNat + decLen (s.regs 7).toNat),
           ((s.regs 4).toNat - 0x88, (s.regs 4).toNat + 0x20)] ∧
-        Extracted.program.DataLoaded s'.mem) := by
+        TabsOK s'.mem) := by
   intro s hpc ⟨hbase, hg, hw, hal, hret, hd, hcap, hdn, hda, hdisj, hgrt⟩
   have hc : au + 0x300 < 2 ^ 47 := by decide
   obtain ⟨hwb, hwn, hwa⟩ := hw
@@ -42,7 +42,7 @@ theorem append_summary :
   have hg2 := hg.readable
   simp only [regSP, Janus.Amd64.GoABI.regG, Janus.Amd64.GoABI.stackguard0Offset,
     Janus.Amd64.GoABI.stackguard0] at hgl hg3 hg1 hg2 hwb hwn hwa hal hret hdisj hgrt
-  janus64_data hd [hwa, hda]
+  tabs_data hd [hwa, hda]
   have hs4 := (s.regs 4).isLt
   have hu64 := (s.regs 7).isLt
   have hdl20 := decLen_le_20 (s.regs 7).toNat hu64
@@ -53,19 +53,19 @@ theorem append_summary :
       by_cases h10 : (s.regs 7).toNat < 10
       · rw [decLen_lt _ h10]; omega
       · rw [decLen_ge _ (by omega), decLen_lt _ (by omega)]; omega
-    have hdigs : ∀ i, i < decLen (s.regs 7).toNat → ∀ M : Memory, Extracted.program.DataLoaded M →
-        M.readLE ((if (s.regs 7).toNat < 10 then digitsBase + (s.regs 7).toNat else smallsBase + 2 * (s.regs 7).toNat) + i) 1 =
+    have hdigs : ∀ i, i < decLen (s.regs 7).toNat → ∀ M : Memory, TabsOK M →
+        M.readLE ((if (s.regs 7).toNat < 10 then 5163273 + (s.regs 7).toNat else 5176582 + 2 * (s.regs 7).toNat) + i) 1 =
           48 + (s.regs 7).toNat / 10 ^ (decLen (s.regs 7).toNat - 1 - i) % 10 := by
       intro i hi M hM
       by_cases h10 : (s.regs 7).toNat < 10
       · have hl : decLen (s.regs 7).toNat = 1 := decLen_lt _ h10
         have hi0 : i = 0 := by omega
         subst hi0
-        rw [if_pos h10, Nat.add_zero, digits_read hM _ h10, hl]
+        rw [if_pos h10, Nat.add_zero, hM.digits _ h10, hl]
         simp only [Nat.sub_self, Nat.pow_zero, Nat.div_one]; omega
       · have hl : decLen (s.regs 7).toNat = 2 := by
           rw [decLen_ge _ (by omega), decLen_lt _ (by omega)]
-        have hsr := smalls_read hM (s.regs 7).toNat h100
+        have hsr := hM.smalls (s.regs 7).toNat h100
         rw [if_neg h10, hl]
         rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl
         · rw [Nat.add_zero, hsr.1]
@@ -88,7 +88,6 @@ theorem append_summary :
         have h2 := hdigs (1 - 1 - k) (by omega) s.mem hd
         rw [hl] at h2
         rw [show (s.regs 0).toNat + (s.regs 3).toNat + 1 - 1 - k = (s.regs 0).toNat + (s.regs 3).toNat + (1 - 1 - k) by omega, hb]
-        simp only [digitsBase, smallsBase] at h2
         rw [if_pos h10] at h2
         rw [show 1 - 1 - (1 - 1 - k) = k by omega] at h2
         rw [← h2]
@@ -107,8 +106,8 @@ theorem append_summary :
           simp only [Outside, and_true] at h ⊢
           omega
       · refine hdl ?_
-        refine dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE
-          (dataLoaded_writeLE (dataLoaded_writeLE hd ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _
+        refine TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE
+          (TabsOK.writeLE (TabsOK.writeLE hd ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _
         all_goals first
           | (simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega))
           | exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
@@ -126,7 +125,6 @@ theorem append_summary :
         have h2 := hdigs (2 - 1 - k) (by omega) s.mem hd
         rw [hl] at h2
         rw [show (s.regs 0).toNat + (s.regs 3).toNat + 2 - 1 - k = (s.regs 0).toNat + (s.regs 3).toNat + (2 - 1 - k) by omega, hb]
-        simp only [digitsBase, smallsBase] at h2
         rw [if_neg h10] at h2
         rw [show 2 - 1 - (2 - 1 - k) = k by omega] at h2
         rw [← h2]
@@ -145,8 +143,8 @@ theorem append_summary :
           simp only [Outside, and_true] at h ⊢
           omega
       · refine hdl ?_
-        refine dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE
-          (dataLoaded_writeLE (dataLoaded_writeLE hd ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _
+        refine TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE
+          (TabsOK.writeLE (TabsOK.writeLE hd ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _
         all_goals first
           | (simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega))
           | exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
@@ -168,8 +166,8 @@ theorem append_summary :
       · simp only [Janus.Arm64.Memory.accessible_writeLE]
         simp [setRegF, h128]
         exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
-      · refine dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE (dataLoaded_writeLE
-          (dataLoaded_writeLE (dataLoaded_writeLE hd ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _
+      · refine TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE (TabsOK.writeLE
+          (TabsOK.writeLE (TabsOK.writeLE hd ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _) ?_ _
         all_goals first
           | (simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega))
           | exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
@@ -232,5 +230,5 @@ theorem append_summary :
           | exact bdl
           | (simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hwa2 (Or.inr rfl) (by omega) (by omega))
           | exact accessible_sub hwa2 (Or.inr rfl) (by omega) (by omega)
-          | refine dataLoaded_writeLE ?_ ?_ _
+          | refine TabsOK.writeLE ?_ ?_ _
 end Fv256.Amd64.Dec

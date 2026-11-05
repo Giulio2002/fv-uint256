@@ -12,7 +12,7 @@ namespace Fv256.Amd64.Dec
 /-- The prologue of `formatBase10`: `PUSHQ BP; MOVQ SP, BP; MOVQ AX, 0x10(SP); MOVQ BX, CX; JMP`. -/
 theorem entry_h1 (s : State) (hpc : s.rip = BitVec.ofNat 64 fb)
     (hsa : s.mem.accessible ((s.regs 4).toNat - 8) 24 true = true) (hsp : 8 ≤ (s.regs 4).toNat)
-    (hspu : (s.regs 4).toNat + 16 ≤ 2 ^ 48) (hd : Extracted.program.DataLoaded s.mem) :
+    (hspu : (s.regs 4).toNat + 16 ≤ 2 ^ 48) (hd : TabsOK s.mem) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x17)) s
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s with regs := R', rip := BitVec.ofNat 64 (fb + 0x17), flags := fl', mem := M' } ∧
@@ -21,7 +21,7 @@ theorem entry_h1 (s : State) (hpc : s.rip = BitVec.ofNat 64 fb)
         (∀ k, k ∉ [1, 4, 5] → R' k = s.regs k) ∧
         M'.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧ M'.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
         MemFrame s.mem M' [((s.regs 4).toNat - 8, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] ∧
-        Extracted.program.DataLoaded M') := by
+        TabsOK M') := by
   have hc : fb + 0x300 < 2 ^ 47 := by decide
   janus64_run
   have hs4 := (s.regs 4).isLt
@@ -41,6 +41,6 @@ theorem entry_h1 (s : State) (hpc : s.rip = BitVec.ofNat 64 fb)
   · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
   · exact ((MemFrame.refl s.mem _).writeLE _ (List.mem_cons_self ..) (by omega) (by omega)).writeLE _
       (List.mem_cons_of_mem _ (List.mem_singleton_self _)) (by omega) (by omega)
-  · exact dataLoaded_writeLE (dataLoaded_writeLE hd (accessible_sub hsa (Or.inr rfl) (by omega) (by omega)) _)
+  · exact TabsOK.writeLE (TabsOK.writeLE hd (accessible_sub hsa (Or.inr rfl) (by omega) (by omega)) _)
       (by simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hsa (Or.inr rfl) (by omega) (by omega)) _
 end Fv256.Amd64.Dec

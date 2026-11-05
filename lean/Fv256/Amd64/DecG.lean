@@ -16,7 +16,7 @@ set_option maxHeartbeats 8000000 in
 theorem fin_loop (s0 : State) (ptr len u0 i0 : Nat) (hu : u0 < 2 ^ 29) (hdl : decLen u0 ≤ i0) (hil : i0 ≤ len)
     (hp : ptr + len ≤ 2 ^ 48) :
     ∀ lo c (R : Nat → W64) (fl : Flags) (M : Memory), lo = u0 / 10 ^ c → c + decLen lo ≤ i0 →
-      M.accessible ptr len true = true → Extracted.program.DataLoaded M →
+      M.accessible ptr len true = true → TabsOK M →
       R 0 = BitVec.ofNat 64 ptr → R 3 = BitVec.ofNat 64 (i0 - c) → R 1 = BitVec.ofNat 64 len →
       R 2 = BitVec.ofNat 64 lo →
       (∀ k, k < c → M.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) →
@@ -28,7 +28,7 @@ theorem fin_loop (s0 : State) (ptr len u0 i0 : Nat) (hu : u0 < 2 ^ 29) (hdl : de
           R' 0 = BitVec.ofNat 64 ptr ∧ R' 1 = BitVec.ofNat 64 len ∧ R' 3 = BitVec.ofNat 64 (i0 - c') ∧
           R' 2 = BitVec.ofNat 64 (u0 / 10 ^ c') ∧ (∀ k, k ∉ [2, 3, 6, 7, 8, 9] → R' k = R k) ∧
           (∀ k, k < c' → M'.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) ∧
-          MemFrame M M' [(ptr + i0 - c', ptr + i0 - c)] ∧ Extracted.program.DataLoaded M') := by
+          MemFrame M M' [(ptr + i0 - c', ptr + i0 - c)] ∧ TabsOK M') := by
   intro lo
   induction lo using Nat.strongRecOn with
   | _ lo ih =>

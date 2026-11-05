@@ -14,25 +14,24 @@ theorem fin_last (s0 : State) (ptr len lo i : Nat) (R : Nat → W64) (fl : Flags
     (hlo : lo < 100) (hi : decLen lo ≤ i) (hil : i ≤ len)
     (hp : ptr + len ≤ 2 ^ 48) (hacc : M.accessible ptr len true = true)
     (e0 : R 0 = BitVec.ofNat 64 ptr) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
-    (e2 : R 2 = BitVec.ofNat 64 lo) (hd : Extracted.program.DataLoaded M) :
+    (e2 : R 2 = BitVec.ofNat 64 lo) (hd : TabsOK M) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x199))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x15a), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x199), flags := fl', mem := M' } ∧
         R' 6 = BitVec.ofNat 64 (i - decLen lo) ∧ (∀ k, k ∉ [2, 6, 7, 8] → R' k = R k) ∧
         (∀ k, k < decLen lo → M'.readLE (ptr + i - 1 - k) 1 = 48 + lo / 10 ^ k % 10) ∧
-        MemFrame M M' [(ptr + i - decLen lo, ptr + i)] ∧ Extracted.program.DataLoaded M') := by
+        MemFrame M M' [(ptr + i - decLen lo, ptr + i)] ∧ TabsOK M') := by
   have hc : fb + 0x300 < 2 ^ 47 := by decide
-  have hsr := smalls_read hd lo hlo
-  janus64_data hd [hacc]
+  have hsr := hd.smalls lo hlo
+  tabs_data hd [hacc]
   by_cases h10 : lo < 10
   · have hl : decLen lo = 1 := decLen_lt lo h10
     rw [hl] at hi ⊢
     janus64_run [e0, e3, e1, e2] until [fb + 0x199]
     have hw : (i + (18446744073709551615 + ptr) % 18446744073709551616) % 18446744073709551616 = ptr + i - 1 := by omega
-    have hk1 : ((lo + lo) % 4294967296 + 1) % 4294967296 + 5176582 = smallsBase + 2 * lo + 1 := by
-      simp only [smallsBase]; omega
-    simp only [smallsBase] at hsr hk1
+    have hk1 : ((lo + lo) % 4294967296 + 1) % 4294967296 + 5176582 = 5176582 + 2 * lo + 1 := by
+      omega
     rw [hw, hk1]
     refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_⟩
     · simp only [setRegF]; simp; exact Fv256.E.ofNat_sub_ofNat i 1 (by omega) (by omega)
@@ -45,7 +44,7 @@ theorem fin_last (s0 : State) (ptr len lo i : Nat) (R : Nat → W64) (fl : Flags
       rw [show ptr + i - 1 - 0 = ptr + i - 1 by omega, Janus.Arm64.Memory.readLE_writeLE_self, hsr.2]
       simp only [Nat.pow_one, Nat.pow_zero, Nat.div_one]; omega
     · exact MemFrame.of_writeLE M _ (r := (ptr + i - 1, ptr + i)) (List.mem_singleton_self _) (by omega) (by omega)
-    · exact dataLoaded_writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _
+    · exact TabsOK.writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _
   · have hl : decLen lo = 2 := by
       have := decLen_ge lo (by omega)
       have h2 : lo / 10 < 10 := by omega
@@ -54,11 +53,10 @@ theorem fin_last (s0 : State) (ptr len lo i : Nat) (R : Nat → W64) (fl : Flags
     janus64_run [e0, e3, e1, e2] until [fb + 0x199]
     have hw0 : (i + (18446744073709551614 + ptr) % 18446744073709551616) % 18446744073709551616 = ptr + i - 2 := by omega
     have hw1 : (i + (18446744073709551615 + ptr) % 18446744073709551616) % 18446744073709551616 = ptr + i - 1 := by omega
-    have hk0 : (lo % 4294967296 + lo % 4294967296) % 4294967296 + 5176582 = smallsBase + 2 * lo := by
-      simp only [smallsBase]; omega
-    have hk1 : ((lo + lo) % 4294967296 + 1) % 4294967296 + 5176582 = smallsBase + 2 * lo + 1 := by
-      simp only [smallsBase]; omega
-    simp only [smallsBase] at hsr hk0 hk1
+    have hk0 : (lo % 4294967296 + lo % 4294967296) % 4294967296 + 5176582 = 5176582 + 2 * lo := by
+      omega
+    have hk1 : ((lo + lo) % 4294967296 + 1) % 4294967296 + 5176582 = 5176582 + 2 * lo + 1 := by
+      omega
     rw [hw0, hw1, hk0, hk1]
     refine ⟨_, _, _, rfl, ?_, ?_, ?_, ?_, ?_⟩
     · simp only [setRegF]; simp; exact Fv256.E.ofNat_sub_ofNat i 2 (by omega) (by omega)
@@ -75,6 +73,6 @@ theorem fin_last (s0 : State) (ptr len lo i : Nat) (R : Nat → W64) (fl : Flags
         simp only [Nat.pow_one, Nat.pow_zero, Nat.div_one]; omega
     · exact ((MemFrame.refl M [(ptr + i - 2, ptr + i)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
         (List.mem_singleton_self _) (by omega) (by omega)
-    · exact dataLoaded_writeLE (dataLoaded_writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _)
+    · exact TabsOK.writeLE (TabsOK.writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _)
         (by simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _
 end Fv256.Amd64.Dec

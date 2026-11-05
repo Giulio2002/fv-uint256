@@ -30,7 +30,7 @@ theorem outer (s0 : State) (ptr len u0 i0 sp bp ret : Nat) (hu0 : u0 < 2 ^ 64) (
     (hil : i0 ≤ len) (hp : ptr + len ≤ 2 ^ 48) (hsp : sp + 16 ≤ 2 ^ 48) (hdisj : ptr + len ≤ sp ∨ sp + 16 ≤ ptr)
     (hret : ret < 2 ^ 47) :
     ∀ u c (R : Nat → W64) (fl : Flags) (M : Memory), u = u0 / 10 ^ c → c + decLen u ≤ i0 →
-      M.accessible ptr len true = true → Extracted.program.DataLoaded M →
+      M.accessible ptr len true = true → TabsOK M →
       M.accessible sp 16 true = true → M.readLE sp 8 = bp → M.readLE (sp + 8) 8 = ret →
       R 0 = BitVec.ofNat 64 ptr → R 3 = BitVec.ofNat 64 (i0 - c) → R 1 = BitVec.ofNat 64 len →
       R 7 = BitVec.ofNat 64 u → R 4 = BitVec.ofNat 64 sp →
@@ -42,7 +42,7 @@ theorem outer (s0 : State) (ptr len u0 i0 sp bp ret : Nat) (hu0 : u0 < 2 ^ 64) (
           R' 0 = BitVec.ofNat 64 (i0 - decLen u0) ∧ R' 4 = BitVec.ofNat 64 (sp + 16) ∧ R' 5 = BitVec.ofNat 64 bp ∧
           (∀ k, k ∉ [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] → R' k = R k) ∧
           (∀ k, k < decLen u0 → M'.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) ∧
-          MemFrame M M' [(ptr + i0 - decLen u0, ptr + i0 - c)] ∧ Extracted.program.DataLoaded M') := by
+          MemFrame M M' [(ptr + i0 - decLen u0, ptr + i0 - c)] ∧ TabsOK M') := by
   intro u
   induction u using Nat.strongRecOn with
   | _ u ih =>

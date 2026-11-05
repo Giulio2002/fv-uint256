@@ -18,7 +18,7 @@ set_option maxHeartbeats 8000000 in
 /-- One 9-digit chunk of `formatBase10` when more digits remain (`u / 10^9 ≠ 0`): back at the loop head `fb+0x17`. -/
 theorem chunk_loop (s0 : State) (ptr len u i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hu : u < 2 ^ 64) (hu9 : 10 ^ 9 ≤ u) (hi : 9 ≤ i) (hil : i ≤ len) (hp : ptr + len ≤ 2 ^ 48)
-    (hacc : M.accessible ptr len true = true) (hd : Extracted.program.DataLoaded M)
+    (hacc : M.accessible ptr len true = true) (hd : TabsOK M)
     (e0 : R 0 = BitVec.ofNat 64 ptr) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e7 : R 7 = BitVec.ofNat 64 u) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x17))
@@ -28,7 +28,7 @@ theorem chunk_loop (s0 : State) (ptr len u i : Nat) (R : Nat → W64) (fl : Flag
         R' 0 = BitVec.ofNat 64 ptr ∧ R' 3 = BitVec.ofNat 64 (i - 9) ∧ R' 1 = BitVec.ofNat 64 len ∧
         R' 7 = BitVec.ofNat 64 (u / 10 ^ 9) ∧ (∀ k, k ∉ [0, 2, 3, 6, 7, 8, 9, 10, 11] → R' k = R k) ∧
         (∀ k, k < 9 → M'.readLE (ptr + i - 1 - k) 1 = 48 + u / 10 ^ k % 10) ∧
-        MemFrame M M' [(ptr + i - 9, ptr + i)] ∧ Extracted.program.DataLoaded M') := by
+        MemFrame M M' [(ptr + i - 9, ptr + i)] ∧ TabsOK M') := by
   have hu29 : 2 ^ 29 ≤ u := by
     have : 2 ^ 29 ≤ 10 ^ 9 := by decide
     omega
@@ -68,7 +68,7 @@ set_option maxHeartbeats 8000000 in
 /-- One 9-digit chunk of `formatBase10` when no digits remain (`u < 10^9`): at the return block `fb+0x1b4`. -/
 theorem chunk_ret (s0 : State) (ptr len u i : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hu : u < 2 ^ 64) (hu9 : u < 10 ^ 9) (hu29 : 2 ^ 29 ≤ u) (hi : 9 ≤ i) (hil : i ≤ len) (hp : ptr + len ≤ 2 ^ 48)
-    (hacc : M.accessible ptr len true = true) (hd : Extracted.program.DataLoaded M)
+    (hacc : M.accessible ptr len true = true) (hd : TabsOK M)
     (e0 : R 0 = BitVec.ofNat 64 ptr) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e7 : R 7 = BitVec.ofNat 64 u) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x1b4))
@@ -77,7 +77,7 @@ theorem chunk_ret (s0 : State) (ptr len u i : Nat) (R : Nat → W64) (fl : Flags
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x1b4), flags := fl', mem := M' } ∧
         R' 0 = BitVec.ofNat 64 (i - 9) ∧ R' 1 = BitVec.ofNat 64 len ∧ R' 7 = BitVec.ofNat 64 ptr ∧ (∀ k, k ∉ [0, 2, 3, 6, 7, 8, 9, 10, 11] → R' k = R k) ∧
         (∀ k, k < 9 → M'.readLE (ptr + i - 1 - k) 1 = 48 + u / 10 ^ k % 10) ∧
-        MemFrame M M' [(ptr + i - 9, ptr + i)] ∧ Extracted.program.DataLoaded M') := by
+        MemFrame M M' [(ptr + i - 9, ptr + i)] ∧ TabsOK M') := by
   refine Fv256.E.reachesRet_bind (chunk_pre s0 u R fl M hu hu29 (by rw [e7])) ?_
   rintro S ⟨R1, fl1, rfl, a0, a3, a1, a7, a6, a2, ak⟩
   have hx0 : u % 10 ^ 9 < 10 ^ 9 := Nat.mod_lt _ (by decide)

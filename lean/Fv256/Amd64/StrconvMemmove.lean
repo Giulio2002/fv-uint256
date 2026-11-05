@@ -25,7 +25,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (M.readLE sp 8), flags := fl', xmm := X', mem := M' } ∧
         R' 4 = BitVec.ofNat 64 (sp + 8) ∧ (∀ k, k ∉ [0, 1, 3, 4, 6, 7] → R' k = R k) ∧
         (∀ i, 4 ≤ i → X' i = s0.xmm i) ∧ (∀ i, i < n → M'.readLE (dst + i) 1 = M.readLE (src + i) 1) ∧
-        MemFrame M M' [(dst, dst + n)] ∧ (Extracted.program.DataLoaded M → Extracted.program.DataLoaded M')) := by
+        MemFrame M M' [(dst, dst + n)] ∧ (TabsOK M → TabsOK M')) := by
   have hc : mm + 0x800 < 2 ^ 47 := by decide
   rcases (by omega : n = 0 ∨ (1 ≤ n ∧ n ≤ 2) ∨ n = 3 ∨ n = 4 ∨ (5 ≤ n ∧ n ≤ 7) ∨ n = 8 ∨ (9 ≤ n ∧ n ≤ 16) ∨ (17 ≤ n ∧ n ≤ 32)) with h | h | h | h | h | h | h | h
   · subst h
@@ -49,7 +49,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     · exact two_copy' M dst src n 1 1 (by omega) (by omega) (by omega) hdisj
     · exact ((MemFrame.refl M [(dst, dst + n)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
         (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
+    · exact fun hdl => TabsOK.two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
   · subst h
     janus64_run [e0, e3, e1, e4]
     have z16 := merge_store16 (BitVec.ofNat 64 dst) (M.readLE src 2) (by simpa using Janus.Arm64.Memory.readLE_lt M src 2)
@@ -67,7 +67,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
       exact this
     · exact ((MemFrame.refl M [(dst, dst + 3)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
         (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
+    · exact fun hdl => TabsOK.two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
   · subst h
     janus64_run [e0, e3, e1, e4]
     rw [mod32_read]
@@ -79,7 +79,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     · intro i hi; rfl
     · exact one_copy M dst src 4
     · exact (MemFrame.refl M [(dst, dst + 4)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_writeLE hdl hda _
+    · exact fun hdl => TabsOK.writeLE hdl hda _
   · janus64_run [e0, e3, e1, e4]
     rw [mod32_read, mod32_read]
     refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
@@ -91,7 +91,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     · exact two_copy' M dst src n 4 4 (by omega) (by omega) (by omega) hdisj
     · exact ((MemFrame.refl M [(dst, dst + n)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
         (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
+    · exact fun hdl => TabsOK.two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
   · subst h
     janus64_run [e0, e3, e1, e4]
     refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
@@ -102,7 +102,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     · intro i hi; rfl
     · exact one_copy M dst src 8
     · exact (MemFrame.refl M [(dst, dst + 8)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_writeLE hdl hda _
+    · exact fun hdl => TabsOK.writeLE hdl hda _
   · janus64_run [e0, e3, e1, e4]
     refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · simp [setRegF]; exact (BitVec.ofNat_add sp 8).symm
@@ -113,7 +113,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     · exact two_copy' M dst src n 8 8 (by omega) (by omega) (by omega) hdisj
     · exact ((MemFrame.refl M [(dst, dst + n)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
         (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
+    · exact fun hdl => TabsOK.two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
   · janus64_run [e0, e3, e1, e4]
     refine ⟨_, _, _, _, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · simp [setRegF]; exact (BitVec.ofNat_add sp 8).symm
@@ -127,7 +127,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     · exact two_copy' M dst src n 16 16 (by omega) (by omega) (by omega) hdisj
     · exact ((MemFrame.refl M [(dst, dst + n)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
         (List.mem_singleton_self _) (by omega) (by omega)
-    · exact fun hdl => dataLoaded_two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
+    · exact fun hdl => TabsOK.two hdl hda (by omega) (by omega) (by omega) (by omega) _ _
 
 /-- `memmove_small` as a callee summary. -/
 theorem memmove_sum :
@@ -144,7 +144,7 @@ theorem memmove_sum :
         (∀ i, 4 ≤ i → s'.xmm i = s.xmm i) ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
         (∀ i, i < (s.regs 1).toNat → s'.mem.readLE ((s.regs 0).toNat + i) 1 = s.mem.readLE ((s.regs 3).toNat + i) 1) ∧
         MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + (s.regs 1).toNat)] ∧
-        (Extracted.program.DataLoaded s.mem → Extracted.program.DataLoaded s'.mem)) := by
+        (TabsOK s.mem → TabsOK s'.mem)) := by
   intro s hpc ⟨hn, hd, hs, hda, hsa, hdisj, hsp, hspa, hdsp, hret⟩
   have e0 : s.regs 0 = BitVec.ofNat 64 (s.regs 0).toNat := by simp
   have e3 : s.regs 3 = BitVec.ofNat 64 (s.regs 3).toNat := by simp
