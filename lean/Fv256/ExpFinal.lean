@@ -1,4 +1,5 @@
 import Fv256.ExpMath
+import Janus
 namespace Fv256.F
 
 theorem stage_full (r b w t : Nat) (hr : r < W) (hb : b < W) (hw : w < 2 ^ t) :
@@ -107,4 +108,27 @@ theorem even_exp_zero (b e : Nat) (hb : b % 2 = 0) (he : 256 ≤ e) : b ^ e % 2 
     obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le he
     exact ⟨b ^ d, by rw [Nat.pow_add]⟩
   exact Nat.mod_eq_zero_of_dvd (Nat.dvd_trans h1 h3)
+
+theorem split4 (M : Janus.Arm64.Memory) (a : Nat) :
+    M.readLE a 32 = M.readLE a 8 + 256 ^ 8 * (M.readLE (a + 8) 8 + 256 ^ 8 * (M.readLE (a + 16) 8 + 256 ^ 8 * M.readLE (a + 24) 8)) := by
+  rw [show (32:Nat) = 8 + 24 by rfl, Janus.Arm64.Memory.readLE_add, show (24:Nat) = 8 + 16 by rfl,
+    Janus.Arm64.Memory.readLE_add (a := a + 8), show (16:Nat) = 8 + 8 by rfl, Janus.Arm64.Memory.readLE_add (a := a + 8 + 8)]
+
+theorem exp_stage0 (b e0 n : Nat) (hb : b < W) (he : e0 < 2 ^ n) :
+    (expIter n (1, b, e0)).1 = b ^ e0 % W := by
+  rw [expIter_eq n 1 b e0 (by decide) hb, Nat.mod_eq_of_lt he, Nat.one_mul]
+
+theorem copy32 (M : Janus.Arm64.Memory) (z p q1 q2 q3 : Nat) (h1 : q1 = p + 8) (h2 : q2 = p + 16) (h3 : q3 = p + 24)
+    (d1 : z + 32 ≤ p ∨ p + 32 ≤ z) :
+    ((((M.writeLE z 8 (M.readLE p 8)).writeLE (z + 8) 8 (M.readLE q1 8)).writeLE (z + 16) 8 (M.readLE q2 8)).writeLE (z + 24) 8 (M.readLE q3 8)).readLE z 32
+      = M.readLE p 32 := by
+  subst h1 h2 h3
+  rw [split4 _ z, split4 M p]
+  have l0 := Janus.Arm64.Memory.readLE_lt M p 8
+  have l1 := Janus.Arm64.Memory.readLE_lt M (p + 8) 8
+  have l2 := Janus.Arm64.Memory.readLE_lt M (p + 16) 8
+  have l3 := Janus.Arm64.Memory.readLE_lt M (p + 24) 8
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self,
+    show z + 8 + 8 = z + 16 by omega, show z + 8 + 16 = z + 24 by omega, show z + 16 + 8 = z + 24 by omega]
+  rw [Nat.mod_eq_of_lt l0, Nat.mod_eq_of_lt l1, Nat.mod_eq_of_lt l2, Nat.mod_eq_of_lt l3]
 end Fv256.F
