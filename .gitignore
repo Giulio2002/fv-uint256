@@ -3,3 +3,4 @@ scratch/
 build/
 wip/
 NOTES.md
+tools/__pycache__/
