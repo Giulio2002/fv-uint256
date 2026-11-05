@@ -70,7 +70,7 @@ theorem finF (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64
   all_goals (try (refine frame_wb hfr ?_ ?_ ?_ ?_ <;> first | rfl | assumption | (constructor <;> omega)))
   all_goals (try janus_simp)
   all_goals first
-    | (rw [read_wb ‹MemFrame _ _ _› ‹InRanges _ 16 _› hbpo (by unfold Janus.Spec.Disjoint at hbpd; omega),
+    | (rw [read_wb (show MemFrame _ _ _ by janus_assumption) (show InRanges _ 16 _ by janus_assumption) hbpo (by unfold Janus.Spec.Disjoint at hbpd; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Janus.Spec.Disjoint at hbpd; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hPb; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hPb; omega)]
@@ -79,7 +79,7 @@ theorem finF (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64
     | (intro i hi
        rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hAP; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hAP; omega),
-         read_wb ‹MemFrame _ _ _› ‹InRanges _ 16 _› (Outside.of_sub hAo (by omega) (by omega)) (by unfold Apart at hAd; omega),
+         read_wb (show MemFrame _ _ _ by janus_assumption) (show InRanges _ 16 _ by janus_assumption) (Outside.of_sub hAo (by omega) (by omega)) (by unfold Apart at hAd; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hAd; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hAP; omega),
          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hAP; omega)]
@@ -102,6 +102,6 @@ theorem finF (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64
     | (unfold Apart at *; janus_clear_irrel2; omega)
     | (trace_state; fail "finF")
     | (refine frame_wb hfr ?_ ?_ ?_ ?_ <;> first | rfl | assumption | (constructor <;> omega); done)
-    | (rw [read_wb ‹MemFrame _ _ _› ‹InRanges _ 16 _› hbpo (by unfold Janus.Spec.Disjoint at hbpd; omega)])
+    | (rw [read_wb (show MemFrame _ _ _ by janus_assumption) (show InRanges _ 16 _ by janus_assumption) hbpo (by unfold Janus.Spec.Disjoint at hbpd; omega)])
 
 end Fv256.Amd64.IntoBig
