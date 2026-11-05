@@ -16,6 +16,8 @@ GO="${GO:-$(command -v go || true)}"
 [ -n "$GO" ] && [ -x "$GO" ] || { echo "error: no Go toolchain found: set GO=/path/to/go or put go on PATH (Go >= 1.21; it downloads go1.26.0 itself)"; exit 2; }
 # the proofs depend on the pinned Janus revision through lake (lean/lakefile.toml): fetch it once
 if [ ! -d lean/.lake/packages/janus ]; then (cd lean && lake update janus) || { echo "lake update janus failed"; exit 2; }; fi
+# ToBig's proof imports the IntoBig modules re-targeted at ToBig's extraction (generated, not committed)
+[ -f lean/Fv256/Arm64/ToBig.lean ] && bash scripts/gen-tb-intobig.sh lean
 # per-function extraction flags (runtime contracts); see scripts/contract-flags.sh
 . "$root/scripts/contract-flags.sh"
 if [ -z "${SKIP_HARNESS:-}" ]; then
@@ -24,12 +26,12 @@ for a in arm64 amd64; do
 done
 (cd go && GOTOOLCHAIN=go1.26.0 GOAMD64=v3 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build -trimpath -buildvcs=false -o ../build/harness-amd64v3 ./cmd/harness) || { echo "harness build failed (amd64 v3)"; exit 2; }
 fi
-# rows: | `(*uint256.Int).Fn` | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
+# rows: | `(*uint256.Int).Fn` | owner | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
 mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
 fail=0; table=""
 for row in "${rows[@]}"; do
   sym=$(echo "$row" | cut -d'|' -f2 | tr -d ' `')
-  st_arm=$(echo "$row" | cut -d'|' -f3 | tr -d ' '); st_amd=$(echo "$row" | cut -d'|' -f4 | tr -d ' ')
+  st_arm=$(echo "$row" | cut -d'|' -f4 | tr -d ' '); st_amd=$(echo "$row" | cut -d'|' -f5 | tr -d ' ')
   fn="${sym##*.}"
   [ $# -gt 0 ] && { case " $* " in *" $fn "*) ;; *) continue;; esac; }
   case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac

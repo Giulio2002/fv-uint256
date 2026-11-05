@@ -1,4 +1,5 @@
 import Fv256.Spec
+import Fv256.SpecC
 
 /-!
 Sanity checks of the specification on small and boundary values (decided by the kernel). They are not part of any
@@ -42,5 +43,13 @@ example : subOv 0 1 = true := by decide
 example : mulOv (2 ^ 128) (2 ^ 128) = true := by decide
 example : uint64Ov (2 ^ 64) = true := by decide
 example : uint64 (2 ^ 64 + 7) = 7 := by decide
+
+/-! `FromBig` / `MustFromBig` / `SetFromBig` on NEGATIVE big.Ints: two's complement wrapping, no overflow flag
+(the flag only looks at the number of words), so `FromBig(-1) = 2^256 - 1` with `overflow = false`. -/
+example : Fv256.C.fromBig true 1 = W - 1 := by decide
+example : Fv256.C.fromBigOv 1 = false := by decide
+example : Fv256.C.fromBig true 0 = 0 := by decide
+example : Fv256.C.fromBig true (2 ^ 256 - 1) = 1 := by decide
+example : Fv256.C.fromBigOv 5 = true := by decide
 
 end Fv256.Spec

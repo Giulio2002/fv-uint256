@@ -56,11 +56,11 @@ set_option maxHeartbeats 16000000 in
 theorem correctness (z hp len : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, hp, len]
       (fun s => GuardOK s 48 ∧ StackOK s 72 24 ∧ Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧
-        Extracted.program.DataLoaded s.mem ∧ s.mem.accessible 1792752 96 false = true ∧
+        Extracted.program.DataLoaded s.mem ∧ s.mem.accessible errBase 96 false = true ∧
         (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
         Disjoint z.toNat 32 hp.toNat len.toNat ∧ Disjoint z.toNat 32 (s.sp.toNat - 72) 96 ∧
-        Disjoint hp.toNat len.toNat (s.sp.toNat - 72) 96 ∧ Disjoint z.toNat 32 1792752 96 ∧
-        Disjoint 1792752 96 (s.sp.toNat - 72) 96 ∧
+        Disjoint hp.toNat len.toNat (s.sp.toNat - 72) 96 ∧ Disjoint z.toNat 32 errBase 96 ∧
+        Disjoint errBase 96 (s.sp.toNat - 72) 96 ∧
         Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 72) 96)
       (fun s s' =>
         (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
@@ -70,6 +70,7 @@ theorem correctness (z hp len : BitVec 64) :
           s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 72, s.sp.toNat)]) := by
   intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, ⟨hz, hz'⟩, ⟨hps, hps'⟩, hd, herr, hnn, hd1, hd2, hd3, hd4, hd5, hd6⟩
+  simp only [errBase_val, tabBase_val] at *
   janus_intro hs
   simp only [Disjoint] at hd1 hd2 hd3 hd4 hd5 hd6
   have hnn' : ∀ e, e < 6 → ¬ (((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 ret).writeLE (BitVec.toNat s.sp - 56) 8
@@ -80,13 +81,13 @@ theorem correctness (z hp len : BitVec 64) :
       Memory.readLE_writeLE_of_disjoint _ _ (by omega),
       Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
     exact hnn e he
-  have htb : ∀ c, c < 256 → s.mem.readLE (1001813 + c) 1 = (hexNib c).getD 255 := tab_vals hd
-  have hSt0 : s.mem.accessible 1001813 256 false = true := accessible_of_dataRead hd tab_isSome
-  have hzt : z.toNat + 32 ≤ 1001813 ∨ 1001813 + 256 ≤ z.toNat := disj_data hd (t := 1001813) (k := 256) tab_isSome hz
-  have hst : s.sp.toNat - 72 + 96 ≤ 1001813 ∨ 1001813 + 256 ≤ s.sp.toNat - 72 :=
-    disj_data hd (t := 1001813) (k := 256) tab_isSome hw
+  have htb : ∀ c, c < 256 → s.mem.readLE (1002789 + c) 1 = (hexNib c).getD 255 := tab_vals hd
+  have hSt0 : s.mem.accessible 1002789 256 false = true := accessible_of_dataRead hd tab_isSome
+  have hzt : z.toNat + 32 ≤ 1002789 ∨ 1002789 + 256 ≤ z.toNat := disj_data hd (t := 1002789) (k := 256) tab_isSome hz
+  have hst : s.sp.toNat - 72 + 96 ≤ 1002789 ∨ 1002789 + 256 ≤ s.sp.toNat - 72 :=
+    disj_data hd (t := 1002789) (k := 256) tab_isSome hw
   have htb' : ∀ c, c < 256 → (((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 ret).writeLE (BitVec.toNat s.sp - 56) 8
-        (BitVec.toNat (s.regs 29))).writeLE (BitVec.toNat s.sp + 16) 8 hp.toNat).readLE (1001813 + c) 1 =
+        (BitVec.toNat (s.regs 29))).writeLE (BitVec.toNat s.sp + 16) 8 hp.toNat).readLE (1002789 + c) 1 =
         (hexNib c).getD 255 := by
     intro c hc
     rw [Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega),
@@ -142,10 +143,10 @@ theorem correctness (z hp len : BitVec 64) :
 
 namespace Witness
 
-/-- the string `"0x1f"` at `haddr`, and non-nil package error variables at `1792752 + 16 k` -/
+/-- the string `"0x1f"` at `haddr`, and non-nil package error variables at `1792784 + 16 k` -/
 def wEntries : List (Nat × Nat) :=
   [(0x3100000, 0x30), (0x3100001, 0x78), (0x3100002, 0x31), (0x3100003, 0x66),
-   (1792752, 1), (1792768, 1), (1792784, 1), (1792800, 1), (1792816, 1), (1792832, 1)]
+   (1792784, 1), (1792800, 1), (1792816, 1), (1792832, 1), (1792848, 1), (1792864, 1)]
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x1000000
@@ -168,7 +169,7 @@ def s0 : State :=
     sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
     flags := ⟨false, false, false, false⟩,
     mem := ⟨bytes, [⟨sp0 - 72, 96, true⟩, ⟨g0, 0x100, false⟩, ⟨0x3000000, 32, true⟩, ⟨0x3100000, 4, false⟩,
-      ⟨1792752, 96, false⟩] ++ dregs⟩ }
+      ⟨1792784, 96, false⟩] ++ dregs⟩ }
 
 theorem hret : RetAddr Extracted.program ret := RetAddr.of_check (by decide)
 
@@ -184,11 +185,11 @@ theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
 
 set_option maxRecDepth 100000 in
 theorem pre : GuardOK s0 48 ∧ StackOK s0 72 24 ∧ Ptr32 s0.mem zp true ∧ Ptr s0.mem hpp (4 : BitVec 64).toNat false ∧
-    Extracted.program.DataLoaded s0.mem ∧ s0.mem.accessible 1792752 96 false = true ∧
+    Extracted.program.DataLoaded s0.mem ∧ s0.mem.accessible errBase 96 false = true ∧
     (∀ e, e < 6 → s0.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
     Disjoint zp.toNat 32 hpp.toNat (4 : BitVec 64).toNat ∧ Disjoint zp.toNat 32 (s0.sp.toNat - 72) 96 ∧
-    Disjoint hpp.toNat (4 : BitVec 64).toNat (s0.sp.toNat - 72) 96 ∧ Disjoint zp.toNat 32 1792752 96 ∧
-    Disjoint 1792752 96 (s0.sp.toNat - 72) 96 ∧
+    Disjoint hpp.toNat (4 : BitVec 64).toNat (s0.sp.toNat - 72) 96 ∧ Disjoint zp.toNat 32 errBase 96 ∧
+    Disjoint errBase 96 (s0.sp.toNat - 72) 96 ∧
     Disjoint ((s0.regs 28).toNat + 16) 8 (s0.sp.toNat - 72) 96 := by
   refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide, by decide⟩, ⟨by decide, by decide⟩,
     ⟨by decide, by decide⟩, dataLoaded, by decide, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
@@ -200,11 +201,11 @@ theorem pre : GuardOK s0 48 ∧ StackOK s0 72 24 ∧ Ptr32 s0.mem zp true ∧ Pt
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z hp len : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, hp, len] s ∧
     (GuardOK s 48 ∧ StackOK s 72 24 ∧ Ptr32 s.mem z true ∧ Ptr s.mem hp len.toNat false ∧
-      Extracted.program.DataLoaded s.mem ∧ s.mem.accessible 1792752 96 false = true ∧
+      Extracted.program.DataLoaded s.mem ∧ s.mem.accessible errBase 96 false = true ∧
       (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
       Disjoint z.toNat 32 hp.toNat len.toNat ∧ Disjoint z.toNat 32 (s.sp.toNat - 72) 96 ∧
-      Disjoint hp.toNat len.toNat (s.sp.toNat - 72) 96 ∧ Disjoint z.toNat 32 1792752 96 ∧
-      Disjoint 1792752 96 (s.sp.toNat - 72) 96 ∧
+      Disjoint hp.toNat len.toNat (s.sp.toNat - 72) 96 ∧ Disjoint z.toNat 32 errBase 96 ∧
+      Disjoint errBase 96 (s.sp.toNat - 72) 96 ∧
       Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 72) 96) :=
   ⟨ret, s0, zp, hpp, 4, hret, setup, pre⟩
 
