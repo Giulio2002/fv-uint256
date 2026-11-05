@@ -11,6 +11,7 @@ import Fv256.Amd64.ExpLoop2
 import Fv256.Amd64.ExpLoop3
 import Fv256.Amd64.ExpLoop4
 import Fv256.Amd64.EnsuresOfW
+import Fv256.ExpPro
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -32,7 +33,31 @@ theorem exp_summary :
         s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
         s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.expSpec (s.mem.readLE (s.regs 3).toNat 32) (s.mem.readLE (s.regs 1).toNat 32) ∧
         MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0xa8, (s.regs 4).toNat + 0x20)]) := by
-  sorry
+  intro s hpc ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, hx15, ⟨hzw, hz⟩, ⟨hbw, hb⟩, ⟨hew, he⟩, hdz, hdb, hde, hdg, hdl⟩
+  have hgl := hg.load
+  have hgb := hg.below
+  have hnw2 := hg.noWrap
+  have hgr := hg.readable
+  simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
+  simp only [regSP] at hacc hlow hnw hdz hdb hde hsp
+  janus64_data hdl [hacc]
+  janus64_run [Util.readLE_32] until [Extracted.entry + 0x149]
+  · sorry
+  · sorry
+  · rename_i hg e3z e2z e1z hev hbl
+    exact ⟨Fv256.F.early0 _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.F.even_of_lsb _ hev) _ hbl, by janus_frame⟩
+  · sorry
+  · sorry
+  · rename_i hg e3z e2z e1nz hev hbl
+    exact ⟨Fv256.F.early1 _ _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) e1nz (Fv256.F.even_of_lsb _ hev) hbl, by janus_frame⟩
+  · sorry
+  · sorry
+  · rename_i hg e3z e2nz hev hbl
+    exact ⟨Fv256.F.early2 _ _ _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) e2nz (Fv256.F.even_of_lsb _ hev) hbl, by janus_frame⟩
+  · sorry
+  · sorry
+  · rename_i hg e3nz hev hbl
+    exact ⟨Fv256.F.early3 _ _ _ _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) e3nz (Fv256.F.even_of_lsb _ hev) hbl, by janus_frame⟩
 
 theorem correctness (z b e : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, b, e]
