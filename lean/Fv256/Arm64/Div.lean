@@ -8,6 +8,7 @@ import Fv256.UtilB2
 import Fv256.Arm64.SummaryEnsures
 import Fv256.Arm64.DivSum
 import Fv256.Arm64.CodeIn
+import Fv256.Arm64.DivProg
 
 /-!
 # `(*uint256.Int).Div(x, y *Int) *Int` (arm64): `z = x / y` (`0` when `y = 0`)
@@ -28,7 +29,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 namespace Fv256.Arm64.Div
 
 set_option maxRecDepth 200000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.DivProg.program Extracted.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 200000 in

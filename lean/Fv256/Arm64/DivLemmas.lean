@@ -137,4 +137,58 @@ theorem close_eq (x0 x1 x2 x3 y0 y1 y2 y3 : Nat) (hx0 : x0 < 1844674407370955161
   rw [Fv256.B.divSpec, if_neg this]
   exact (Nat.div_self (Nat.pos_of_ne_zero this)).symm
 
+/-- the early-return writes of `Mod` (frame push at sp-144 and sp-152, then four stores into `z`, in any order) -/
+theorem mod_early_frame (m : Memory) (z sp v1 v2 p1 p2 p3 p4 a b c d : Nat) (hsp : 488 ≤ sp)
+    (hz : z + 32 ≤ sp - 488 ∨ sp + 16 ≤ z)
+    (h1 : z ≤ p1 ∧ p1 + 8 ≤ z + 32) (h2 : z ≤ p2 ∧ p2 + 8 ≤ z + 32)
+    (h3 : z ≤ p3 ∧ p3 + 8 ≤ z + 32) (h4 : z ≤ p4 ∧ p4 + 8 ≤ z + 32) :
+    Janus.MemFrame m ((((((m.writeLE (sp - 144) 8 v1).writeLE (sp - 152) 8 v2).writeLE p1 8 a).writeLE p2 8 b).writeLE p3 8 c).writeLE p4 8 d)
+      [(z, z + 32), (sp - 488, sp - 8), (sp + 8, sp + 16)] := by
+  have r1 : (sp - 488, sp - 8) ∈ [(z, z + 32), (sp - 488, sp - 8), (sp + 8, sp + 16)] := by simp
+  have r0 : (z, z + 32) ∈ [(z, z + 32), (sp - 488, sp - 8), (sp + 8, sp + 16)] := by simp
+  exact ((((((MemFrame.refl m _).writeLE v1 r1 (by simp; omega) (by simp; omega)).writeLE v2 r1 (by simp; omega) (by simp; omega)).writeLE a r0 h1.1 h1.2).writeLE b r0 h2.1 h2.2).writeLE c r0 h3.1 h3.2).writeLE d r0 h4.1 h4.2
+
+/-- compose a pre-call frame with the callee's frame, then four stores into `z` -/
+theorem mod_copy_frame (m M0 m' : Memory) (z sp p1 p2 p3 p4 a b c d : Nat) (rs : List (Nat × Nat)) (hsp : 488 ≤ sp)
+    (hz : z + 32 ≤ sp - 488 ∨ sp + 16 ≤ z)
+    (h1 : z ≤ p1 ∧ p1 + 8 ≤ z + 32) (h2 : z ≤ p2 ∧ p2 + 8 ≤ z + 32)
+    (h3 : z ≤ p3 ∧ p3 + 8 ≤ z + 32) (h4 : z ≤ p4 ∧ p4 + 8 ≤ z + 32)
+    (hM0 : Janus.MemFrame m M0 [(sp - 488, sp - 8), (sp + 8, sp + 16)])
+    (hf : Janus.MemFrame M0 m' rs)
+    (hrs : ∀ x n, Outside x n [(sp - 488, sp - 8), (sp + 8, sp + 16)] → Outside x n rs) :
+    Janus.MemFrame m ((((m'.writeLE p1 8 a).writeLE p2 8 b).writeLE p3 8 c).writeLE p4 8 d)
+      [(z, z + 32), (sp - 488, sp - 8), (sp + 8, sp + 16)] := by
+  have r0 : (z, z + 32) ∈ [(z, z + 32), (sp - 488, sp - 8), (sp + 8, sp + 16)] := by simp
+  have base : Janus.MemFrame m m' [(z, z + 32), (sp - 488, sp - 8), (sp + 8, sp + 16)] :=
+    hM0.trans hf (fun x n hx => by
+      simp only [Outside, and_true] at hx
+      exact ⟨by simp only [Outside, and_true]; omega, hrs x n (by simp only [Outside, and_true]; omega)⟩)
+  exact ((((base.writeLE a r0 h1.1 h1.2).writeLE b r0 h2.1 h2.2).writeLE c r0 h3.1 h3.2).writeLE d r0 h4.1 h4.2)
+
+theorem mclose_zero (X : Nat) : 0 = Fv256.B.modSpec X 0 := by
+  simp [Fv256.B.modSpec]
+
+theorem mclose_lt (X Y : Nat) (h : ¬ Y ≤ X) (hy : Y ≠ 0) : X = Fv256.B.modSpec X Y := by
+  rw [Fv256.B.modSpec, if_neg hy]; exact (Nat.mod_eq_of_lt (by omega)).symm
+
+theorem mclose_eq (x0 x1 x2 x3 y0 y1 y2 y3 : Nat)
+    (hne : ¬(((y1 = 0 ∧ y0 = 0) ∧ y2 = 0) ∧ y3 = 0))
+    (hxor : x3 ^^^ y3 = 0 ∧ (y0 ^^^ x0 = 0 ∧ y1 ^^^ x1 = 0) ∧ x2 ^^^ y2 = 0) :
+    0 = Fv256.B.modSpec (x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 +
+        6277101735386680763835789423207666416102355444464034512896 * x3)
+      (y0 + 18446744073709551616 * y1 + 340282366920938463463374607431768211456 * y2 +
+        6277101735386680763835789423207666416102355444464034512896 * y3) := by
+  obtain ⟨a3, ⟨a0, a1⟩, a2⟩ := hxor
+  have e3 := Fv256.B.xor_eq_zero_nat _ _ |>.mp a3
+  have e0 := Fv256.B.xor_eq_zero_nat _ _ |>.mp a0
+  have e1 := Fv256.B.xor_eq_zero_nat _ _ |>.mp a1
+  have e2 := Fv256.B.xor_eq_zero_nat _ _ |>.mp a2
+  subst e3 e0 e1 e2
+  have := ysum_ne _ _ _ _ hne
+  rw [Fv256.B.modSpec, if_neg this]
+  exact (Nat.mod_self _).symm
+
+theorem mval_close (S X Y : Nat) (hq : S = X % Y) (hy : Y ≠ 0) : S = Fv256.B.modSpec X Y := by
+  rw [Fv256.B.modSpec, if_neg hy]; exact hq
+
 end Fv256.Arm64.DivLemmas

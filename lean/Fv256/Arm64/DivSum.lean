@@ -1,4 +1,6 @@
 import Fv256.Arm64.ChainProg
+import Fv256.Arm64.DivProg
+import Fv256.Arm64.CodeIn
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -18,12 +20,16 @@ open Fv256.Arm64.UdivremD
 
 namespace Fv256.Arm64.DivSum
 
-abbrev divEntry : Nat := segAddr Fv256.Arm64.ChainProg.program "github.com/holiman/uint256.(*Int).Div"
+set_option maxRecDepth 200000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Fv256.Arm64.DivProg.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
+
+abbrev divEntry : Nat := segAddr Fv256.Arm64.DivProg.program "github.com/holiman/uint256.(*Int).Div"
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem div_summary :
-    Summary Fv256.Arm64.ChainProg.program divEntry
+    Summary Fv256.Arm64.DivProg.program divEntry
       (fun s => (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 416 ∧ StackOK s 456 16 ∧
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 456 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
         (s.regs 0).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 32 true = true ∧
@@ -47,7 +53,7 @@ theorem div_summary :
   have hy1 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 8)
   have hy2 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 16)
   have hy3 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 24)
-  janus_run [Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.wv4_eq, Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] until [divEntry + 0x98, divEntry + 0xf0] calls [Fv256.Arm64.UdivremFinal.udivrem_nil_L_final (L := 4) (by decide) (by decide)]
+  janus_run [Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.wv4_eq, Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] until [divEntry + 0x98, divEntry + 0xf0] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcLib (Fv256.Arm64.UdivremFinal.udivrem_nil_L_final (L := 4) (by decide) (by decide))]
   all_goals (try simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod, Fv256.Arm64.DivLemmas.chain_zero_iff _ _ _ _ _ _ _ _ hx0 hx1 hx2 hx3 hy0 hy1 hy2 hy3] at *)
   · refine ⟨?_, ?_, ?_⟩
     · intro i hi
