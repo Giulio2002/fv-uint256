@@ -16,7 +16,7 @@ open Fv256.E
 namespace Fv256.Amd64.Dec
 
 /-- The branch of `Dec`'s loop after the copy: `JNE` at `0x2e3`. -/
-abbrev decBr : Nat := decE + 0x2e3
+def decBr : Nat := decE + 0x2e3
 
 local macro "rs" : tactic => `(tactic| simp [setRegF, Janus.Amd64.GoABI.regG, Janus.Amd64.GoABI.regSP, Janus.Amd64.GoABI.stackguard0Offset, Janus.Amd64.GoABI.stackguard0])
 

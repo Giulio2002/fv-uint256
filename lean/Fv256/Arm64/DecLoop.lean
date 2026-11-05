@@ -13,7 +13,7 @@ open Fv256.E
 namespace Fv256.Arm64.Dec
 
 /-- After the loop: `MOVD ZR, R0` before `slicebytetostring`, `0x200` bytes into `Dec`. -/
-abbrev decX : Nat := decE + 0x200
+def decX : Nat := decE + 0x200
 
 set_option maxHeartbeats 8000000 in
 /-- The `CBNZ` of the loop when the quotient is zero: falls through to `decX`. -/

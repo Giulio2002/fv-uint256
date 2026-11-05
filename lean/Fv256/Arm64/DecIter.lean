@@ -17,7 +17,7 @@ open Fv256.E
 namespace Fv256.Arm64.Dec
 
 /-- The branch of `Dec`'s loop after the copy: `CBNZ` at `0x1fc`. -/
-abbrev decBr : Nat := decE + 0x1fc
+def decBr : Nat := decE + 0x1fc
 
 set_option maxRecDepth 100000 in
 theorem maskLem : ∀ pos, pos < 99 → ∀ k, k < 19 →

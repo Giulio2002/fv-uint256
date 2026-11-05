@@ -26,6 +26,15 @@ theorem reaches_of_reachesRet64 {impl : List Segment} {ret : Nat}
   obtain ⟨k, s', hst, hr, hq⟩ := h
   exact Reaches.of_steps (Janus.Program.Steps.withExit (steps_link64 impl hst) hret.fetch_none) (h2 s' hr hq)
 
+set_option maxRecDepth 100000 in
+/-- `s` is at the entry of `Dec` (opaque to `omega`). -/
+@[irreducible] def AtEntry (s : State) : Prop := s.pc = BitVec.ofNat 64 decE
+theorem AtEntry.pc {s : State} (h : AtEntry s) : s.pc = BitVec.ofNat 64 decE := by unfold AtEntry at h; exact h
+
+theorem decE_entry : decE = Extracted.entry := by unfold decE; decide
+set_option maxRecDepth 100000 in
+theorem decE_seg : decE = segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec" := rfl
+
 abbrev zeroDat : Janus.DataSegment := Extracted.data[1]
 set_option maxRecDepth 100000 in
 theorem zeroDat_base : zeroDat.base = 960826 := by decide
@@ -69,6 +78,8 @@ theorem ensures_of_summary {p : Janus.Program} {entry : Nat} {args : List W64}
   simp only [Janus.Program.withExit, BitVec.toNat_ofNat]
   exact Nat.mod_eq_of_lt hret.lt64
 
+set_option maxHeartbeats 32000000 in
+set_option maxRecDepth 200000 in
 theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
     Summary (Extracted.program.link impl) decE
@@ -86,9 +97,14 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
         s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])) := by
-  intro s hpc ⟨hz0r, hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1, hr30, hr30a⟩
+  intro s hpc0 ⟨hz0r, hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1, hr30, hr30a⟩
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, h4608, hsp2, hwa⟩ := hst
+  have hcE : decE + 0x5000 < 2 ^ 47 := by decide
+  have hr56 : (s.regs 30).toNat < 72057594037927936 := by omega
+  have hdE : decE = 754624 := by unfold decE; decide
+  have hrip : AtEntry s := by unfold AtEntry; exact hpc0
+  clear hpc0
   simp only [val256] at hH hH1
   have hl0 := Janus.Arm64.Memory.readLE_lt s.mem z.toNat 8
   have hl1 := Janus.Arm64.Memory.readLE_lt s.mem (z.toNat + 8) 8
@@ -115,7 +131,7 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
     have hret30 : (s.regs 30).toNat < 2 ^ 48 := hr30
     have hg_ : GuardOK s 256 := ⟨hg1, hg2, by omega⟩
     refine Fv256.E.reachesRet64_bind (reachesRet64_link impl
-      (dec_init s hpc z.toNat e0 hg_ hal (by omega) (by omega) (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) hd
+      (dec_init s hrip.pc z.toNat e0 hg_ hal (by omega) (by omega) (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) hd
         ⟨hzn, hza⟩ (by omega) hret30 hnb).regions) ?_
     intro S hrS ⟨⟨h0, h1, h3, h6, h8, h29, hsp, hk, hfr, hwy, hwd, hzero, htabS, hsv1, hsv2⟩, hregS⟩
     have hwy' : Fv256.B.wv S.mem (s.sp.toNat - 384 + 288) 4 = v := by
@@ -159,8 +175,8 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       fun _ => accessible_sub hwa (Or.inl rfl) (by omega) (by omega)
     have hX6 : False → Disjoint (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) 0 32 := fun h => h.elim
     have hR30 : S.mem.readLE (s.sp.toNat - 384) 8 = (s.regs 30).toNat := hsv2
-    janus_run [q9, q11, hdlm, hR30] calls [hc]
-    rename_i w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright
+    janus_run [hdE, q9, q11, hdlm, hR30] calls [hc]
+    rename_i w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright hbrx
     obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
     have hdig : strBytes S2.mem (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) = decBytes v :=
       strBytes_dec _ _ _ (fun k hk => by
@@ -194,7 +210,7 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       have hzs := zeroStr_read hd
       have hdj := dl_disjoint hd zeroDat_mem hwa
       rw [zeroDat_base, zeroDat_len] at hdj
-      janus_run [hl0, hl1', hl2', hl3', Nat.or_eq_zero_iff]
+      janus_run [hdE, hrip.pc, hl0, hl1', hl2', hl3', Nat.or_eq_zero_iff]
       refine ⟨⟨by rw [hz0]; simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_⟩
       · simp only [hz0, decBytes_lt 0 (by omega), strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [Nat.add_zero, ← Janus.Arm64.Memory.readLE_one, hzs.1]
@@ -217,8 +233,8 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
         simp only [Janus.Arm64.Memory.accessible_writeLE]
         exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
       have hzv : val256 s.mem z.toNat = v := hvd
-      janus_run [hlow.1, hlow.2.1, hlow.2.2, hl0, Nat.or_eq_zero_iff] calls [hfu]
-      rename_i hqtab hqs hqf
+      janus_run [hdE, hrip.pc, hlow.1, hlow.2.1, hlow.2.2, hl0, Nat.or_eq_zero_iff] calls [hfu]
+      rename_i hqtab hqs hqf hbrx
       refine ⟨hqs, ?_⟩
       have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
             (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)]) := by
@@ -249,17 +265,17 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
           H [0, s.sp.toNat - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
             (s.regs 28).toNat (s.sp.toNat - 384 - 96) (rtView rt s.mem)))
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
-        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])) :=
-  ensures_of_summary (dec_summary impl rt H z hc)
-    (fun ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11⟩ =>
-      ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, by
-        have := hs.lr
-        rw [this, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]
-        exact hret.user, by
-        have := hs.lr
-        rw [this, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]
-        exact hret.aligned⟩)
-    (fun ret s s' hret hs hp hq => ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩)
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])) := by
+    rw [← decE_entry]
+    refine ensures_of_summary (dec_summary impl rt H z hc) ?_ ?_
+    · intro ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11⟩
+      have hl : s.regs 30 = BitVec.ofNat 64 ret := hs.lr
+      have hrl : (s.regs 30).toNat = ret := by
+        rw [hl, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]
+      exact ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, by rw [hrl]; exact hret.user,
+        by rw [hrl]; exact hret.aligned⟩
+    · intro ret s s' hret hs hp hq
+      exact ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩
 
 namespace Witness
 

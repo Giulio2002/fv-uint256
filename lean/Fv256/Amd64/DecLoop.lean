@@ -11,7 +11,7 @@ open Fv256.E
 namespace Fv256.Amd64.Dec
 
 /-- After the loop: `XORL AX, AX` before `slicebytetostring`, `0x2e9` bytes into `Dec`. -/
-abbrev decX : Nat := decE + 0x2e9
+def decX : Nat := decE + 0x2e9
 
 set_option maxHeartbeats 8000000 in
 /-- The `JNE` of the loop when the quotient is zero: falls through to `decX`. -/
