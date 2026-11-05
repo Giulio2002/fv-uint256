@@ -139,7 +139,6 @@ theorem shr1_w64 (w : Nat) (hw : w < 2 ^ 64) : (BitVec.ofNat 64 w >>> 1) = BitVe
   simp [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]
   omega
 
-<<<<<<< HEAD
 
 /-- three 16-byte zero stores at `p`, `p+16`, `p+24` clear five words -/
 theorem wv_zero5 (m : Janus.Arm64.Memory) (p q r : Nat) (h1 : q = p + 16) (h2 : r = p + 24) :
@@ -166,6 +165,4 @@ theorem wv_zero5' (m : Janus.Arm64.Memory) (p q r : Nat) (h1 : q = p + 16) (h2 :
   rw [e]
   exact wv_zero5 m p q r h1 h2
 
-=======
->>>>>>> fv/wd
 end Fv256.F
