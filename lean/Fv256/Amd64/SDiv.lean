@@ -8,6 +8,8 @@ import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
+import Fv256.CodeIn
+import Fv256.DivProg
 import Fv256.Amd64.DivSum
 
 /-!
@@ -27,10 +29,33 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.SDiv
 
+set_option maxRecDepth 100000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.DivProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
+
 open Fv256.Amd64.DivSum
+
+namespace Local
+open Fv256.B
+
+theorem abs_zero : Fv256.Spec.abs 0 = 0 := by simp [Fv256.Spec.abs]
+theorem neg_zero : Fv256.Spec.neg 0 = 0 := by simp [Fv256.Spec.neg, Fv256.Spec.W]
+
+theorem sdivSpec_x0 (x y : Nat) (h : x = 0) : sdivSpec x y = 0 := by
+  subst h; unfold sdivSpec; simp [abs_zero, neg_zero, divSpec_zero_left]
+
+theorem sdivSpec_y0 (x y : Nat) (h : y = 0) : sdivSpec x y = 0 := by
+  subst h; unfold sdivSpec; simp [abs_zero, neg_zero, divSpec_zero_right]
+
+theorem sdivSpec_zl (y : Nat) : sdivSpec 0 y = 0 := sdivSpec_x0 0 y rfl
+theorem sdivSpec_zr (x : Nat) : sdivSpec x 0 = 0 := sdivSpec_y0 x 0 rfl
+
+end Local
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
+set_option profiler true in
+set_option profiler.threshold 5000 in
 theorem correctness (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => StackGuardOK s 0x210 ∧ 0x268 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x260 0x10 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
@@ -57,10 +82,13 @@ theorem correctness (z x y : BitVec 64) :
   have hy1 := Util.readLE8_lt s.mem (y.toNat + 8)
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
-  janus64_run [Util.msb_m1, Util.msb_0, Util.msb_1, Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.Amd64.DivSum.div_summary]
+  janus64_run [Util.msb_m1, Util.msb_0, Util.msb_1, Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.DivSum.div_summary]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
+  all_goals (first
+    | (simp only [Local.sdivSpec_zl, Local.sdivSpec_zr])
+    | skip)
   all_goals (
     have nx := Util.neg_chain _ _ _ _ hx0 hx1 hx2 hx3
     have ny := Util.neg_chain _ _ _ _ hy0 hy1 hy2 hy3
@@ -70,7 +98,7 @@ theorem correctness (z x y : BitVec 64) :
     rw [Fv256.B.sdivSpec]
     simp only [Fv256.Spec.abs, Fv256.Spec.neg, Fv256.Spec.W, Nat.reducePow]
     simp (disch := omega) only [if_pos, if_neg, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right]
-    first | omega | (trace_state; skip))
+    first | omega | (trace_state; sorry))
 
 namespace Witness
 

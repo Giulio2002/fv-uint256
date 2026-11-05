@@ -25,3 +25,13 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 
 ## DivMod amd64 on master 48f3f44 (Janus 6365855c)
 `correctness` + `Witness.nonvacuous` verified in one `janus verify` run (3180 s wall incl. queueing, LEAN_NUM_THREADS=8). DivModB compile 487 s (baseline for the S7 Apart-facts experiment).
+
+## Family B amd64 on master 48f3f44 (Janus integ/speed15 6365855c, per-extraction chain)
+| symbol | proof | verified theorems | wall (heavy-run, incl. queue) | notes |
+|---|---|---|---|---|
+| Div | Amd64/Div.lean (+DivSum.div_summary) | correctness, Witness.nonvacuous, Witness.returns | 2519 s | y=0 -> 0; master Eq is XOR (xor_ofNat_zero_iff in run list) |
+| Mod | Amd64/Mod.lean (+ModSum.mod_summary) | same three | 2637 s | |
+| DivMod | Amd64/DivMod.lean, DivModB.lean, DivModW.lean | correctness, Witness.nonvacuous (single run) | 3180 s | non-live NewobjectContract64; DivModB 452-487 s |
+| SDiv | Amd64/SDiv.lean (+SDivSum.sdiv_summary) | same three | 2405 s | n or d zero -> 0 |
+| SMod | Amd64/SMod.lean (+SModSum.smod_summary) | same three | 2266 s | sign of x; y=0 -> 0 |
+Speed debt: all above the 5-min bar; verify wall is dominated by the per-extraction chain rebuild (library form removes it) and by janus64_run leaf closers.
