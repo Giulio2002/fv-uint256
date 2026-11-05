@@ -206,4 +206,20 @@ theorem digit_mod (u k m : Nat) (hk : k < m) : u % 10 ^ m / 10 ^ k % 10 = u / 10
     rw [← Nat.pow_succ']; congr 1; omega
   rw [h2, Nat.mod_mul_right_mod]
 
+theorem flags_exists (F : Janus.Amd64.Flags) (z : Bool) (h1 : F.cf = some false) (h2 : F.af = none)
+    (h3 : F.zf = some z) (h4 : F.ovf = some false) :
+    ∃ pf sf, F = { cf := some false, pf := pf, af := none, zf := some z, sf := sf, ovf := some false } := by
+  refine ⟨F.pf, F.sf, ?_⟩
+  cases F
+  simp_all
+
+/-- Sequential composition of two `ReachesRet` runs, passing on the program counter of the intermediate state. -/
+theorem reachesRet_bind' {p : Janus.Amd64.Program} {t1 t2 : Janus.Amd64.W64} {s : Janus.Amd64.State}
+    {Q1 Q2 : Janus.Amd64.State → Prop} (h : Janus.Amd64.Tactic.ReachesRet p t1 s Q1)
+    (h2 : ∀ s', s'.rip = t1 → Q1 s' → Janus.Amd64.Tactic.ReachesRet p t2 s' Q2) :
+    Janus.Amd64.Tactic.ReachesRet p t2 s Q2 := by
+  obtain ⟨k, s', hst, hr, hq⟩ := h
+  obtain ⟨k', s'', hst', hr', hq'⟩ := h2 s' hr hq
+  exact ⟨k + k', s'', hst.trans hst', hr', hq'⟩
+
 end Fv256.E

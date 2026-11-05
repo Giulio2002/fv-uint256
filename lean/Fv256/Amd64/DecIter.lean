@@ -41,7 +41,8 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.rip = BitVec.
         S'.regs 2 = BitVec.ofNat 64 (b + (pos - decLen (y % 10 ^ 19)) + 86) ∧ S'.regs 4 = BitVec.ofNat 64 b ∧
         S'.regs 5 = BitVec.ofNat 64 (b + 368) ∧ S'.regs 11 = BitVec.ofNat 64 pos ∧
         S'.regs 13 = BitVec.ofNat 64 (98 - (pos - decLen (y % 10 ^ 19))) ∧ S'.regs 14 = s.regs 14 ∧
-        S'.xmm 15 = 0 ∧ S'.df = false ∧ S'.flags.zf = some (decide (y / 10 ^ 19 = 0)) ∧
+        S'.xmm 15 = 0 ∧ S'.df = false ∧
+        (∃ pf sf, S'.flags = { cf := some false, pf := pf, af := none, zf := some (decide (y / 10 ^ 19 = 0)), sf := sf, ovf := some false }) ∧
         Fv256.B.wv S'.mem (b + 280) 4 = y / 10 ^ 19 ∧ Fv256.B.wv S'.mem (b + 312) 4 = 10 ^ 19 ∧
         (∀ k, k < decLen (y % 10 ^ 19) → S'.mem.readLE (b + 86 + pos - 1 - k) 1 = 48 + y / 10 ^ k % 10) ∧
         MemFrame M S'.mem [(b - 0x1a0, b + 86), (b + (pos - decLen (y % 10 ^ 19)) + 86, b + 86 + pos), (b + 184, b + 368)] ∧
@@ -241,8 +242,9 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.rip = BitVec.
         have e24 : b + 216 + 24 = b + 240 := by omega
         rw [e8, e16, e24] at *
         omega
-      show some _ = some _
-      exact congrArg some (decide_eq_decide.mpr hz)
+      refine Fv256.E.flags_exists _ _ rfl rfl ?_ rfl
+      dsimp only
+      rw [decide_eq_decide.mpr hz]
     · have h0 := hy_limb 0 (by omega); have h1 := hy_limb 1 (by omega)
       have h2 := hy_limb 2 (by omega); have h3 := hy_limb 3 (by omega)
       simp only [Fv256.B.wv, Nat.add_assoc, Nat.reduceAdd, Nat.mul_zero, Nat.add_zero, Nat.mul_zero] at h0 h1 h2 h3 ⊢
