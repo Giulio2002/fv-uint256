@@ -42,7 +42,62 @@ theorem exp_summary :
   simp only [regSP] at hacc hlow hnw hdz hdb hde hsp
   janus64_data hdl [hacc]
   janus64_run [Util.readLE_32] until [Extracted.entry + 0x149]
-  · sorry
+  · rename_i g1 e3z e2z e1z
+    have hn0 : Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) < 2 ^ 20 := by
+      have := Fv256.F.bitLen_le (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) 64 (Fv256.Util.readLE8_lt _ _)
+      omega
+    refine Fv256.Amd64.ExpLoop1.loop1 s _ (Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8)) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega) (by omega) hacc (min (Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8)) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega) ?inv ?hex
+    · unfold Fv256.Amd64.ExpLoop1.Inv1
+      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · omega
+      · decide
+      · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
+        simpa using this
+      · exact Fv256.Util.readLE8_lt _ _
+      · exact Fv256.Util.readLE8_lt _ _
+      · simp [setRegF]
+      · simp [setRegF]; exact Fv256.F.nbv0 _ (Fv256.Util.readLE8_lt _ _) _
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF, setXmmF, hx15]
+      · simp only []
+        rw [Janus.Arm64.Memory.readLE_add _ _ 16 16]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        simp
+      · simp only []
+        rw [Janus.Arm64.Memory.readLE_add _ _ 16 16]
+        have e1 : BitVec.toNat (s.regs 4) - 72 + 16 = BitVec.toNat (s.regs 4) - 56 := by omega
+        rw [e1]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        rw [Nat.mod_eq_of_lt (by have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 16; simpa using this),
+          Nat.mod_eq_of_lt (by have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3) + 16) 16; simpa using this),
+          ← Janus.Arm64.Memory.readLE_add]
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := (s.regs 0).isLt
+        simp only [Nat.reducePow, Nat.reducePow] at this ⊢
+        omega
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := (s.regs 1).isLt
+        omega
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        exact Fv256.F.nmem0 _ (Fv256.Util.readLE8_lt _ _) _
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := Fv256.Util.readLE8_lt s.mem (BitVec.toNat (s.regs 3))
+        omega
+      · janus_frame
+    · sorry
   · sorry
   · rename_i hg e3z e2z e1z hev hbl
     exact ⟨Fv256.F.early0 _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.F.even_of_lsb _ hev) _ hbl, by janus_frame⟩

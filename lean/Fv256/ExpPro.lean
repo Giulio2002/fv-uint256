@@ -144,4 +144,31 @@ theorem early0 (b0 b1 b2 b3 e0 : Nat) (h0 : e0 < 2 ^ 64) (hB : b0 % 2 = 0) (K : 
     unfold expSpec
     exact (even_exp_zero _ _ (by omega) this).symm
 
+theorem nbv0 (e0 : Nat) (h0 : e0 < 2 ^ 64) (K : BitVec 64) :
+    ((if e0 = 0 then 18446744073709551615#64 else if e0 = 0 then K else BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e0)) + 1#64)
+      = BitVec.ofNat 64 (bitLen e0) := by
+  by_cases hz : e0 = 0
+  · subst hz
+    simp [bitLen]
+  · rw [if_neg hz, if_neg hz, n_top0 e0 h0 hz]
+    exact (BitVec.ofNat_add _ _).symm
+
+theorem nmem0 (e0 : Nat) (h0 : e0 < 2 ^ 64) (K : BitVec 64) :
+    ((if e0 = 0 then 18446744073709551615#64 else if e0 = 0 then K else BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e0)).toNat + 1) % 256 ^ 8
+      = bitLen e0 := by
+  by_cases hz : e0 = 0
+  · subst hz
+    simp [bitLen]
+  · rw [if_neg hz, if_neg hz, BitVec.toNat_ofNat]
+    have hc := (Fv256.B.clz_norm e0 hz h0).1
+    have := n_top0 e0 h0 hz
+    have h64 : 63 - Janus.Arm64.clzNat 64 e0 < 2 ^ 64 := by omega
+    rw [Nat.mod_eq_of_lt h64]
+    have : bitLen e0 < 256 ^ 8 := by omega
+    omega
+
+theorem nbvk (a c : Nat) : BitVec.ofNat 64 a + BitVec.ofNat 64 c = BitVec.ofNat 64 (a + c) := (BitVec.ofNat_add _ _).symm
+
+theorem nmemk (a c : Nat) (h : a + c < 256 ^ 8) : (a + c) % 256 ^ 8 = a + c := Nat.mod_eq_of_lt h
+
 end Fv256.F
