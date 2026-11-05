@@ -37,6 +37,12 @@ local macro "blfin" : tactic => `(tactic| (simp only [valueAt, Util.readLE_32, S
 set_option hygiene false in
 local macro "blg1" : tactic => `(tactic| (blfacts ; rw [Util.bl_amd_bv _ _ (by simp [BitVec.add_assoc]) (by (repeat' split) <;> simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] <;> omega)] ; rw [Util.amd_off _ (by (repeat' split) <;> simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] <;> omega)] ; simp only [valueAt, Util.readLE_32, Spec.byteLen, Util.readLE8_mod, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at * ; (try rw [Util.bl_4 _ _ _ _ b0 b1 b2]) ; (try rw [Util.bl_3 _ _ _ b0 b1 b2]) ; (try rw [Util.bl_2 _ _ b0 b1]) ; (try simp only [ne_eq]) ; (repeat' split) <;> (try simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, not_true_eq_false, and_false, false_and, and_true, true_and, not_false_eq_true] at *) <;> omega))
 
+set_option hygiene false in
+local macro "blclr" : tactic => `(tactic| (
+    (try clear hH); (try clear hnew); (try clear hs); (try clear hret); (try clear hgl); (try clear hgb); (try clear hnw2); (try clear hgr);
+    (try clear hw); (try clear hz); (try clear hzo); (try clear hout); (try clear hd); (try clear h_rodata); (try clear h_data0);
+    (try clear h_ddisj0_0); (try clear hzd); (try clear hdj); (try clear hdz)))
+
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
 theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
@@ -70,37 +76,42 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   all_goals
     blfacts
     first
-      | (rw [Util.bl_amd _ _ (by simp [BitVec.add_assoc]) (by (repeat' split) <;> simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] <;> omega)] at hbr
+      | (show False
+         blclr
+         rw [Util.bl_amd _ _ (by simp [BitVec.add_assoc]) (by (repeat' split) <;> simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] <;> omega)] at hbr
          (try simp only [Spec.byteLen, Util.readLE8_mod, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at hbr)
          (try rw [Util.bl_4 _ _ _ _ b0 b1 b2] at hbr)
          (try rw [Util.bl_3 _ _ _ b0 b1 b2] at hbr)
          (try rw [Util.bl_2 _ _ b0 b1] at hbr)
          (repeat' split at hbr) <;> (try simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, not_true_eq_false, and_false, false_and, and_true, true_and, not_false_eq_true] at *) <;> omega)
       | skip
-  all_goals refine ⟨_, ‹_›, ‹_›, ‹_›, ?_, ?_, ?_, ?_, ?_⟩
-  all_goals first | (blamd; done) | skip
-  all_goals first | (janus_frame; done) | skip
-  all_goals first | (blg1; done) | skip
   all_goals
-    have hv256 : valueAt s z 32 < 2 ^ 256 := by
-      simpa [valueAt] using Janus.Arm64.Memory.readLE_lt s.mem z.toNat 32
-    by_cases hb0 : Spec.byteLen (valueAt s z 32) = 0
-    · rw [hb0]; simp only [Spec.fromBE]; exact (Util.byteLen_zero _ hb0).symm
-    · rw [if_neg hb0]
-      refine Util.suffix_be _ _ _ _ (Util.byteLen_le_32 _ hv256) (Util.lt_pow_byteLen _) ?_
-      rw [Util.be32_rev]
-      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.pow_zero, Nat.div_one]
-      have l0 := Util.readLE8_lt s.mem z.toNat
-      have l1 := Util.readLE8_lt s.mem (z.toNat + 8)
-      have l2 := Util.readLE8_lt s.mem (z.toNat + 16)
-      have l3 := Util.readLE8_lt s.mem (z.toNat + 24)
-      simp (disch := first | omega | exact Util.rb8_lt _ | exact Util.readLE8_lt _ _ | (simp only [Nat.reducePow]; exact Util.rb8_lt _)) only [Util.rev8_zero, Util.pk_lo, Util.pk_hi, Nat.mod_eq_of_lt, Util.rev8_rev8, Nat.zero_add, Nat.mul_zero, Nat.zero_mod, Nat.zero_div, Nat.add_zero, Nat.mul_mod_right, Nat.mul_div_cancel_left]
-      simp only [valueAt, Util.readLE_32]
-      clear hzd hdj hdz h_ddisj0_0
-      refine Util.fin_all _ _ _ _ _ _ _ ?_ ?_ ?_
-      · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
-      · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
-      · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
+    refine ⟨_, ‹_›, ‹_›, ‹_›, ?_, ?_, ?_, ?_, ?_⟩
+    · blclr; blg1
+    · blclr; blamd
+    · blclr; blamd
+    · (
+      have hv256 : valueAt s z 32 < 2 ^ 256 := by
+        simpa [valueAt] using Janus.Arm64.Memory.readLE_lt s.mem z.toNat 32
+      by_cases hb0 : Spec.byteLen (valueAt s z 32) = 0
+      · rw [hb0]; simp only [Spec.fromBE]; exact (Util.byteLen_zero _ hb0).symm
+      · rw [if_neg hb0]
+        refine Util.suffix_be _ _ _ _ (Util.byteLen_le_32 _ hv256) (Util.lt_pow_byteLen _) ?_
+        rw [Util.be32_rev]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.pow_zero, Nat.div_one]
+        have l0 := Util.readLE8_lt s.mem z.toNat
+        have l1 := Util.readLE8_lt s.mem (z.toNat + 8)
+        have l2 := Util.readLE8_lt s.mem (z.toNat + 16)
+        have l3 := Util.readLE8_lt s.mem (z.toNat + 24)
+        simp (disch := first | omega | exact Util.rb8_lt _ | exact Util.readLE8_lt _ _ | (simp only [Nat.reducePow]; exact Util.rb8_lt _)) only [Util.rev8_zero, Util.pk_lo, Util.pk_hi, Nat.mod_eq_of_lt, Util.rev8_rev8, Nat.zero_add, Nat.mul_zero, Nat.zero_mod, Nat.zero_div, Nat.add_zero, Nat.mul_mod_right, Nat.mul_div_cancel_left]
+        simp only [valueAt, Util.readLE_32]
+        clear hzd hdj hdz h_ddisj0_0
+        refine Util.fin_all _ _ _ _ _ _ _ ?_ ?_ ?_
+        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
+        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
+        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
+      )
+    · janus_frame
 
 namespace Witness
 
