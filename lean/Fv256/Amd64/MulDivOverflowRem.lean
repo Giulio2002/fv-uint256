@@ -31,15 +31,15 @@ theorem correctness (z x y d m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, d, m]
       (fun s => StackGuardOK s 0x2a8 ∧ 0x300 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x218 0x30 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s d 32 false ∧ Buffer s m 32 true ∧
-        (z.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ z.toNat) ∧
-        (x.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ y.toNat) ∧
-        (d.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ d.toNat) ∧
-        (m.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ m.toNat) ∧
-        (z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧ (x.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ y.toNat) ∧ (d.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ d.toNat) ∧
-        m.toNat ≠ 0 ∧ (m.toNat + 32 ≤ (s.regs regG).toNat + 16 ∨ (s.regs regG).toNat + 24 ≤ m.toNat) ∧
-        ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ (s.regs regG).toNat + 16))
+        Apart z.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart x.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart y.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart d.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart m.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart z.toNat 32 m.toNat 32 ∧ Apart x.toNat 32 m.toNat 32 ∧
+        Apart y.toNat 32 m.toNat 32 ∧ Apart d.toNat 32 m.toNat 32 ∧
+        m.toNat ≠ 0 ∧ Apart m.toNat 32 ((s.regs regG).toNat + 16) 8 ∧
+        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x218) 0x248)
       (fun s s' => s'.regs 0 = z ∧ s'.regs 3 = m ∧ valueAt s' m 32 = Fv256.F.mulmodSpec (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) ∧
         (s'.regs 1).toNat % 256 = (if Fv256.F.muldivOv (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) then 1 else 0) ∧
         valueAt s' z 32 = Fv256.F.muldivSpec (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) ∧
@@ -53,7 +53,7 @@ theorem correctness (z x y d m : BitVec 64) :
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg hdmg
   simp only [regSP] at hacc hlow hnw hdz hdx hdy hdd hdm hdmg hsp
   simp only [valueAt]
-  have hL : 4 ≤ 8 ∧ 8 ≤ 8 := by omega
+  have hL : 4 ≤ 8 ∧ 8 ≤ 8 := ⟨by decide, by decide⟩
   have hm0e : (m.toNat = 0) = False := eq_false hm0
   janus64_run [hm0e, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero4, Fv256.F.wv_zero4', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcUmul Fv256.Amd64.UmulSum.umul_summary, Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_rem_L (L := 8) (by omega))]
   all_goals (first
@@ -63,6 +63,7 @@ theorem correctness (z x y d m : BitVec 64) :
        · simp_all [Fv256.F.muldivOv, Fv256.F.muldivSpec, Fv256.F.mulmodSpec]
        · janus_frame)
     | skip)
+  unfold Apart at hdz hdx hdy hdd hdm hzm hxm hym hdmm hdmg hdg
   have x0 := Util.readLE8_lt s.mem x.toNat
   have x1 := Util.readLE8_lt s.mem (x.toNat + 8)
   have x2 := Util.readLE8_lt s.mem (x.toNat + 16)
@@ -119,32 +120,32 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x
 
 theorem hpre : (StackGuardOK s0 0x2a8 ∧ 0x300 ≤ (s0.regs regSP).toNat ∧ StackWritable s0 0x218 0x30 ∧
         Buffer s0 z 32 true ∧ Buffer s0 x 32 false ∧ Buffer s0 x 32 false ∧ Buffer s0 x 32 false ∧ Buffer s0 m 32 true ∧
-        (z.toNat + 32 ≤ (s0.regs regSP).toNat - 0x218 ∨ (s0.regs regSP).toNat + 0x30 ≤ z.toNat) ∧
-        (x.toNat + 32 ≤ (s0.regs regSP).toNat - 0x218 ∨ (s0.regs regSP).toNat + 0x30 ≤ x.toNat) ∧
-        (x.toNat + 32 ≤ (s0.regs regSP).toNat - 0x218 ∨ (s0.regs regSP).toNat + 0x30 ≤ x.toNat) ∧
-        (x.toNat + 32 ≤ (s0.regs regSP).toNat - 0x218 ∨ (s0.regs regSP).toNat + 0x30 ≤ x.toNat) ∧
-        (m.toNat + 32 ≤ (s0.regs regSP).toNat - 0x218 ∨ (s0.regs regSP).toNat + 0x30 ≤ m.toNat) ∧
-        (z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧ (x.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ x.toNat) ∧
-        (x.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ x.toNat) ∧ (x.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ x.toNat) ∧
-        m.toNat ≠ 0 ∧ (m.toNat + 32 ≤ (s0.regs regG).toNat + 16 ∨ (s0.regs regG).toNat + 24 ≤ m.toNat) ∧
-        ((s0.regs regG).toNat + 24 ≤ (s0.regs regSP).toNat - 0x218 ∨ (s0.regs regSP).toNat + 0x30 ≤ (s0.regs regG).toNat + 16)) := by
+        Apart z.toNat 32 (((s0.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart x.toNat 32 (((s0.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart x.toNat 32 (((s0.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart x.toNat 32 (((s0.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart m.toNat 32 (((s0.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart z.toNat 32 m.toNat 32 ∧ Apart x.toNat 32 m.toNat 32 ∧
+        Apart x.toNat 32 m.toNat 32 ∧ Apart x.toNat 32 m.toNat 32 ∧
+        m.toNat ≠ 0 ∧ Apart m.toNat 32 ((s0.regs regG).toNat + 16) 8 ∧
+        Apart ((s0.regs regG).toNat + 16) 8 (((s0.regs regSP).toNat) - 0x218) 0x248) := by
   refine ⟨⟨by decide, by decide, by decide⟩, by unfold regSP; decide, ⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    (first | (unfold regSP regG; decide) | (unfold regSP; decide) | decide)
+    ((try unfold Apart); (try unfold regSP); (try unfold regG); decide)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d m : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y, d, m] s ∧
     (StackGuardOK s 0x2a8 ∧ 0x300 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x218 0x30 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s d 32 false ∧ Buffer s m 32 true ∧
-        (z.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ z.toNat) ∧
-        (x.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ y.toNat) ∧
-        (d.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ d.toNat) ∧
-        (m.toNat + 32 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ m.toNat) ∧
-        (z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧ (x.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ y.toNat) ∧ (d.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ d.toNat) ∧
-        m.toNat ≠ 0 ∧ (m.toNat + 32 ≤ (s.regs regG).toNat + 16 ∨ (s.regs regG).toNat + 24 ≤ m.toNat) ∧
-        ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x218 ∨ (s.regs regSP).toNat + 0x30 ≤ (s.regs regG).toNat + 16)) :=
+        Apart z.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart x.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart y.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart d.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart m.toNat 32 (((s.regs regSP).toNat) - 0x218) 0x248 ∧
+        Apart z.toNat 32 m.toNat 32 ∧ Apart x.toNat 32 m.toNat 32 ∧
+        Apart y.toNat 32 m.toNat 32 ∧ Apart d.toNat 32 m.toNat 32 ∧
+        m.toNat ≠ 0 ∧ Apart m.toNat 32 ((s.regs regG).toNat + 16) 8 ∧
+        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x218) 0x248) :=
   ⟨ret, s0, z, x, x, x, m, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
