@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -20,7 +20,7 @@ theorem chunk_post (s : State) (tgt ptr len b lo ud : Nat)
     (hacc : s.mem.accessible ptr len true = true) (hd : TabsOK s.mem)
     (hpc : s.pc = BitVec.ofNat 64 (fb + 0xd4)) (e0 : s.regs 0 = BitVec.ofNat 64 ptr) (e2 : s.regs 2 = BitVec.ofNat 64 len)
     (e1 : s.regs 1 = BitVec.ofNat 64 b) (e3 : s.regs 3 = BitVec.ofNat 64 lo) (e4 : s.regs 4 = BitVec.ofNat 64 ud) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 tgt) s (fun S' =>
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 tgt) s (fun S' =>
       S'.regs 0 = BitVec.ofNat 64 ptr ∧ S'.regs 2 = BitVec.ofNat 64 len ∧ S'.regs 1 = BitVec.ofNat 64 (b - 1) ∧
       S'.regs 4 = BitVec.ofNat 64 ud ∧ (ud ≠ 0 → S'.regs 3 = BitVec.ofNat 64 ud) ∧ (∀ k, k ∉ [1, 3, 5, 6] → S'.regs k = s.regs k) ∧ S'.sp = s.sp ∧
       S'.mem.readLE (ptr + b - 1) 1 = 48 + lo ∧ MemFrame s.mem S'.mem [(ptr + b - 1, ptr + b)] ∧ TabsOK S'.mem) := by

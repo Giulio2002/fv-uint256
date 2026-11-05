@@ -6,8 +6,11 @@ import re, sys
 args = sys.argv[1:]
 out, ns = args[0], args[1]
 fns, ins, base, i = [], [], None, 2
+dats, cons = [], []
 while i < len(args):
     if args[i] == "--fn": fns.append(args[i + 1]); i += 2
+    elif args[i] == "--data": dats.append(args[i + 1]); i += 2
+    elif args[i] == "--contract": cons.append(args[i + 1]); i += 2
     elif args[i] == "--base": base = args[i + 1]; i += 2
     elif args[i] == "--": ins = args[i + 1:]; break
     else: sys.exit("bad arg " + args[i])
@@ -19,10 +22,21 @@ def parse(path):
         if m.group(1) in fns:
             segs[m.group(1)] = (m.group(2), [int(x, 16) for x in re.findall(r'0x[0-9a-f]+', m.group(3))])
     st = {m.group(1): (m.group(2), m.group(3)) for m in re.finditer(r'\{ name := "([^"]+)", addr := (0x[0-9a-f]+), kind := (\.\w+) \}', t)}
-    return segs, st
-ref_s, ref_st = parse(ins[0])
+    dd = {}
+    k = t.find("def data")
+    if k >= 0:
+        for m in re.finditer(r'\{ name := "([^"]+)", base := (0x[0-9a-f]+), bytes := \[([^\]]*)\] \}', t[k:]):
+            if m.group(1) in dats:
+                dd[m.group(1)] = (m.group(2), [int(x, 16) for x in re.findall(r'0x[0-9a-f]+', m.group(3))])
+    cc = {m.group(1): m.group(2) for m in re.finditer(r'\("([^"]+)", (0x[0-9a-f]+)\)', t) if m.group(1) in cons}
+    return segs, st, dd, cc
+ref_s, ref_st, ref_d, ref_c = parse(ins[0])
+if set(ref_d) != set(dats): sys.exit("data missing in %s" % ins[0])
+if set(ref_c) != set(cons): sys.exit("contracts missing in %s" % ins[0])
 for p in ins[1:]:
-    s, st = parse(p)
+    s, st, d2, c2 = parse(p)
+    if d2 != ref_d: sys.exit("DATA BYTES DIFFER in %s" % p)
+    if c2 != ref_c: sys.exit("CONTRACT ADDRESSES DIFFER in %s" % p)
     for k, v in s.items():
         if k in ref_s and ref_s[k] != v: sys.exit("CODE WORDS DIFFER for %s between %s and %s" % (k, ins[0], p))
     ref_s.update(s)
@@ -40,9 +54,17 @@ for name in fns:
 L.append(",\n".join(segs) + " ]")
 L += ["", "def stubs : List Stub := ["]
 L.append(",\n".join('  { name := "%s", addr := %s, kind := %s }' % (k, a, kd) for k, (a, kd) in sorted(ref_st.items())) + " ]")
+L += ["", "def data : List DataSegment := ["]
+rows_d = []
+for name in dats:
+    b, bs = ref_d[name]
+    rows = [", ".join("0x%02x" % x for x in bs[j:j + 16]) for j in range(0, len(bs), 16)]
+    rows_d.append('  { name := "%s", base := %s, bytes := [\n      %s] }' % (name, b, ",\n      ".join(rows)))
+L.append(",\n".join(rows_d) + " ]")
+L += ["", "def contracts : List (String × Nat) := [" + ", ".join('("%s", %s)' % (n, ref_c[n]) for n in cons) + "]"]
 if base:
-    L += ["", "def program : Program := { %s.program with segments := %s.segments ++ segments, stubs := %s.stubs ++ stubs }" % (base, base, base)]
+    L += ["", "def program : Program := { %s.program with segments := %s.segments ++ segments, stubs := %s.stubs ++ stubs, data := %s.program.data ++ data, contracts := %s.program.contracts ++ contracts }" % (base, base, base, base, base)]
 else:
-    L += ["", "def program : Program := { segments := segments, stubs := stubs, exitAddr := 0 }"]
+    L += ["", "def program : Program := { segments := segments, stubs := stubs, exitAddr := 0, data := data, contracts := contracts }"]
 L += ["", "end " + ns, ""]
 open(out, "w").write("\n".join(L))

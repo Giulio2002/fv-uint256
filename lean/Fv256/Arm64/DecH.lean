@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -18,7 +18,7 @@ theorem fin_last (s : State) (ptr len lo i : Nat) (hlo : lo < 100) (hi : decLen 
     (hp : ptr + len ≤ 2 ^ 48) (hacc : s.mem.accessible ptr len true = true) (hd : TabsOK s.mem)
     (hpc : s.pc = BitVec.ofNat 64 (fb + 0x17c)) (e0 : s.regs 0 = BitVec.ofNat 64 ptr) (e2 : s.regs 2 = BitVec.ofNat 64 len)
     (e1 : s.regs 1 = BitVec.ofNat 64 i) (e3 : s.regs 3 = BitVec.ofNat 64 lo) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x1cc)) s (fun S' =>
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 (fb + 0x1cc)) s (fun S' =>
       S'.regs 0 = BitVec.ofNat 64 ptr ∧ S'.regs 2 = BitVec.ofNat 64 len ∧ S'.regs 1 = BitVec.ofNat 64 (i - decLen lo) ∧
       (∀ k, k ∉ [1, 3, 4, 5, 6] → S'.regs k = s.regs k) ∧ S'.sp = s.sp ∧
       (∀ k, k < decLen lo → S'.mem.readLE (ptr + i - 1 - k) 1 = 48 + lo / 10 ^ k % 10) ∧

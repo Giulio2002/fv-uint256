@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -10,7 +10,7 @@ open Fv256.E
 
 namespace Fv256.Arm64.Dec
 
-abbrev mm : Nat := segAddr Extracted.program "runtime.memmove"
+abbrev mm : Nat := segAddr Fv256.Arm64.DecProg.program "runtime.memmove"
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 100000 in
@@ -20,7 +20,7 @@ theorem memmove_small (s : State) (dst src n ret : Nat) (hn : n ≤ 32) (hd : ds
     (hdisj : dst + n ≤ src ∨ src + n ≤ dst) (hpc : s.pc = BitVec.ofNat 64 mm)
     (e0 : s.regs 0 = BitVec.ofNat 64 dst) (e1 : s.regs 1 = BitVec.ofNat 64 src) (e2 : s.regs 2 = BitVec.ofNat 64 n)
     (hl : s.regs 30 = BitVec.ofNat 64 ret) (hret : ret < 2 ^ 48) (hret4 : ret % 4 = 0) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 ret) s (fun S' =>
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 ret) s (fun S' =>
       S'.sp = s.sp ∧ (∀ k, k ∉ [4, 5, 6, 7, 12, 13] → S'.regs k = s.regs k) ∧
       (∀ i, i < n → S'.mem.readLE (dst + i) 1 = s.mem.readLE (src + i) 1) ∧
       MemFrame s.mem S'.mem [(dst, dst + n)]) := by
@@ -169,7 +169,7 @@ theorem memmove_small (s : State) (dst src n ret : Nat) (hn : n ≤ 32) (hd : ds
 
 /-- `memmove_small` as a callee summary. -/
 theorem memmove_sum :
-    Summary Extracted.program mm
+    Summary Fv256.Arm64.DecProg.program mm
       (fun s => (s.regs 2).toNat ≤ 32 ∧ (s.regs 0).toNat + (s.regs 2).toNat ≤ 2 ^ 48 ∧
         (s.regs 1).toNat + (s.regs 2).toNat ≤ 2 ^ 48 ∧
         s.mem.accessible (s.regs 0).toNat (s.regs 2).toNat true = true ∧

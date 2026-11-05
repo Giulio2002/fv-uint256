@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -12,7 +12,7 @@ open Fv256.E
 
 namespace Fv256.Arm64.Dec
 
-def decE : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec"
+def decE : Nat := segAddr Fv256.Arm64.DecProg.program "github.com/holiman/uint256.(*Int).Dec"
 /-- The loop head of `Dec` (arm64): the first iteration's block, `JMP 19(PC)` target. -/
 def decH : Nat := decE + 0x110
 
@@ -112,12 +112,12 @@ set_option maxRecDepth 20000 in
 theorem dec_init (s : State) (hpc : s.pc = BitVec.ofNat 64 decE) (zp : Nat) (e0 : s.regs 0 = BitVec.ofNat 64 zp)
     (hg : GuardOK s 256) (hal : s.sp.toNat % 16 = 0) (h392 : 392 ≤ s.sp.toNat) (hsp2 : s.sp.toNat < 2 ^ 48)
     (hw : s.mem.accessible (s.sp.toNat - 392) 392 true = true)
-    (hd : Extracted.program.DataLoaded s.mem)
+    (hd : Fv256.Arm64.DecProg.program.DataLoaded s.mem)
     (hz : zp + 32 ≤ 2 ^ 48 ∧ s.mem.accessible zp 32 false = true)
     (hzd : zp + 32 ≤ s.sp.toNat - 392 ∨ s.sp.toNat ≤ zp)
     (hret : (s.regs 30).toNat < 2 ^ 48)
     (hbig : s.mem.readLE (zp + 8) 8 ≠ 0 ∨ s.mem.readLE (zp + 16) 8 ≠ 0 ∨ s.mem.readLE (zp + 24) 8 ≠ 0) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decH) s
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 decH) s
       (fun S' => S'.regs 0 = BitVec.ofNat 64 98 ∧ S'.regs 1 = 19#64 ∧
         S'.regs 3 = BitVec.ofNat 64 (s.sp.toNat - 96) ∧ S'.regs 6 = BitVec.ofNat 64 (s.sp.toNat - 64) ∧
         S'.regs 8 = BitVec.ofNat 64 (s.sp.toNat - 309) ∧ S'.regs 29 = BitVec.ofNat 64 (s.sp.toNat - 392) ∧
