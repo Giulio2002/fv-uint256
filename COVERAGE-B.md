@@ -46,3 +46,8 @@ Fix: those modules no longer import `Extracted` (stated over DivProg/ModProg/SDi
 | Div | 2519 (1505 with cached chain) | 114 |
 | Mod | 2637 (1719) | 240 |
 DivMod (2625 s) still imports the chain through DivModB.partB (non-live newobject path); DivModB compile 452-490 s; profile: janus64_run 140-160 s (omega in janus_omega_cap 60-75 s), janus_frame ~35 s, ~290 s of failing `exact` in the mod leaves.
+
+## Speed pass 2: DivModB closers (Janus 6365855c)
+Profile (trace.profiler) showed ~290 s in failing/slow `exact` alternatives on goals like `a % y0 + B*0 + .. = a % (y0 + B*y1 + ..)`:
+the unifier proved `x + B*0 = x` by whnf of huge Nat literals (91-180 s per leaf). Fix: `simp only [Nat.mul_zero, Nat.add_zero]` before `mod_congr`, and `with_reducible` alternatives first.
+DivModB compile 442-490 s -> 163 s; DivMod verify (correctness + nonvacuous) 2625 s -> 419 s.
