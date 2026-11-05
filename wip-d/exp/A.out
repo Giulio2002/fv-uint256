@@ -1,0 +1,19 @@
+Fv256/Arm64/Float64.lean:16:8: warning: declaration uses `sorry`
+cumulative profiling times:
+	attribute application 0.0155ms
+	compilation (IR) 3.52ms
+	compilation (LCNF base) 49.2ms
+	compilation (LCNF impure) 17.5ms
+	compilation (LCNF mono) 28.2ms
+	congr simp thm 244ms
+	elaboration 268ms
+	fix level params 50.7ms
+	instantiate metavars 407ms
+	interpretation 363ms
+	let-to-have transformation 0.0396ms
+	process pre-definitions 718ms
+	share common exprs 981ms
+	simp 24.3s
+	tactic execution 175s
+	type checking 3.36s
+	typeclass inference 25.9s

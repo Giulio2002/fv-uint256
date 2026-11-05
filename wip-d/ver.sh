@@ -7,7 +7,8 @@ snap=$R/stage/$isa-$fn
 rm -rf $snap; mkdir -p $snap/lean
 (cd lean && tar cf - --exclude=.lake --exclude=wip . ) | tar xf - -C $snap/lean
 cp -a $R/lean/.lake $snap/lean/.lake
-export LEAN_NUM_THREADS=8 JANUS_JOBS=2 JANUS_CACHE_DIR=$R/jcache PATH=$PATH:/usr/local/go/bin
+[ -n "${OVERLAY:-}" ] && cp -a $OVERLAY/. $snap/lean/
+export LEAN_NUM_THREADS=8 JANUS_JOBS=2 JANUS_CACHE_DIR=/srv/janus-ops/jcache-shared PATH=$PATH:/usr/local/go/bin
 J=/srv/janus-wd-pin/bin/janus
 mkdir -p wip-d/logs
 s=$(date +%s)

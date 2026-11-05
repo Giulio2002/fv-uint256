@@ -1,0 +1,666 @@
+Fv256/Arm64/S3.lean:52:7: error: No goals to be solved
+G
+G
+G
+G
+G
+G
+case hq.refine_1
+x : BitVec 64
+ret : Nat
+s : State
+hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0
+hbr✝³ : ¬BitVec.toNat s.sp ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝² : ¬s.mem.readLE (x.toNat + 8) 8 ||| s.mem.readLE (x.toNat + 16) 8 ||| s.mem.readLE (x.toNat + 24) 8 = 0
+hbr✝¹ : ¬s.mem.readLE (x.toNat + 24) 8 = 0
+s' : State
+left✝¹ : s'.regs 0 = s.sp - 40#64
+hbr✝ : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 % 2048 = 0
+hbr : ((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).getLsbD 11 == false) = true
+l0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+l1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+l2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+l3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+k : Nat
+left✝ :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 24) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      ((18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 +
+          257) %
+        18446744073709551616)
+right✝ :
+  MemFrame
+    (((((((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat s.sp - 48) 8 (18446744073709551616 - k % 18446744073709551616 + 64 + 192)).writeLE
+                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+              (BitVec.toNat s.sp - 32) 8 0).writeLE
+          (BitVec.toNat s.sp - 24) 8 0).writeLE
+      (BitVec.toNat s.sp - 16) 8 0)
+    s'.mem [(BitVec.toNat s.sp - 40, BitVec.toNat s.sp - 40 + 32)]
+hkj : k < 64
+hbl :
+  Spec.bitLen
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8) =
+    256 - k
+m0 : s'.mem.readLE (BitVec.toNat s.sp - 40) 8 < 18446744073709551616
+m1 : s'.mem.readLE (BitVec.toNat s.sp - 32) 8 < 18446744073709551616
+m2 : s'.mem.readLE (BitVec.toNat s.sp - 24) 8 < 18446744073709551616
+m3 : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 < 18446744073709551616
+hexp :
+  (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) %
+      18446744073709551616 =
+    1 + k
+e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32
+e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24
+e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16
+hS4 :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 32) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 24) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 16) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      (1 + k)
+⊢ ((if
+                  (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                18446744073709551615#64 &&&
+                              4503599627370495#64).rotateRight
+                          52).toNat %
+                      4096 =
+                    0 then
+                (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                    18446744073709551615#64 &&&
+                  4503599627370495#64
+              else 0#64).toNat |||
+            4503599627370496 *
+                (if
+                      (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                    18446744073709551615#64 &&&
+                                  4503599627370495#64).rotateRight
+                              52).toNat %
+                          4096 =
+                        0 then
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1022#64
+                  else
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1023#64).toNat %
+              18446744073709551616) %
+          18446744073709551616 %
+        2 ^ 128 %
+      2 ^ 64 =
+    B.float64BitsNearest
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+case hq.refine_1
+x : BitVec 64
+ret : Nat
+s : State
+hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0
+hbr✝⁴ : ¬BitVec.toNat s.sp ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝³ : ¬s.mem.readLE (x.toNat + 8) 8 ||| s.mem.readLE (x.toNat + 16) 8 ||| s.mem.readLE (x.toNat + 24) 8 = 0
+hbr✝² : ¬s.mem.readLE (x.toNat + 24) 8 = 0
+s' : State
+left✝¹ : s'.regs 0 = s.sp - 40#64
+hbr✝¹ : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 % 2048 = 0
+hbr✝ : ¬((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).getLsbD 11 == false) = true
+hbr :
+  ((if
+              s'.mem.readLE (BitVec.toNat s.sp - 24) 8 ||| s'.mem.readLE (BitVec.toNat s.sp - 32) 8 |||
+                  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 =
+                0 then
+            0#64
+          else 1#64).getLsbD
+        0 ==
+      true) =
+    true
+l0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+l1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+l2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+l3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+k : Nat
+left✝ :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 24) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      ((18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 +
+          257) %
+        18446744073709551616)
+right✝ :
+  MemFrame
+    (((((((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat s.sp - 48) 8 (18446744073709551616 - k % 18446744073709551616 + 64 + 192)).writeLE
+                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+              (BitVec.toNat s.sp - 32) 8 0).writeLE
+          (BitVec.toNat s.sp - 24) 8 0).writeLE
+      (BitVec.toNat s.sp - 16) 8 0)
+    s'.mem [(BitVec.toNat s.sp - 40, BitVec.toNat s.sp - 40 + 32)]
+hkj : k < 64
+hbl :
+  Spec.bitLen
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8) =
+    256 - k
+m0 : s'.mem.readLE (BitVec.toNat s.sp - 40) 8 < 18446744073709551616
+m1 : s'.mem.readLE (BitVec.toNat s.sp - 32) 8 < 18446744073709551616
+m2 : s'.mem.readLE (BitVec.toNat s.sp - 24) 8 < 18446744073709551616
+m3 : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 < 18446744073709551616
+hexp :
+  (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) %
+      18446744073709551616 =
+    1 + k
+e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32
+e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24
+e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16
+hS4 :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 32) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 24) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 16) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      (1 + k)
+⊢ ((if
+                  ((((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                  18446744073709551615#64 &&&
+                                4503599627370495#64) +
+                              1#64).rotateRight
+                          52).toNat %
+                      4096 =
+                    0 then
+                ((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                      18446744073709551615#64 &&&
+                    4503599627370495#64) +
+                  1#64
+              else 0#64).toNat |||
+            4503599627370496 *
+                (if
+                      ((((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                      18446744073709551615#64 &&&
+                                    4503599627370495#64) +
+                                  1#64).rotateRight
+                              52).toNat %
+                          4096 =
+                        0 then
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1022#64
+                  else
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1023#64).toNat %
+              18446744073709551616) %
+          18446744073709551616 %
+        2 ^ 128 %
+      2 ^ 64 =
+    B.float64BitsNearest
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+case hq.refine_1
+x : BitVec 64
+ret : Nat
+s : State
+hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0
+hbr✝⁵ : ¬BitVec.toNat s.sp ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝⁴ : ¬s.mem.readLE (x.toNat + 8) 8 ||| s.mem.readLE (x.toNat + 16) 8 ||| s.mem.readLE (x.toNat + 24) 8 = 0
+hbr✝³ : ¬s.mem.readLE (x.toNat + 24) 8 = 0
+s' : State
+left✝¹ : s'.regs 0 = s.sp - 40#64
+hbr✝² : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 % 2048 = 0
+hbr✝¹ : ¬((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).getLsbD 11 == false) = true
+hbr✝ :
+  ¬((if
+                s'.mem.readLE (BitVec.toNat s.sp - 24) 8 ||| s'.mem.readLE (BitVec.toNat s.sp - 32) 8 |||
+                    s'.mem.readLE (BitVec.toNat s.sp - 40) 8 =
+                  0 then
+              0#64
+            else 1#64).getLsbD
+          0 ==
+        true) =
+      true
+hbr :
+  (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&& 18446744073709551615#64 &&&
+            4503599627370495#64).getLsbD
+        0 ==
+      false) =
+    true
+l0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+l1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+l2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+l3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+k : Nat
+left✝ :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 24) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      ((18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 +
+          257) %
+        18446744073709551616)
+right✝ :
+  MemFrame
+    (((((((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat s.sp - 48) 8 (18446744073709551616 - k % 18446744073709551616 + 64 + 192)).writeLE
+                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+              (BitVec.toNat s.sp - 32) 8 0).writeLE
+          (BitVec.toNat s.sp - 24) 8 0).writeLE
+      (BitVec.toNat s.sp - 16) 8 0)
+    s'.mem [(BitVec.toNat s.sp - 40, BitVec.toNat s.sp - 40 + 32)]
+hkj : k < 64
+hbl :
+  Spec.bitLen
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8) =
+    256 - k
+m0 : s'.mem.readLE (BitVec.toNat s.sp - 40) 8 < 18446744073709551616
+m1 : s'.mem.readLE (BitVec.toNat s.sp - 32) 8 < 18446744073709551616
+m2 : s'.mem.readLE (BitVec.toNat s.sp - 24) 8 < 18446744073709551616
+m3 : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 < 18446744073709551616
+hexp :
+  (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) %
+      18446744073709551616 =
+    1 + k
+e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32
+e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24
+e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16
+hS4 :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 32) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 24) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 16) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      (1 + k)
+⊢ ((if
+                  (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                18446744073709551615#64 &&&
+                              4503599627370495#64).rotateRight
+                          52).toNat %
+                      4096 =
+                    0 then
+                (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                    18446744073709551615#64 &&&
+                  4503599627370495#64
+              else 0#64).toNat |||
+            4503599627370496 *
+                (if
+                      (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                    18446744073709551615#64 &&&
+                                  4503599627370495#64).rotateRight
+                              52).toNat %
+                          4096 =
+                        0 then
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1022#64
+                  else
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1023#64).toNat %
+              18446744073709551616) %
+          18446744073709551616 %
+        2 ^ 128 %
+      2 ^ 64 =
+    B.float64BitsNearest
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+case hq.refine_1
+x : BitVec 64
+ret : Nat
+s : State
+hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0
+hbr✝⁵ : ¬BitVec.toNat s.sp ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝⁴ : ¬s.mem.readLE (x.toNat + 8) 8 ||| s.mem.readLE (x.toNat + 16) 8 ||| s.mem.readLE (x.toNat + 24) 8 = 0
+hbr✝³ : ¬s.mem.readLE (x.toNat + 24) 8 = 0
+s' : State
+left✝¹ : s'.regs 0 = s.sp - 40#64
+hbr✝² : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 % 2048 = 0
+hbr✝¹ : ¬((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).getLsbD 11 == false) = true
+hbr✝ :
+  ¬((if
+                s'.mem.readLE (BitVec.toNat s.sp - 24) 8 ||| s'.mem.readLE (BitVec.toNat s.sp - 32) 8 |||
+                    s'.mem.readLE (BitVec.toNat s.sp - 40) 8 =
+                  0 then
+              0#64
+            else 1#64).getLsbD
+          0 ==
+        true) =
+      true
+hbr :
+  ¬(((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&& 18446744073709551615#64 &&&
+              4503599627370495#64).getLsbD
+          0 ==
+        false) =
+      true
+l0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+l1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+l2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+l3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+k : Nat
+left✝ :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 24) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      ((18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 +
+          257) %
+        18446744073709551616)
+right✝ :
+  MemFrame
+    (((((((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat s.sp - 48) 8 (18446744073709551616 - k % 18446744073709551616 + 64 + 192)).writeLE
+                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+              (BitVec.toNat s.sp - 32) 8 0).writeLE
+          (BitVec.toNat s.sp - 24) 8 0).writeLE
+      (BitVec.toNat s.sp - 16) 8 0)
+    s'.mem [(BitVec.toNat s.sp - 40, BitVec.toNat s.sp - 40 + 32)]
+hkj : k < 64
+hbl :
+  Spec.bitLen
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8) =
+    256 - k
+m0 : s'.mem.readLE (BitVec.toNat s.sp - 40) 8 < 18446744073709551616
+m1 : s'.mem.readLE (BitVec.toNat s.sp - 32) 8 < 18446744073709551616
+m2 : s'.mem.readLE (BitVec.toNat s.sp - 24) 8 < 18446744073709551616
+m3 : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 < 18446744073709551616
+hexp :
+  (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) %
+      18446744073709551616 =
+    1 + k
+e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32
+e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24
+e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16
+hS4 :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 32) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 24) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 16) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      (1 + k)
+⊢ ((if
+                  ((((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                  18446744073709551615#64 &&&
+                                4503599627370495#64) +
+                              1#64).rotateRight
+                          52).toNat %
+                      4096 =
+                    0 then
+                ((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                      18446744073709551615#64 &&&
+                    4503599627370495#64) +
+                  1#64
+              else 0#64).toNat |||
+            4503599627370496 *
+                (if
+                      ((((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                      18446744073709551615#64 &&&
+                                    4503599627370495#64) +
+                                  1#64).rotateRight
+                              52).toNat %
+                          4096 =
+                        0 then
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1022#64
+                  else
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1023#64).toNat %
+              18446744073709551616) %
+          18446744073709551616 %
+        2 ^ 128 %
+      2 ^ 64 =
+    B.float64BitsNearest
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+case hq.refine_1
+x : BitVec 64
+ret : Nat
+s : State
+hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0
+hbr✝³ : ¬BitVec.toNat s.sp ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝² : ¬s.mem.readLE (x.toNat + 8) 8 ||| s.mem.readLE (x.toNat + 16) 8 ||| s.mem.readLE (x.toNat + 24) 8 = 0
+hbr✝¹ : ¬s.mem.readLE (x.toNat + 24) 8 = 0
+s' : State
+left✝¹ : s'.regs 0 = s.sp - 40#64
+hbr✝ : ¬s'.mem.readLE (BitVec.toNat s.sp - 16) 8 % 2048 = 0
+hbr : ((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).getLsbD 11 == false) = true
+l0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+l1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+l2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+l3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+k : Nat
+left✝ :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 24) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      ((18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 +
+          257) %
+        18446744073709551616)
+right✝ :
+  MemFrame
+    (((((((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat s.sp - 48) 8 (18446744073709551616 - k % 18446744073709551616 + 64 + 192)).writeLE
+                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+              (BitVec.toNat s.sp - 32) 8 0).writeLE
+          (BitVec.toNat s.sp - 24) 8 0).writeLE
+      (BitVec.toNat s.sp - 16) 8 0)
+    s'.mem [(BitVec.toNat s.sp - 40, BitVec.toNat s.sp - 40 + 32)]
+hkj : k < 64
+hbl :
+  Spec.bitLen
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8) =
+    256 - k
+m0 : s'.mem.readLE (BitVec.toNat s.sp - 40) 8 < 18446744073709551616
+m1 : s'.mem.readLE (BitVec.toNat s.sp - 32) 8 < 18446744073709551616
+m2 : s'.mem.readLE (BitVec.toNat s.sp - 24) 8 < 18446744073709551616
+m3 : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 < 18446744073709551616
+hexp :
+  (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) %
+      18446744073709551616 =
+    1 + k
+e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32
+e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24
+e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16
+hS4 :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 32) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 24) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 16) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      (1 + k)
+⊢ ((if
+                  (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                18446744073709551615#64 &&&
+                              4503599627370495#64).rotateRight
+                          52).toNat %
+                      4096 =
+                    0 then
+                (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                    18446744073709551615#64 &&&
+                  4503599627370495#64
+              else 0#64).toNat |||
+            4503599627370496 *
+                (if
+                      (((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                    18446744073709551615#64 &&&
+                                  4503599627370495#64).rotateRight
+                              52).toNat %
+                          4096 =
+                        0 then
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1022#64
+                  else
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1023#64).toNat %
+              18446744073709551616) %
+          18446744073709551616 %
+        2 ^ 128 %
+      2 ^ 64 =
+    B.float64BitsNearest
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+case hq.refine_1
+x : BitVec 64
+ret : Nat
+s : State
+hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0
+hbr✝³ : ¬BitVec.toNat s.sp ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝² : ¬s.mem.readLE (x.toNat + 8) 8 ||| s.mem.readLE (x.toNat + 16) 8 ||| s.mem.readLE (x.toNat + 24) 8 = 0
+hbr✝¹ : ¬s.mem.readLE (x.toNat + 24) 8 = 0
+s' : State
+left✝¹ : s'.regs 0 = s.sp - 40#64
+hbr✝ : ¬s'.mem.readLE (BitVec.toNat s.sp - 16) 8 % 2048 = 0
+hbr : ¬((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).getLsbD 11 == false) = true
+l0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+l1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+l2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+l3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+k : Nat
+left✝ :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 40 + 24) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      ((18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 +
+          257) %
+        18446744073709551616)
+right✝ :
+  MemFrame
+    (((((((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat s.sp - 48) 8 (18446744073709551616 - k % 18446744073709551616 + 64 + 192)).writeLE
+                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+              (BitVec.toNat s.sp - 32) 8 0).writeLE
+          (BitVec.toNat s.sp - 24) 8 0).writeLE
+      (BitVec.toNat s.sp - 16) 8 0)
+    s'.mem [(BitVec.toNat s.sp - 40, BitVec.toNat s.sp - 40 + 32)]
+hkj : k < 64
+hbl :
+  Spec.bitLen
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8) =
+    256 - k
+m0 : s'.mem.readLE (BitVec.toNat s.sp - 40) 8 < 18446744073709551616
+m1 : s'.mem.readLE (BitVec.toNat s.sp - 32) 8 < 18446744073709551616
+m2 : s'.mem.readLE (BitVec.toNat s.sp - 24) 8 < 18446744073709551616
+m3 : s'.mem.readLE (BitVec.toNat s.sp - 16) 8 < 18446744073709551616
+hexp :
+  (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) %
+      18446744073709551616 =
+    1 + k
+e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32
+e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24
+e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16
+hS4 :
+  s'.mem.readLE (BitVec.toNat s.sp - 40) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat s.sp - 32) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat s.sp - 24) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat s.sp - 16) 8 =
+    Spec.lsh
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+      (1 + k)
+⊢ ((if
+                  ((((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                  18446744073709551615#64 &&&
+                                4503599627370495#64) +
+                              1#64).rotateRight
+                          52).toNat %
+                      4096 =
+                    0 then
+                ((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                      18446744073709551615#64 &&&
+                    4503599627370495#64) +
+                  1#64
+              else 0#64).toNat |||
+            4503599627370496 *
+                (if
+                      ((((BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat s.sp - 16) 8)).rotateRight 12 &&&
+                                      18446744073709551615#64 &&&
+                                    4503599627370495#64) +
+                                  1#64).rotateRight
+                              52).toNat %
+                          4096 =
+                        0 then
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1022#64
+                  else
+                    BitVec.ofNat 64
+                        ((18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616) +
+                      1023#64).toNat %
+              18446744073709551616) %
+          18446744073709551616 %
+        2 ^ 128 %
+      2 ^ 64 =
+    B.float64BitsNearest
+      (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+Fv256/Arm64/S3.lean:46:43: warning: This simp argument is unused:
+  Nat.mul_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hexp, e8, e16, e24, Nat.add_zero] at hS4
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/S3.lean:46:57: warning: This simp argument is unused:
+  Nat.add_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hexp, e8, e16, e24, Nat.mul_zero] at hS4
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

@@ -26,6 +26,48 @@ elab "clear_states64" : tactic => do
       try g ← g.clear d.fvarId catch _ => pure ()
   replaceMainGoal [g]
 
+open Lean Elab Tactic Meta in
+/-- `grab_lsh h`: name (as `h`) the first local hypothesis whose type mentions `Fv256.Spec.lsh` (the callee's anonymous
+post-condition conjunct after a `janus_run calls [..]`) -/
+elab "grab_lsh " n:ident : tactic => do
+  let g ← getMainGoal
+  for d in (← g.getDecl).lctx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if (ty.find? fun e => e.isConstOf ``Fv256.Spec.lsh).isSome then
+      let g' ← g.withContext do
+        let (_, g') ← g.note n.getId (mkFVar d.fvarId) ty
+        pure g'
+      replaceMainGoal [g']
+      return
+  throwError "grab_lsh: no hypothesis mentions Spec.lsh"
+
+open Lean Elab Tactic Meta in
+/-- `fast_assm t`: close/produce `t` from a hypothesis whose type is *syntactically* `t` (no unification, cheap on huge contexts) -/
+elab "fast_assm " t:term : tactic => do
+  let g ← getMainGoal
+  let e ← g.withContext (Term.withSynthesize (Term.elabTerm t none))
+  let ty ← instantiateMVars e
+  g.withContext do
+    for d in (← g.getDecl).lctx do
+      if d.isImplementationDetail then continue
+      if (← withReducible (isDefEq (← instantiateMVars d.type) ty)) then
+        g.assign (mkFVar d.fvarId)
+        replaceMainGoal []
+        return
+  throwError "fast_assm: no match for {ty}; hyps: {(← g.getDecl).lctx.foldl (fun (a : List MessageData) d => if d.isImplementationDetail then a else a ++ [m!"{d.userName} : {d.type}"]) []}"
+
+open Lean Elab Tactic in
+/-- profiling aid: run `t`, log how long it took and whether it failed (rethrows) -/
+elab "timed " s:str t:tacticSeq : tactic => do
+  let t0 ← IO.monoMsNow
+  try
+    evalTactic t
+    logInfo m!"timed {s.getString}: ok {(← IO.monoMsNow) - t0} ms"
+  catch e =>
+    logInfo m!"timed {s.getString}: FAIL {(← IO.monoMsNow) - t0} ms"
+    throw e
+
 namespace Fv256.D
 
 theorem f64_bits (q r t Y y0 y1 y2 y3 : Nat) (ht1 : 12 ≤ t) (ht2 : t ≤ 203) (hr : r < 2 ^ t) (hq : q < 2 ^ 52)
@@ -298,5 +340,26 @@ theorem lsb_ofNat (y i : Nat) (hi : i < 64) : (BitVec.ofNat 64 y).getLsbD i = de
 theorem lsb0_toNat (v : BitVec 64) : v.getLsbD 0 = decide (v.toNat % 2 = 1) := by
   unfold BitVec.getLsbD
   rw [Nat.testBit_eq_decide_div_mod_eq]; simp
+
+/-- sticky-bit materialisation `if a|b|c = 0 then 0 else 1` seen through `getLsbD 0` -/
+theorem ite_or_lsb (a b c : Nat) :
+    (((if a ||| b ||| c = 0 then 0#64 else 1#64).getLsbD 0 == true) = true) ↔ (a ≠ 0 ∨ b ≠ 0 ∨ c ≠ 0) := by
+  have hor : a ||| b ||| c = 0 ↔ (a = 0 ∧ b = 0 ∧ c = 0) := by
+    simp only [Nat.or_eq_zero_iff, and_assoc]
+  by_cases h : a ||| b ||| c = 0
+  · have h' := hor.mp h
+    rw [if_pos h]
+    constructor
+    · intro hh; simp at hh
+    · rintro (h1 | h1 | h1) <;> exact absurd (by first | exact h'.1 | exact h'.2.1 | exact h'.2.2) h1
+  · rw [if_neg h]
+    constructor
+    · intro _
+      exact Classical.byContradiction fun hc => h (hor.mpr (by simp only [not_or, ne_eq, Decidable.not_not] at hc; exact hc))
+    · intro _; decide
+
+/-- the 0/1 sticky flag seen through `toNat % 2` (after `lsb0_toNat`) -/
+theorem ite_toNat_mod2 (c : Prop) [Decidable c] : ((if c then 0#64 else 1#64).toNat % 2 = 1) ↔ ¬ c := by
+  by_cases h : c <;> simp [h]
 
 end Fv256.D

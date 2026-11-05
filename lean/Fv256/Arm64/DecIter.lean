@@ -85,7 +85,7 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
         (S'.regs 10 = 0#64 ↔ y / 10 ^ 19 = 0) ∧ S'.regs 28 = s.regs 28 ∧ S'.regs 29 = s.regs 29 ∧ S'.regs 18 = s.regs 18 ∧ S'.sp = s.sp ∧
         Fv256.B.wv S'.mem (b + 288) 4 = y / 10 ^ 19 ∧ Fv256.B.wv S'.mem (b + 320) 4 = 10 ^ 19 ∧
         (∀ k, k < decLen (y % 10 ^ 19) → S'.mem.readLE (b + 94 + pos - 1 - k) 1 = 48 + y / 10 ^ k % 10) ∧
-        MemFrame s.mem S'.mem [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - decLen (y % 10 ^ 19)), b + 94 + pos), (b + 192, b + 384)] ∧
+        MemFrame s.mem S'.mem [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - decLen (y % 10 ^ 19)), b + 94 + pos), (b + 192, b + 376)] ∧
         TabsOK S'.mem) := by
   have hc : decE + 0x5000 < 2 ^ 47 := by decide
   have hc2 : decH + 0x5000 < 2 ^ 47 := by decide
@@ -277,13 +277,13 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
       rw [Janus.Arm64.Memory.readLE_one, show b + 75 + (nd - 1 - k) = b + 75 + nd - 1 - k by omega, bdig k hk,
         Fv256.E.digit_mod y k 19 (by omega)]
-    · have tr : ∀ {m1 m2 m3 : Memory}, MemFrame m1 m2 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
-          MemFrame m2 m3 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
-          MemFrame m1 m3 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] :=
+    · have tr : ∀ {m1 m2 m3 : Memory}, MemFrame m1 m2 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 376)] →
+          MemFrame m2 m3 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 376)] →
+          MemFrame m1 m3 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 376)] :=
         fun h h' => h.trans h' (fun a n h => ⟨h, h⟩)
-      have wr : ∀ {m1 m2 : Memory} {a k v : Nat}, MemFrame m1 m2 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
-          ((b - 344 ≤ a ∧ a + k ≤ b - 8) ∨ (b + 8 ≤ a ∧ a + k ≤ b + 94) ∨ (b + 94 + (pos - nd) ≤ a ∧ a + k ≤ b + 94 + pos) ∨ (b + 192 ≤ a ∧ a + k ≤ b + 384)) →
-          MemFrame m1 (m2.writeLE a k v) [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] := by
+      have wr : ∀ {m1 m2 : Memory} {a k v : Nat}, MemFrame m1 m2 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 376)] →
+          ((b - 344 ≤ a ∧ a + k ≤ b - 8) ∨ (b + 8 ≤ a ∧ a + k ≤ b + 94) ∨ (b + 94 + (pos - nd) ≤ a ∧ a + k ≤ b + 94 + pos) ∨ (b + 192 ≤ a ∧ a + k ≤ b + 376)) →
+          MemFrame m1 (m2.writeLE a k v) [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 376)] := by
         intro m1 m2 a k v h hr
         rcases hr with hr | hr | hr | hr
         · exact h.writeLE v (List.mem_cons_self ..) hr.1 hr.2
