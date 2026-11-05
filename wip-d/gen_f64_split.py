@@ -43,7 +43,7 @@ theorem lem{j} (x : BitVec 64) :
   janus_intro hs
   simp only [Disjoint] at hdis
   janus_run calls [hS := Fv256.Arm64.Float64.lsh_summary (s.sp - 40#64) x]
-  all_goals try (exfalso; have hor := (show {X(1)} ||| {X(2)} ||| {X(3)} = 0 by janus_assumption); simp only [Nat.or_eq_zero_iff, and_assoc] at hor; exact hxj hor{HP[j]})
+  all_goals try (exfalso; have hor := (show {X(1)} ||| {X(2)} ||| {X(3)} = 0 by with_reducible assumption); simp only [Nat.or_eq_zero_iff, and_assoc] at hor; exact hxj hor{HP[j]})
   all_goals clear_states
   all_goals (simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat] at *)
   all_goals (refine ⟨?_, ?_⟩; rotate_right; janus_frame)
