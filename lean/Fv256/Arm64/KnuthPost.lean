@@ -107,7 +107,7 @@ set_option maxHeartbeats 8000000 in
 theorem tail_store (s0 : State) (qp ql j q : Nat) (M : Memory)
     (hj : j < ql) (hq : q < 2 ^ 64) (hql : ql < 2 ^ 20)
     (hqa : M.accessible qp (8 * ql) true = true) (hqb : qp + 8 * ql ≤ 2 ^ 48)
-    (hsp : 120 ≤ s0.sp.toNat) (hal : s0.sp.toNat % 16 = 0) (hspb : s0.sp.toNat + 120 ≤ 2 ^ 48)
+    (hal : s0.sp.toNat % 16 = 0) (hspb : s0.sp.toNat + 120 ≤ 2 ^ 48)
     (e3 : s0.regs 3 = BitVec.ofNat 64 j) (e14 : s0.regs 14 = BitVec.ofNat 64 q)
     (m96 : M.readLE (s0.sp.toNat + 96) 8 = ql) (m88 : M.readLE (s0.sp.toNat + 88) 8 = qp)
     (hs96 : M.accessible (s0.sp.toNat + 96) 8 false = true) (hs88 : M.accessible (s0.sp.toNat + 88) 8 false = true)

@@ -34,7 +34,7 @@ theorem iter (s0 : State) (up dp qp n m ql v dl dh cap : Nat) (M0 : Memory) (R :
   have hfr := hI.fr
   have K0 := K
   obtain ⟨hn, hn2, hm2, hmq, hql2, hdh, hdl, hdh63, hv, hcap, hcapB, hsp, hup, hdp, hqp, hdu, hqu, hqd, hus, hqs, hua, hda, hqa, hs88, hs96, s88, s96⟩ := K
-  obtain ⟨hsp1, hsp2, hsp3⟩ := hsp
+  obtain ⟨hsp2, hsp3⟩ := hsp
   have hqlj : j < ql := by omega
   have r3' : R 3 = BitVec.ofNat 64 j := by rw [r3]; bv_omega
   have hu2B := Janus.Arm64.Memory.readLE_lt M (up + 8 * (j + n)) 8
@@ -135,7 +135,7 @@ theorem iter (s0 : State) (up dp qp n m ql v dl dh cap : Nat) (M0 : Memory) (R :
       have wm96 : M3.readLE (s0.sp.toNat + 96) 8 = ql := by rw [wfr.readLE _ _ (by simp [Outside] <;> omega)]; exact rm96
       have h4 := Fv256.Arm64.KnuthPost.tail_store
         { { { s0 with regs := R1, pc := BitVec.ofNat 64 (kn + 0x1a8), flags := fl1, mem := M } with regs := R2, pc := BitVec.ofNat 64 (kn + 0x1b0), flags := fl2, mem := M2 } with regs := R3, pc := BitVec.ofNat 64 (kn + 0x1cc), flags := fl3, mem := M3 }
-        qp ql j qh M3 hqlj hqhB hql2 hM3q hqp hsp1 hsp2 hsp3'
+        qp ql j qh M3 hqlj hqhB hql2 hM3q hqp hsp2 hsp3'
         ((wu 3 (by simp)).trans g3) ((wu 14 (by simp)).trans g14) wm96 wm88 hM3s96 hM3s88 rfl rfl
       refine Fv256.B.reachesRet_mono h4 ?_
       intro S4 ⟨R4, fl4, M4, hS4, t3, trd, tfr, tu⟩
@@ -220,7 +220,7 @@ theorem iter (s0 : State) (up dp qp n m ql v dl dh cap : Nat) (M0 : Memory) (R :
       subst hS5
       have h6 := Fv256.Arm64.KnuthPost.tail_store
         { { { { { s0 with regs := R1, pc := BitVec.ofNat 64 (kn + 0x1a8), flags := fl1, mem := M } with regs := R2, pc := BitVec.ofNat 64 (kn + 0x1b0), flags := fl2, mem := M2 } with regs := R3, pc := BitVec.ofNat 64 (kn + 0x210), flags := fl3, mem := M3 } with regs := R4, pc := BitVec.ofNat 64 (kn + 0x218), flags := fl4, mem := M4 } with regs := R5, pc := BitVec.ofNat 64 (kn + 0x1cc), flags := fl5, mem := M5 }
-        qp ql j (qh - 1) M5 hqlj (by omega) hql2 (by rw [dfr.accessible]; exact hM4q) hqp hsp1 hsp2 hsp3'
+        qp ql j (qh - 1) M5 hqlj (by omega) hql2 (by rw [dfr.accessible]; exact hM4q) hqp hsp2 hsp3'
         ((du 3 (by simp)).trans ((cu 3 (by simp)).trans ((wu 3 (by simp)).trans g3)))
         (by
           have e : R5 14 = BitVec.ofNat 64 qh - 1#64 := by

@@ -37,7 +37,7 @@ structure KC (up dp qp n m ql v dl dh cap sp : Nat) (M0 : Memory) : Prop where
   hv : v + 2 ^ 64 = (2 ^ 64 * 2 ^ 64 - 1) / dh
   hcap : m ≤ cap
   hcapB : cap < 2 ^ 55
-  hsp : 120 ≤ sp ∧ sp % 16 = 0 ∧ sp + 120 ≤ 2 ^ 48
+  hsp : sp % 16 = 0 ∧ sp + 120 ≤ 2 ^ 48
   hup : up + 8 * m ≤ 2 ^ 48
   hdp : dp + 8 * n ≤ 2 ^ 48
   hqp : qp + 8 * ql ≤ 2 ^ 48
