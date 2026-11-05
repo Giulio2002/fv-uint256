@@ -341,4 +341,25 @@ theorem lsb0_toNat (v : BitVec 64) : v.getLsbD 0 = decide (v.toNat % 2 = 1) := b
   unfold BitVec.getLsbD
   rw [Nat.testBit_eq_decide_div_mod_eq]; simp
 
+/-- sticky-bit materialisation `if a|b|c = 0 then 0 else 1` seen through `getLsbD 0` -/
+theorem ite_or_lsb (a b c : Nat) :
+    (((if a ||| b ||| c = 0 then 0#64 else 1#64).getLsbD 0 == true) = true) ↔ (a ≠ 0 ∨ b ≠ 0 ∨ c ≠ 0) := by
+  have hor : a ||| b ||| c = 0 ↔ (a = 0 ∧ b = 0 ∧ c = 0) := by
+    simp only [Nat.or_eq_zero_iff, and_assoc]
+  by_cases h : a ||| b ||| c = 0
+  · have h' := hor.mp h
+    rw [if_pos h]
+    constructor
+    · intro hh; simp at hh
+    · rintro (h1 | h1 | h1) <;> exact absurd (by first | exact h'.1 | exact h'.2.1 | exact h'.2.2) h1
+  · rw [if_neg h]
+    constructor
+    · intro _
+      exact Classical.byContradiction fun hc => h (hor.mpr (by simp only [not_or, ne_eq, Decidable.not_not] at hc; exact hc))
+    · intro _; decide
+
+/-- the 0/1 sticky flag seen through `toNat % 2` (after `lsb0_toNat`) -/
+theorem ite_toNat_mod2 (c : Prop) [Decidable c] : ((if c then 0#64 else 1#64).toNat % 2 = 1) ↔ ¬ c := by
+  by_cases h : c <;> simp [h]
+
 end Fv256.D
