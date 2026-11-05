@@ -6,6 +6,8 @@ import Fv256.UtilB
 import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.Amd64.SDivSum
+import Fv256.CodeIn
+import Fv256.SDivProg
 
 /-!
 # `(*uint256.Int).ISDiv(x *Int) *Int` (amd64): in place, `z = z / x`, and `0` when `x = 0`
@@ -27,6 +29,10 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.ISDiv
 
+set_option maxRecDepth 100000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.SDivProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
+
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem correctness (z x : BitVec 64) :
@@ -47,7 +53,7 @@ theorem correctness (z x : BitVec 64) :
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
   simp only [regSP] at hacc hlow hnw hdz hdx hsp
   simp only [valueAt]
-  janus64_run [Util.readLE_32] calls [Fv256.Amd64.SDivSum.sdiv_summary]
+  janus64_run [Util.readLE_32] calls [Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.SDivSum.sdiv_summary]
   refine ⟨by assumption, MemFrame.trans (rs := [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x288, (s.regs regSP).toNat + 0x10)]) ?_ ‹MemFrame _ _ _› ?_⟩
   · exact ((MemFrame.refl _ _).writeLE_inRanges _ ⟨((s.regs regSP).toNat - 0x288, (s.regs regSP).toNat + 0x10), by simp, by simp only [regSP]; omega, by simp only [regSP]; omega⟩).writeLE_inRanges _
       ⟨((s.regs regSP).toNat - 0x288, (s.regs regSP).toNat + 0x10), by simp, by simp only [regSP]; omega, by simp only [regSP]; omega⟩

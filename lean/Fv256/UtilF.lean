@@ -139,4 +139,30 @@ theorem shr1_w64 (w : Nat) (hw : w < 2 ^ 64) : (BitVec.ofNat 64 w >>> 1) = BitVe
   simp [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]
   omega
 
+
+/-- three 16-byte zero stores at `p`, `p+16`, `p+24` clear five words -/
+theorem wv_zero5 (m : Janus.Arm64.Memory) (p q r : Nat) (h1 : q = p + 16) (h2 : r = p + 24) :
+    wv (((m.writeLE p 16 0).writeLE q 16 0).writeLE r 16 0) p 5 = 0 := by
+  subst h1 h2
+  have e : ∀ a, p ≤ a → a + 8 ≤ p + 40 → (a - p) % 8 = 0 → (((m.writeLE p 16 0).writeLE (p + 16) 16 0).writeLE (p + 24) 16 0).readLE a 8 = 0 := by
+    intro a h1 h2 h8
+    rcases (by omega : a + 8 ≤ p + 16 ∨ (p + 16 ≤ a ∧ a + 8 ≤ p + 24) ∨ (p + 24 ≤ a ∧ a + 8 ≤ p + 40)) with h | h | h
+    · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+        Janus.Arm64.Memory.readLE_writeLE_inside _ _ h1 h]
+      simp
+    · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_inside _ _ h.1 (by omega)]
+      simp
+    · rw [Janus.Arm64.Memory.readLE_writeLE_inside _ _ h.1 h.2]
+      simp
+  simp only [wv, e p (by omega) (by omega) (by omega), e (p + 8) (by omega) (by omega) (by omega),
+    e (p + 8 + 8) (by omega) (by omega) (by omega), e (p + 8 + 8 + 8) (by omega) (by omega) (by omega),
+    e (p + 8 + 8 + 8 + 8) (by omega) (by omega) (by omega)]
+
+theorem wv_zero5' (m : Janus.Arm64.Memory) (p q r : Nat) (h1 : q = p + 16) (h2 : r = p + 24) :
+    wv (((m.writeLE p 16 (BitVec.toNat (0 : BitVec 128))).writeLE q 16 (BitVec.toNat (0 : BitVec 128))).writeLE r 16
+      (BitVec.toNat (0 : BitVec 128))) p 5 = 0 := by
+  have e : BitVec.toNat (0 : BitVec 128) = 0 := rfl
+  rw [e]
+  exact wv_zero5 m p q r h1 h2
+
 end Fv256.F
