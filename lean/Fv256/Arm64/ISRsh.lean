@@ -22,19 +22,16 @@ namespace Fv256.Arm64.ISRsh
 
 set_option maxHeartbeats 8000000 in
 set_option maxRecDepth 100000 in
-theorem correctness (z n : BitVec 64) (ret : Nat)
-    (hret : RetAddr Extracted.program ret) (s : State)
-    (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s)
-    (hg : GuardOK s 56) (hst : StackOK s 112 0) :
-    (Ptr32 s.mem z true → Disjoint z.toNat 32 (s.sp.toNat - 112) 112 →
-      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 112) 112 →
-      Returns (Extracted.program.withExit ret) s (fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+theorem correctness (z n : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, n]
+      (fun s => GuardOK s 56 ∧ StackOK s 112 0 ∧ Ptr32 s.mem z true ∧
+        Disjoint z.toNat 32 (s.sp.toNat - 112) 112 ∧
+        Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 112) 112)
+      (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Spec.srsh (val256 s.mem z.toNat) n.toNat ∧
-          Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 112) 112)) := by
-  obtain ⟨hg1, hg2, hg3⟩ := hg
-  obtain ⟨hal, hb, ha, hw⟩ := hst
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 112) 112) := by
+  intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, ⟨hz, hz'⟩, hd1, hdg⟩
   janus_intro hs
-  intro ⟨hz, hz'⟩ hd1 hdg
   simp only [Disjoint] at *
   janus_run [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod]
   · rename_i _ hsg
@@ -238,27 +235,26 @@ def s0 : State :=
     sp := BitVec.ofNat 64 wsp, pc := BitVec.ofNat 64 Extracted.entry,
     flags := ⟨false, false, false, false⟩, mem := Janus.Contracts.EqHashModel.wmem }
 
-theorem hg : GuardOK s0 56 := by unfold GuardOK; decide
-theorem hst : StackOK s0 112 0 := by unfold StackOK; decide
 
 theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s0 :=
   ⟨rfl, rfl, by
     intro i h; simp at h
     rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl <;> rfl⟩
 
-theorem hpre : Ptr32 s0.mem z true ∧ Disjoint z.toNat 32 (s0.sp.toNat - 112) 112 ∧
+theorem hpre : GuardOK s0 56 ∧ StackOK s0 112 0 ∧ Ptr32 s0.mem z true ∧ Disjoint z.toNat 32 (s0.sp.toNat - 112) 112 ∧
     Disjoint ((s0.regs 28).toNat + 16) 8 (s0.sp.toNat - 112) 112 :=
-  ⟨⟨by decide, by decide⟩, by unfold Disjoint; decide, by unfold Disjoint; decide⟩
+  ⟨by unfold GuardOK; decide, by unfold StackOK; decide, ⟨by decide, by decide⟩, by unfold Disjoint; decide,
+    by unfold Disjoint; decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s ∧ GuardOK s 56 ∧ StackOK s 112 0 ∧
-    (Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 112) 112 ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s ∧
+    (GuardOK s 56 ∧ StackOK s 112 0 ∧ Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 112) 112 ∧
       Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 112) 112) :=
-  ⟨ret, s0, z, n, hret, setup, hg, hst, hpre⟩
+  ⟨ret, s0, z, n, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z n ret hret s0 setup hg hst hpre.1 hpre.2.1 hpre.2.2).mono ?_
+  refine (correctness z n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
