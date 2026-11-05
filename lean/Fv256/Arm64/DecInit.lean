@@ -38,6 +38,22 @@ theorem initMem_frame (m : Janus.Arm64.Memory) (r zp a29 a30 : Nat) (h : 392 ≤
     | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) (by omega) (by omega)
 
 set_option maxRecDepth 200000 in
+theorem initMem_save1 (m : Janus.Arm64.Memory) (r zp a29 a30 : Nat) (h : 392 ≤ r) (hb : a29 < 2 ^ 64) :
+    (initMem m r zp a29 a30).readLE (r - 392) 8 = a29 := by
+  unfold initMem
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  simp only [Nat.reducePow]
+  omega
+
+set_option maxRecDepth 200000 in
+theorem initMem_save2 (m : Janus.Arm64.Memory) (r zp a29 a30 : Nat) (h : 392 ≤ r) (hb : a30 < 2 ^ 64) :
+    (initMem m r zp a29 a30).readLE (r - 384) 8 = a30 := by
+  unfold initMem
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  simp only [Nat.reducePow]
+  omega
+
+set_option maxRecDepth 200000 in
 theorem initMem_y (m : Janus.Arm64.Memory) (r zp a29 a30 : Nat) (h : 392 ≤ r) :
     (initMem m r zp a29 a30).readLE (r - 96) 32 = m.readLE zp 32 := by
   rw [Util.readLE_32, Util.readLE_32, show r - 96 + 8 = r - 88 by omega, show r - 96 + 16 = r - 80 by omega, show r - 96 + 24 = r - 72 by omega]
@@ -110,7 +126,8 @@ theorem dec_init (s : State) (hpc : s.pc = BitVec.ofNat 64 decE) (zp : Nat) (e0 
         MemFrame s.mem S'.mem [(s.sp.toNat - 392, s.sp.toNat - 32)] ∧
         Fv256.B.wv S'.mem (s.sp.toNat - 96) 4 = Fv256.B.wv s.mem zp 4 ∧
         Fv256.B.wv S'.mem (s.sp.toNat - 64) 4 = 10 ^ 19 ∧
-        (∀ k, k < 98 → S'.mem.readLE (s.sp.toNat - 384 + 94 + 97 - k) 1 = 48) ∧ TabsOK S'.mem) := by
+        (∀ k, k < 98 → S'.mem.readLE (s.sp.toNat - 384 + 94 + 97 - k) 1 = 48) ∧ TabsOK S'.mem ∧
+        S'.mem.readLE (s.sp.toNat - 392) 8 = (s.regs 29).toNat ∧ S'.mem.readLE (s.sp.toNat - 384) 8 = (s.regs 30).toNat) := by
   have hc : decE + 0x400 < 2 ^ 47 := by decide
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hzn, hza⟩ := hz
@@ -144,7 +161,7 @@ theorem dec_init (s : State) (hpc : s.pc = BitVec.ofNat 64 decE) (zp : Nat) (e0 
   janus_run [e0, Nat.or_eq_zero_iff] until [decH]
   have hr := s.sp.isLt
   have hr0 : 392 ≤ s.sp.toNat := h392
-  refine ReachesRet.done (by rfl) ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ReachesRet.done (by rfl) ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · simp [setReg]
   · simp [setReg]
   · simp [setReg]; exact Fv256.E.bv_sub_lit _ 96 (by omega)
@@ -169,4 +186,6 @@ theorem dec_init (s : State) (hpc : s.pc = BitVec.ofNat 64 decE) (zp : Nat) (e0 
       simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
       subst hr
       exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
+  · exact initMem_save1 s.mem s.sp.toNat zp (s.regs 29).toNat (s.regs 30).toNat hr0 (by have := (s.regs 29).isLt; omega)
+  · exact initMem_save2 s.mem s.sp.toNat zp (s.regs 29).toNat (s.regs 30).toNat hr0 (by have := (s.regs 30).isLt; omega)
 end Fv256.Arm64.Dec

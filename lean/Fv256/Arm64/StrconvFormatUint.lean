@@ -53,8 +53,8 @@ theorem formatUint_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : R
         (100 ≤ (s.regs 0).toNat → H [0, s.sp.toNat - 32 + (24 - decLen (s.regs 0).toNat), decLen (s.regs 0).toNat]
           (s.regs 28).toNat (s.sp.toNat - 96) (rtView rt s.mem)))
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (s.regs 0).toNat) ∧
-        s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧
-        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4192, s.sp.toNat)]) ∧ TabsOK s'.mem) := by
+        s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4192, s.sp.toNat - 8)]) ∧ TabsOK s'.mem) := by
   intro s hpc ⟨hb10, hg, hgd, hal, h4192, hsp2, hw, htab, hrt1, hrt2, hrt3, hret, hret4, hH⟩
   have hc2 : fu + 0x300 < 2 ^ 47 := by decide
   obtain ⟨hg1, hg2, hg3⟩ := hg
@@ -148,8 +148,8 @@ theorem formatUint_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : R
       have hmask2 : (24 - decLen (s.regs 0).toNat) &&& ((BitVec.ofNat 64 (24 - decLen (s.regs 0).toNat) - 24#64).sshiftRight 63).toNat = 24 - decLen (s.regs 0).toNat := by
         rw [Nat.and_comm]; exact hmask
       have hH2 := hH hge
-      have hfs : MemFrame s.mem sA.mem [(s.sp.toNat - 4192, s.sp.toNat)] := by
-        refine MemFrame.trans (rs := [(s.sp.toNat - 4192, s.sp.toNat)]) ?_ bfr ?_
+      have hfs : MemFrame s.mem sA.mem [(s.sp.toNat - 4192, s.sp.toNat - 8)] := by
+        refine MemFrame.trans (rs := [(s.sp.toNat - 4192, s.sp.toNat - 8)]) ?_ bfr ?_
         · repeat' first
             | exact MemFrame.refl _ _
             | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) ?_ ?_
@@ -196,12 +196,13 @@ theorem formatUint_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : R
           have e : s.sp.toNat - 32 + (24 - decLen (s.regs 0).toNat) + decLen (s.regs 0).toNat - 1 - k = s.sp.toNat - 32 + 23 - k := by omega
           rw [e]; exact this)
       have hap := htab.apart hw
-      refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_⟩
+      have hs18 : sA.regs 18 = s.regs 18 := by simpa [setReg] using bk 18 (by simp [Clob])
+      refine ⟨⟨?_, hr2, hr3, ?_⟩, hs18, ?_, ?_⟩
       · rw [hr1, hdig]
       · rw [hr4]; exact hdig
-      · have hfs' : MemFrame s.mem sA.mem (rt ++ [(s.sp.toNat - 4192, s.sp.toNat)]) :=
+      · have hfs' : MemFrame s.mem sA.mem (rt ++ [(s.sp.toNat - 4192, s.sp.toNat - 8)]) :=
           hfs.mono (fun a n h => by simp only [outside_append] at h; exact h.2)
-        have hl' : MemFrame sA.mem w2 (rt ++ [(s.sp.toNat - 4192, s.sp.toNat)]) := by
+        have hl' : MemFrame sA.mem w2 (rt ++ [(s.sp.toNat - 4192, s.sp.toNat - 8)]) := by
           refine hleft.mono (fun a n h => ?_)
           simp only [outside_append, outside_cons] at h ⊢
           refine ⟨h.1, ?_, ?_, trivial⟩ <;> omega

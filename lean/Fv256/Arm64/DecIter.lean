@@ -82,10 +82,10 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
       (fun S' => S'.regs 0 = BitVec.ofNat 64 (b + 75) ∧ S'.regs 2 = 19#64 ∧ S'.regs 8 = BitVec.ofNat 64 pos ∧
         S'.regs 9 = BitVec.ofNat 64 (b + 94 + (pos - decLen (y % 10 ^ 19))) ∧
         S'.regs 11 = BitVec.ofNat 64 (98 - (pos - decLen (y % 10 ^ 19))) ∧
-        (S'.regs 10 = 0#64 ↔ y / 10 ^ 19 = 0) ∧ S'.regs 28 = s.regs 28 ∧ S'.regs 29 = s.regs 29 ∧ S'.sp = s.sp ∧
+        (S'.regs 10 = 0#64 ↔ y / 10 ^ 19 = 0) ∧ S'.regs 28 = s.regs 28 ∧ S'.regs 29 = s.regs 29 ∧ S'.regs 18 = s.regs 18 ∧ S'.sp = s.sp ∧
         Fv256.B.wv S'.mem (b + 288) 4 = y / 10 ^ 19 ∧ Fv256.B.wv S'.mem (b + 320) 4 = 10 ^ 19 ∧
         (∀ k, k < decLen (y % 10 ^ 19) → S'.mem.readLE (b + 94 + pos - 1 - k) 1 = 48 + y / 10 ^ k % 10) ∧
-        MemFrame s.mem S'.mem [(b - 344, b + 94), (b + 94 + (pos - decLen (y % 10 ^ 19)), b + 94 + pos), (b + 192, b + 384)] ∧
+        MemFrame s.mem S'.mem [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - decLen (y % 10 ^ 19)), b + 94 + pos), (b + 192, b + 384)] ∧
         TabsOK S'.mem) := by
   have hc : decE + 0x5000 < 2 ^ 47 := by decide
   have hc2 : decH + 0x5000 < 2 ^ 47 := by decide
@@ -101,7 +101,7 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
   have hsp : s.sp.toNat = b := by rw [esp, BitVec.toNat_ofNat]; omega
   janus_run [e0, e1, e8, e3, e6, Fv256.Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, hdm, hdnz, Fv256.B.bv128_zero_toNat] until [au] calls [Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 4) (by omega) (by omega)]
   rename_i ha hpcA hspA h18 h28 h29 h30 hregs hq hrm hfr
-  simp [setReg] at h28 h29 h30 hspA
+  simp [setReg] at h18 h28 h29 h30 hspA
   rename State => sU
   have hfrM : MemFrame s.mem sU.mem [(b - 344, b + 384)] := by
     refine MemFrame.trans (rs := [(b - 344, b + 384)]) (rs' := [(b - 344, b + 384)]) ?_ (hfr.mono ?_)
@@ -180,8 +180,8 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
     · simp [setReg, hbn, h28]; omega
     · simp [setReg]
     · simp [setReg]
-  · intro sA hrip ⟨b0, b1, b2, bsp, b29, b28, bdig, bfr, btab⟩
-    simp [setReg] at b0 b1 b2 bsp b29 b28 bdig bfr
+  · intro sA hrip ⟨b0, b1, b2, bsp, b29, b28, b18, bdig, bfr, btab⟩
+    simp [setReg] at b0 b1 b2 bsp b29 b28 b18 bdig bfr
     have e75 : (b + 75) % 18446744073709551616 = b + 75 := by omega
     have e0' : b % 18446744073709551616 = b := by omega
     simp only [e75, e0'] at bdig bfr
@@ -220,7 +220,7 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     refine ReachesRet.done (by rfl) ?_
     dsimp only
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · simp [setReg]
     · simp [setReg]
     · simp [setReg]
@@ -249,6 +249,10 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
       simp [setReg] at this
       simp [setReg]
       rw [this, b29, h29]
+    · have := hkM 18 (by simp)
+      simp [setReg] at this
+      simp [setReg]
+      rw [this, b18, h18]
     · exact esp.symm
     · have h0 := hy_limb 0 (by omega); have h1 := hy_limb 1 (by omega)
       have h2 := hy_limb 2 (by omega); have h3 := hy_limb 3 (by omega)
@@ -273,18 +277,19 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
       rw [Janus.Arm64.Memory.readLE_one, show b + 75 + (nd - 1 - k) = b + 75 + nd - 1 - k by omega, bdig k hk,
         Fv256.E.digit_mod y k 19 (by omega)]
-    · have tr : ∀ {m1 m2 m3 : Memory}, MemFrame m1 m2 [(b - 344, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
-          MemFrame m2 m3 [(b - 344, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
-          MemFrame m1 m3 [(b - 344, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] :=
+    · have tr : ∀ {m1 m2 m3 : Memory}, MemFrame m1 m2 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
+          MemFrame m2 m3 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
+          MemFrame m1 m3 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] :=
         fun h h' => h.trans h' (fun a n h => ⟨h, h⟩)
-      have wr : ∀ {m1 m2 : Memory} {a k v : Nat}, MemFrame m1 m2 [(b - 344, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
-          ((b - 344 ≤ a ∧ a + k ≤ b + 94) ∨ (b + 94 + (pos - nd) ≤ a ∧ a + k ≤ b + 94 + pos) ∨ (b + 192 ≤ a ∧ a + k ≤ b + 384)) →
-          MemFrame m1 (m2.writeLE a k v) [(b - 344, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] := by
+      have wr : ∀ {m1 m2 : Memory} {a k v : Nat}, MemFrame m1 m2 [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] →
+          ((b - 344 ≤ a ∧ a + k ≤ b - 8) ∨ (b + 8 ≤ a ∧ a + k ≤ b + 94) ∨ (b + 94 + (pos - nd) ≤ a ∧ a + k ≤ b + 94 + pos) ∨ (b + 192 ≤ a ∧ a + k ≤ b + 384)) →
+          MemFrame m1 (m2.writeLE a k v) [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (pos - nd), b + 94 + pos), (b + 192, b + 384)] := by
         intro m1 m2 a k v h hr
-        rcases hr with hr | hr | hr
+        rcases hr with hr | hr | hr | hr
         · exact h.writeLE v (List.mem_cons_self ..) hr.1 hr.2
         · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_cons_self ..)) hr.1 hr.2
-        · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_singleton_self _))) hr.1 hr.2
+        · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_cons_self ..))) hr.1 hr.2
+        · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)))) hr.1 hr.2
       refine tr ?_ (tr (hfr.mono ?_) (tr ?_ (tr (bfr.mono ?_) (tr ?_ (hfrM2.mono ?_)))))
       · repeat' first
           | exact MemFrame.refl _ _
