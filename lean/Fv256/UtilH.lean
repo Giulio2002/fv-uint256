@@ -23,4 +23,13 @@ theorem reaches_mono {p : Program} {s : State} {Q Q' : Janus.Outcome → Prop}
   obtain ⟨n, o, h1, h2⟩ := h
   exact ⟨n, o, h1, hq o h2⟩
 
+theorem reaches_return_mono {p : Program} {s : State} {P P' : State → Prop}
+    (h : Janus.Tactic.Reaches p s (Janus.Tactic.IsReturn P)) (hq : ∀ S, P S → P' S) :
+    Janus.Tactic.Reaches p s (Janus.Tactic.IsReturn P') := by
+  refine reaches_mono h ?_
+  intro o ho
+  cases o with
+  | returned S => exact hq S ho
+  | stub _ _ _ => exact ho.elim
+
 end Fv256.H
