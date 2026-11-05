@@ -28,12 +28,13 @@ def Mod (R : RtInv) (R2 : IfaceModel) (T : Nat) (L : List (Nat × Nat)) : Prop :
   R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2]
 
 /-- the facts about the string `(sp, sl)` being copied -/
-def ChunkOK (R : RtInv) (b : Nat) (sp sl : BitVec 64) (lo hi : Nat) (m : Janus.Arm64.Memory) : Prop :=
+def ChunkOK (R : RtInv) (R2 : IfaceModel) (L : List (Nat × Nat)) (b : Nat) (sp sl : BitVec 64) (lo hi : Nat) (m : Janus.Arm64.Memory) : Prop :=
   R.ok (Extracted.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
   (∀ q, R.ok (Extracted.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
   blockSize sl.toNat true + blockSize 48 false ≤ b ∧
   m.accessible sp.toNat sl.toNat false = true ∧ sp.toNat + sl.toNat ≤ 2 ^ 48 ∧
-  (sp.toNat + sl.toNat ≤ lo ∨ hi ≤ sp.toNat)
+  (sp.toNat + sl.toNat ≤ lo ∨ hi ≤ sp.toNat) ∧
+  (Outside sp.toNat sl.toNat R.rt ∨ InRanges sp.toNat sl.toNat L) ∧ Outside sp.toNat sl.toNat R2.priv
 
 
 open Fv256.C in
@@ -42,13 +43,13 @@ def TePre' (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (fp
   s.regs 9 = BitVec.ofNat 64 errItab ∧ s.regs 10 = BitVec.ofNat 64 synConst ∧ 1 ≤ sl.toNat ∧ sl.toNat < 2 ^ 40 ∧
   4192 ≤ (s.regs 4).toNat ∧ Mod R R2 T L ∧
   Env R R2 T b L ((s.regs 4).toNat - 4192) ((s.regs 4).toNat + 72) s ∧
-  ChunkOK R b sp sl ((s.regs 4).toNat - 4192) ((s.regs 4).toNat + 72) s.mem
+  ChunkOK R R2 L b sp sl ((s.regs 4).toNat - 4192) ((s.regs 4).toNat + 72) s.mem
 
 theorem tePre_of_pre' {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {fp fl sp sl : BitVec 64}
     {s : State} (h : TePre' R R2 T b L fp fl sp sl s) : TePre R R2 T b L fp fl sp sl s := by
   obtain ⟨hret, h0, h3, h1, h7, h9, h10, hsl1, hsl2, hlow, ⟨hl, hdep, hty, hpr, hLp, hrt0, hsR, hsP, hokn, hok1, hok2⟩,
     ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩,
-    ⟨hokm, hokv, hbud, hsacc, hsp48, hsdisj⟩⟩ := h
+    ⟨hokm, hokv, hbud, hsacc, hsp48, hsdisj, hspR, hspP⟩⟩ := h
   obtain ⟨t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12⟩ := e15
   have oI := e14 (errItab, errItab + 16) (by simp [staticRanges])
   have oS := e14 (synConst, synConst + 8) (by simp [staticRanges])
@@ -57,14 +58,15 @@ theorem tePre_of_pre' {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat �
   have oN := e14 (numErrType, numErrType + 16) (by simp [staticRanges])
   have pN := hsR (numErrType, numErrType + 16) (by simp [staticRanges])
   have pW := hsR (wbFlag, wbFlag + 4) (by simp [staticRanges])
+  have pE := hsR (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
   have qN := hsP (numErrType, numErrType + 16) (by simp [staticRanges])
   have qW := hsP (wbFlag, wbFlag + 4) (by simp [staticRanges])
   have qE := hsP (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
-  simp only [Nat.add_sub_cancel_left] at oI oS oE oW oN pN pW qN qW qE
+  simp only [Nat.add_sub_cancel_left] at oI oS oE oW oN pN pW pE qN qW qE
   have hw : (s.regs 4).toNat + 72 - ((s.regs 4).toNat - 4192) = 4264 := by omega
   rw [hw] at e9 e10
   refine ⟨hret, h0, h3, h1, h7, h9, h10, hsl1, hsl2, ?_, ?_, e4, t6, t7, t12, t10, t11, hdep, ?_, e9, e17, e18, hbud, t1, hty, t3, t4, t5,
-    oI, oS, oE, oW, oN, hpr, hLp, pN, pW, hokm, hokn, hokv, hok1, hok2, ?_, hsp48, hsdisj, ?_, e11, hrt0, qN, qW, qE, t8, t9⟩
+    oI, oS, oE, oW, oN, hpr, hLp, pN, pW, pE, hokm, hokn, hokv, hok1, hok2, ?_, hsp48, hsdisj, ?_, e11, hrt0, qN, qW, qE, t8, t9, hspR, hspP⟩
   · exact ⟨by simp only [regG, stackguard0Offset]; omega, by simp only [regG, stackguard0Offset]; exact e7, by
       simp only [stackguard0, regG, regSP, stackguard0Offset]; omega⟩
   · exact ⟨hlow, by omega, by

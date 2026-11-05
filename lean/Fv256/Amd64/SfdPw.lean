@@ -29,7 +29,7 @@ def PwPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
     (s : State) : Prop :=
   RetOK s ∧ s.regs 0 = p ∧ s.regs 3 = len ∧ s.regs 1 = 10#64 ∧ s.regs 7 = 64#64 ∧ 1 ≤ len.toNat ∧ len.toNat ≤ 19 ∧
   Mod R R2 T L ∧ Env R R2 T b L lo hi s ∧ lo + 4280 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 48 ≤ hi ∧
-  ChunkOK R b p len lo hi s.mem
+  ChunkOK R R2 L b p len lo hi s.mem
 
 open Fv256.C in
 def PwPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (p len : BitVec 64)
@@ -38,8 +38,8 @@ def PwPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   ((allDec (bytesAt s.mem p.toNat) 0 len.toNat ∧ (s'.regs 0).toNat = decSum (bytesAt s.mem p.toNat) 0 len.toNat ∧
       s'.regs 3 = 0 ∧ s'.regs 1 = 0 ∧ Env R R2 T b L lo hi s' ∧ MemFrame s.mem s'.mem [(lo, hi)]) ∨
    (¬ allDec (bytesAt s.mem p.toNat) 0 len.toNat ∧ s'.regs 0 = 0 ∧
-      (∃ q t : Nat, s'.regs 3 = BitVec.ofNat 64 numErrItab ∧ s'.regs 1 = BitVec.ofNat 64 t ∧
-        TeObj R b L (BitVec.ofNat 64 fnStr) 9#64 p len s s' q t) ∧
+      (∃ (q : Nat) (t : BitVec 64), s'.regs 3 = BitVec.ofNat 64 numErrItab ∧ s'.regs 1 = t ∧
+        TeObj R b L (BitVec.ofNat 64 fnStr) 9#64 p len s s' q t.toNat) ∧
       MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)])))
 
 
@@ -58,7 +58,7 @@ theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hgl : Amd64.load s.mem ((s.regs 14).toNat + 16) 8 = .ok (s.mem.readLE ((s.regs 14).toNat + 16) 8) := by
     simp [Amd64.load, e7]
-  obtain ⟨hch1, hch2, hch3, hch4, hch5, hch6⟩ := hCh
+  obtain ⟨hch1, hch2, hch3, hch4, hch5, hch6, hch7, hch8⟩ := hCh
   janus64_run until [ip]
   refine reach_name ?_
   intro S1 hS1
@@ -163,7 +163,7 @@ theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
         subst hS2; simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
         apply BitVec.eq_of_toNat_eq; rw [hz1]; simp only [BitVec.toNat_ofNat]; decide
       refine ReachesRet.call hte (by subst hS2; rfl) (tePre_of_pre' ⟨⟨?_, ?_, ?_, ?_⟩, hr0, hr3, hr1, hr7, hr9, hr10, hl1,
-        by omega, by omega, hMod, hEnv3, hch1, hch2, hch3, ?_, hch5, ?_⟩) ?cont2
+        by omega, by omega, hMod, hEnv3, hch1, hch2, hch3, ?_, hch5, ?_, hch7, hch8⟩) ?cont2
       · rw [hS2acc, hrsp2]; exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ e5 (by omega) (by omega))
       · rw [hret2]; omega
       · subst hS2; simpa [k5] using hx15
@@ -184,7 +184,7 @@ theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
         have oE := e14 (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
         simp only [Nat.add_sub_cancel_left] at oE
         obtain ⟨o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12⟩ := hobj
-        have hobj' : TeObj R b L (BitVec.ofNat 64 fnStr) 9#64 p len s s3 q t := by
+        have hobj' : TeObj R b L (BitVec.ofNat 64 fnStr) 9#64 p len s s3 q t.toNat := by
           refine ⟨o1, o2, o3, o4, o5, o6, o7, o8, ?_, ?_, ?_, ?_⟩
           · rw [o9]; exact hSF.readLE _ _ (Outside.of_sub oE (by omega) (by omega))
           · rw [o10]; exact hSF.readLE _ _ (Outside.of_sub oE (by omega) (by omega))

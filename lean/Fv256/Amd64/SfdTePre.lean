@@ -45,7 +45,7 @@ def TePre (R : RtInv) (R2 : IfaceModel) (T : Nat) (b : Nat) (L : List (Nat × Na
   Outside wbFlag 4 [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)] ∧
   Outside numErrType 16 [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)] ∧
   (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧
-  Outside numErrType 16 R.rt ∧ Outside wbFlag 4 R.rt ∧
+  Outside numErrType 16 R.rt ∧ Outside wbFlag 4 R.rt ∧ Outside strconvErrSyntax 16 R.rt ∧
   R.ok (Extracted.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
   R.ok (Extracted.program.contractAddr "runtime.newobject") [numErrType] ∧
   (∀ q, R.ok (Extracted.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
@@ -57,7 +57,8 @@ def TePre (R : RtInv) (R2 : IfaceModel) (T : Nat) (b : Nat) (L : List (Nat × Na
   Outside ((s.regs 14).toNat + 16) 8 R.rt ∧
   (∀ r ∈ R.rt, 0 < r.1) ∧
   Outside numErrType 16 R2.priv ∧ Outside wbFlag 4 R2.priv ∧ Outside strconvErrSyntax 16 R2.priv ∧
-  s.mem.accessible wbFlag 4 false = true ∧ s.mem.accessible strconvErrSyntax 16 false = true
+  s.mem.accessible wbFlag 4 false = true ∧ s.mem.accessible strconvErrSyntax 16 false = true ∧
+  (Outside sp.toNat sl.toNat R.rt ∨ InRanges sp.toNat sl.toNat L) ∧ Outside sp.toNat sl.toNat R2.priv
 
 
 /-- the facts about the fresh error object `t` (a `*strconv.NumError`) and the fresh copy `q` of the string `(sp, sl)` that
@@ -75,11 +76,104 @@ def TeObj (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64
     (view R.rt (L ++ [(q, q + blockSize sl.toNat true), (t, t + blockSize 48 false)]) s'.mem)
 
 def TeErr (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64) (s s' : State) : Prop :=
-  ∃ q t : Nat, s'.regs 0 = BitVec.ofNat 64 numErrItab ∧ s'.regs 3 = BitVec.ofNat 64 t ∧ TeObj R b L fp fl sp sl s s' q t
+  ∃ (q : Nat) (t : BitVec 64), s'.regs 0 = BitVec.ofNat 64 numErrItab ∧ s'.regs 3 = t ∧ TeObj R b L fp fl sp sl s s' q t.toNat
 
 open Fv256.C in
 def TePost (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64) (s s' : State) : Prop :=
   Kept s s' ∧ TeErr R b L fp fl sp sl s s' ∧
   MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)])
+
+theorem inRanges_fields {t : Nat} {rs rs' : List (Nat × Nat)} (h : InRanges t 48 rs) (hs : ∀ r ∈ rs, r ∈ rs') :
+    InRanges t 8 rs' ∧ InRanges (t + 8) 8 rs' ∧ InRanges (t + 16) 8 rs' ∧ InRanges (t + 24) 8 rs' ∧
+      InRanges (t + 32) 8 rs' ∧ InRanges (t + 40) 8 rs' := by
+  obtain ⟨r, hr, h1, h2⟩ := h
+  have hr' := hs r hr
+  exact ⟨⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩,
+    ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩⟩
+
+theorem frame_trans {m m' m'' : Janus.Arm64.Memory} {rs rs' : List (Nat × Nat)} (h : MemFrame m m' rs)
+    (h' : MemFrame m' m'' rs') (sub : ∀ a n, Outside a n rs → Outside a n rs') : MemFrame m m'' rs :=
+  h.trans h' (fun a n ho => ⟨ho, sub a n ho⟩)
+
+theorem inRanges16_lo {a : Nat} {rs : List (Nat × Nat)} (h : InRanges a 16 rs) : InRanges a 8 rs := by
+  obtain ⟨r, hr, h1, h2⟩ := h; exact ⟨r, hr, by omega, by omega⟩
+
+theorem inRanges16_hi {a : Nat} {rs : List (Nat × Nat)} (h : InRanges a 16 rs) : InRanges (a + 8) 8 rs := by
+  obtain ⟨r, hr, h1, h2⟩ := h; exact ⟨r, hr, by omega, by omega⟩
+
+theorem frame_writeLE_rt {m m' : Janus.Arm64.Memory} {rt priv : List (Nat × Nat)} {w : Nat × Nat} {a k : Nat} (v : Nat)
+    (h : MemFrame m m' (rt ++ priv ++ [w])) (hin : InRanges a k rt) :
+    MemFrame m (m'.writeLE a k v) (rt ++ priv ++ [w]) :=
+  h.writeLE_inRanges v (InRanges.of_subset hin (by intro r hr; simp [List.mem_append, hr]))
+
+/-- discharge the coverage side condition of a callee frame in `te_frame` -/
+macro "te_sub" : tactic => `(tactic|
+  (intro a n h
+   revert h
+   simp only [Janus.outside_cons, Janus.outside_nil, Janus.outside_append, and_true, and_imp]
+   intros
+   first
+   | (try simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
+      repeat' apply And.intro
+      all_goals first | (with_reducible assumption) | omega)
+   | (janus_clear_irrel
+      try simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
+      repeat' apply And.intro
+      all_goals first | omega | (with_reducible assumption))
+   | (janus_apart_facts
+      try simp only [Janus.Apart] at *
+      janus_clear_irrel2
+      try simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
+      repeat' apply And.intro
+      all_goals first | omega | (with_reducible assumption))))
+
+/-- `MemFrame m₀ m rs` for `rs = rt ++ priv ++ [window]`: stores into the window or into objects given by
+`InRanges` facts over the whole list, callee frames from the context. -/
+macro "te_frame" : tactic => `(tactic|
+  (repeat' (first
+    | (with_reducible exact Janus.MemFrame.refl _ _)
+    | (refine frame_writeLE_rt _ ?_ (by first | assumption | exact inRanges16_lo (by assumption) | exact inRanges16_hi (by assumption)))
+    | (refine Janus.MemFrame.writeLE ?_ _ (List.mem_append_right _ (List.mem_singleton_self _)) (by simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *; omega) (by simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *; omega))
+    | (refine frame_trans ?_ (by assumption) ?_))
+   all_goals first | (te_sub) | skip))
+
+theorem blockSize48 : blockSize 48 false = 48 := by decide
+
+theorem inRanges_last {a n : Nat} {l : List (Nat × Nat)} {r : Nat × Nat} (h : r.1 ≤ a ∧ a + n ≤ r.2) :
+    InRanges a n (l ++ [r]) := ⟨r, by simp, h.1, h.2⟩
+
+theorem inRanges_pen {a n : Nat} {l : List (Nat × Nat)} {r r2 : Nat × Nat} (h : r.1 ≤ a ∧ a + n ≤ r.2) :
+    InRanges a n (l ++ [r] ++ [r2]) := ⟨r, by simp, h.1, h.2⟩
+
+/-- the side conditions of the `te_walk` rewrite rules -/
+macro "te_disch" : tactic => `(tactic| first
+  | trivial
+  | omega
+  | (exact inRanges_last ⟨by omega, by omega⟩)
+  | (exact inRanges_pen ⟨by omega, by omega⟩)
+  | assumption
+  | (simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
+     repeat' apply And.intro
+     all_goals first | assumption | omega))
+
+open Lean Elab Tactic Meta in
+/-- rewrite memory reads through stores and through the `LiveFrame`/`MemFrame` facts of the context -/
+elab "te_walk" : tactic => withMainContext do
+  let mut rules : Array (TSyntax `term) := #[]
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    if d.userName == `hF then continue
+    let ty ← instantiateMVars d.type
+    if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
+      let h ← Term.exprToSyntax d.toExpr
+      rules := rules.push (← `(($h).readLE))
+  evalTactic (← `(tactic| simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
+    Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*]))
+
+theorem te_post_intro {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)} {fp fl sp sl : BitVec 64} {s s' : State}
+    (hk : Fv256.C.Kept s s')
+    (hF : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)]))
+    (he : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)]) →
+      TeErr R b L fp fl sp sl s s') : TePost R R2 b L fp fl sp sl s s' := ⟨hk, he hF, hF⟩
 
 end Fv256.Amd64.SfdToError

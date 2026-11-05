@@ -43,7 +43,7 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
       (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
     (hwb2 : WbLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
-    Summary (Extracted.program.link impl) te (TePre R R2 T b L fp fl sp sl) (fun _ _ => True) := by
+    Summary (Extracted.program.link impl) te (TePre R R2 T b L fp fl sp sl) (TePost R R2 b L fp fl sp sl) := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, h9, h10, hsl1, hsl2, hg, ⟨hlow, hnw, hacc⟩, hal, hNT1, hNT2, hNa, hIa, hSa, hdep, hc2,
     hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR, hrt0, hnP, hwP, hePr, hwbacc, heacc⟩
   have hgl := hg.load
@@ -187,8 +187,11 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     simp only [Apart] at hAw hAn h_apart
     have hNT2' : s.mem.readLE 5077160 8 ≠ 0 := by simpa using hNT2
     have hNT2b : (s.mem.readLE 5077160 8 == 0) = false := by simp [hNT2']
-    janus64_run [hgm2, hNT2b] calls [hmv, hnew.pos, hwb1, hwb2]
+    have herr : Extracted.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
+    janus64_run [hgm2, hNT2b, herr] calls [hmv, hnew.pos, hwb1, hwb2]
     all_goals trace_state
     all_goals sorry
+
+#print axioms te_sum
 
 end Fv256.Amd64.SfdToError
