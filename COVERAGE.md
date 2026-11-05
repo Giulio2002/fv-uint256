@@ -32,7 +32,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).CmpBig` | FV-C | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).CmpUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
 | `(*uint256.Int).Dec` | FV-E | todo | todo | |
-| `(*uint256.Int).Div` | FV-B | todo (needs bits.Div64 summary, U10) | on branch fv/wb: verified (pending merge) | proofs on branch fv/wb (family B, COVERAGE-B.md); not merged to main until the pin moves |
+| `(*uint256.Int).Div` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 164fed3/90b9fb6): `Fv256.Amd64.Div.correctness` + `Witness.nonvacuous` (+ `returns`) in one `janus verify` on Janus 6365855c; lean/Fv256/Amd64/Div.lean + DivSum.lean (Div 39 s, DivSum 42 s; 2519 s wall incl. queue and cold build). Spec divSpec (y = 0 gives 0). arm64 waits on the arm64 udivrem chain |
 | `(*uint256.Int).DivMod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 607ad32/739112e): one `janus verify` on Janus 6365855c checked `Fv256.Amd64.DivMod.correctness` and `Fv256.Amd64.DivMod.Witness.nonvacuous`; support DivModB (compile 487 s, speed debt, target 300 s), DivModW (witness, 11 s), DivMod (20 s). Contract runtime.newobject (NewobjectContract64). Spec divSpec/modSpec, y=0 gives 0. x.Eq(y) is XOR on master (`Util.xor_ofNat_zero_iff`). arm64 todo on master |
 | `(*uint256.Int).EncodeRLP` | FV-E | todo | todo | |
 | `(*uint256.Int).Eq` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
