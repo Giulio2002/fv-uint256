@@ -26,6 +26,48 @@ elab "clear_states64" : tactic => do
       try g ← g.clear d.fvarId catch _ => pure ()
   replaceMainGoal [g]
 
+open Lean Elab Tactic Meta in
+/-- `grab_lsh h`: name (as `h`) the first local hypothesis whose type mentions `Fv256.Spec.lsh` (the callee's anonymous
+post-condition conjunct after a `janus_run calls [..]`) -/
+elab "grab_lsh " n:ident : tactic => do
+  let g ← getMainGoal
+  for d in (← g.getDecl).lctx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if (ty.find? fun e => e.isConstOf ``Fv256.Spec.lsh).isSome then
+      let g' ← g.withContext do
+        let (_, g') ← g.note n.getId (mkFVar d.fvarId) ty
+        pure g'
+      replaceMainGoal [g']
+      return
+  throwError "grab_lsh: no hypothesis mentions Spec.lsh"
+
+open Lean Elab Tactic Meta in
+/-- `fast_assm t`: close/produce `t` from a hypothesis whose type is *syntactically* `t` (no unification, cheap on huge contexts) -/
+elab "fast_assm " t:term : tactic => do
+  let g ← getMainGoal
+  let e ← g.withContext (Term.withSynthesize (Term.elabTerm t none))
+  let ty ← instantiateMVars e
+  g.withContext do
+    for d in (← g.getDecl).lctx do
+      if d.isImplementationDetail then continue
+      if (← withReducible (isDefEq (← instantiateMVars d.type) ty)) then
+        g.assign (mkFVar d.fvarId)
+        replaceMainGoal []
+        return
+  throwError "fast_assm: no match for {ty}; hyps: {(← g.getDecl).lctx.foldl (fun (a : List MessageData) d => if d.isImplementationDetail then a else a ++ [m!"{d.userName} : {d.type}"]) []}"
+
+open Lean Elab Tactic in
+/-- profiling aid: run `t`, log how long it took and whether it failed (rethrows) -/
+elab "timed " s:str t:tacticSeq : tactic => do
+  let t0 ← IO.monoMsNow
+  try
+    evalTactic t
+    logInfo m!"timed {s.getString}: ok {(← IO.monoMsNow) - t0} ms"
+  catch e =>
+    logInfo m!"timed {s.getString}: FAIL {(← IO.monoMsNow) - t0} ms"
+    throw e
+
 namespace Fv256.D
 
 theorem f64_bits (q r t Y y0 y1 y2 y3 : Nat) (ht1 : 12 ≤ t) (ht2 : t ≤ 203) (hr : r < 2 ^ t) (hq : q < 2 ^ 52)

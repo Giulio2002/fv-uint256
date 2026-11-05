@@ -1,4 +1,4 @@
-set_option maxHeartbeats 8000000 in
+set_option maxHeartbeats 4000000 in
 theorem correctness (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0)
@@ -11,57 +11,66 @@ theorem correctness (x : BitVec 64) :
   all_goals clear_states
   all_goals (simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat] at *)
   all_goals (refine ⟨?_, ?_⟩; rotate_right; janus_frame)
-  have l0 := Util.readLE8_lt s.mem x.toNat
-  have l1 := Util.readLE8_lt s.mem (x.toNat + 8)
-  have l2 := Util.readLE8_lt s.mem (x.toNat + 16)
-  have l3 := Util.readLE8_lt s.mem (x.toNat + 24)
+  all_goals have l0 := Util.readLE8_lt s.mem x.toNat
+  all_goals have l1 := Util.readLE8_lt s.mem (x.toNat + 8)
+  all_goals have l2 := Util.readLE8_lt s.mem (x.toNat + 16)
+  all_goals have l3 := Util.readLE8_lt s.mem (x.toNat + 24)
   all_goals first
-    | (have hxj : s.mem.readLE (x.toNat + 24) 8 ≠ 0 := ‹¬ s.mem.readLE (x.toNat + 24) 8 = 0›
-       have hkj : clzNat 64 s.mem.readLE (x.toNat + 24) 8 < 64 := (Fv256.B.clz_cases _ l3).resolve_left hxj
-       have hbl := Fv256.B.f64_bl3 s.mem.readLE x.toNat 8 s.mem.readLE (x.toNat + 8) 8 s.mem.readLE (x.toNat + 16) 8 s.mem.readLE (x.toNat + 24) 8 (clzNat 64 s.mem.readLE (x.toNat + 24) 8) l0 l1 l2 l3 hxj rfl
-       have hS3 := ‹val256 s'.mem _ = Spec.lsh _ _›
-       generalize clzNat 64 s.mem.readLE (x.toNat + 24) 8 = k at *
+    | (have hxj : (s.mem.readLE (x.toNat + 24) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
+       have hkj : clzNat 64 (s.mem.readLE (x.toNat + 24) 8) < 64 := (Fv256.B.clz_cases _ l3).resolve_left hxj
+       have hbl := Fv256.B.f64_bl3 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (s.mem.readLE (x.toNat + 16) 8) (s.mem.readLE (x.toNat + 24) 8) (clzNat 64 (s.mem.readLE (x.toNat + 24) 8)) l0 l1 l2 l3 hxj rfl
+       grab_lsh hS3
+       generalize clzNat 64 (s.mem.readLE (x.toNat + 24) 8) = k at *
        have m0 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 40)
        have m1 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 32)
        have m2 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 24)
        have m3 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 16)
-       have hsp40 : (s.sp - 40#64).toNat = s.sp.toNat - 40 := by rw [BitVec.toNat_sub]; simp; omega
-       have hsh : (257#64 - (64#64 - BitVec.ofNat 64 k + 192#64)).toNat = 1 + k := by
-         rw [BitVec.toNat_sub, BitVec.toNat_sub, BitVec.toNat_add]; simp; omega
-       simp (disch := omega) only [val256, Spec.lsh, Spec.W, setReg_apply, hsp40, hsh, Janus.Arm64.Memory.readLE_writeLE_of_disjoint] at hS3
-       simp only [lsb_ofNat _ 11 (by decide), lsb0_toNat, fr_toNat _ m3, Nat.or_eq_zero_iff] at *
-       sorry)
-    | (have hxj : s.mem.readLE (x.toNat + 16) 8 ≠ 0 := ‹¬ s.mem.readLE (x.toNat + 16) 8 = 0›
-       have hz3 : s.mem.readLE (x.toNat + 24) 8 = 0 := ‹s.mem.readLE (x.toNat + 24) 8 = 0›
-       have hkj : clzNat 64 s.mem.readLE (x.toNat + 16) 8 < 64 := (Fv256.B.clz_cases _ l2).resolve_left hxj
-       have hbl := Fv256.B.f64_bl2 s.mem.readLE x.toNat 8 s.mem.readLE (x.toNat + 8) 8 s.mem.readLE (x.toNat + 16) 8 (clzNat 64 s.mem.readLE (x.toNat + 16) 8) l0 l1 l2 hxj rfl
-       have hS3 := ‹val256 s'.mem _ = Spec.lsh _ _›
-       generalize clzNat 64 s.mem.readLE (x.toNat + 16) 8 = k at *
+       have hexp : (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) % 18446744073709551616 = 1 + k := by omega
+       have e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32 := by omega
+       have e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24 := by omega
+       have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
+       have hS4 := hS3
+       simp only [hexp, e8, e16, e24, Nat.mul_zero, Nat.add_zero] at hS4
+       first
+        | (refine Fv256.D.leaf0 _ (256 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (256 - k) = 1 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega))
+        | (refine Fv256.D.leaf1 _ (256 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (256 - k) = 1 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)))
+    | (have hxj : (s.mem.readLE (x.toNat + 16) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 16) 8) = 0 by janus_assumption)
+       have hz3 : (s.mem.readLE (x.toNat + 24) 8) = 0 := (show (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
+       have hkj : clzNat 64 (s.mem.readLE (x.toNat + 16) 8) < 64 := (Fv256.B.clz_cases _ l2).resolve_left hxj
+       have hbl := Fv256.B.f64_bl2 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (s.mem.readLE (x.toNat + 16) 8) (clzNat 64 (s.mem.readLE (x.toNat + 16) 8)) l0 l1 l2 hxj rfl
+       grab_lsh hS3
+       generalize clzNat 64 (s.mem.readLE (x.toNat + 16) 8) = k at *
        have m0 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 40)
        have m1 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 32)
        have m2 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 24)
        have m3 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 16)
-       have hsp40 : (s.sp - 40#64).toNat = s.sp.toNat - 40 := by rw [BitVec.toNat_sub]; simp; omega
-       have hsh : (257#64 - (64#64 - BitVec.ofNat 64 k + 128#64)).toNat = 65 + k := by
-         rw [BitVec.toNat_sub, BitVec.toNat_sub, BitVec.toNat_add]; simp; omega
-       simp (disch := omega) only [val256, Spec.lsh, Spec.W, setReg_apply, hsp40, hsh, Janus.Arm64.Memory.readLE_writeLE_of_disjoint] at hS3
-       simp only [lsb_ofNat _ 11 (by decide), lsb0_toNat, fr_toNat _ m3, Nat.or_eq_zero_iff] at *
-       sorry)
-    | (have hxj : s.mem.readLE (x.toNat + 8) 8 ≠ 0 := ‹¬ s.mem.readLE (x.toNat + 8) 8 = 0›
-       have hz2 : s.mem.readLE (x.toNat + 16) 8 = 0 := ‹s.mem.readLE (x.toNat + 16) 8 = 0›
-       have hz3 : s.mem.readLE (x.toNat + 24) 8 = 0 := ‹s.mem.readLE (x.toNat + 24) 8 = 0›
-       have hkj : clzNat 64 s.mem.readLE (x.toNat + 8) 8 < 64 := (Fv256.B.clz_cases _ l1).resolve_left hxj
-       have hbl := Fv256.B.f64_bl1 s.mem.readLE x.toNat 8 s.mem.readLE (x.toNat + 8) 8 (clzNat 64 s.mem.readLE (x.toNat + 8) 8) l0 l1 hxj rfl
-       have hS3 := ‹val256 s'.mem _ = Spec.lsh _ _›
-       generalize clzNat 64 s.mem.readLE (x.toNat + 8) 8 = k at *
+       have hexp : (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 128) % 18446744073709551616 + 257) % 18446744073709551616 = 65 + k := by omega
+       have e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32 := by omega
+       have e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24 := by omega
+       have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
+       have hS4 := hS3
+       simp only [hexp, e8, e16, e24, hz3, Nat.mul_zero, Nat.add_zero] at hS4
+       first
+        | (refine Fv256.D.leaf0 _ (192 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (192 - k) = 65 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega))
+        | (refine Fv256.D.leaf1 _ (192 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (192 - k) = 65 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)))
+    | (have hxj : (s.mem.readLE (x.toNat + 8) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 8) 8) = 0 by janus_assumption)
+       have hz2 : (s.mem.readLE (x.toNat + 16) 8) = 0 := (show (s.mem.readLE (x.toNat + 16) 8) = 0 by janus_assumption)
+       have hz3 : (s.mem.readLE (x.toNat + 24) 8) = 0 := (show (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
+       have hkj : clzNat 64 (s.mem.readLE (x.toNat + 8) 8) < 64 := (Fv256.B.clz_cases _ l1).resolve_left hxj
+       have hbl := Fv256.B.f64_bl1 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (clzNat 64 (s.mem.readLE (x.toNat + 8) 8)) l0 l1 hxj rfl
+       grab_lsh hS3
+       generalize clzNat 64 (s.mem.readLE (x.toNat + 8) 8) = k at *
        have m0 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 40)
        have m1 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 32)
        have m2 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 24)
        have m3 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 16)
-       have hsp40 : (s.sp - 40#64).toNat = s.sp.toNat - 40 := by rw [BitVec.toNat_sub]; simp; omega
-       have hsh : (257#64 - (64#64 - BitVec.ofNat 64 k + 64#64)).toNat = 129 + k := by
-         rw [BitVec.toNat_sub, BitVec.toNat_sub, BitVec.toNat_add]; simp; omega
-       simp (disch := omega) only [val256, Spec.lsh, Spec.W, setReg_apply, hsp40, hsh, Janus.Arm64.Memory.readLE_writeLE_of_disjoint] at hS3
-       simp only [lsb_ofNat _ 11 (by decide), lsb0_toNat, fr_toNat _ m3, Nat.or_eq_zero_iff] at *
-       sorry)
-    | sorry
+       have hexp : (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 64) % 18446744073709551616 + 257) % 18446744073709551616 = 129 + k := by omega
+       have e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32 := by omega
+       have e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24 := by omega
+       have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
+       have hS4 := hS3
+       simp only [hexp, e8, e16, e24, hz2, hz3, Nat.mul_zero, Nat.add_zero] at hS4
+       first
+        | (refine Fv256.D.leaf0 _ (128 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (128 - k) = 129 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega))
+        | (refine Fv256.D.leaf1 _ (128 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (128 - k) = 129 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)))
+    | skip
