@@ -50,4 +50,22 @@ theorem ofNat_sub_ofNat (i k : Nat) (hk : k ≤ i) (hi : i < 2 ^ 64) :
     Nat.mod_eq_of_lt hi, Nat.mod_eq_of_lt (by omega : k < 2 ^ 64), Nat.mod_eq_of_lt (by omega : i - k < 2 ^ 64)]
   omega
 
+/-- Subtracting a literal from a 64-bit register value. -/
+theorem bv_sub_lit (x : BitVec 64) (k : Nat) (h : k ≤ x.toNat) :
+    x - BitVec.ofNat 64 k = BitVec.ofNat 64 (x.toNat - k) := by
+  apply BitVec.eq_of_toNat_eq
+  have hx := x.isLt
+  rw [BitVec.toNat_sub, BitVec.toNat_ofNat, BitVec.toNat_ofNat]
+  by_cases hk : k < 2 ^ 64
+  · rw [Nat.mod_eq_of_lt hk, Nat.mod_eq_of_lt (by omega : x.toNat - k < 2 ^ 64)]; omega
+  · omega
+
+/-- Adding a literal to a 64-bit register value. -/
+theorem bv_add_lit (x : BitVec 64) (k : Nat) (h : x.toNat + k < 2 ^ 64) :
+    x + BitVec.ofNat 64 k = BitVec.ofNat 64 (x.toNat + k) := by
+  apply BitVec.eq_of_toNat_eq
+  rw [BitVec.toNat_add, BitVec.toNat_ofNat, BitVec.toNat_ofNat]
+  have : k < 2 ^ 64 := by omega
+  rw [Nat.mod_eq_of_lt this]
+
 end Fv256.E
