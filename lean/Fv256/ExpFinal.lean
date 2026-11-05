@@ -143,4 +143,36 @@ theorem exp_two (b e0 e1 n : Nat) (hb : b < W) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^
   have m4 : min n 256 = n := by omega
   simp only [m1, m2, m3, m4, Nat.sub_self, stage_zero] at this
   simpa using this
+
+theorem exp_three (b e0 e1 e2 n : Nat) (hb : b < W) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^ 64) (h2 : e2 < 2 ^ 64) (h128 : 128 ≤ n) (hn : n ≤ 192)
+    (he : e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2 < 2 ^ n) :
+    MEq (expIter (n - 128)
+        ((expIter 64 ((expIter 64 (1, b, e0)).1, (expIter 64 (1, b, e0)).2.1, e1)).1,
+         (expIter 64 ((expIter 64 (1, b, e0)).1, (expIter 64 (1, b, e0)).2.1, e1)).2.1, e2)).1
+      (b ^ (e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2)) := by
+  have := exp_total b e0 e1 e2 0 n hb h0 h1 h2 (by decide) (by omega) (by simpa using he)
+  have m1 : min n 64 = 64 := by omega
+  have m2 : min n 128 - 64 = 64 := by omega
+  have m3 : min n 192 = n := by omega
+  have m4 : min n 256 = n := by omega
+  have m5 : min n 128 = 128 := by omega
+  simp only [m1, m5, m3, m4, Nat.sub_self, stage_zero] at this
+  simpa using this
+
+theorem exp_four (b e0 e1 e2 e3 n t : Nat) (ht : t = 64) (hb : b < W) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^ 64) (h2 : e2 < 2 ^ 64) (h3 : e3 < 2 ^ 64)
+    (h192 : 192 ≤ n) (hn : n ≤ 256)
+    (he : e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2 + 2 ^ 192 * e3 < 2 ^ n) :
+    let s1 := expIter t (1, b, e0)
+    let s2 := expIter t (s1.1, s1.2.1, e1)
+    let s3 := expIter t (s2.1, s2.2.1, e2)
+    MEq (expIter (n - 192) (s3.1, s3.2.1, e3)).1 (b ^ (e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2 + 2 ^ 192 * e3)) := by
+  intro s1 s2 s3
+  have := exp_total b e0 e1 e2 e3 n hb h0 h1 h2 h3 hn he
+  have m1 : min n 64 = t := by omega
+  have m2 : min n 128 - t = t := by omega
+  have m3 : min n 192 - min n 128 = t := by omega
+  have m4 : min n 256 - min n 192 = n - 192 := by omega
+  simp only [m1, m2, m3, m4] at this
+  exact this
+
 end Fv256.F
