@@ -30,6 +30,8 @@ def Inv1 (s0 : State) (n z ep ev k r b w : Nat) (S : State) : Prop :=
   S.mem.readLE ((s0.regs 4).toNat - 120) 8 = n ∧ S.mem.readLE ((s0.regs 4).toNat - 16) 8 = ev ∧
   MemFrame s0.mem S.mem [((s0.regs 4).toNat - 0xa8, (s0.regs 4).toNat + 0x20)]
 
+theorem sub152_add8 (a : BitVec 64) : a - 152#64 + 8#64 = a - 144#64 := by bv_omega
+
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 /-- Loop 1 of `Exp`: `t` iterations remain (`k + t = min n 64`). -/
@@ -57,7 +59,7 @@ theorem loop1 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
     have hnt : (BitVec.ofNat 64 n).toNat = n := by rw [BitVec.toNat_ofNat]; omega
     have hcmp : ¬ (BitVec.ofNat 64 k).slt (BitVec.ofNat 64 n) = false := by sorry
     janus64_run [r3, r7, r9, r8, r0, r1, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev, hkt3, hnt] until [head1] calls [Fv256.Amd64.ExpSum.mul_summary, Fv256.Amd64.ExpSum.sq_summary]
-    · rename_i hm hf
+    · rename_i ha h4 h5 h14 hx15 hdf hmx hm hf
       have hodd : ¬ (w % 2 = 1) := by
         have := hbr
         rw [Fv256.F.lsb_w32] at this
@@ -70,5 +72,40 @@ theorem loop1 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
       unfold Inv1
       rw [e1, e2, e3]
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      all_goals sorry
-    · sorry
+      · simp [setRegF, head1, Extracted.entry]
+      · omega
+      · exact hr
+      · exact Nat.mod_lt _ (Nat.two_pow_pos _)
+      · omega
+      · exact hev
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]; exact Fv256.F.shr1_w64 w hw
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF, h4]; exact sub152_add8 _
+      · simp [setRegF, h5]
+      · simp [setRegF, h14]; exact r14
+      · simp [setRegF, hx15]; exact x15
+      · rw [hf.readLE _ _ (by simp [Outside]; omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mr
+      · exact hm
+      · rw [hf.readLE _ _ (by simp [Outside]; omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mz
+      · rw [hf.readLE _ _ (by simp [Outside]; omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mep
+      · rw [hf.readLE _ _ (by simp [Outside]; omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mn
+      · rw [hf.readLE _ _ (by simp [Outside]; omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mev
+      · janus_frame
+    · trace_state
+      sorry
