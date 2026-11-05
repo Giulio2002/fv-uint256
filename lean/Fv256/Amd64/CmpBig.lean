@@ -136,17 +136,17 @@ theorem hpre : StackGuardOK s0 0 ∧ StackWritable s0 72 16 ∧ Buffer s0 z 32 f
    ⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, by decide, by decide,
    ⟨by decide, by decide⟩, Or.inr (by decide), by decide, by decide, by decide⟩
 
-theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw len : BitVec 64), RetAddr Extracted.program ret ∧
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 72 16 ∧ Buffer s z 32 false ∧ Buffer s x 32 false ∧
       s.mem.readLE x.toNat 1 < 2 ∧
-      s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
-      Buffer s pw (8 * len.toNat) false ∧
-      (len.toNat = 0 ∨ s.mem.readLE (pw.toNat + 8 * (len.toNat - 1)) 8 ≠ 0) ∧
+      s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
+      Buffer s pw (8 * (2 : BitVec 64).toNat) false ∧
+      ((2 : BitVec 64).toNat = 0 ∨ s.mem.readLE (pw.toNat + 8 * ((2 : BitVec 64).toNat - 1)) 8 ≠ 0) ∧
       (z.toNat + 32 ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ z.toNat) ∧
       (x.toNat + 32 ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ x.toNat) ∧
-      (pw.toNat + 8 * len.toNat ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ pw.toNat)) :=
-  ⟨ret, s0, z, x, pw, 2, hret, setup, hpre⟩
+      (pw.toNat + 8 * (2 : BitVec 64).toNat ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ pw.toNat)) :=
+  ⟨ret, s0, z, x, pw, hret, setup, hpre⟩
 
 /-- `0` compared with `-(5 + 2^64)`: the result is `+1`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
