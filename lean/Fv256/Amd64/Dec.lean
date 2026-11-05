@@ -4,6 +4,7 @@ import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.StrE
 import Fv256.Amd64.DecExt
+import Fv256.ToyRuntime64
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 open Fv256.E
@@ -46,7 +47,7 @@ open Janus.Contracts.SatAmd64
 open Janus.Contracts.Sat (rtW)
 
 /-- a toy `slicebytetostring` (accepts every call): returns the argument string itself, `MOV RAX,RBX; MOV RBX,RCX; RET` -/
-def implAt : List Amd64.Segment := [{ name := "model", base := ssAddr, bytes := [0x48, 0x89, 0xd8, 0x48, 0x89, 0xcb, 0xc3] }]
+def implAt : List Amd64.Segment := [{ name := "model", base := ssAddr, bytes := Fv256.ToyRuntime64.sbtsIdCode }]
 def linked : Amd64.Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
 theorem linked_eq : Extracted.program.link implAt = linked := rfl
 
