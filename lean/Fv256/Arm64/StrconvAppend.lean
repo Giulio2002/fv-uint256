@@ -27,7 +27,7 @@ theorem append_summary :
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 152 ∨ s.sp.toNat + 32 ≤ (s.regs 28).toNat + 16) ∧
         (s.regs 30).toNat < 2 ^ 48 ∧ (s.regs 30).toNat % 4 = 0)
       (fun s s' => s'.regs 0 = s.regs 0 ∧ (s'.regs 1).toNat = (s.regs 1).toNat + decLen (s.regs 3).toNat ∧
-        s'.regs 2 = s.regs 2 ∧ s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧
+        s'.regs 2 = s.regs 2 ∧ s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧
         (∀ k, k < decLen (s.regs 3).toNat →
           s'.mem.readLE ((s.regs 0).toNat + (s.regs 1).toNat + decLen (s.regs 3).toNat - 1 - k) 1 =
             48 + (s.regs 3).toNat / 10 ^ k % 10) ∧
@@ -50,7 +50,9 @@ theorem append_summary :
       have hs := s.sp.isLt
       have hacc1 : ∀ a n, s.sp.toNat - 152 ≤ a → a + n ≤ s.sp.toNat + 32 → s.mem.accessible a n true = true :=
         fun a n h1 h2 => accessible_sub hw (Or.inr rfl) h1 (by omega)
-      refine ⟨?_, ?_, ?_⟩
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · have h28 := hk 28 (by simp)
+        simpa [setReg] using h28
       · intro k hk
         have hk0 : k = 0 := by omega
         subst hk0
@@ -93,7 +95,9 @@ theorem append_summary :
       have hs := s.sp.isLt
       have hacc1 : ∀ a n, s.sp.toNat - 152 ≤ a → a + n ≤ s.sp.toNat + 32 → s.mem.accessible a n true = true :=
         fun a n h1 h2 => accessible_sub hw (Or.inr rfl) h1 (by omega)
-      refine ⟨?_, ?_, ?_⟩
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · have h28 := hk 28 (by simp)
+        simpa [setReg] using h28
       · intro k hk
         rcases (by omega : k = 0 ∨ k = 1) with rfl | rfl
         · have hb := hby 1 (by omega)
@@ -188,7 +192,11 @@ theorem append_summary :
         rw [bfr.accessible]
         simp only [Janus.Arm64.Memory.accessible_writeLE]
         exact hda
-      refine ⟨by omega, ?_, ?_, ?_⟩
+      refine ⟨by omega, ?_, ?_, ?_, ?_⟩
+      · have h28 := hk 28 (by simp)
+        have hs28 : sA.regs 28 = s.regs 28 := by simpa [setReg] using bk 28 (by simp [Clob])
+        simp [setReg] at h28
+        rw [h28, hs28]
       · intro k hk'
         have hb := hby (decLen (s.regs 3).toNat - 1 - k) (by omega)
         simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint] at hb
