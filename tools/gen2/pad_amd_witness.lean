@@ -114,13 +114,19 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
 
 /-- The preconditions and the allocator contract are jointly satisfiable: a concrete call state (with the toy allocator linked at
 the `runtime.makeslice` address) meets every hypothesis of `correctness`, for `n = 5`. -/
-theorem nonvacuous : CallSetup (linked.withExit ret) Extracted.entry [zp, 5] s0 ∧
-    (StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.program.DataLoaded s0.mem ∧
-    Outside ((s0.regs 4).toNat - 4136) 4160 rt ∧ (s0.regs 4).toNat % 8 = 0 ∧
-    Buffer s0 zp 32 false ∧ Outside zp.toNat 32 rt ∧
-    (zp.toNat + 32 ≤ (s0.regs 4).toNat - 4136 ∨ (s0.regs 4).toNat + 24 ≤ zp.toNat) ∧
-    H [byteType, (5 : BitVec 64).toNat, (5 : BitVec 64).toNat] (s0.regs 14).toNat ((s0.regs 4).toNat - 40) (rtView rt s0.mem)) :=
-  And.intro setup pre
+theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z n : BitVec 64),
+    MakesliceContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, n] s ∧
+    n.toNat ≤ 2 ^ 48 ∧
+    (StackGuardOK s 0 ∧ StackWritable s 4136 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    Outside ((s.regs 4).toNat - 4136) 4160 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+    Buffer s z 32 false ∧ Outside z.toNat 32 rt ∧
+    (z.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ z.toNat) ∧
+    H [byteType, n.toNat, n.toNat] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre⟩
+
 
 /-- The theorem fires: for this call and this allocator, `PaddedBytes(5)` returns a fresh 5-byte slice in `rt`. -/
 example := correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
