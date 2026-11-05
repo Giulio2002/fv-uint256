@@ -4,6 +4,14 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Con
 
 namespace Fv256.Amd64.IntoBig
 
+/-- A call pushes its return address at `a`: the frame of the callee's pre-memory gives a frame of the memory before the push, with `[a, a+8)` added. -/
+theorem unpush {X W : Memory} {rt ws : List (Nat × Nat)} {a v : Nat} (h : MemFrame (X.writeLE a 8 v) W (rt ++ ws)) :
+    MemFrame X W (rt ++ (ws ++ [(a, a + 8)])) := by
+  have h1 : MemFrame X (X.writeLE a 8 v) (rt ++ (ws ++ [(a, a + 8)])) :=
+    (MemFrame.refl X _).writeLE_inRanges v ⟨(a, a + 8), by simp, Nat.le_refl _, Nat.le_refl _⟩
+  exact h1.trans h (fun c n hh => ⟨hh, by
+    simp only [outside_append] at hh ⊢; exact ⟨hh.1, hh.2.1⟩⟩)
+
 /-- The memory after the copy of the four words into the fresh array and the `len`/`cap` stores. -/
 def M0 (W : Memory) (A' P len v0 v1 v2 v3 : Nat) : Memory :=
   (((((W.writeLE A' 8 v0).writeLE (A' + 8) 8 v1).writeLE (A' + 16) 8 v2).writeLE (A' + 24) 8 v3).writeLE
@@ -186,7 +194,7 @@ theorem slow1_frame {s S w2 M w3 : Memory} {rt : List (Nat × Nat)}
     (hAin : InRanges A' 32 rt)
     (hPin : InRanges P 32 (rt ++ [(sp - 4128, sp), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]))
     (hM : M = M0 w2 A' P len v0 v1 v2 v3)
-    (hF3 : MemFrame M w3 (rt ++ [(sp - 32 - 4096, sp - 32)])) (hs : InRanges w6 16 rt) :
+    (hF3 : MemFrame M w3 (rt ++ [(sp - 32 - 4096, sp - 32), (sp - 32, sp - 32 + 8)])) (hs : InRanges w6 16 rt) :
     MemFrame s ((((w3.writeLE w6 8 a).writeLE (w6 + 8) 8 b).writeLE (P + 8) 8 A').writeLE P 1 0)
       (rt ++ [(sp - 4128, sp), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)]) := by
   have h3 := m0_frame (len := len) (v0 := v0) (v1 := v1) (v2 := v2) (v3 := v3) hsp hF hfr hAin hPin
@@ -196,10 +204,8 @@ theorem slow1_frame {s S w2 M w3 : Memory} {rt : List (Nat × Nat)}
     intro a' n hh
     refine ⟨hh, ?_⟩
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    refine ⟨hh.1, ?_⟩
-    rcases hh.2.1 with h | h
-    · left; omega
-    · right; omega
+    obtain ⟨h1, h2, -⟩ := hh
+    refine ⟨h1, ?_, ?_⟩ <;> omega
   obtain ⟨rP, hrP, hrP1, hrP2⟩ := hPin
   obtain ⟨rS, hrS, hrS1, hrS2⟩ := hs
   have hrS' : rS ∈ rt ++ [(sp - 4128, sp), (sp + 8, sp + 24), (bp, bp + 8), (P0, P0 + 32), (A0, A0 + 32)] := by simp [hrS]
@@ -229,7 +235,7 @@ theorem slow1_bigout {s S w2 M w3 : Memory} {rt L1 : List (Nat × Nat)} {sp bp z
     (hzero : ∀ i, len ≤ i → i < 4 → w2.readLE (z + 8 * i) 8 = 0)
     (hv0 : v0 < 2 ^ 64) (hv1 : v1 < 2 ^ 64) (hv2 : v2 < 2 ^ 64) (hv3 : v3 < 2 ^ 64)
     (hM : M = M0 w2 A' P len v0 v1 v2 v3)
-    (hF3 : MemFrame M w3 (rt ++ [(sp - 32 - 4096, sp - 32)]))
+    (hF3 : MemFrame M w3 (rt ++ [(sp - 32 - 4096, sp - 32), (sp - 32, sp - 32 + 8)]))
     (hLive : LiveFrame M w3 L1 []) (hAL1 : InRanges A' 32 L1)
     (hs : InRanges w6 16 rt)
     (hPk16 : w3.readLE (P + 16) 8 = M.readLE (P + 16) 8) (hPk24 : w3.readLE (P + 24) 8 = M.readLE (P + 24) 8)
@@ -249,7 +255,7 @@ theorem slow1_bigout {s S w2 M w3 : Memory} {rt L1 : List (Nat × Nat)} {sp bp z
   refine bigout_slow _ bp P A' len (val256 s z) (fun i => s.readLE (z + 8 * i) 8) ?_ ?_ hP48 ?_ hA48 ?_ ?_ ?_ hlen ?_ ?_
     (val256_bigAbs s z) hbP hAP
   · rw [slots2_read _ _ _ _ _ _ (by omega)]
-    rw [read_wb' hF3 hbpo (by omega), hM, m0_bp _ _ _ _ _ _ _ _ _ hbA hbP]; exact hbpw
+    rw [read_call hF3 hbpo (by omega) (by omega), hM, m0_bp _ _ _ _ _ _ _ _ _ hbA hbP]; exact hbpw
   · simp only [Janus.Arm64.Memory.accessible_writeLE]
     rw [hF3.accessible, hM, m0_acc, hF.accessible, hfr.accessible]; exact hPa
   · simp only [Janus.Arm64.Memory.accessible_writeLE]
@@ -313,7 +319,7 @@ theorem tail1_bigout {s W w3 : Memory} {sp bp z P A' len w6 a b : Nat} {rt L1 : 
     (hnorm : len = 0 ∨ s.readLE (z + 8 * (len - 1)) 8 ≠ 0)
     (hzero : ∀ i, len ≤ i → i < 4 → s.readLE (z + 8 * i) 8 = 0)
     (hbpo : Outside bp 8 rt) (hbpd : bp + 8 ≤ sp - 4128 ∨ sp - 4128 + 4152 ≤ bp) (hsp : 4128 ≤ sp)
-    (hF3 : MemFrame (M1 W P len) w3 (rt ++ [(sp - 32 - 4096, sp - 32)]))
+    (hF3 : MemFrame (M1 W P len) w3 (rt ++ [(sp - 32 - 4096, sp - 32), (sp - 32, sp - 32 + 8)]))
     (hLive : LiveFrame (M1 W P len) w3 L1 []) (hAL1 : InRanges A' 32 L1)
     (hs : InRanges w6 16 rt)
     (hPk16 : w3.readLE (P + 16) 8 = (M1 W P len).readLE (P + 16) 8)
@@ -326,7 +332,7 @@ theorem tail1_bigout {s W w3 : Memory} {sp bp z P A' len w6 a b : Nat} {rt L1 : 
   have hbS := MemFrame.outside_mem hbpo hrS
   refine bigout_slow ((w3.writeLE w6 8 a).writeLE (w6 + 8) 8 b) bp P A' len (val256 s z) (fun i => s.readLE (z + 8 * i) 8)
     ?_ ?_ hP48 ?_ hA48 ?_ ?_ ?_ hlen hnorm hzero (val256_bigAbs s z) (by unfold Apart; omega) (by unfold Apart; omega)
-  · rw [slots2_read _ _ _ _ _ _ (by omega), read_wb' hF3 hbpo (by omega)]
+  · rw [slots2_read _ _ _ _ _ _ (by omega), read_call hF3 hbpo (by omega) (by omega)]
     unfold M1
     rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
     exact h_rdP
@@ -365,7 +371,7 @@ set_option maxRecDepth 100000 in
 /-- The frame of the tail with the barrier call. -/
 theorem tail1_frame {s W w3 : Memory} {sp bp P A' len w6 a b : Nat} {rt : List (Nat × Nat)}
     (hfr2 : MemFrame s W (rt ++ [(sp - 4128, sp), (sp + 8, sp + 24), (bp, bp + 8)])) (hsp : 4128 ≤ sp)
-    (hF3 : MemFrame (M1 W P len) w3 (rt ++ [(sp - 32 - 4096, sp - 32)])) (hs : InRanges w6 16 rt) :
+    (hF3 : MemFrame (M1 W P len) w3 (rt ++ [(sp - 32 - 4096, sp - 32), (sp - 32, sp - 32 + 8)])) (hs : InRanges w6 16 rt) :
     MemFrame s ((((w3.writeLE w6 8 a).writeLE (w6 + 8) 8 b).writeLE (P + 8) 8 A').writeLE P 1 0)
       (rt ++ [(sp - 4128, sp), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)]) := by
   have h1 := frame_add (al := P) (ah := P + 32) hfr2
@@ -378,10 +384,8 @@ theorem tail1_frame {s W w3 : Memory} {sp bp P A' len w6 a b : Nat} {rt : List (
     intro a' n hh
     refine ⟨hh, ?_⟩
     simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
-    refine ⟨hh.1, ?_⟩
-    rcases hh.2.1 with h | h
-    · left; omega
-    · right; omega
+    obtain ⟨h1, h2, -⟩ := hh
+    refine ⟨h1, ?_, ?_⟩ <;> omega
   obtain ⟨rS, hrS, hrS1, hrS2⟩ := hs
   have hrS' : rS ∈ rt ++ [(sp - 4128, sp), (sp + 8, sp + 24), (bp, bp + 8), (P, P + 32)] := by simp [hrS]
   exact (((h4.writeLE_inRanges _ ⟨rS, hrS', by omega, by omega⟩).writeLE_inRanges _ ⟨rS, hrS', by omega, by omega⟩).writeLE_inRanges _
@@ -478,5 +482,18 @@ theorem s2_bp {S w2 : Memory} {rt : List (Nat × Nat)} {sp A bp v0 v1 v2 v3 : Na
   have h1 : bp + 8 ≤ A ∨ A + 32 ≤ bp := hbA
   obtain ⟨h2, h3⟩ := bp_arith hbpd
   rw [read_words4 _ _ _ _ _ _ _ _ h1, read_call hF hbpo h2 h3]
+
+theorem read_wbp {X w3 : Memory} {rt : List (Nat × Nat)} {l h a v x n : Nat}
+    (hf : MemFrame (X.writeLE a 8 v) w3 (rt ++ [(l, h)])) (hx : Outside x n rt) (hw : x + n ≤ l ∨ h ≤ x)
+    (ha : x + n ≤ a ∨ a + 8 ≤ x) : w3.readLE x n = X.readLE x n := by
+  rw [read_wb' hf hx hw]
+  exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ ha
+
+theorem live_unpush {X W : Memory} {L : List (Nat × Nat)} {a v : Nat} (h : LiveFrame (X.writeLE a 8 v) W L [])
+    (hA : ∀ r ∈ L, r.2 ≤ a ∨ a + 8 ≤ r.1) : LiveFrame X W L [] := by
+  refine ⟨fun c n hin hout => ?_⟩
+  obtain ⟨r, hr, h1, h2⟩ := hin
+  rw [h.readLE c n ⟨r, hr, h1, h2⟩ hout]
+  exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by have := hA r hr; omega)
 
 end Fv256.Amd64.IntoBig
