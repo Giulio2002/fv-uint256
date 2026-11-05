@@ -38,17 +38,15 @@ theorem knuth_summary :
         2 ^ 63 ≤ s.mem.readLE ((s.regs 6).toNat + 8 * ((s.regs 7).toNat - 1)) 8 ∧
         Fv256.B.wv s.mem ((s.regs 3).toNat + 8 * ((s.regs 4).toNat - (s.regs 7).toNat)) (s.regs 7).toNat <
           Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat)
-      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
-        s' = { s with regs := R', pc := s.regs 30, flags := fl', mem := M' } ∧
-        R' 18 = s.regs 18 ∧ R' 28 = s.regs 28 ∧ R' 29 = s.regs 29 ∧ R' 30 = s.regs 30 ∧
-        (∀ i, 22 ≤ i → R' i = s.regs i) ∧
+      (fun s s' => s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
+        s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧ (∀ i, 22 ≤ i → s'.regs i = s.regs i) ∧
         Fv256.B.wv s.mem (s.regs 3).toNat (s.regs 4).toNat =
-          Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat * Fv256.B.wv M' (s.regs 0).toNat ((s.regs 4).toNat - (s.regs 7).toNat) +
-            Fv256.B.wv M' (s.regs 3).toNat (s.regs 7).toNat ∧
-        Fv256.B.wv M' (s.regs 3).toNat (s.regs 7).toNat < Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat ∧
-        MemFrame s.mem M' [((s.regs 3).toNat, (s.regs 3).toNat + 8 * (s.regs 4).toNat),
+          Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat * Fv256.B.wv s'.mem (s.regs 0).toNat ((s.regs 4).toNat - (s.regs 7).toNat) +
+            Fv256.B.wv s'.mem (s.regs 3).toNat (s.regs 7).toNat ∧
+        Fv256.B.wv s'.mem (s.regs 3).toNat (s.regs 7).toNat < Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat ∧
+        MemFrame s.mem s'.mem [((s.regs 3).toNat, (s.regs 3).toNat + 8 * (s.regs 4).toNat),
           ((s.regs 0).toNat, (s.regs 0).toNat + 8 * ((s.regs 4).toNat - (s.regs 7).toNat)),
-          (s.sp.toNat - 120, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 72)]) := by
+          (s.sp.toNat - 120, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 72)]) := by
   sorry
 
 end Fv256.Arm64.KnuthSummary

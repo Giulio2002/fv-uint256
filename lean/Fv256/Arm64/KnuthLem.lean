@@ -123,4 +123,19 @@ theorem slice_ptr_arm (j up : Nat) (c : Nat) (hj : j < c) (hc : c < 2 ^ 55) :
   rw [Nat.mod_eq_of_lt (show j < 2 ^ 64 by omega)]
   omega
 
+theorem recip_gen (B d : Nat) (hd : 0 < d) (hdB : d < B) :
+    ((B - 1 - d) * B + (B - 1)) / d + B = (B * B - 1) / d := by
+  obtain ⟨c, rfl⟩ : ∃ c, B = d + c + 1 := ⟨B - d - 1, by omega⟩
+  have e1 : d + c + 1 - 1 - d = c := by omega
+  have e2 : (d + c + 1) * (d + c + 1) - 1 = (c * (d + c + 1) + (d + c + 1) - 1) + d * (d + c + 1) := by
+    have : (d + c + 1) * (d + c + 1) = c * (d + c + 1) + (d + c + 1) + d * (d + c + 1) := by grind
+    omega
+  rw [e1, e2, Nat.add_mul_div_left _ _ hd]
+  have : d + c + 1 - 1 = d + c := by omega
+  have e3 : c * (d + c + 1) + (d + c + 1) - 1 = c * (d + c + 1) + (d + c) := by omega
+  rw [e3, this]
+theorem recip_eq (dh : Nat) (h63 : 2 ^ 63 ≤ dh) (h : dh < 2 ^ 64) :
+    ((2 ^ 64 - 1 - dh) * 2 ^ 64 + (2 ^ 64 - 1)) / dh + 2 ^ 64 = (2 ^ 64 * 2 ^ 64 - 1) / dh :=
+  recip_gen (2 ^ 64) dh (by omega) h
+
 end Fv256.Arm64.KnuthLem
