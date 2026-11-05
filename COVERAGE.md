@@ -42,7 +42,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Format` | FV-E | out of scope | out of scope | math/big Format through a dynamic fmt.State (interface calls into fmt/strconv/big): not provable at reasonable cost (upstream analysis DESIGN-U5-U6) |
 | `(*uint256.Int).Gt` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Gt.lean |
 | `(*uint256.Int).GtUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/GtUint64.lean |
-| `(*uint256.Int).HashTreeRoot` | FV-A | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) |
+| `(*uint256.Int).HashTreeRoot` | FV-A | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) ; amd64 re-proved on master 48f3f44 (frameless leaf: no stack check, window [SP-40, SP+40), 9 s, Janus f1d61dc1) |
 | `(*uint256.Int).Hex` | FV-E | blocked U16 (fv/wc) | todo | FV-C; see COVERAGE-C.md on fv/wc |
 | `(*uint256.Int).IntoBig` | FV-C | todo | todo | |
 | `(*uint256.Int).IsUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
