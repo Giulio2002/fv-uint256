@@ -261,4 +261,15 @@ theorem dig9 (u k : Nat) (hk : k < 9) : u % 1000000000 / 10 ^ k % 10 = u / 10 ^ 
   rcases this with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> simp only [Nat.reducePow] <;> omega
 
 
+
+theorem q6 (v : Nat) (h : v < 100) :
+    (((BitVec.ofNat 64 v).rotateRight 63).toNat &&& 4294967294) % 4294967296 = 2 * v := by
+  rw [BitVec.toNat_rotateRight, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega : v < 2^64)]
+  simp only [Nat.reduceMod, Nat.shiftRight_eq_div_pow, Nat.shiftLeft_eq]
+  have e1 : v / 2 ^ 63 = 0 := Nat.div_eq_of_lt (by omega)
+  have e2 : v * 2 ^ (64 - 63) % 2 ^ 64 = 2 * v := by omega
+  rw [e1, e2, Nat.zero_or]
+  have key : ∀ w, w < 100 → ((2 * w) &&& 4294967294) % 4294967296 = 2 * w := by decide +kernel
+  exact key v h
+
 end Fv256.E
