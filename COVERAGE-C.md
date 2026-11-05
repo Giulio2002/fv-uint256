@@ -89,3 +89,6 @@ IntoBig arm64 on Janus integ/speed15 4d43ed7e (private binary and lake rev match
 
 ## Ownership (2026-11-05)
 FV-E (fv/we) now owns the decimal/text family on master: Dec, String, PrettyDec, Value, MarshalText/JSON, From/MustFrom/SetFromDecimal, UnmarshalText/JSON, Scan, EncodeRLP. FV-C keeps IntoBig/ToBig (both ISAs), MarshalSSZAppend/Into/UnmarshalSSZ, Hex arm64, the hex parsers and MustFromBig. FV-E reads the FromHex/MustFromHex proofs as the pattern.
+
+## IntoBig / ToBig arm64: VERIFIED (2026-11-05, janus integ/speed15 ffaae554)
+`janus verify`: Fv256.Arm64.IntoBig.{correctness, Witness.nonvacuous} and Fv256.Arm64.ToBig.{correctness, Witness.nonvacuous}: all four "verified" (axioms Classical.choice/Quot.sound/propext, leanchecker passed). ToBig is the first internal-call proof: premise `ImplApart Extracted.program impl`, callee IntoBig proved over `(P.onlySegments [IntoBig]).link impl` and bridged with `Ensures.toSummary`. Logs: /srv/fv-uint256-wC-v/{vtb3,vib4}.log. Pending: amd64 ports.

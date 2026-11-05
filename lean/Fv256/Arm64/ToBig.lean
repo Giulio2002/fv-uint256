@@ -29,13 +29,6 @@ namespace Fv256.Arm64.ToBig
 
 open Fv256.Arm64.IntoBig
 
-/-- The runtime stand-in `impl` is placed outside the extracted code: disjoint segments, no stub and not the exit
-address at any of its instructions. -/
-def ImplOK (impl : List Segment) : Prop :=
-  (Extracted.program.segments ++ impl).Pairwise Segment.Apart ∧
-    ∀ seg ∈ Extracted.program.segments ++ impl, ∀ i < seg.words.length,
-      Extracted.program.stubAt (seg.base + 4 * i) = none ∧ seg.base + 4 * i ≠ Extracted.program.exitAddr
-
 /-- the callee's name -/
 abbrev nmIB : String := "github.com/holiman/uint256.(*Int).IntoBig"
 /-- the callee's own program (with the runtime stand-in linked) -/
@@ -49,13 +42,13 @@ theorem fetchIn_none_of (segs : List Segment) (pc : Nat)
     obtain ⟨seg, hm, i, hi, hpc⟩ := Program.fetchIn_index hf
     exact absurd hpc (h seg hm i hi)
 
-theorem apart_of {impl : List Segment} (hI : ImplOK impl) {a b : Segment} (ha : a ∈ Extracted.program.segments)
+theorem apart_of {impl : List Segment} (hI : ImplApart Extracted.program impl) {a b : Segment} (ha : a ∈ Extracted.program.segments)
     (hb : b ∈ impl) : Segment.Apart a b := by
   have := List.pairwise_append.1 hI.1
   exact this.2.2 a ha b hb
 
 /-- the instructions of `impl` are not fetched from the extraction's own segments -/
-theorem impl_fetch_none {impl : List Segment} (hI : ImplOK impl) {seg : Segment} (hs : seg ∈ impl) {i : Nat}
+theorem impl_fetch_none {impl : List Segment} (hI : ImplApart Extracted.program impl) {seg : Segment} (hs : seg ∈ impl) {i : Nat}
     (hi : i < seg.words.length) (S : List Segment) (hS : ∀ x ∈ S, x ∈ Extracted.program.segments) :
     Program.fetchIn S (seg.base + 4 * i) = none := by
   apply fetchIn_none_of
@@ -64,10 +57,10 @@ theorem impl_fetch_none {impl : List Segment} (hI : ImplOK impl) {seg : Segment}
   unfold Segment.Apart at hap
   omega
 
-theorem hc_IB (impl : List Segment) (hI : ImplOK impl) : CodeIn (P0 impl) (Extracted.program.link impl) :=
+theorem hc_IB (impl : List Segment) (hI : ImplApart Extracted.program impl) : CodeIn (P0 impl) (Extracted.program.link impl) :=
   codeIn_restrict Extracted.program [nmIB] impl hI.1 hI.2
 
-theorem hx_IB (impl : List Segment) (hI : ImplOK impl) : (P0 impl).fetch (P0 impl).exitAddr = none := by
+theorem hx_IB (impl : List Segment) (hI : ImplApart Extracted.program impl) : (P0 impl).fetch (P0 impl).exitAddr = none := by
   apply fetchIn_none_of
   intro seg hseg i hi
   have hm : seg ∈ Extracted.program.segments ++ impl := by
@@ -85,7 +78,7 @@ theorem retAddr_seg : ∃ a ∈ Extracted.program.segments, a.base ≤ Extracted
     Extracted.entry + 0x28 < a.base + 4 * a.words.length := by decide
 
 /-- the return site of the call to `IntoBig` is an admissible return address of the callee's program -/
-theorem retAddr_call (impl : List Segment) (hI : ImplOK impl) : RetAddr (P0 impl) (Extracted.entry + 0x28) := by
+theorem retAddr_call (impl : List Segment) (hI : ImplApart Extracted.program impl) : RetAddr (P0 impl) (Extracted.entry + 0x28) := by
   have h1 : (Extracted.entry + 0x28) % 4 = 0 := by decide
   have h2 : Extracted.entry + 0x28 < 2 ^ 48 := by decide
   refine ⟨h1, h2, ?_, fun st hst => retAddr_stub st hst⟩
@@ -97,7 +90,7 @@ theorem retAddr_call (impl : List Segment) (hI : ImplOK impl) : RetAddr (P0 impl
     unfold Segment.Apart at hap
     omega
 
-theorem hside (impl : List Segment) (hI : ImplOK impl) :
+theorem hside (impl : List Segment) (hI : ImplApart Extracted.program impl) :
     ∀ seg ∈ impl, ∀ i < seg.words.length,
       (Extracted.program.onlySegments [nmIB]).fetch (seg.base + 4 * i) = none ∧
       Extracted.program.stubAt (seg.base + 4 * i) = none ∧ seg.base + 4 * i ≠ Extracted.program.exitAddr := by
@@ -196,7 +189,7 @@ theorem call_pre (R : RtInv) (b : Nat) (z : BitVec 64) (s sc : State) (X Y : Nat
 
 set_option maxRecDepth 20000 in
 theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
-    (hI : ImplOK impl)
+    (hI : ImplApart Extracted.program impl)
     (hnew : NewobjectLiveContract (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
     (hwb1 : WbLiveContract (Extracted.program.ofImpl impl)
@@ -323,8 +316,8 @@ theorem model_new : NewobjectLiveContract (Extracted.program.ofImpl implAt) newA
 theorem model_wb1 : WbLiveContract (Extracted.program.ofImpl implAt) w1A 4096 R 1 := by janus_live_wb 1
 theorem model_wb2 : WbLiveContract (Extracted.program.ofImpl implAt) w2A 4096 R 2 := by janus_live_wb 2
 
-theorem implOK : ImplOK implAt := by
-  unfold ImplOK; constructor <;> decide
+theorem implOK : ImplApart Extracted.program implAt := by
+  unfold ImplApart; constructor <;> decide
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -413,7 +406,7 @@ theorem pre : GuardOK s0 4192 ∧ StackOK s0 4192 0 ∧ Extracted.program.DataLo
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget and a call of `ToBig` on a
 non-nil receiver satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64) (ret : Nat) (s : State),
-    ImplOK impl ∧
+    ImplApart Extracted.program impl ∧
     NewobjectLiveContract (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
     WbLiveContract (Extracted.program.ofImpl impl)
