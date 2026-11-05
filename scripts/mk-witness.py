@@ -69,22 +69,28 @@ val_names = [n for (ns, _) in vals for n in ns]
 hyp_names = [n for (ns, _) in hyps for n in ns]
 argnames = set(re.findall(r'[A-Za-z_][A-Za-z_0-9]*', args))
 KEEP = {'impl', 'rt', 'H', 'R', 'b'} | argnames
-kept, subst = [], {}
+kept, free = [], []
 for ns, ty in vals:
     k = [n for n in ns if n in KEEP]
     if k: kept.append((k, ty))
     for n in ns:
-        if n not in KEEP: subst[n] = '(%s : %s)' % (bind_vals[n], ty)
-def concretize(t):
-    for n, e in subst.items(): t = re.sub(r'(?<![\w.])%s(?![\w])' % re.escape(n), e, t)
-    return t
-pre_body = concretize(pre_body)
-hyps = [(ns, concretize(ty)) for ns, ty in hyps]
+        if n not in KEEP: free.append((n, ty))
+# free variables: they stay existential, pinned to their type by a conjunct of a typed local def
+pins, pin_defs = [], {}
+for n, ty in free:
+    d = 'pin' + re.sub(r'[^A-Za-z0-9]', '', ty)
+    pin_defs[d] = ty
+    pins.append('%s %s' % (d, n))
+kept = kept + [([n], ty) for n, ty in free]
+pre_body = ' ∧\n    '.join(pins + [pre_body]) if pins else pre_body
 ex_binders = ' '.join('(%s : %s)' % (' '.join(ns), ty) for ns, ty in kept)
 hyp_txt = ' ∧\n    '.join(ty for _, ty in hyps)
 if hyp_txt: hyp_txt += ' ∧\n    '
-tup = [bind_vals[n] for n in val_names if n in KEEP] + [ret_, s0_] + [bind_vals[n] for n in hyp_names] + [hret_, setup_, pre_]
-thm = ('/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible\n'
+kept_names = [n for ns, _ in kept for n in ns]
+tup = [bind_vals[n] for n in kept_names] + [ret_, s0_] + [bind_vals[n] for n in hyp_names] + [hret_, setup_]
+tup.append('⟨%s⟩' % ', '.join(['trivial'] * len(pins) + [pre_]) if pins else pre_)
+pindefs = ''.join('/-- pins the type of an existential variable of `nonvacuous` -/\ndef %s (_k : %s) : Prop := True\n\n' % (d, t) for d, t in pin_defs.items())
+thm = pindefs + ('/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible\n'
        'return address, a call state and the precondition. -/\n'
        'theorem nonvacuous : ∃ %s (ret : Nat) (s : State),\n    %sRetAddr (Extracted.program.link impl) ret ∧\n'
        '    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry %s s ∧\n    (%s) :=\n  ⟨%s⟩\n'

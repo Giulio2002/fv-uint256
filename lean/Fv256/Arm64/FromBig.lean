@@ -192,21 +192,26 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoad
   · unfold Disjoint; decide
   · unfold Disjoint; decide
 
+/-- pins the type of an existential variable of `nonvacuous` -/
+def pinBitVec64 (_k : BitVec 64) : Prop := True
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (x : BitVec 64) (ret : Nat) (s : State),
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (x : BitVec 64) (pw : BitVec 64) (len : BitVec 64) (ret : Nat) (s : State),
     NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [x] s ∧
-    (GuardOK s 0 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    (pinBitVec64 pw ∧
+    pinBitVec64 len ∧
+    GuardOK s 0 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4144) 4168 rt ∧ s.regs 29 = s.sp - 8#64 ∧
         H [intType] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem) ∧
         (x.toNat ≠ 0 → Ptr s.mem x 32 false ∧ s.mem.readLE x.toNat 1 < 2 ∧
-          s.mem.readLE (x.toNat + 8) 8 = (pw : BitVec 64).toNat ∧ s.mem.readLE (x.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
-          Ptr s.mem (pw : BitVec 64) (8 * (2 : BitVec 64).toNat) false ∧ Outside x.toNat 32 rt ∧ Outside (pw : BitVec 64).toNat (8 * (2 : BitVec 64).toNat) rt ∧
-          Disjoint x.toNat 32 (s.sp.toNat - 4144) 4168 ∧ Disjoint (pw : BitVec 64).toNat (8 * (2 : BitVec 64).toNat) (s.sp.toNat - 4144) 4168)) :=
-  ⟨impl, rt, H, xp, ret, s0, hnew, hret, setup, pre⟩
+          s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
+          Ptr s.mem pw (8 * len.toNat) false ∧ Outside x.toNat 32 rt ∧ Outside pw.toNat (8 * len.toNat) rt ∧
+          Disjoint x.toNat 32 (s.sp.toNat - 4144) 4168 ∧ Disjoint pw.toNat (8 * len.toNat) (s.sp.toNat - 4144) 4168)) :=
+  ⟨impl, rt, H, xp, pw, 2, ret, s0, hnew, hret, setup, ⟨trivial, trivial, pre⟩⟩
 
 end Witness
 
