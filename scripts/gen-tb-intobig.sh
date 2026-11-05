@@ -4,8 +4,9 @@
 # proofs becomes `(Extracted.entry + 0x60)`, and the modules live under Fv256/Arm64/TB/.
 # usage: gen-tb-intobig.sh LEAN_DIR
 L=${1:-lean}; D=$L/Fv256/Arm64; mkdir -p $D/TB
-for m in IntoBigDefs IntoBigFinF IntoBigClose IntoBigLoop IntoBigTail IntoBigSlow3 IntoBigMid IntoBigT; do
-  python3 - "$D/$m.lean" "$D/TB/$m.lean" <<'PY'
+for m in IntoBigDefs IntoBigFinF IntoBigClose IntoBigLoop IntoBigTail IntoBigSlow3 IntoBigMid IntoBig; do
+  dst=$m; [ "$m" = IntoBig ] && dst=IntoBigT   # the main module is IntoBig.lean; ToBig imports it as TB.IntoBigT
+  python3 - "$D/$m.lean" "$D/TB/$dst.lean" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
 if 'namespace Witness' in s:
