@@ -16,6 +16,7 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
+| `(*uint256.Int).MulDivOverflowRem` | todo (waits for FV-G arm64 ChainProg + my arm64 UmulSum) | verified incl. `Witness.nonvacuous` (Janus 2452acd6, one run, 2782 s cold incl. rebuild of 303 chain modules after repin; module itself elaborates in 30 s / 2.6 GB) | spec: `mulmodSpec` into m, `muldivSpec` into z, overflow flag `muldivOv` (low byte of rax); links the Extracted-free `Fv256.UmulProg` (commit 9e1d6a2) and `udivrem_rem_L` via lib_summary. Speed: pointer disjointness stated as `Apart` (not `∨`): 16 disjunctive hyps made janus_run's omega side goals cost 1200 s / 35 GB (OOM-killed at 33 GB); with Apart 30 s / 2.6 GB |
 | `(*uint256.Int).Exp` | todo | todo | |
 | `(*uint256.Int).Sqrt` | todo | todo | |
 
@@ -51,3 +52,6 @@ DivMod (2625 s) still imports the chain through DivModB.partB (non-live newobjec
 Profile (trace.profiler) showed ~290 s in failing/slow `exact` alternatives on goals like `a % y0 + B*0 + .. = a % (y0 + B*y1 + ..)`:
 the unifier proved `x + B*0 = x` by whnf of huge Nat literals (91-180 s per leaf). Fix: `simp only [Nat.mul_zero, Nat.add_zero]` before `mod_congr`, and `with_reducible` alternatives first.
 DivModB compile 442-490 s -> 163 s; DivMod verify (correctness + nonvacuous) 2625 s -> 419 s.
+
+## Speed pass 3: Apart contracts (MulDivOverflowRem)
+A statement with many pointers: write each disjointness fact as `Apart a n b k` (Janus.Apart, not unfolded by omega), `unfold Apart at ...` only after janus64_run for the closers. Witness: `(try unfold Apart); (try unfold regSP); (try unfold regG); decide`. MulDivOverflowRem janus64_run stage: 1200 s / 35 GB -> 30 s / 2.6 GB.
