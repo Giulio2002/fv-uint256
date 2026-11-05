@@ -61,4 +61,64 @@ theorem StaticOK.frame {R2 : IfaceModel} {T : Nat} {m m' : Janus.Arm64.Memory} {
   · rw [hf.accessible]; exact h10
   · rw [hf.accessible]; exact h11
 
+
+open Janus.Contracts
+
+/-- The runtime environment of the error paths, for the absolute stack window `[lo, hi)` the function (and everything it
+calls) may use: the interface model `R2`, the live runtime `R` with live set `L` and budget `b`, the static facts, and
+the apartness of the window, the live objects, the guard word and the static data from the runtime's ranges. -/
+def Env (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (s : State) : Prop :=
+  lo ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 8 ≤ hi ∧ hi ≤ 2 ^ 48 ∧ (s.regs 4).toNat % 8 = 0 ∧
+  s.mem.accessible lo (hi - lo) true = true ∧
+  (s.regs 14).toNat + 24 ≤ 2 ^ 48 ∧ s.mem.accessible ((s.regs 14).toNat + 16) 8 false = true ∧
+  s.mem.readLE ((s.regs 14).toNat + 16) 8 < lo ∧
+  Outside lo (hi - lo) R.rt ∧ Outside lo (hi - lo) R2.priv ∧
+  Outside ((s.regs 14).toNat + 16) 8 R.rt ∧ Outside ((s.regs 14).toNat + 16) 8 R2.priv ∧
+  ((s.regs 14).toNat + 16 + 8 ≤ lo ∨ hi ≤ (s.regs 14).toNat + 16) ∧
+  (∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) [(lo, hi)]) ∧
+  StaticOK R2 T s.mem ∧ R2.Env s.mem (s.regs 14) ∧
+  R.inv b L (s.regs 14).toNat (view R.rt L s.mem) ∧
+  (∀ r ∈ L, Outside r.1 (r.2 - r.1) [(lo, hi)])
+
+/-- `Env` survives a frame that writes the window and one buffer `[z, z+32)` apart from everything the runtime
+model looks at (inside the live set or outside `R.rt`), when `RSP` and `g` are unchanged. -/
+theorem Env.frame {R : RtInv} {R2 : IfaceModel} (hl : R2.Laws) {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {s s' : State} (h : Env R R2 T b L lo hi s) (hsp : s'.regs 4 = s.regs 4) (hg : s'.regs 14 = s.regs 14)
+    {z : Nat} (hf : MemFrame s.mem s'.mem [(lo, hi), (z, z + 32)])
+    (hzR : Outside z 32 R.rt ∨ InRanges z 32 L) (hzP : Outside z 32 R2.priv)
+    (hzS : ∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) [(z, z + 32)])
+    (hzg : (s.regs 14).toNat + 16 + 8 ≤ z ∨ z + 32 ≤ (s.regs 14).toNat + 16) : Env R R2 T b L lo hi s' := by
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, h17, h18⟩ := h
+  have hgw : Outside ((s.regs 14).toNat + 16) 8 [(lo, hi), (z, z + 32)] := by
+    simp only [outside_cons, outside_nil, and_true]; omega
+  have hgv : s'.mem.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 :=
+    hf.readLE _ _ hgw
+  have hstat : ∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) [(lo, hi), (z, z + 32)] := by
+    intro r hr
+    have a := h14 r hr
+    have b := hzS r hr
+    simp only [outside_cons, outside_nil, and_true] at a b ⊢
+    exact ⟨a, b⟩
+  unfold Env
+  rw [hsp, hg]
+  rw [hsp, hg] at *
+  refine ⟨h1, h2, h3, h4, ?_, h6, ?_, ?_, h9, h10, h11, h12, h13, h14, ?_, ?_, ?_, h18⟩
+  · rw [hf.accessible]; exact h5
+  · rw [hf.accessible]; exact h7
+  · rw [hgv]; exact h8
+  · exact StaticOK.frame h15 hf hstat
+  · exact hl.env_frame _ _ _ h16 (Janus.Spec.Map.Agrees.of_memFrame hf (by
+      intro a ha
+      obtain ⟨r, hr, h1, h2⟩ := ha
+      have a1 := MemFrame.outside_mem h10 hr
+      have a2 := MemFrame.outside_mem hzP hr
+      simp only [outside_cons, outside_nil, and_true]
+      omega))
+  · exact RtInv.inv_frame' hf (by
+      intro r hr
+      simp only [List.mem_cons, List.mem_nil_iff, or_false] at hr
+      rcases hr with rfl | rfl
+      · exact Or.inl h9
+      · simpa using hzR) h17
+
 end Fv256.Amd64.SfdEnv
