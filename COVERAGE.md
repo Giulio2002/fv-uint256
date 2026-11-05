@@ -16,7 +16,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `uint256.NewInt` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/NewInt.lean; uses the runtime.newobject allocation contract (hypothesis hnew); Witness with a toy allocator linked at runtime.newobject |
 | `(*uint256.Int).Abs` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Abs.lean |
 | `(*uint256.Int).Add` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Add.lean |
-| `(*uint256.Int).AddMod` | FV-F | todo | todo | |
+| `(*uint256.Int).AddMod` | FV-F | todo | verified (+ witness) | amd64 (FV-F, fv/wf f1e44aa, Janus 4405d883, correctness + Witness.nonvacuous in one run, 5832 s; log scratch/verify_addmod2.out in fv-uint256-wf, checked by main). Spec (x+y) mod m, 0 when m = 0; all aliasing cases covered. arm64 todo (FV-G). Note: proved on Janus 4405d883, master pins 2452acd6; re-check on the master pin pending |
 | `(*uint256.Int).AddOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/AddOverflow.lean |
 | `(*uint256.Int).AddUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/AddUint64.lean |
 | `(*uint256.Int).And` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/And.lean |
