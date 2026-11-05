@@ -3,13 +3,7 @@ import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.StrE
-import Fv256.Amd64.DecA
-import Fv256.Amd64.DecT
-import Fv256.Amd64.DecInit
-import Fv256.Amd64.DecIter
-import Fv256.Amd64.DecLoop
-import Fv256.Amd64.StrconvFormatUint
-import Fv256.Amd64.DecSummary
+import Fv256.Amd64.DecExt
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 open Fv256.E
@@ -38,7 +32,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])) := by
     rw [← decE_entry]
-    exact ensures_of_summary64 (dec_summary impl rt H z hc)
+    exact ensures_of_summary64 (dec_summary_ext impl rt H z hc)
           (fun ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12⟩ =>
             ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, hs.zero, hs.df, by
               have := hs.ret

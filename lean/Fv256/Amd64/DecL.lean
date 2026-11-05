@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -13,7 +13,7 @@ namespace Fv256.Amd64.Dec
 theorem entry_h1 (s : State) (hpc : s.rip = BitVec.ofNat 64 fb)
     (hsa : s.mem.accessible ((s.regs 4).toNat - 8) 24 true = true) (hsp : 8 ≤ (s.regs 4).toNat)
     (hspu : (s.regs 4).toNat + 16 ≤ 2 ^ 48) (hd : TabsOK s.mem) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x17)) s
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (fb + 0x17)) s
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s with regs := R', rip := BitVec.ofNat 64 (fb + 0x17), flags := fl', mem := M' } ∧
         R' 0 = s.regs 0 ∧ R' 3 = s.regs 3 ∧ R' 1 = s.regs 3 ∧ R' 7 = s.regs 7 ∧

@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -21,7 +21,7 @@ theorem chunk_loop (s0 : State) (ptr len u i : Nat) (R : Nat → W64) (fl : Flag
     (hacc : M.accessible ptr len true = true) (hd : TabsOK M)
     (e0 : R 0 = BitVec.ofNat 64 ptr) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e7 : R 7 = BitVec.ofNat 64 u) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x17))
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (fb + 0x17))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x17), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x17), flags := fl', mem := M' } ∧
@@ -71,7 +71,7 @@ theorem chunk_ret (s0 : State) (ptr len u i : Nat) (R : Nat → W64) (fl : Flags
     (hacc : M.accessible ptr len true = true) (hd : TabsOK M)
     (e0 : R 0 = BitVec.ofNat 64 ptr) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e7 : R 7 = BitVec.ofNat 64 u) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x1b4))
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (fb + 0x1b4))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x17), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x1b4), flags := fl', mem := M' } ∧
