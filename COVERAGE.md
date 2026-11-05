@@ -44,7 +44,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).GtUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/GtUint64.lean |
 | `(*uint256.Int).HashTreeRoot` | FV-A | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) ; amd64 re-proved on master 48f3f44 (frameless leaf: no stack check, window [SP-40, SP+40), 9 s, Janus f1d61dc1) |
 | `(*uint256.Int).Hex` | FV-E | blocked U16 (fv/wc) | todo | FV-C; see COVERAGE-C.md on fv/wc |
-| `(*uint256.Int).IntoBig` | FV-C | verified (+ witness) | todo | arm64 (fv/wc cfef22a, merged; Janus ffaae554, correctness + Witness.nonvacuous in one run each): IntoBig arm64: Post has the nil-case frame conjunct and a split caller window; shared lemmas IntoBigCommon. amd64 in progress |
+| `(*uint256.Int).IntoBig` | FV-C | verified (+ witness) | verified (+ witness) | arm64 (fv/wc, Janus ffaae554) and amd64 (Janus aab47543, correctness + Witness.nonvacuous in ONE run, 1997 s cold): lean/Fv256/{Arm64,Amd64}/IntoBig{Defs,FinF,Close,Loop,Tail,Slow3,Mid}.lean + IntoBig.lean (main) + IntoBigCommon. Contracts NewobjectLive(64)Contract@runtime.newobject and WbLive(64)Contract@runtime.gcWriteBarrier1/2. amd64 witness: stub runtime at the contract addresses, IntoBig(z, &b) with b == nil. Extraction flags in scripts/contract-flags.sh |
 | `(*uint256.Int).IsUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | FV-A | pending Janus datasym (07f71534) | pending Janus datasym (07f71534) | arm64/amd64: lean/Fv256/{Arm64,Amd64}/Log10.lean (+ L10Cases, 256 modules per ISA); table addresses come from `Extracted.dataAddr/dataSize` (no literals in statements); assumes the writable powers-of-ten tables (L10Defs.lean). Verified on master 48f3f44 with Janus 07f71534: arm64 785 s, amd64 851 s (first-of-cache excluded: framework already built) |
@@ -212,3 +212,7 @@ Not exported symbols: rows deliberately do not start with a backtick, so scripts
 | udivremBy1 | arm64 | FV-G | verified | fv/wg 76882db, Arm64/By1.lean |
 | udivremKnuth | arm64 | FV-H | verified | fv/wh 0aa9a06, Arm64/KnuthSummary.lean (16 min wall cold) |
 | udivrem entry | arm64 | FV-G | conditional on hKn | fv/wg 409c8d8, Arm64/UdivremE.lean; FV-G re-verifying unconditionally. Exported arm64 Div/Mod (FV-G) and DivMod/SDiv/SMod (FV-H) in progress |
+
+## Pending rows reported by workers (not yet merged into fv/master)
+* FV-E: `Dec` amd64 (53 min) and arm64 (41 min) verified with witnesses; interim: formatBits stubbed, branch proved unreachable (base 10); re-verify without the stub after the repin to dbd8224e.
+* FV-D: `ISDiv` 2501 s and `ISMod` 2898 s amd64 verified on the per-extraction chain; re-verify on the library form pending.
