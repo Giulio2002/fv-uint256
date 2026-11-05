@@ -118,4 +118,23 @@ theorem inner_step (s0 : State) (ptr len x i j : Nat) (R : Nat → W64) (fl : Fl
     exact ((MemFrame.refl M [(ptr + i - 2, ptr + i)]).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)).writeLE _
       (List.mem_singleton_self _) (by omega) (by omega)
   · exact Fv256.E.dataLoaded_writeLE (Fv256.E.dataLoaded_writeLE hd (accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _) (by simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hacc (Or.inr rfl) (by omega) (by omega)) _
+abbrev digitsDat : Janus.DataSegment := Extracted.data[2]
+abbrev digitsBase : Nat := 5163273
+
+set_option maxRecDepth 100000 in
+theorem digits_base : digitsDat.base = digitsBase := by decide
+set_option maxRecDepth 100000 in
+theorem digits_len : digitsDat.bytes.length = 256 := by decide
+theorem digits_mem : digitsDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
+
+theorem digits_tab : ∀ d, d < 10 → digitsDat.bytes[d]! = 48 + d := by
+  decide +kernel
+
+theorem digits_read {M : Memory} (hd : Extracted.program.DataLoaded M) (d : Nat) (hd10 : d < 10) :
+    M.readLE (digitsBase + d) 1 = 48 + d := by
+  have b0 := DataLoaded.byte hd digits_mem d (by rw [digits_len]; omega)
+  rw [digits_base] at b0
+  rw [b0, ← digits_tab d hd10]
+  exact (getElem!_pos digitsDat.bytes d (by rw [digits_len]; omega)).symm
+
 end Fv256.Amd64.Dec
