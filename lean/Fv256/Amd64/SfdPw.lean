@@ -163,8 +163,55 @@ theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
         subst hS2; simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
         apply BitVec.eq_of_toNat_eq; rw [hz1]; simp only [BitVec.toNat_ofNat]; decide
       refine ReachesRet.call hte (by subst hS2; rfl) (tePre_of_pre' ⟨⟨?_, ?_, ?_, ?_⟩, hr0, hr3, hr1, hr7, hr9, hr10, hl1,
-        by omega, by omega, hMod, hEnv3, ?_⟩) ?cont2
-      all_goals trace_state
-      all_goals sorry
+        by omega, by omega, hMod, hEnv3, hch1, hch2, hch3, ?_, hch5, ?_⟩) ?cont2
+      · rw [hS2acc, hrsp2]; exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ e5 (by omega) (by omega))
+      · rw [hret2]; omega
+      · subst hS2; simpa [k5] using hx15
+      · subst hS2; simpa [k6] using hdf
+      · rw [hS2acc]; exact hch4
+      · rw [hrsp2]; omega
+      case cont2 =>
+        intro s3 hpc3 ⟨⟨c1, c2, c3, c4, c5, c6, c7⟩, ⟨q, t, hr0', hr3', hobj⟩, hfr3⟩
+        have hra2 : retAddrOf S2 = BitVec.ofNat 64 4771420 := by simp only [retAddrOf, hret2]
+        rw [hra2] at c1
+        subst hS2
+        have hrsp'' : (s.regs 4 - 88#64).toNat = (s.regs 4).toNat - 88 := by
+          rw [BitVec.toNat_sub]; simp; omega
+        simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff, hrsp'', List.append_assoc] at hfr3
+        have hO1 : Outside ((s.regs 4).toNat - 16) 24 R.rt := Outside.of_sub e9 (by omega) (by omega)
+        have hO2 : Outside ((s.regs 4).toNat - 16) 24 R2.priv := Outside.of_sub e10 (by omega) (by omega)
+        janus64_run
+        have oE := e14 (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
+        simp only [Nat.add_sub_cancel_left] at oE
+        obtain ⟨o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12⟩ := hobj
+        have hobj' : TeObj R b L (BitVec.ofNat 64 fnStr) 9#64 p len s s3 q t := by
+          refine ⟨o1, o2, o3, o4, o5, o6, o7, o8, ?_, ?_, ?_, ?_⟩
+          · rw [o9]; exact hSF.readLE _ _ (Outside.of_sub oE (by omega) (by omega))
+          · rw [o10]; exact hSF.readLE _ _ (Outside.of_sub oE (by omega) (by omega))
+          · intro k hk
+            rw [o11 k hk]
+            exact hSF.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
+          · simpa [setRegF_apply, c4, k4] using o12
+        refine ⟨⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩, Or.inr ⟨?_, ?_, ⟨q, t, ?_, ?_, hobj'⟩, ?_⟩⟩
+        · simp only [retAddrOf]
+        · simp [setRegF_apply]
+        · simp [setRegF_apply]
+        · simp [setRegF_apply, c4, k4]
+        · simp [c5, k5, hx15]
+        · simp [c6, k6, hdf]
+        · simpa [k7] using c7
+        · intro h
+          apply hA
+          intro k a b
+          rw [hbytes k b]
+          exact h k a b
+        · simp [setRegF_apply]
+        · simp [setRegF_apply]
+        · simp [setRegF_apply]
+        · exact hSF.trans hfr3 (by
+            intro a n h
+            simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+            obtain ⟨⟨h1, h2⟩, h3⟩ := h
+            exact ⟨h3, h1, h2, by omega⟩)
 
 end Fv256.Amd64.SfdPw
