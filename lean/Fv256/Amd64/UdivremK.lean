@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -19,8 +19,8 @@ namespace Fv256.Amd64.UdivremK
 theorem ofNat_toNat64 (x : W64) : BitVec.ofNat 64 x.toNat = x := by simp
 
 set_option maxHeartbeats 32000000 in
-theorem udivrem_summary {L : Nat} (hL : L ≤ 8) :
-    Summary Extracted.program ku
+theorem udivrem_summary_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = L ∧ (s.regs 3).toNat = L ∧
@@ -86,7 +86,7 @@ theorem udivrem_summary {L : Nat} (hL : L ≤ 8) :
       Fv256.B.wv s.mem (s.regs 10).toNat 4 = 0 := fun h => by
     obtain ⟨⟨a, b⟩, c, _, _, _⟩ := hrem h
     exact ⟨a, b, c⟩
-  have fin : ∀ S', UPost { s with kreg := kr1 } s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat (s.regs 7).toNat (s.regs 10).toNat
+  have fin : ∀ S', UPost L { s with kreg := kr1 } s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat (s.regs 7).toNat (s.regs 10).toNat
       (s.mem.readLE (s.regs 4).toNat 8) (s.regs 5).toNat (s.regs 14) S' → (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory) (kr : Nat → W64),
         s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
                       rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M', kreg := kr } ∧
@@ -121,20 +121,47 @@ theorem udivrem_summary {L : Nat} (hL : L ≤ 8) :
     rw [hRf, hXf, hS]
     rfl
   rcases Nat.lt_or_ge ulen n with hlt | hge
-  · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremI.caseL { s with kreg := kr1 } R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
+  · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremI.caseL hL { s with kreg := kr1 } R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
       (s.regs 1).toNat (s.regs 3).toNat (s.regs 7).toNat (s.regs 10).toNat n ulen sh (s.regs 5).toNat (s.mem.readLE (s.regs 4).toNat 8)
       F hlt (s.regs 14) hR14 hsp0 (by omega) hMs hub hua hus hdb hds hqb hq0 hqs hremp hrem'
       (fun h => (hrem h).2.2.1) (fun h => (hrem h).2.2.2.1) (fun h => (hrem h).2.2.2.2) hra2 hx15) fin
   · rcases Nat.eq_or_lt_of_le F.hn with h1n | h2n
-    · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremJ.caseOne { s with kreg := kr1 } R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
+    · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremJ.caseOne hL { s with kreg := kr1 } R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
         (s.regs 1).toNat (s.regs 3).toNat (s.regs 7).toNat (s.regs 10).toNat n ulen sh (s.regs 5).toNat (s.mem.readLE (s.regs 4).toNat 8)
         F h1n.symm hge (s.regs 14) hR14 h3 hsp0 (by omega) hMs hub hua hus hdb hds hqb hqa hq0 hqs hremp hrem'
         (fun h => (hrem h).2.2.1) (fun h => (hrem h).2.2.2.1) (fun h => (hrem h).2.2.2.2) hra2 hx15
         (by rw [hR14]; exact hg1) (by rw [hR14]; exact hg2) (by rw [hR14]; exact hg3) (by rw [hR14]; exact hgd)) fin
-    · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremI.caseK { s with kreg := kr1 } R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
+    · exact Fv256.B.reachesRet_mono64 (Fv256.Amd64.UdivremI.caseK hL { s with kreg := kr1 } R1 fl1 M1 s.mem (s.regs 4).toNat (s.regs 9).toNat (s.regs 0).toNat
         (s.regs 1).toNat (s.regs 3).toNat (s.regs 7).toNat (s.regs 10).toNat n ulen sh (s.regs 5).toNat (s.mem.readLE (s.regs 4).toNat 8)
         F h2n hge (s.regs 14) hR14 h3 hsp0 (by omega) hMs hub hua hus hdb hds hqb hqa hq0 hqs hremp hrem'
         (fun h => (hrem h).2.2.1) (fun h => (hrem h).2.2.2.1) (fun h => (hrem h).2.2.2.2) hra2 hx15
         (by rw [hR14]; exact hg1) (by rw [hR14]; exact hg2) (by rw [hR14]; exact hg3) (by rw [hR14]; exact hgd)) fin
+
+/-- the `L = 4` instance (unchanged statement; used by the 4-limb `Div`/`Mod`/`DivMod` wrappers) -/
+theorem udivrem_summary :
+    Summary Fv256.ChainProg.program ku
+      (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
+        0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
+        (s.regs 6).toNat = 4 ∧ (s.regs 3).toNat = 4 ∧
+        Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 7) 32 false ∧ Buffer s (s.regs 9) 32 false ∧
+        ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 0).toNat) ∧
+        ((s.regs 7).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 7).toNat) ∧
+        ((s.regs 9).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 9).toNat) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 14).toNat + 16) ∧
+        Fv256.B.wv s.mem (s.regs 9).toNat 4 ≠ 0 ∧ Fv256.B.wv s.mem (s.regs 0).toNat 4 = 0 ∧
+        ((s.regs 10).toNat ≠ 0 → Buffer s (s.regs 10) 32 true ∧ Fv256.B.wv s.mem (s.regs 10).toNat 4 = 0 ∧
+          ((s.regs 0).toNat + 32 ≤ (s.regs 10).toNat ∨ (s.regs 10).toNat + 32 ≤ (s.regs 0).toNat) ∧
+          ((s.regs 10).toNat + 32 ≤ (s.regs 7).toNat ∨ (s.regs 7).toNat + 32 ≤ (s.regs 10).toNat) ∧
+          ((s.regs 10).toNat + 32 ≤ (s.regs 4).toNat - 0x148 ∨ (s.regs 4).toNat + 0x48 ≤ (s.regs 10).toNat)))
+      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory) (kr : Nat → W64),
+        s' = { s with regs := fun i => if i = 4 then s.regs 4 + 8 else if i = 5 then s.regs 5 else if i = 14 then s.regs 14 else R' i,
+                      rip := retAddrOf s, flags := fl', xmm := fun i => if i = 15 then s.xmm 15 else X' i, mem := M', kreg := kr } ∧
+        Fv256.B.wv M' (s.regs 0).toNat 4 = Fv256.B.wv s.mem (s.regs 7).toNat 4 / Fv256.B.wv s.mem (s.regs 9).toNat 4 ∧
+        ((s.regs 10).toNat ≠ 0 → Fv256.B.wv M' (s.regs 10).toNat 4 =
+          Fv256.B.wv s.mem (s.regs 7).toNat 4 % Fv256.B.wv s.mem (s.regs 9).toNat 4) ∧
+        ((s.regs 10).toNat = 0 → MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32),
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)]) ∧
+        ((s.regs 10).toNat ≠ 0 → MemFrame s.mem M' [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 10).toNat, (s.regs 10).toNat + 32),
+          ((s.regs 4).toNat - 0x148, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x48)])) := fun s hpc h => udivrem_summary_L (L := 4) (by omega) s hpc h
 
 end Fv256.Amd64.UdivremK

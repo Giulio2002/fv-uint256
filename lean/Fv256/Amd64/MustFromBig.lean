@@ -15,8 +15,8 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janu
 namespace Fv256.Amd64.MustFromBig
 
 def intType : Nat := dataBase Extracted.program 1
-def panicType : Nat := dataBase Extracted.program 0
-def panicData : Nat := dataBase Extracted.program 2
+def panicType : Nat := Extracted.dataAddr.«type:string#f88732b8»
+def panicData : Nat := Extracted.dataAddr.«.rodata#ee30ac37»
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 16000000 in
@@ -80,9 +80,10 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
     · rename_i g hxn wa wb wc wd we wf wg wh hfr hin hle hacc h8 h16 hz rr a cpc csp c28 c29 c30 c18 cfs cfr cflag cval
       have hov := Fv256.C.ov_of64 _ _ cflag hbr
       have h4 := Fv256.C.ovT _ hov
-      refine ⟨⟨5007904, 5180664⟩, ?_, h4, ?_⟩
-      · show (⟨5007904, 5180664⟩ : Eface) = ⟨_, _⟩
-        simp [setRegF]
+      refine ⟨⟨panicType, panicData⟩, ?_, h4, ?_⟩
+      · show (⟨panicType, panicData⟩ : Eface) = ⟨_, _⟩
+        simp [setRegF, panicType, panicData]
+        exact ⟨by decide, by decide⟩
       · rw [hpt, hpd]
 
 /-! ## Non-vacuity: the allocation contract and the precondition are jointly satisfiable
@@ -208,8 +209,31 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
   · simp only [rt, outside_cons, outside_nil]; decide
   · simp only [rt, outside_cons, outside_nil]; decide
 
-/-- The theorem fires: for this call and this allocator, `MustFromBig` returns a fresh object in `rt` holding `-(5 + 2^64)`. -/
-example := correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H xp pw 2 hnew ret hret s0 setup pre
+/-- pins the type of an existential variable of `nonvacuous` -/
+def pinJanusSpecPanicRuntime (_k : Janus.Spec.PanicRuntime) : Prop := True
+
+/-- pins the type of an existential variable of `nonvacuous` -/
+def pinBitVec64 (_k : BitVec 64) : Prop := True
+
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
+return address, a call state and the precondition. -/
+theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (x : BitVec 64) (P : Janus.Spec.PanicRuntime) (pw : BitVec 64) (len : BitVec 64) (ret : Nat) (s : State),
+    NewobjectContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [x] s ∧
+    (pinJanusSpecPanicRuntime P ∧
+    pinBitVec64 pw ∧
+    pinBitVec64 len ∧
+    StackGuardOK s 0 ∧ StackWritable s 4136 24 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4136) 4160 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+        H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem) ∧
+        (x.toNat ≠ 0 → Buffer s x 32 false ∧ s.mem.readLE x.toNat 1 < 2 ∧
+          s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
+          Buffer s pw (8 * len.toNat) false ∧ Outside x.toNat 32 rt ∧ Outside pw.toNat (8 * len.toNat) rt ∧
+          (x.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ x.toNat) ∧
+          (pw.toNat + 8 * len.toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ pw.toNat))) :=
+  ⟨impl, rt, H, xp, (Janus.Contracts.PanicModel.P0 [] 0), pw, 2, ret, s0, hnew, hret, setup, ⟨trivial, trivial, trivial, pre⟩⟩
 
 end Witness
 

@@ -173,10 +173,16 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4128 24 ∧ Extracted.progr
 
 /-- The preconditions and the allocator contract are jointly satisfiable: a concrete call state (with the toy allocator linked at
 the `runtime.newobject` address) meets every hypothesis of `correctness`. -/
-theorem nonvacuous : CallSetup (linked.withExit ret) Extracted.entry [arg] s0 ∧
-    (StackGuardOK s0 0 ∧ StackWritable s0 4128 24 ∧ Extracted.program.DataLoaded s0.mem ∧
-    Outside ((s0.regs 4).toNat - 4128) 4152 rt ∧ (s0.regs 4).toNat % 8 = 0 ∧
-    H [intType] (s0.regs 14).toNat ((s0.regs 4).toNat - 32) (rtView rt s0.mem)) := And.intro setup pre
+theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
+    NewobjectContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (StackGuardOK s 0 ∧ StackWritable s 4128 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    Outside ((s.regs 4).toNat - 4128) 4152 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
+    H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 32) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre⟩
+
 
 /-- The theorem fires: for this call and this allocator, `NewInt` returns a fresh object in `rt` holding the expected value. -/
 theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧

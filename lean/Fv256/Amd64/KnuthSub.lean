@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -8,7 +8,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.KnuthSub
 
-abbrev kn : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivremKnuth"
+abbrev kn : Nat := segAddr Fv256.ChainProg.program "github.com/holiman/uint256.udivremKnuth"
 
 theorem kn_lt : kn + 0x2c0 < 2 ^ 47 := by decide
 
@@ -31,7 +31,7 @@ theorem submul_loop (s0 : State) (up dp n j qh : Nat) (v c u2 cap : W64) (M0 : M
       (∀ k, k ∉ [0, 1, 2, 8, 11, 13] → R k = s0.regs k) →
       Fv256.B.wv M0 (up + 8 * j) i + (R 13).toNat * 2 ^ (64 * i) = Fv256.B.wv M (up + 8 * j) i + qh * Fv256.B.wv M0 dp i →
       MemFrame M0 M [(up + 8 * j, up + 8 * j + 8 * i)] →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0x23a))
+      ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (kn + 0x23a))
         { s0 with regs := R, rip := BitVec.ofNat 64 (kn + 0x235), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
           S' = { s0 with regs := R', rip := BitVec.ofNat 64 (kn + 0x23a), flags := fl', mem := M' } ∧

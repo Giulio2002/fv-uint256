@@ -1,5 +1,6 @@
-scratch/
-*.o
+wip-d/logs/
+wip-d/*.out
+wip-d/*.time
+jcache/
+stage/
 build/
-wip/
-NOTES.md
