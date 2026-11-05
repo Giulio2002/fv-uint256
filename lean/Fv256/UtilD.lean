@@ -57,6 +57,17 @@ elab "fast_assm " t:term : tactic => do
         return
   throwError "fast_assm: no match for {ty}; hyps: {(← g.getDecl).lctx.foldl (fun (a : List MessageData) d => if d.isImplementationDetail then a else a ++ [m!"{d.userName} : {d.type}"]) []}"
 
+open Lean Elab Tactic in
+/-- profiling aid: run `t`, log how long it took and whether it failed (rethrows) -/
+elab "timed " s:str t:tacticSeq : tactic => do
+  let t0 ← IO.monoMsNow
+  try
+    evalTactic t
+    logInfo m!"timed {s.getString}: ok {(← IO.monoMsNow) - t0} ms"
+  catch e =>
+    logInfo m!"timed {s.getString}: FAIL {(← IO.monoMsNow) - t0} ms"
+    throw e
+
 namespace Fv256.D
 
 theorem f64_bits (q r t Y y0 y1 y2 y3 : Nat) (ht1 : 12 ≤ t) (ht2 : t ≤ 203) (hr : r < 2 ^ t) (hq : q < 2 ^ 52)

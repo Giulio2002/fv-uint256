@@ -28,7 +28,7 @@ theorem correctness (x : BitVec 64) :
   all_goals have l2 := Util.readLE8_lt s.mem (x.toNat + 16)
   all_goals have l3 := Util.readLE8_lt s.mem (x.toNat + 24)
   all_goals first
-    | (have hxj : (s.mem.readLE (x.toNat + 24) 8) ≠ 0 := (by omega)
+    | (have hxj : (s.mem.readLE (x.toNat + 24) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
        have hkj : clzNat 64 (s.mem.readLE (x.toNat + 24) 8) < 64 := (Fv256.B.clz_cases _ l3).resolve_left hxj
        have hbl := Fv256.B.f64_bl3 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (s.mem.readLE (x.toNat + 16) 8) (s.mem.readLE (x.toNat + 24) 8) (clzNat 64 (s.mem.readLE (x.toNat + 24) 8)) l0 l1 l2 l3 hxj rfl
        grab_lsh hS3
@@ -46,8 +46,8 @@ theorem correctness (x : BitVec 64) :
        first
         | (refine Fv256.D.leaf0 _ (256 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (256 - k) = 1 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega))
         | (refine Fv256.D.leaf1 _ (256 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (256 - k) = 1 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)))
-    | (have hxj : (s.mem.readLE (x.toNat + 16) 8) ≠ 0 := (by omega)
-       have hz3 : (s.mem.readLE (x.toNat + 24) 8) = 0 := (by omega)
+    | (have hxj : (s.mem.readLE (x.toNat + 16) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 16) 8) = 0 by janus_assumption)
+       have hz3 : (s.mem.readLE (x.toNat + 24) 8) = 0 := (show (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
        have hkj : clzNat 64 (s.mem.readLE (x.toNat + 16) 8) < 64 := (Fv256.B.clz_cases _ l2).resolve_left hxj
        have hbl := Fv256.B.f64_bl2 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (s.mem.readLE (x.toNat + 16) 8) (clzNat 64 (s.mem.readLE (x.toNat + 16) 8)) l0 l1 l2 hxj rfl
        grab_lsh hS3
@@ -65,9 +65,9 @@ theorem correctness (x : BitVec 64) :
        first
         | (refine Fv256.D.leaf0 _ (192 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (192 - k) = 65 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega))
         | (refine Fv256.D.leaf1 _ (192 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (192 - k) = 65 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)))
-    | (have hxj : (s.mem.readLE (x.toNat + 8) 8) ≠ 0 := (by omega)
-       have hz2 : (s.mem.readLE (x.toNat + 16) 8) = 0 := (by omega)
-       have hz3 : (s.mem.readLE (x.toNat + 24) 8) = 0 := (by omega)
+    | (have hxj : (s.mem.readLE (x.toNat + 8) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 8) 8) = 0 by janus_assumption)
+       have hz2 : (s.mem.readLE (x.toNat + 16) 8) = 0 := (show (s.mem.readLE (x.toNat + 16) 8) = 0 by janus_assumption)
+       have hz3 : (s.mem.readLE (x.toNat + 24) 8) = 0 := (show (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
        have hkj : clzNat 64 (s.mem.readLE (x.toNat + 8) 8) < 64 := (Fv256.B.clz_cases _ l1).resolve_left hxj
        have hbl := Fv256.B.f64_bl1 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (clzNat 64 (s.mem.readLE (x.toNat + 8) 8)) l0 l1 hxj rfl
        grab_lsh hS3
