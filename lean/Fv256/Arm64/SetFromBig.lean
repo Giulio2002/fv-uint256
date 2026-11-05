@@ -86,13 +86,13 @@ theorem hpre : Ptr32 s0.mem z true ∧ Ptr s0.mem b 32 false ∧ s0.mem.readLE b
   refine ⟨⟨by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, by decide, by decide,
     ⟨by decide, by decide⟩, ?_, ?_⟩ <;> (unfold Disjoint; decide)
 
-theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw len : BitVec 64), RetAddr Extracted.program ret ∧
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b] s ∧
     (Ptr32 s.mem z true ∧ Ptr s.mem b 32 false ∧ s.mem.readLE b.toNat 1 < 2 ∧
-      s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = len.toNat ∧
-      Ptr s.mem pw (8 * len.toNat) false ∧
-      Disjoint z.toNat 32 b.toNat 32 ∧ Disjoint z.toNat 32 pw.toNat (8 * len.toNat)) :=
-  ⟨ret, s0, z, b, pw, 2, hret, setup, hpre⟩
+      s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
+      Ptr s.mem pw (8 * (2 : BitVec 64).toNat) false ∧
+      Disjoint z.toNat 32 b.toNat 32 ∧ Disjoint z.toNat 32 pw.toNat (8 * (2 : BitVec 64).toNat)) :=
+  ⟨ret, s0, z, b, pw, hret, setup, hpre⟩
 
 /-- The call returns, without overflow, and `z` holds `-(5 + 2^64)` modulo `2^256`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

@@ -87,13 +87,13 @@ theorem hpre : StackWritable s0 0 8 ∧ Buffer s0 z 32 true ∧ Buffer s0 b 32 f
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, by decide, by decide,
     ⟨by decide, by decide⟩, by unfold Disjoint; decide, by unfold Disjoint; decide, by unfold Disjoint; decide⟩
 
-theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw len : BitVec 64), RetAddr Extracted.program ret ∧
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b] s ∧
     (StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s b 32 false ∧ s.mem.readLE b.toNat 1 < 2 ∧
-      s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = len.toNat ∧
-      Buffer s pw (8 * len.toNat) false ∧
-      Disjoint z 32 b 32 ∧ Disjoint z 32 pw (8 * len.toNat) ∧ Disjoint z 32 (s.regs regSP) 8) :=
-  ⟨ret, s0, z, b, pw, 2, hret, setup, hpre⟩
+      s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
+      Buffer s pw (8 * (2 : BitVec 64).toNat) false ∧
+      Disjoint z 32 b 32 ∧ Disjoint z 32 pw (8 * (2 : BitVec 64).toNat) ∧ Disjoint z 32 (s.regs regSP) 8) :=
+  ⟨ret, s0, z, b, pw, hret, setup, hpre⟩
 
 /-- The call returns, without overflow (low byte of `RAX` is 0), and `z` holds `-(5 + 2^64)` modulo `2^256`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
