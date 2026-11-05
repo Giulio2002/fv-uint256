@@ -133,7 +133,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).WriteToArray32` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray32.lean |
 | `(*uint256.Int).WriteToSlice` | FV-A | verified | verified | arm64/amd64: lean/Fv256/{Arm64,Amd64}/WriteToSlice.lean (+ WtsCases, one module per min(len,32)); master 48f3f44, Janus f1d61dc1; precondition `len <= cap` (valid slice; master slices with a cap bounds check) |
 | `(*uint256.Int).Xor` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Xor.lean |
-| `(*uint256.Int).MulDivOverflowRem` | FV-F | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).MulDivOverflowRem` | FV-F | todo | verified (+ witness) | amd64 (FV-B, fv/wb-master 9e1d6a2/b05bea1, Janus 2452acd6, correctness + Witness.nonvacuous in one run, 2782 s cold incl. rebuild of 303 chain modules; module itself ~30 s / 2.6 GB after the Apart fix): spec mulmodSpec into m, muldivSpec into z, overflow flag muldivOv; links Extracted-free Fv256.UmulProg/UmulSum via lib_summary. Details in COVERAGE-B.md. arm64 todo (waits for arm64 UmulSum) |
 | `(*uint256.Int).ReverseBytes` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/ReverseBytes.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 91 s / amd64 154 s) |
 | `(*uint256.Int).IAdd` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/IAdd.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 358 s / amd64 157 s) |
 | `(*uint256.Int).IAddMod` | FV-D | todo | todo | new in master 48f3f44 |
