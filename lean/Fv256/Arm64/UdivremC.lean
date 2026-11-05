@@ -19,7 +19,7 @@ set_option maxRecDepth 20000 in
 theorem caseL (T : State) (ret : W64) (Q : State → Prop) (M0 M : Memory) (R : Nat → W64) (fl : Flags)
     (qp up dp remp L x29 x30 : Nat)
     (hx30a : x30 % 4 = 0) (hx30b : x30 < 2 ^ 56)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hL4 : 4 ≤ L) (hL : L ≤ 8) (hremp : remp < 2 ^ 64) (hup : up < 2 ^ 64)
     (hupb : up + 8 * L ≤ 2 ^ 48) (huacc : M.accessible up (8 * L) false = true)
     (hrem : remp ≠ 0 → remp + 32 ≤ 2 ^ 48 ∧ M.accessible remp 32 true = true ∧ (remp + 32 ≤ T.sp.toNat - 8 ∨ T.sp.toNat + 296 ≤ remp) ∧

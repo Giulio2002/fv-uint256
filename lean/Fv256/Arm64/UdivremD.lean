@@ -53,7 +53,7 @@ theorem caseK (hKn : KnuthStmt) (T : State) (ret : W64) (Q : State → Prop) (M0
     (qp up dp remp L n ulen s x29 x30 : Nat)
     (F : Front T.sp.toNat M0 M5 qp up dp remp L n ulen s x29 x30) (hn2 : 2 ≤ n)
     (hx30a : x30 % 4 = 0) (hx30b : x30 < 2 ^ 56)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hW : M0.accessible (T.sp.toNat - 120) 416 true = true)
     (hL : L ≤ 8) (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M0.accessible qp (8 * L) true = true)
     (hqs : qp + 8 * L ≤ T.sp.toNat - 120 ∨ T.sp.toNat + 296 ≤ qp)

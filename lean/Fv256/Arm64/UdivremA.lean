@@ -129,8 +129,8 @@ theorem pro2 (T : State) (ret : W64) (Q : State → Prop) (dp n : Nat) (M : Memo
     (hn1 : 1 ≤ n) (hn4 : n ≤ 4) (r9 : R 9 = BitVec.ofNat 64 n) (r6 : R 6 = BitVec.ofNat 64 dp)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true)
     (hdtop : M.readLE (dp + 8 * (n - 1)) 8 ≠ 0)
-    (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48) (hal : T.sp.toNat % 16 = 0)
-    (hMs : M.accessible T.sp.toNat 0x138 true = true)
+    (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48) (hal : T.sp.toNat % 16 = 0)
+    (hMs : M.accessible T.sp.toNat 296 true = true)
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (s : Nat), s ≤ 63 → s = clzNat 64 (M.readLE (dp + 8 * (n - 1)) 8) →
       R' 10 = BitVec.ofNat 64 (n - 1) → R' 5 = BitVec.ofNat 64 (n - 1) → R' 9 = BitVec.ofNat 64 n →
       R' 11 = BitVec.ofNat 64 s → R' 12 = BitVec.ofNat 64 (T.sp.toNat + 160) → R' 13 = BitVec.ofNat 64 (s + 64) →
@@ -172,7 +172,7 @@ theorem dn_loop (T : State) (ret : W64) (Q : State → Prop) (dp n s : Nat) (M0 
     (hn1 : 1 ≤ n) (hn4 : n ≤ 4) (hs : s ≤ 63)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M0.accessible dp 32 false = true)
     (hdisj : dp + 32 ≤ T.sp.toNat + 160 ∨ T.sp.toNat + 192 ≤ dp) (hMa0 : M0.accessible (T.sp.toNat + 160) 32 true = true)
-    (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
       R' 10 = 0#64 → (∀ k, k ∉ [10, 14, 15, 16, 17] → R' k = R0 k) →
       MemFrame M0 M' [(T.sp.toNat + 160, T.sp.toNat + 192)] →
@@ -301,7 +301,7 @@ theorem pro3 (T : State) (ret : W64) (Q : State → Prop) (dp n s L : Nat) (M0 M
     (hdisj : dp + 32 ≤ T.sp.toNat + 160 ∨ T.sp.toNat + 192 ≤ dp)
     (r6 : R 6 = BitVec.ofNat 64 dp) (r9 : R 9 = BitVec.ofNat 64 n) (r11 : R 11 = BitVec.ofNat 64 s)
     (r4 : R 4 = BitVec.ofNat 64 L)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory), R' 14 = BitVec.ofNat 64 L - 1 →
       (∀ k, k ∉ [10, 14] → R' k = R k) →
       MemFrame M0 M' [(T.sp.toNat + 160, T.sp.toNat + 192)] →
@@ -341,7 +341,7 @@ theorem un_loop (T : State) (ret : W64) (Q : State → Prop) (up ulen s : Nat) (
     (hu1 : 1 ≤ ulen) (hul : ulen ≤ 8) (hs : s ≤ 63)
     (hup : up + 8 * ulen ≤ 2 ^ 48) (hua : M0.accessible up (8 * ulen) false = true)
     (hdisj : up + 8 * ulen ≤ T.sp.toNat + 80 ∨ T.sp.toNat + 152 ≤ up) (hMa0 : M0.accessible (T.sp.toNat + 80) 72 true = true)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
       R' 16 = 0#64 → (∀ k, k ∉ [10, 16, 17, 19] → R' k = R0 k) →
       MemFrame M0 M' [(T.sp.toNat + 80, T.sp.toNat + 152)] →
@@ -403,9 +403,9 @@ set_option maxHeartbeats 8000000 in
 theorem pro4 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L : Nat) (M : Memory) (R : Nat → W64) (fl : Flags)
     (hn1 : 1 ≤ n) (hn4 : n ≤ 4) (hs : s ≤ 63) (hL8 : L ≤ 8) (hu1 : 1 ≤ ulen) (hul : ulen ≤ L)
     (hup : up + 8 * L ≤ 2 ^ 48) (hua : M.accessible up (8 * L) false = true)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
-    (hMa : M.accessible T.sp.toNat 0x138 true = true)
-    (hdisj : up + 8 * L ≤ T.sp.toNat ∨ T.sp.toNat + 0x138 ≤ up)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
+    (hMa : M.accessible T.sp.toNat 296 true = true)
+    (hdisj : up + 8 * L ≤ T.sp.toNat ∨ T.sp.toNat + 296 ≤ up)
     (r3 : R 3 = BitVec.ofNat 64 up) (r4 : R 4 = BitVec.ofNat 64 L) (r9 : R 9 = BitVec.ofNat 64 n) (r10 : R 10 = BitVec.ofNat 64 ulen)
     (r11 : R 11 = BitVec.ofNat 64 s) (r13 : R 13 = BitVec.ofNat 64 (s + 64))
     (hge : n ≤ ulen)
@@ -462,10 +462,10 @@ set_option maxHeartbeats 8000000 in
 theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : Nat) (M0 M : Memory) (R : Nat → W64) (fl : Flags)
     (hn1 : 1 ≤ n) (hn4 : n ≤ 4) (hs : s ≤ 63) (hremp : remp < 2 ^ 64) (hul : ulen ≤ 8) (hu1 : 1 ≤ ulen)
     (hup : up + 8 * ulen ≤ 2 ^ 48) (hua : M0.accessible up (8 * ulen) false = true)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
-    (hMa : M0.accessible T.sp.toNat 0x138 true = true)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
+    (hMa : M0.accessible T.sp.toNat 296 true = true)
     (hfr : MemFrame M0 M [(T.sp.toNat + 80, T.sp.toNat + 152)])
-    (hus : up + 8 * ulen ≤ T.sp.toNat ∨ T.sp.toNat + 0x138 ≤ up)
+    (hus : up + 8 * ulen ≤ T.sp.toNat ∨ T.sp.toNat + 296 ≤ up)
     (r3 : R 3 = BitVec.ofNat 64 up) (r7 : R 7 = BitVec.ofNat 64 remp) (r9 : R 9 = BitVec.ofNat 64 n)
     (r11 : R 11 = BitVec.ofNat 64 s) (r5 : R 5 = BitVec.ofNat 64 (n - 1)) (r13 : R 13 = BitVec.ofNat 64 (64 - s))
     (r15 : R 15 = BitVec.ofNat 64 (ulen + 1)) (r12 : R 12 = BitVec.ofNat 64 (T.sp.toNat + 160))
@@ -495,7 +495,7 @@ theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : 
   simp only [hh1]
   have hu0 : M.readLE up 8 = M0.readLE up 8 := hfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
   have hMu : M.accessible up (8 * ulen) false = true := by rw [hfr.accessible]; exact hua
-  have hMs : M.accessible T.sp.toNat 0x138 true = true := by rw [hfr.accessible]; exact hMa
+  have hMs : M.accessible T.sp.toNat 296 true = true := by rw [hfr.accessible]; exact hMa
   have hu0' : ((M.writeLE (T.sp.toNat + 288) 8 remp).writeLE (T.sp.toNat + 208) 8 s).readLE up 8 = M0.readLE up 8 := by
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     exact hu0
@@ -606,7 +606,7 @@ set_option maxHeartbeats 8000000 in
 theorem rem_loop (T : State) (ret : W64) (Q : State → Prop) (remp n ulen s : Nat) (M0 : Memory) (R0 : Nat → W64)
     (hn1 : 2 ≤ n) (hn4 : n ≤ 4) (hnu : n ≤ ulen) (hul : ulen ≤ 8) (hs : s ≤ 63)
     (hremb : remp + 32 ≤ 2 ^ 48) (hMr : M0.accessible remp 32 true = true)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hMu : M0.accessible (T.sp.toNat + 80) 72 true = true)
     (hdisj : remp + 32 ≤ T.sp.toNat + 80 ∨ T.sp.toNat + 152 ≤ remp)
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory), R' 5 = BitVec.ofNat 64 (n - 1) → (∀ k, k ∉ [5, 6, 7, 8, 9] → R' k = R0 k) →
@@ -665,7 +665,7 @@ set_option maxHeartbeats 8000000 in
 theorem kntail (T : State) (ret : W64) (Q : State → Prop) (Mc : Memory) (R : Nat → W64) (fl : Flags)
     (remp n ulen s x29 x30 : Nat) (hn1 : 2 ≤ n) (hn4 : n ≤ 4) (hnu : n ≤ ulen) (hul : ulen ≤ 8) (hs : s ≤ 63)
     (hx30a : x30 % 4 = 0) (hx30b : x30 < 2 ^ 56)
-    (hal : T.sp.toNat % 16 = 0) (hsp : 0x138 ≤ T.sp.toNat) (hspb : T.sp.toNat + 0x138 ≤ 2 ^ 48)
+    (hal : T.sp.toNat % 16 = 0) (hsp : 120 ≤ T.sp.toNat) (hspb : T.sp.toNat + 296 ≤ 2 ^ 48)
     (hMc : Mc.accessible (T.sp.toNat - 8) 304 true = true)
     (hremb : remp ≠ 0 → remp + 32 ≤ 2 ^ 48 ∧ Mc.accessible remp 32 true = true ∧ (remp + 32 ≤ T.sp.toNat - 8 ∨ T.sp.toNat + 296 ≤ remp))
     (hremp : remp < 2 ^ 64)
