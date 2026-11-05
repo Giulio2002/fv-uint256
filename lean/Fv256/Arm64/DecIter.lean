@@ -7,6 +7,8 @@ import Fv256.Arm64.DecA
 import Fv256.Arm64.DecInit
 import Fv256.Arm64.StrconvMemmove
 import Fv256.Arm64.StrconvAppend
+import Fv256.Arm64.ChainProg
+import Fv256.Arm64.CodeIn
 import Fv256.Arm64.UdivremFinal
 import Fv256.UtilB2
 import Fv256.Util
@@ -15,6 +17,10 @@ open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec
 open Fv256.E
 
 namespace Fv256.Arm64.Dec
+
+set_option maxRecDepth 200000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 /-- The branch of `Dec`'s loop after the copy: `CBNZ` at `0x1fc`. -/
 def decBr : Nat := decE + 0x1fc
@@ -99,7 +105,7 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.pc = BitVec.o
     omega
   subst hM
   have hsp : s.sp.toNat = b := by rw [esp, BitVec.toNat_ofNat]; omega
-  janus_run [e0, e1, e8, e3, e6, Fv256.Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, hdm, hdnz, Fv256.B.bv128_zero_toNat] until [au] calls [Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 4) (by omega) (by omega)]
+  janus_run [e0, e1, e8, e3, e6, Fv256.Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, hdm, hdnz, Fv256.B.bv128_zero_toNat] until [au] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 4) (by omega) (by omega))]
   rename_i ha hpcA hspA h18 h28 h29 h30 hregs hq hrm hfr
   simp [setReg] at h18 h28 h29 h30 hspA
   rename State => sU
