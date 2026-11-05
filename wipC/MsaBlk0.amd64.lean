@@ -161,7 +161,139 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
       rw [hfrU.accessible]; exact hgrd
     clear hfrU hOutU
     janus64_run [hu1, hu2] until [Extracted.entry + 0x47] calls [hg]
-    trace_state
-    sorry
+    rename_i r0 r1 r2 jk fl xm xm2 M ex epm hfr' hpost hlf hfresh hapart hinv2
+    obtain ⟨hr1, hr2, hin, hlim, hacc2, hcopy, hz1, hz2⟩ := hpost
+    have hle := le_growCap 1 true (len.toNat + 8) cc.toNat (by omega)
+    have hst : M.accessible (r0.toNat + len.toNat) 8 true = true :=
+      Memory.accessible_sub M hacc2 (Or.inr rfl) (by omega) (by rw [Nat.mul_one]; omega)
+    have hfrU := show MemFrame s.mem S.mem _ from hfrH
+    have hin16 : InRanges ((s.regs 4).toNat - 16) 8 (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
+      ⟨((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), by simp, by omega, by omega⟩
+    have hin112 : InRanges ((s.regs 4).toNat - 112) 8 (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
+      ⟨((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), by simp, by omega, by omega⟩
+    have hsM : MemFrame s.mem M (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
+      MemFrame.trans ((hfrU.writeLE_inRanges (S.mem.readLE z.toNat 8) hin16).writeLE_inRanges 4926695 hin112) hfr'
+        (fun a n h => ⟨h, by
+          simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+          obtain ⟨h1, h2, h3⟩ := h
+          refine ⟨h1, ?_, ?_⟩ <;> omega⟩)
+    have hsts : s.mem.accessible (r0.toNat + len.toNat) 8 true = true := by
+      rw [← hsM.accessible]; exact hst
+    have hMr : ∀ a n, Outside a n R.rt →
+        (a + n ≤ (s.regs 4).toNat - 112 - 4096 ∨ ((s.regs 4).toNat - 112 ≤ a ∧ a + n ≤ (s.regs 4).toNat - 112 + 8) ∨
+          (s.regs 4).toNat - 112 + 8 + 40 ≤ a) →
+        M.readLE a n = ((S.mem.writeLE ((s.regs 4).toNat - 16) 8 (S.mem.readLE z.toNat 8)).writeLE ((s.regs 4).toNat - 112) 8 4926695).readLE a n :=
+      fun a n ho hh => hfr'.readLE a n (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        refine ⟨ho, ?_, ?_⟩ <;> omega)
+    have hM16 : M.readLE ((s.regs 4).toNat - 16) 8 = S.mem.readLE z.toNat 8 := by
+      rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),
+        Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
+      exact Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _)
+    have hM70 : M.readLE ((s.regs 4).toNat + 8) 8 = z.toNat := by
+      rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),
+        Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      exact h_rd3
+    have hMa16 : M.accessible ((s.regs 4).toNat - 16) 8 false = true := by
+      rw [hsM.accessible, ← hfrU.accessible]
+      exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hMa70 : M.accessible ((s.regs 4).toNat + 8) 8 false = true := by
+      rw [hsM.accessible, ← hfrU.accessible]
+      exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    clear hfrU
+    replace hfr' := show Hidden _ from hfr'
+    replace hsM := show Hidden _ from hsM
+    janus64_data hd [hws, hsts]
+    janus64_run [hM16, hM70] until [Extracted.entry + 0x63]
+    have hr2pos : 0 < r2.toNat := by omega
+    simp only [Nat.mul_one, Nat.add_sub_cancel] at hin hlim hacc2 hcopy
+    rw [if_neg (by omega)] at hfresh hinv2
+    have e1 : r1.toNat - 8 = len.toNat := by omega
+    have hr1v : r1 = len + 8#64 := BitVec.eq_of_toNat_eq (by rw [hr1, hlen8])
+    have hr2K : r2.toNat ≤ Kc len0 := by
+      rw [hr2]; unfold growCap; simp only [Nat.mul_one, Nat.div_one]; exact hcostK
+    have hK44 : Kc len0 < 2 ^ 44 := by unfold Kc; omega
+    obtain ⟨rr, hrr, hrr1, hrr2⟩ := hin
+    have hdo := MemFrame.outside_mem hout hrr
+    have hW : r1.toNat + r0.toNat - 8 = r0.toNat + len.toNat := by omega
+    rw [hW]
+    have hinL' : InRanges (r0.toNat + len.toNat) 8 (L ++ [(r0.toNat, r0.toNat + r2.toNat)]) :=
+      ⟨(r0.toNat, r0.toNat + r2.toNat), List.mem_append_right _ (by simp), by omega, by omega⟩
+    have hinR : InRanges r0.toNat r2.toNat (L ++ [(r0.toNat, r0.toNat + r2.toNat)]) :=
+      ⟨(r0.toNat, r0.toNat + r2.toNat), List.mem_append_right _ (by simp), Nat.le_refl _, Nat.le_refl _⟩
+    have hzp2 : Apart z.toNat 32 r0.toNat r2.toNat := by
+      rcases hzL with ⟨r, hr, h1, h2⟩ | h
+      · have := hfresh (r0.toNat, r0.toNat + r2.toNat) (by simp) r hr
+        simp only [Nat.add_sub_cancel_left] at this
+        unfold Apart at this ⊢; omega
+      · have := MemFrame.outside_mem h hrr
+        unfold Apart; omega
+    have hMS : ∀ a n, Outside a n R.rt → (a + n ≤ (s.regs 4).toNat - 4208 ∨ ((s.regs 4).toNat - 64 ≤ a ∧ a + n ≤ (s.regs 4).toNat - 16) ∨ (s.regs 4).toNat - 8 ≤ a) →
+        M.readLE a n = S.mem.readLE a n := fun a n ho hh => by
+      rw [hMr a n ho (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+    have hdw : ∀ a, (s.regs 4).toNat - 4208 ≤ a → a + 8 ≤ (s.regs 4).toNat + 24 →
+        a + 8 ≤ r0.toNat + len.toNat ∨ r0.toNat + len.toNat + 8 ≤ a := by intro a h1 h2; omega
+    refine hcont _ r0 r2 (b - roundupsize (nextslicecap (len.toNat + 8) cc.toNat) true)
+      (L ++ [(r0.toNat, r0.toNat + r2.toNat)]) (by first | rfl | decide) ?_ (by omega)
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    · simp [setRegF, callRegs64_apply]; bv_omega
+    · simp [setRegF, callRegs64_apply]
+    · simp [setRegF, callRegs64_apply]
+    · simp [setRegF, callRegs64_apply, hr1v]
+    · simp [setRegF, callRegs64_apply]
+    · simp [setRegF, callRegs64_apply, h5]
+    · simp [setRegF, callRegs64_apply, h14]
+    · simp [hs15]
+    · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by have := hdw ((s.regs 4).toNat) (by omega) (by omega); omega), hMS _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega)]; exact h_rd1
+    · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by have := hdw ((s.regs 4).toNat - 8) (by omega) (by omega); omega), hMS _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega)]; exact h_rd2
+    · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by have := hdw ((s.regs 4).toNat + 8) (by omega) (by omega); omega), hMS _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega)]; exact h_rd3
+    · dsimp only; rw [Memory.accessible_writeLE, (show MemFrame s.mem M _ from hsM).accessible]
+      exact hws
+    · dsimp only
+      exact (show MemFrame s.mem M _ from hsM).writeLE_inRanges _ ⟨rr, List.mem_append_left _ hrr, by omega, by omega⟩
+    · intro hng'
+      obtain ⟨h1, h2, -⟩ := hng hng'
+      omega
+    · intro i hi; dsimp only
+      rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzp2; omega)]
+      rcases hzL with ⟨r, hr, h1, h2⟩ | h
+      · rw [hlf.readLE _ _ ⟨r, hr, by omega, by omega⟩ (by simp), Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzd; omega),
+          Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzd; omega)]
+        exact hzs i hi
+      · rw [hMr _ _ (Outside.of_sub h (by omega) (by omega)) (by unfold Apart at hzd; omega),
+          Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzd; omega), Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzd; omega)]
+        exact hzs i hi
+    · dsimp only; rw [view_writeLE_live hinL']; exact hinv2
+    · intro r hr
+      rcases List.mem_append.1 hr with h | h
+      · exact hLs r h
+      · simp only [List.mem_singleton] at h; subst h
+        simp only [outside_cons, outside_nil, and_true]; omega
+    · rcases hzL with ⟨r, hr, h1, h2⟩ | h
+      · exact Or.inl ⟨r, List.mem_append_left _ hr, h1, h2⟩
+      · exact Or.inr h
+    · exact hzp2
+    · rw [hlen8]; omega
+    · rw [hlen8]; omega
+    · rw [hlen8]; omega
+    · omega
+    · omega
+    · unfold Apart; omega
+    · intro _; dsimp only; rw [Memory.accessible_writeLE]; exact ⟨hacc2, Or.inl hinR⟩
+    · intro _ h0'; dsimp only; rw [Memory.accessible_writeLE, hlen8]
+      exact Memory.accessible_sub M hacc2 (Or.inl rfl) (Nat.le_refl _) (by omega)
+    · rw [Nat.succ_mul] at hbud; omega
+    · rw [hlen8, hr2]; exact (hrdy.1 hbr).2
+    · exact Or.inr ⟨rr, hrr, hrr1, hrr2⟩
+    · intro i hi; dsimp only
+      rw [Memory.bytes_writeLE_outside _ (Or.inl (by omega)), hcopy i (by omega),
+        Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega), Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega)]
+      exact hpre i hi
+    · dsimp only
+      have e : r0.toNat + len0 = r0.toNat + len.toNat := by omega
+      simp only [Nat.add_zero] at hz8
+      rw [hlen8, show len.toNat + 8 - len0 = 8 by omega, e, Memory.readLE_writeLE_self, hz8]
+      exact Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _)
+
 
 
