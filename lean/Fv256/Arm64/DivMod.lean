@@ -10,6 +10,7 @@ import Fv256.Arm64.UdivremD
 import Fv256.Arm64.UdivremF
 import Fv256.Arm64.KnuthSummary
 import Fv256.Arm64.DivLemmas
+import Fv256.Arm64.DivMLem
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 
@@ -21,6 +22,23 @@ theorem outside_stk {a n : Nat} {rt : List (Nat × Nat)} {lo hi : Nat} (h1 : Out
     Outside a n (rt ++ [(lo, hi)]) := by
   simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
   exact ⟨h1, h2⟩
+
+theorem div64_goal (x y : Nat) (hx : x < 2 ^ 64) (hy : y ≠ 0) : x / y % 18446744073709551616 = Fv256.B.divSpec x y := by
+  rw [Fv256.B.divSpec_of_ne _ _ hy]
+  exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) (by simpa using hx))
+
+theorem mod64_goal (x y : Nat) (hx : x < 2 ^ 64) (hy : y ≠ 0) :
+    (18446744073709551616 - x / y * y % 18446744073709551616 + x) % 18446744073709551616 + 18446744073709551616 * 0 +
+      340282366920938463463374607431768211456 * 0 + 6277101735386680763835789423207666416102355444464034512896 * 0 =
+    Fv256.B.modSpec x y := by
+  rw [Fv256.B.modSpec_of_ne _ _ hy]
+  have h3 : x / y * y ≤ x := Nat.div_mul_le_self _ _
+  have h4 := Nat.mod_add_div x y
+  have hx' : x < 18446744073709551616 := by simpa using hx
+  rw [Nat.mod_eq_of_lt (by omega : x / y * y < 18446744073709551616)]
+  simp only [Nat.mul_zero, Nat.add_zero]
+  have := Nat.mul_comm y (x / y)
+  omega
 
 abbrev dm : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).DivMod"
 
@@ -161,8 +179,58 @@ theorem partB (impl : List Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 6
   have hspb : st.sp.toNat + 200 ≤ 2 ^ 48 := by omega
   have hsp344 : 344 ≤ st.sp.toNat := by omega
   clear hdz hdx hdy hdm hout hxo hyo hzo hfa rdp
-  janus_run [Util.readLE_32, hretslot, hbp, hz8, hacc8, hacc0, rx0, rx1, rx2, rx3, ry0, ry1, ry2, ry3, hgv, Fv256.B.wv4_eq, Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, Nat.or_eq_zero_iff, Fv256.B.ne_zero_of_limbs] until [dm + 0x130, dm + 0x1c0] calls [hU]
-  all_goals trace_state
-  all_goals sorry
+  have hnb := Fv256.Arm64.DivMLem.nb4 _ _ _ _ _ _ _ _ (by simpa using hx0) (by simpa using hx1) (by simpa using hx2) (by simpa using hx3) (by simpa using hy0) (by simpa using hy1) (by simpa using hy2) (by simpa using hy3)
+  simp only [Nat.reducePow] at hnb
+  janus_run [Util.readLE_32, hretslot, hbp, hz8, hacc8, hacc0, rx0, rx1, rx2, rx3, ry0, ry1, ry2, ry3, hgv,
+    Janus.Tactic.sub_flags_c, BitVec.toNat_not, Util.readLE8_mod, Nat.reducePow, Nat.or_eq_zero_iff, Fv256.B.wv4_eq,
+    Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod,
+    Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff,
+    Fv256.B.bv128_zero_toNat, Nat.zero_div, Fv256.B.ne_zero_of_limbs] until [dm + 0x130] calls [hU]
+  all_goals (try simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *)
+  all_goals (try simp only [hnb, Fv256.B.xor_eq_zero_nat] at *)
+  all_goals (first
+    | (refine ⟨?_, m', rfl, rfl, ?_, ?_, ?_⟩)
+    | skip)
+  all_goals (first
+    | (apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; have := s.sp.isLt; omega; done)
+    | skip)
+  all_goals (first | janus_frame | skip)
+  all_goals (
+    try set_option maxHeartbeats 300000 in simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside,
+      Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
+      Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod])
+  all_goals (
+    first
+    | with_reducible assumption
+    | (rw [Fv256.B.divSpec]
+       split <;>
+         (first
+           | omega
+           | (exfalso; omega)
+           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
+           | exact (Nat.div_eq_of_lt (by omega)).symm
+           | exact Fv256.B.div_congr _ _ _ (by omega)))
+    | (rw [Fv256.B.modSpec]
+       split <;>
+         (first
+           | omega
+           | (exfalso; omega)
+           | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
+           | exact (Nat.mod_eq_of_lt (by omega)).symm
+           | exact Fv256.B.mod_congr _ _ _ (by omega)))
+    | (exfalso; omega)
+    | (have e1 : s.mem.readLE (y.toNat + 8) 8 = 0 := by omega
+       have e2 : s.mem.readLE (y.toNat + 16) 8 = 0 := by omega
+       have e3 : s.mem.readLE (y.toNat + 24) 8 = 0 := by omega
+       rw [e1, e2, e3]
+       simp only [Nat.mul_zero, Nat.add_zero]
+       first
+         | exact div64_goal _ _ hx0 (by omega)
+         | exact mod64_goal _ _ hx0 (by omega))
+    | skip)
+  rename_i a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11
+  simp only [setReg_apply] at a0 a1 a2 a3 a4 a5 a6 a8 a9
+  trace_state
+  sorry
 
 end Fv256.Arm64.DivMod

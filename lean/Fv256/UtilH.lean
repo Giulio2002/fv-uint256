@@ -18,4 +18,9 @@ theorem summary_link {p : Program} (impl : List Segment) {entry : Nat}
   obtain ⟨k, s', hst, hr, hq⟩ := h s hpc hp
   exact ⟨k, s', steps_link impl hst, hr, hq⟩
 
+theorem reaches_mono {p : Program} {s : State} {Q Q' : Janus.Outcome → Prop}
+    (h : Janus.Tactic.Reaches p s Q) (hq : ∀ o, Q o → Q' o) : Janus.Tactic.Reaches p s Q' := by
+  obtain ⟨n, o, h1, h2⟩ := h
+  exact ⟨n, o, h1, hq o h2⟩
+
 end Fv256.H
