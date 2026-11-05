@@ -177,6 +177,6 @@ def data : List DataSegment := [
 
 def contracts : List (String × Nat) := [("runtime.slicebytetostring", 0x6f1d0), ("runtime.growslice", 0x85f70), ("runtime.gopanic", 0x84400)]
 
-def program : Program := { Fv256.Arm64.ChainProg.program with segments := Fv256.Arm64.ChainProg.segments ++ segments, stubs := Fv256.Arm64.ChainProg.stubs ++ stubs, data := Fv256.Arm64.ChainProg.program.data ++ data, contracts := Fv256.Arm64.ChainProg.program.contracts ++ contracts }
+def program : Program := { Fv256.Arm64.ChainProg.program with segments := Fv256.Arm64.ChainProg.segments ++ segments, stubs := stubs, data := Fv256.Arm64.ChainProg.program.data ++ data, contracts := Fv256.Arm64.ChainProg.program.contracts ++ contracts }
 
 end Fv256.Arm64.DecProg

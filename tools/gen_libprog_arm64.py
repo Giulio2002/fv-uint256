@@ -63,7 +63,7 @@ for name in dats:
 L.append(",\n".join(rows_d) + " ]")
 L += ["", "def contracts : List (String × Nat) := [" + ", ".join('("%s", %s)' % (n, ref_c[n]) for n in cons) + "]"]
 if base:
-    L += ["", "def program : Program := { %s.program with segments := %s.segments ++ segments, stubs := %s.stubs ++ stubs, data := %s.program.data ++ data, contracts := %s.program.contracts ++ contracts }" % (base, base, base, base, base)]
+    L += ["", "def program : Program := { %s.program with segments := %s.segments ++ segments, stubs := stubs, data := %s.program.data ++ data, contracts := %s.program.contracts ++ contracts }" % (base, base, base, base)]
 else:
     L += ["", "def program : Program := { segments := segments, stubs := stubs, exitAddr := 0, data := data, contracts := contracts }"]
 L += ["", "end " + ns, ""]
