@@ -9,10 +9,15 @@ import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
 import Fv256.Amd64.UdivremM
+import Fv256.CodeIn
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 
 namespace Fv256.Amd64.DivModB
+
+set_option maxRecDepth 100000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
@@ -75,7 +80,7 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.B.summary_link impl Fv256.Amd64.UdivremM.udivrem_rem_s]
+  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary_link impl hcChain Fv256.Amd64.UdivremM.udivrem_rem_s]
   all_goals (try clear hdx hdy hdg hgo hxo hyo)
   all_goals (first | refine ⟨?_, m', rfl, hm'.1, hm'.2, ?_, ?_, ?_⟩ | refine ⟨m', rfl, hm'.1, hm'.2, ?_, ?_, ?_⟩)
   all_goals (first
@@ -99,6 +104,9 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
          (first
            | omega
            | (exfalso; omega)
+           | (with_reducible exact Fv256.B.one_eq_div _ _ (by omega) (by omega))
+           | (with_reducible exact (Nat.div_eq_of_lt (by omega)).symm)
+           | (with_reducible exact Fv256.B.div_congr _ _ _ (by omega))
            | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
            | exact (Nat.div_eq_of_lt (by omega)).symm
            | exact Fv256.B.div_congr _ _ _ (by omega)))
@@ -107,6 +115,11 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
          (first
            | omega
            | (exfalso; omega)
+           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; simp only [Nat.mul_zero, Nat.add_zero]; with_reducible exact Fv256.B.mod_congr _ _ _ (by omega))
+           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; with_reducible exact Fv256.B.mod_congr _ _ _ (by omega))
+           | (with_reducible exact Fv256.B.zero_eq_mod_self _ _ (by omega))
+           | (with_reducible exact (Nat.mod_eq_of_lt (by omega)).symm)
+           | (with_reducible exact Fv256.B.mod_congr _ _ _ (by omega))
            | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
            | exact (Nat.mod_eq_of_lt (by omega)).symm
            | exact Fv256.B.mod_congr _ _ _ (by omega)

@@ -25,3 +25,29 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 
 ## DivMod amd64 on master 48f3f44 (Janus 6365855c)
 `correctness` + `Witness.nonvacuous` verified in one `janus verify` run (3180 s wall incl. queueing, LEAN_NUM_THREADS=8). DivModB compile 487 s (baseline for the S7 Apart-facts experiment).
+
+## Family B amd64 on master 48f3f44 (Janus integ/speed15 6365855c, per-extraction chain)
+| symbol | proof | verified theorems | wall (heavy-run, incl. queue) | notes |
+|---|---|---|---|---|
+| Div | Amd64/Div.lean (+DivSum.div_summary) | correctness, Witness.nonvacuous, Witness.returns | 2519 s | y=0 -> 0; master Eq is XOR (xor_ofNat_zero_iff in run list) |
+| Mod | Amd64/Mod.lean (+ModSum.mod_summary) | same three | 2637 s | |
+| DivMod | Amd64/DivMod.lean, DivModB.lean, DivModW.lean | correctness, Witness.nonvacuous (single run) | 3180 s | non-live NewobjectContract64; DivModB 452-487 s |
+| SDiv | Amd64/SDiv.lean (+SDivSum.sdiv_summary) | same three | 2405 s | n or d zero -> 0 |
+| SMod | Amd64/SMod.lean (+SModSum.smod_summary) | same three | 2266 s | sign of x; y=0 -> 0 |
+Speed debt: all above the 5-min bar; verify wall is dominated by the per-extraction chain rebuild (library form removes it) and by janus64_run leaf closers.
+
+## Speed pass 1 (family B amd64): library-only proofs (Janus 6365855c, warm machine)
+Cause of no speedup from the library programs: DivSum/SDivSum/SModSum still imported `Extracted`, so every consumer recompiled the summary chain.
+Fix: those modules no longer import `Extracted` (stated over DivProg/ModProg/SDivProg/SModProg), and Div/Mod correctness is derived from the library summary by `EnsuresOf.ensures3` (no chain import).
+| symbol | before (s) | after (s) |
+|---|---|---|
+| SDiv (3 theorems) | 2611 | 192 |
+| SMod | 2924 | 12 (module cache) |
+| Div | 2519 (1505 with cached chain) | 114 |
+| Mod | 2637 (1719) | 240 |
+DivMod (2625 s) still imports the chain through DivModB.partB (non-live newobject path); DivModB compile 452-490 s; profile: janus64_run 140-160 s (omega in janus_omega_cap 60-75 s), janus_frame ~35 s, ~290 s of failing `exact` in the mod leaves.
+
+## Speed pass 2: DivModB closers (Janus 6365855c)
+Profile (trace.profiler) showed ~290 s in failing/slow `exact` alternatives on goals like `a % y0 + B*0 + .. = a % (y0 + B*y1 + ..)`:
+the unifier proved `x + B*0 = x` by whnf of huge Nat literals (91-180 s per leaf). Fix: `simp only [Nat.mul_zero, Nat.add_zero]` before `mod_congr`, and `with_reducible` alternatives first.
+DivModB compile 442-490 s -> 163 s; DivMod verify (correctness + nonvacuous) 2625 s -> 419 s.
