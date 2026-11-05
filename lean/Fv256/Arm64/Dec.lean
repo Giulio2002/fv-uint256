@@ -46,7 +46,9 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       exact ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, by rw [hrl]; exact hret.user,
         by rw [hrl]; exact hret.aligned⟩
     · intro ret s s' hret hs hp hq
-      exact ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩
+      exact ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2.mono (fun a n h => by
+        simp only [outside_append, outside_cons] at h ⊢
+        exact ⟨h.1, by omega, trivial⟩)⟩
 
 namespace Witness
 
