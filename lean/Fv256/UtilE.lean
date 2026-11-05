@@ -222,4 +222,15 @@ theorem reachesRet_bind' {p : Janus.Amd64.Program} {t1 t2 : Janus.Amd64.W64} {s 
   obtain ⟨k', s'', hst', hr', hq'⟩ := h2 s' hr hq
   exact ⟨k + k', s'', hst.trans hst', hr', hq'⟩
 
+/-- A `ReachesRet` of the extracted program is a prefix of a run of the linked program with exit `ret`. -/
+theorem reaches_of_reachesRet {P : Janus.Amd64.Program} {impl : List Janus.Amd64.Segment} {ret : Nat}
+    (hret : Janus.Amd64.GoABI.RetAddr (P.link impl) ret) {s : Janus.Amd64.State} {t : Janus.Amd64.W64}
+    {Q : Janus.Amd64.State → Prop} {R : Janus.Amd64.Outcome → Prop}
+    (h : Janus.Amd64.Tactic.ReachesRet P t s Q)
+    (h2 : ∀ s', s'.rip = t → Q s' → Janus.Amd64.Tactic.Reaches ((P.link impl).withExit ret) s' R) :
+    Janus.Amd64.Tactic.Reaches ((P.link impl).withExit ret) s R := by
+  obtain ⟨k, s', hst, hr, hq⟩ := h
+  exact Janus.Amd64.Tactic.Reaches.of_steps
+    (Janus.Amd64.Program.Steps.withExit (steps_link impl hst) hret.fetch_none) (h2 s' hr hq)
+
 end Fv256.E
