@@ -123,17 +123,19 @@ theorem est_a (s0 : State) (up dp n m j v dl dh u2 u1 u0 cap : Nat) (hnn: 2 ≤ 
    (hpc : s0.pc = BitVec.ofNat 64 (kn + 0xbc)) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0xf8)) s0
       (fun S => ∃ (R' : Nat → W64) (fl' : Flags), S = { s0 with regs := R', pc := BitVec.ofNat 64 (kn + 0xf8), flags := fl' } ∧
-        R' 11 = BitVec.ofNat 64 u1 ∧ R' 12 = BitVec.ofNat 64 u0 ∧ R' 13 = BitVec.ofNat 64 u2 ∧
+        R' 11 = BitVec.ofNat 64 u1 ∧ R' 12 = BitVec.ofNat 64 u0 ∧ R' 13 = BitVec.ofNat 64 u2 ∧ R' 1 = BitVec.ofNat 64 (j + n) ∧
         (∀ k, k ∉ [1, 11, 12, 13] → R' k = s0.regs k)) := by
   have hjb : (BitVec.ofNat 64 j).toNat = j := by rw [BitVec.toNat_ofNat]; omega
   have hnsgn : (BitVec.ofNat 64 j).getLsbD 63 = false := by
     rw [BitVec.getLsbD_ofNat]; simp; exact Nat.testBit_lt_two_pow (by omega)
   janus_run [hnsgn, e0, e2, e3, e4, e5, e6, e7, e8, e9, e10, hu2, hu1, hu0, hlt] until [kn + 0xf8]
   refine ReachesRet.done (by simp [kn]; rfl) ?_
-  refine ⟨_, _, rfl, ?_, ?_, ?_, ?_⟩
+  refine ⟨_, _, rfl, ?_, ?_, ?_, ?_, ?_⟩
   · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
   · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
   · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+  · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+    apply BitVec.eq_of_toNat_eq; simp [BitVec.toNat_add]
   · intro k hk
     have hk' : k ≠ 1 ∧ k ≠ 11 ∧ k ≠ 12 ∧ k ≠ 13 := by simpa using hk
     simp [setReg_apply, hk'.1, hk'.2.1, hk'.2.2.1, hk'.2.2.2]
@@ -150,16 +152,18 @@ theorem est_ovf (s0 : State) (up dp n m j v dl dh u2 u1 u0 cap : Nat) (hnn: 2 �
    (hpc : s0.pc = BitVec.ofNat 64 (kn + 0xbc)) :
     ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0x150)) s0
       (fun S => ∃ (R' : Nat → W64) (fl' : Flags), S = { s0 with regs := R', pc := BitVec.ofNat 64 (kn + 0x150), flags := fl' } ∧
-        R' 14 = BitVec.ofNat 64 (2 ^ 64 - 1) ∧ R' 13 = BitVec.ofNat 64 u2 ∧
+        R' 14 = BitVec.ofNat 64 (2 ^ 64 - 1) ∧ R' 13 = BitVec.ofNat 64 u2 ∧ R' 1 = BitVec.ofNat 64 (j + n) ∧
         (∀ k, k ∉ [1, 11, 12, 13, 14] → R' k = s0.regs k)) := by
   have hjb : (BitVec.ofNat 64 j).toNat = j := by rw [BitVec.toNat_ofNat]; omega
   have hnsgn : (BitVec.ofNat 64 j).getLsbD 63 = false := by
     rw [BitVec.getLsbD_ofNat]; simp; exact Nat.testBit_lt_two_pow (by omega)
   janus_run [hnsgn, e0, e2, e3, e4, e5, e6, e7, e8, e9, e10, hu2, hu1, hu0, hge] until [kn + 0x150]
   refine ReachesRet.done (by simp [kn]; rfl) ?_
-  refine ⟨_, _, rfl, ?_, ?_, ?_⟩
+  refine ⟨_, _, rfl, ?_, ?_, ?_, ?_⟩
   · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
   · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+  · simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+    apply BitVec.eq_of_toNat_eq; simp [BitVec.toNat_add]
   · intro k hk
     have hk' : k ≠ 1 ∧ k ≠ 11 ∧ k ≠ 12 ∧ k ≠ 13 ∧ k ≠ 14 := by simpa using hk
     simp [setReg_apply, hk'.1, hk'.2.1, hk'.2.2.1, hk'.2.2.2.1, hk'.2.2.2.2]
