@@ -53,7 +53,6 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.SetBytes
 
-namespace Fv256.Arm64.SetBytes
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 100000 in

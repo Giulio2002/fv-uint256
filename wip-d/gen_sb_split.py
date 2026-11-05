@@ -136,4 +136,4 @@ for k in range(32):
     exact case{k} z ptr cap ret hret s hs hpre
 """
 main+="  · exact caseBig z ptr len cap hbig ret hret s hs hpre\n"
-open(L+'/SetBytes.lean','w').write(header+"namespace Fv256.%s.SetBytes\n\n"%D+main+witness+f"\nend Fv256.{D}.SetBytes\n")
+open(L+'/SetBytes.lean','w').write(header+main+witness+f"\nend Fv256.{D}.SetBytes\n")
