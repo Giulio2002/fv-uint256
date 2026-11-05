@@ -39,7 +39,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : Bi
   rw [h_f] at hflag
   janus64_run until [Extracted.entry + 0x68] calls [hnew.pos, hwb1, hwb2]
   rotate_left 2
-  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx ‹_› _ ?_ ?_ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
+  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx (show _ by janus_assumption) _ ?_ ?_ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
     all_goals (try unfold Rel)
     all_goals (try (first | exact rfl | (janus64_simp; exact rfl)))
     all_goals (repeat' refine And.intro ?_ ?_)
@@ -48,10 +48,10 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : Bi
       | (with_reducible assumption)
       | janus_live
       | janus_frame
-      | (exact ZeroBytes.writeLE_apart ‹_› (by unfold Apart at *; omega))
+      | (exact ZeroBytes.writeLE_apart (show _ by janus_assumption) (by unfold Apart at *; omega))
       | (unfold Apart at *; janus_clear_irrel2; omega)
       | (trace_state; fail "x1")
-  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx ‹_› _ ?_ ?_ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
+  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx (show _ by janus_assumption) _ ?_ ?_ ?_ ?_ ?_ ?_ _ rfl (Or.inr ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩)
     all_goals (try unfold Rel)
     all_goals (try (first | exact rfl | (janus64_simp; exact rfl)))
     all_goals (repeat' refine And.intro ?_ ?_)
@@ -60,11 +60,11 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : Bi
       | (with_reducible assumption)
       | janus_live
       | janus_frame
-      | (exact ZeroBytes.writeLE_apart ‹_› (by unfold Apart at *; omega))
+      | (exact ZeroBytes.writeLE_apart (show _ by janus_assumption) (by unfold Apart at *; omega))
       | (unfold Apart at *; janus_clear_irrel2; omega)
-      | (refine ZeroBytes.writeLE_apart (ZeroBytes.writeLE_apart (ZeroBytes.writeLE_apart (ZeroBytes.of_liveFrame ‹LiveFrame _ _ _ []› (ZeroBytes.writeLE_apart ‹ZeroBytes _ _ _› ?_) ⟨_, List.mem_singleton_self _, Nat.le_refl _, Nat.le_refl _⟩) ?_) ?_) ?_ <;> (unfold Apart at *; omega))
+      | (refine ZeroBytes.writeLE_apart (ZeroBytes.writeLE_apart (ZeroBytes.writeLE_apart (ZeroBytes.of_liveFrame (show LiveFrame _ _ _ [] by janus_assumption) (ZeroBytes.writeLE_apart (show ZeroBytes _ _ _ by janus_assumption) ?_) ⟨_, List.mem_singleton_self _, Nat.le_refl _, Nat.le_refl _⟩) ?_) ?_) ?_ <;> (unfold Apart at *; omega))
       | (trace_state; fail "x2")
-  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx ‹_› _ ?_ ?_ ?_ ?_ ?_ ?_ _ rfl (Or.inl ⟨?_, ?_, ?_⟩)
+  · refine mid impl R b z bp ret hret s hnew hwb2 hpre0 hpx (show _ by janus_assumption) _ ?_ ?_ ?_ ?_ ?_ ?_ _ rfl (Or.inl ⟨?_, ?_, ?_⟩)
     all_goals (try unfold Rel)
     all_goals (try (first | exact rfl | (janus64_simp; exact rfl)))
     all_goals (repeat' refine And.intro ?_ ?_)
@@ -73,17 +73,17 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : Bi
       | (with_reducible assumption)
       | janus_live
       | janus_frame
-      | (exact ZeroBytes.writeLE_apart ‹_› (by unfold Apart at *; omega))
+      | (exact ZeroBytes.writeLE_apart (show _ by janus_assumption) (by unfold Apart at *; omega))
       | (unfold Apart at *; janus_clear_irrel2; omega)
       | (trace_state; fail "x3")
-  · refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_, fun _ => ?_⟩
+  · refine ⟨fun _ => ?_, fun h => absurd (show z.toNat = 0 by janus_assumption) h, ?_, fun _ => ?_⟩
     all_goals (try janus64_simp)
     all_goals first
       | (with_reducible assumption)
       | janus_live
       | janus_frame
       | (trace_state; fail "x4")
-  · refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_, fun _ => ?_⟩
+  · refine ⟨fun _ => ?_, fun h => absurd (show z.toNat = 0 by janus_assumption) h, ?_, fun _ => ?_⟩
     all_goals (try janus64_simp)
     all_goals first
       | (with_reducible assumption)

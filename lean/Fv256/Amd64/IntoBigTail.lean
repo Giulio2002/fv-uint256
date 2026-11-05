@@ -67,9 +67,9 @@ theorem slowTail (impl : List Amd64.Segment) (R : RtInv) (b b1 : Nat) (z bp : Bi
       | (set_option maxHeartbeats 300000 in exact ⟨tail0_bigout (sp := (s.regs 4).toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero,
           tail0_frame hfr2⟩)
       | (set_option maxHeartbeats 600000 in exact ⟨tail1_bigout (sp := (s.regs 4).toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb'
-            (unpush1 ‹MemFrame _ _ _› (by omega)) (live_unpush ‹LiveFrame _ _ _ _› (by intro r hr; simp at hr; subst hr; simp; omega)) ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ ‹InRanges (BitVec.toNat _) 16 R.rt›
-            (read_wbp ‹MemFrame _ _ _› hPo16 (by omega) (by omega)) (read_wbp ‹MemFrame _ _ _› hPo24 (by omega) (by omega)) (Or.symm ‹Apart (BitVec.toNat _) 16 A' 32›) ‹Apart P 32 (BitVec.toNat _) 16›,
-          tail1_frame hfr2 hb' (unpush1 ‹MemFrame _ _ _› (by omega)) ‹InRanges (BitVec.toNat _) 16 R.rt›⟩)
+            (unpush1 (show MemFrame _ _ _ by janus_assumption) (by omega)) (live_unpush (show LiveFrame _ _ _ _ by janus_assumption) (by intro r hr; simp at hr; subst hr; simp; omega)) ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ (show InRanges (BitVec.toNat _) 16 R.rt by janus_assumption)
+            (read_wbp (show MemFrame _ _ _ by janus_assumption) hPo16 (by omega) (by omega)) (read_wbp (show MemFrame _ _ _ by janus_assumption) hPo24 (by omega) (by omega)) (Or.symm (show Apart (BitVec.toNat _) 16 A' 32 by janus_assumption)) (show Apart P 32 (BitVec.toNat _) 16 by janus_assumption),
+          tail1_frame hfr2 hb' (unpush1 (show MemFrame _ _ _ by janus_assumption) (by omega)) (show InRanges (BitVec.toNat _) 16 R.rt by janus_assumption)⟩)
   · subst hL
     have hPi16 : InRanges (P + 16) 8 ([(P, P + 32)] ++ [(A', A' + 32)]) :=
       ⟨(P, P + 32), by simp, by omega, by omega⟩
@@ -83,17 +83,17 @@ theorem slowTail (impl : List Amd64.Segment) (R : RtInv) (b b1 : Nat) (z bp : Bi
       | (set_option maxHeartbeats 300000 in exact ⟨tail0_bigout (sp := (s.regs 4).toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero,
           tail0_frame hfr2⟩)
       | (obtain ⟨hAw, hPw⟩ : Apart (BitVec.toNat _) 16 A' 32 ∧ Apart P 32 (BitVec.toNat _) 16 :=
-           ⟨(‹Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32›).2,
-            Or.symm (‹Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32›).1⟩
+           ⟨((show Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32 by janus_assumption)).2,
+            Or.symm ((show Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32 by janus_assumption)).1⟩
          have hLv : LiveFrame (M1 S2.mem P len) _ [(P, P + 32), (A', A' + 32)] [] :=
-           live_unpush ‹LiveFrame _ _ _ _› (by intro r hr; simp at hr; rcases hr with rfl | rfl <;> simp <;> omega)
+           live_unpush (show LiveFrame _ _ _ _ by janus_assumption) (by intro r hr; simp at hr; rcases hr with rfl | rfl <;> simp <;> omega)
          set_option maxHeartbeats 600000 in
          exact ⟨tail1_bigout (s := s.mem) (W := S2.mem) (sp := (s.regs 4).toNat) (bp := bp.toNat) (z := z.toNat) (P := P) (A' := A') (len := len) (rt := R.rt)
               (L1 := [(P, P + 32), (A', A' + 32)]) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb'
-              (unpush1 ‹MemFrame _ _ _› (by omega)) hLv ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ ‹InRanges (BitVec.toNat _) 16 R.rt›
+              (unpush1 (show MemFrame _ _ _ by janus_assumption) (by omega)) hLv ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ (show InRanges (BitVec.toNat _) 16 R.rt by janus_assumption)
               (hLv.readLE (P + 16) 8 ⟨(P, P + 32), by simp, by omega, by omega⟩ trivial)
               (hLv.readLE (P + 24) 8 ⟨(P, P + 32), by simp, by omega, by omega⟩ trivial) (Or.symm hAw) hPw,
             tail1_frame (s := s.mem) (W := S2.mem) (sp := (s.regs 4).toNat) (bp := bp.toNat) (P := P) (A' := A') (len := len) (rt := R.rt)
-              hfr2 hb' (unpush1 ‹MemFrame _ _ _› (by omega)) ‹InRanges (BitVec.toNat _) 16 R.rt›⟩)
+              hfr2 hb' (unpush1 (show MemFrame _ _ _ by janus_assumption) (by omega)) (show InRanges (BitVec.toNat _) 16 R.rt by janus_assumption)⟩)
 
 end Fv256.Amd64.IntoBig
