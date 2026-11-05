@@ -735,4 +735,18 @@ theorem kntail (T : State) (ret : W64) (Q : State → Prop) (Mc : Memory) (R : N
     · simp [setReg]
     · intro j hj; omega
 
+
+set_option maxHeartbeats 8000000 in
+theorem ltjump (T : State) (ret : W64) (Q : State → Prop) (M : Memory) (R : Nat → W64) (fl : Flags) (n ulen : Nat)
+    (hn : n ≤ 4) (hu : ulen ≤ 8) (hlt : ulen < n) (r9 : R 9 = BitVec.ofNat 64 n) (r10 : R 10 = BitVec.ofNat 64 ulen)
+    (hK : ∀ fl' : Flags, ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 ltpc, flags := fl', mem := M } Q) :
+    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 uexit, flags := fl, mem := M } Q := by
+  have hcode := ku_lt
+  janus_eval_nat hh1 : uexit
+  janus_eval_nat hh2 : ltpc
+  simp only [hh1]
+  simp only [hh2] at hK
+  janus_run [r9, r10] until [ku + 0x158]
+  exact hK _
+
 end Fv256.Arm64.UdivremA

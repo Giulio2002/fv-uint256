@@ -38,7 +38,7 @@ theorem caseOne (T : State) (ret : W64) (Q : State → Prop) (M0 M5 : Memory) (R
     (r0 : R 0 = BitVec.ofNat 64 qp) (r1 : R 1 = BitVec.ofNat 64 L) (r14 : R 14 = BitVec.ofNat 64 (T.sp.toNat + 80))
     (r15 : R 15 = BitVec.ofNat 64 (ulen + 1)) 
     (hQ : ∀ (U : State) (R' : Nat → W64) (fl' : Flags) (Mf : Memory), U.sp = T.sp → FinOK L M0 Mf qp up dp remp (T.sp.toNat + 224) →
-      R' 29 = BitVec.ofNat 64 x29 → R' 30 = BitVec.ofNat 64 x30 → (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 27, 29, 30] → R' i = R i) →
+      R' 29 = BitVec.ofNat 64 x29 → R' 30 = BitVec.ofNat 64 x30 → (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27, 29, 30] → R' i = R i) →
       Q { U with regs := R', sp := U.sp + 224#64, pc := BitVec.ofNat 64 x30, flags := fl', mem := Mf }) :
     ReachesRet Extracted.program (BitVec.ofNat 64 x30) { T with regs := R, pc := BitVec.ofNat 64 by1pc, flags := fl, mem := M5 } Q := by
   have hcode := ku_lt

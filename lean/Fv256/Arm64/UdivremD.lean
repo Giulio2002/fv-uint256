@@ -70,7 +70,7 @@ theorem caseK (hKn : KnuthStmt) (T : State) (ret : W64) (Q : State → Prop) (M0
     (hs30 : M5.readLE T.sp.toNat 8 = x30)
     (hsn : M5.readLE (T.sp.toNat + 200) 8 = n - 1) (hsu5 : M5.readLE (T.sp.toNat + 152) 8 = ulen + 1) (hsc5 : M5.readLE (T.sp.toNat + 192) 8 = 64 - s)
     (hQ : ∀ (U : State) (R' : Nat → W64) (fl' : Flags) (Mf : Memory), U.sp = T.sp → FinOK L M0 Mf qp up dp remp (T.sp.toNat + 224) →
-      R' 29 = BitVec.ofNat 64 x29 → R' 30 = BitVec.ofNat 64 x30 → (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 27, 29, 30] → R' i = R i) →
+      R' 29 = BitVec.ofNat 64 x29 → R' 30 = BitVec.ofNat 64 x30 → (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27, 29, 30] → R' i = R i) →
       Q { U with regs := R', sp := U.sp + 224#64, pc := BitVec.ofNat 64 x30, flags := fl', mem := Mf }) :
     ReachesRet Extracted.program (BitVec.ofNat 64 x30) { T with regs := R, pc := BitVec.ofNat 64 knpc, flags := fl, mem := M5 } Q := by
   have hcode := ku_lt
@@ -110,6 +110,7 @@ theorem caseK (hKn : KnuthStmt) (T : State) (ret : W64) (Q : State → Prop) (M0
   have cwv := ‹Fv256.B.wv M5 (T.sp.toNat + 80) (ulen + 1) = _›
   have clt := ‹Fv256.B.wv s'.mem (T.sp.toNat + 80) n < _›
   have cu := ‹∀ i : Nat, 22 ≤ i → s'.regs i = _›
+  have c18 : s'.regs 18 = R 18 := ‹_›
   have e : ({ s' with regs := s'.regs, pc := BitVec.ofNat 64 knret, flags := s'.flags, mem := s'.mem } : State) = s' := by
     cases s'; simp only at cpc; subst cpc; rfl
   have hkr : knret = 767136 := by
@@ -205,7 +206,10 @@ theorem caseK (hKn : KnuthStmt) (T : State) (ret : W64) (Q : State → Prop) (M0
       exact this
     · intro i hi
       simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hi
-      rw [hRu' i (by simp only [List.mem_cons, List.not_mem_nil, or_false, not_or]; omega), cu i (by omega)]
-      rw [if_neg (by omega)]
+      rw [hRu' i (by simp only [List.mem_cons, List.not_mem_nil, or_false, not_or]; omega)]
+      by_cases h18 : i = 18
+      · subst h18; exact c18
+      · rw [cu i (by omega)]
+        rw [if_neg (by omega)]
 
 end Fv256.Arm64.UdivremD
