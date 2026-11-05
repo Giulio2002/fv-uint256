@@ -30,6 +30,8 @@ theorem hcMod : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Extra
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
+set_option profiler true in
+set_option profiler.threshold 5000 in
 theorem fast (z x y m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, m]
       (fun s => (fun s => StackGuardOK s 0x300 ∧ 0x380 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x348 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -59,17 +61,17 @@ theorem fast (z x y m : BitVec 64) :
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
   all_goals (first
-    | (apply Fv256.F.shape0 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape1 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape2 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape3 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape4 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape5 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape6 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape7 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape8 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape9 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape10 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption))
-    | (apply Fv256.F.shape11 <;> first | exact Util.readLE8_lt _ _ | (with_reducible assumption)))
+    | (with_reducible apply Fv256.F.shape0 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape1 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape2 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape3 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape4 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape5 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape6 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape7 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape8 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape9 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape10 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption))
+    | (with_reducible apply Fv256.F.shape11 <;> first | with_reducible exact Util.readLE8_lt _ _ | (with_reducible assumption)))
 
 end Fv256.Amd64.AddModFast
