@@ -116,7 +116,7 @@ theorem exp_summary :
         rw [hfr.readLE _ _ (by simp [Outside] <;> omega)]; exact hra2
       janus64_run [r3, r7, r8, r9, r0, r1, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev]
       refine ⟨?_, ?_⟩
-      · rw [Fv256.F.copy32 S'.mem _ _ _ _ _ (by omega) (by omega) (by omega) (by omega), mr,
+      · rw [Fv256.F.copy32 S'.mem _ _ _ _ _ (by omega) (by omega) (by omega), mr,
           Fv256.F.exp_stage0 _ _ _ (by have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32; simpa using this) (Fv256.F.bitLen_lt _)]
         unfold Fv256.F.expSpec
         rw [Fv256.F.split4 s.mem (BitVec.toNat (s.regs 1)), e1z, e2z, e3z]
@@ -195,7 +195,7 @@ theorem exp_summary :
         rw [hfr.readLE _ _ (by simp [Outside] <;> omega)]; exact hra2
       janus64_run [r3, r7, r8, r9, r0, r1, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev]
       refine ⟨?_, ?_⟩
-      · rw [Fv256.F.copy32 S'.mem _ _ _ _ _ (by omega) (by omega) (by omega) (by omega), mr,
+      · rw [Fv256.F.copy32 S'.mem _ _ _ _ _ (by omega) (by omega) (by omega), mr,
           Fv256.F.exp_stage0 _ _ _ (by have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32; simpa using this) (Fv256.F.bitLen_lt _)]
         unfold Fv256.F.expSpec
         rw [Fv256.F.split4 s.mem (BitVec.toNat (s.regs 1)), e1z, e2z, e3z]
@@ -306,7 +306,34 @@ theorem exp_summary :
         · rfl
         · exact mbp
         · exact hfr
-      · sorry
+      · intro S2 hI2
+        obtain ⟨hpc2, hk128, hr2, hb2, hw2, hev2, q3, q7, q8, q0, q1, q2, q6, q4, q5, q14, qx, nr, nb, nz, nep, nn, nev, ndf, nmx, nbp, hfr2⟩ := hI2
+        have hmin2 : min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) 128 = (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) := by omega_e
+        simp only [hmin2] at q3 nr nb hr2 hb2 hw2 q8
+        have hretS2 : Arm64.Memory.readLE S2.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
+          rw [hfr2.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
+        janus64_run [q3, q7, q8, q0, q1, q2, q6, q4, q5, q14, nr, nb, nz, nep, nn, nev]
+        refine ⟨?_, ?_⟩
+        · rw [Fv256.F.copy32 S2.mem _ _ _ _ _ (by omega_e) (by omega_e) (by omega_e), nr]
+          unfold Fv256.F.expSpec
+          rw [Fv256.F.split4 s.mem (BitVec.toNat (s.regs 1)), e2z, e3z]
+          have hBlt : (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) < Fv256.F.W := by
+            have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
+            simpa using this
+          have hbl : Fv256.Spec.bitLen ((Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) + 2 ^ 64 * (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8)) = (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) := by
+            have := Fv256.F.n_top1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) e1nz
+            exact this
+          have he : ((Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) + 2 ^ 64 * (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8)) < 2 ^ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) := by
+            have := Fv256.F.bitLen_lt ((Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) + 2 ^ 64 * (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))
+            rw [hbl] at this
+            exact this
+          have hm := Fv256.F.exp_two (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) hBlt (Fv256.Util.readLE8_lt _ _) (Fv256.Util.readLE8_lt _ _) (by omega_e) (by omega_e) he
+          unfold Fv256.F.MEq at hm
+          rw [Nat.mod_eq_of_lt hr2] at hm
+          have eE : (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) + 256 ^ 8 * ((Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 256 ^ 8 * (0 + 256 ^ 8 * 0)) = ((Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) + 2 ^ 64 * (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8)) := by omega_e
+          rw [eE]
+          exact hm
+        · janus_frame
   · rename_i g1 e3z e2z e1nz hev0
     exact (Fv256.F.contra_big _ 65 (by decide) (by decide) (Fv256.Util.readLE8_lt _ _) hbr).elim
   · rename_i hg e3z e2z e1nz hev hbl

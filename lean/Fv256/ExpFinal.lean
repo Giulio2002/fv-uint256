@@ -6,6 +6,8 @@ theorem stage_full (r b w t : Nat) (hr : r < W) (hb : b < W) (hw : w < 2 ^ t) :
     expIter t (r, b, w) = (r * b ^ w % W, b ^ (2 ^ t) % W, 0) := by
   rw [expIter_eq t r b w hr hb, Nat.mod_eq_of_lt hw, Nat.div_eq_of_lt hw]
 
+theorem stage_zero (st : Nat × Nat × Nat) : expIter 0 st = st := rfl
+
 theorem stage_meq (r b w t : Nat) (hr : r < W) (hb : b < W) (hw : w < 2 ^ t) :
     MEq (expIter t (r, b, w)).1 (r * b ^ w) ∧ MEq (expIter t (r, b, w)).2.1 (b ^ (2 ^ t)) ∧ (expIter t (r, b, w)).1 < W ∧ (expIter t (r, b, w)).2.1 < W := by
   rw [stage_full r b w t hr hb hw]
@@ -118,8 +120,7 @@ theorem exp_stage0 (b e0 n : Nat) (hb : b < W) (he : e0 < 2 ^ n) :
     (expIter n (1, b, e0)).1 = b ^ e0 % W := by
   rw [expIter_eq n 1 b e0 (by decide) hb, Nat.mod_eq_of_lt he, Nat.one_mul]
 
-theorem copy32 (M : Janus.Arm64.Memory) (z p q1 q2 q3 : Nat) (h1 : q1 = p + 8) (h2 : q2 = p + 16) (h3 : q3 = p + 24)
-    (d1 : z + 32 ≤ p ∨ p + 32 ≤ z) :
+theorem copy32 (M : Janus.Arm64.Memory) (z p q1 q2 q3 : Nat) (h1 : q1 = p + 8) (h2 : q2 = p + 16) (h3 : q3 = p + 24) :
     ((((M.writeLE z 8 (M.readLE p 8)).writeLE (z + 8) 8 (M.readLE q1 8)).writeLE (z + 16) 8 (M.readLE q2 8)).writeLE (z + 24) 8 (M.readLE q3 8)).readLE z 32
       = M.readLE p 32 := by
   subst h1 h2 h3
@@ -131,4 +132,15 @@ theorem copy32 (M : Janus.Arm64.Memory) (z p q1 q2 q3 : Nat) (h1 : q1 = p + 8) (
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self,
     show z + 8 + 8 = z + 16 by omega, show z + 8 + 16 = z + 24 by omega, show z + 16 + 8 = z + 24 by omega]
   rw [Nat.mod_eq_of_lt l0, Nat.mod_eq_of_lt l1, Nat.mod_eq_of_lt l2, Nat.mod_eq_of_lt l3]
+
+theorem exp_two (b e0 e1 n : Nat) (hb : b < W) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^ 64) (h64 : 64 ≤ n) (hn : n ≤ 128)
+    (he : e0 + 2 ^ 64 * e1 < 2 ^ n) :
+    MEq (expIter (n - 64) ((expIter 64 (1, b, e0)).1, (expIter 64 (1, b, e0)).2.1, e1)).1 (b ^ (e0 + 2 ^ 64 * e1)) := by
+  have := exp_total b e0 e1 0 0 n hb h0 h1 (by decide) (by decide) (by omega) (by simpa using he)
+  have m1 : min n 64 = 64 := by omega
+  have m2 : min n 128 = n := by omega
+  have m3 : min n 192 = n := by omega
+  have m4 : min n 256 = n := by omega
+  simp only [m1, m2, m3, m4, Nat.sub_self, stage_zero] at this
+  simpa using this
 end Fv256.F
