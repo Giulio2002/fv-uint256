@@ -123,14 +123,15 @@ theorem hpre : StackWritable s0 8 24 ∧ Buffer s0 z 32 false ∧ (8 : BitVec 64
     (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat :=
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, ⟨by decide, by decide⟩, by decide, by decide, by decide, by decide⟩
 
-theorem nonvacuous : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, d, 8, 8] s0 ∧
-    (StackWritable s0 8 24 ∧ Buffer s0 z 32 false ∧ (8 : BitVec 64).toNat < 2 ^ 48 ∧
-    Buffer s0 d (8 : BitVec 64).toNat true ∧
+theorem nonvacuous : ∃ (ret : Nat) (s : Amd64.State) (z d : BitVec 64), RetAddr Extracted.program ret ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, d, 8, 8] s ∧
+    (StackWritable s 8 24 ∧ Buffer s z 32 false ∧ (8 : BitVec 64).toNat < 2 ^ 48 ∧
+    Buffer s d (8 : BitVec 64).toNat true ∧
     (z.toNat + 32 ≤ d.toNat ∨ d.toNat + (8 : BitVec 64).toNat ≤ z.toNat) ∧
-    (z.toNat + 32 ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ z.toNat) ∧
-    (d.toNat + (8 : BitVec 64).toNat ≤ (s0.regs regSP).toNat - 8 ∨ (s0.regs regSP).toNat + 24 ≤ d.toNat) ∧
+    (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
+    (d.toNat + (8 : BitVec 64).toNat ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat) ∧
     (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat) :=
-  ⟨setup, hpre⟩
+  ⟨ret, s0, z, d, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧
     Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min (8 : BitVec 64).toNat 32) =

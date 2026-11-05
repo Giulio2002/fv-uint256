@@ -3210,4 +3210,51 @@ theorem fin_all (x0 x1 x2 x3 a b c : Nat) (ha : a = x3 ∨ (x3 = 0 ∧ a = 0)) (
     a * 6277101735386680763835789423207666416102355444464034512896 + b * 340282366920938463463374607431768211456 + c * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by
   rcases ha with rfl | ⟨rfl, rfl⟩ <;> rcases hb with rfl | ⟨rfl, rfl⟩ <;> rcases hc with rfl | ⟨rfl, rfl⟩ <;> omega
 
+section SBQ
+open Janus.Arm64
+theorem sbq_rb (m : Memory) (p k : Nat) : revBytesNat k (m.readLE p k) < 256 ^ k := revBytes_lt k _
+
+/-- amd64 `SetBytesN` closers on master (single BSWAP loads). -/
+theorem sbq4 (m : Memory) (p : Nat) :
+    revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296 = Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
+  have h : m.readLE p 4 < 4294967296 := by simpa using Memory.readLE_lt m p 4
+  have h1 := revBytes_lt 4 (m.readLE p 4)
+  simp only [Nat.reducePow] at h1
+  rw [Nat.mod_eq_of_lt h, Nat.mod_eq_of_lt h1, revBytes_readLE]
+
+theorem sbq8 (m : Memory) (p : Nat) :
+    revBytesNat 8 (m.readLE p 8) % 18446744073709551616 = Spec.fromBE (fun i => m.readLE (p + i) 1) 8 := by
+  have hl := revBytes_lt 8 (m.readLE p 8)
+  simp only [Nat.reducePow] at hl
+  rw [Nat.mod_eq_of_lt hl, revBytes_readLE]
+
+theorem sbq12 (m : Memory) (p : Nat) :
+    revBytesNat 8 (m.readLE (p + 4) 8) % 18446744073709551616 +
+      18446744073709551616 * (revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 12 := by
+  have a := sbq4 m p
+  have b := sbq8 m (p + 4)
+  have e : Spec.fromBE (fun i => m.readLE (p + i) 1) 12 =
+      Spec.fromBE (fun i => m.readLE (p + i) 1) 4 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (4 + i)) 1) 8 :=
+    fromBE_add (fun i => m.readLE (p + i) 1) 4 8
+  simp only [Nat.add_assoc] at b
+  rw [a, b, e]
+  simp only [Nat.reducePow]
+  omega
+
+theorem sbq16 (m : Memory) (p : Nat) :
+    revBytesNat 8 (m.readLE (p + 8) 8) % 18446744073709551616 +
+      18446744073709551616 * (revBytesNat 8 (m.readLE p 8) % 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 16 := by
+  have e : Spec.fromBE (fun i => m.readLE (p + i) 1) (8 + 8) =
+      Spec.fromBE (fun i => m.readLE (p + i) 1) 8 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (8 + i)) 1) 8 := fromBE_add _ 8 8
+  have e2 : (8 + 8 : Nat) = 16 := rfl
+  rw [e2] at e
+  have a := sbq8 m p
+  have b := sbq8 m (p + 8)
+  rw [e, ← a, ← b]
+  simp only [Nat.reducePow]
+  omega
+end SBQ
+
 end Fv256.Util
