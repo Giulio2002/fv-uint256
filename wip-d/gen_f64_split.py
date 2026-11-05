@@ -12,6 +12,7 @@ def cond(j):
 def leaf(L,j):
     c=64*j+64
     return f"""refine Fv256.D.{L} _ ({c} - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - ({c} - k) = {257-c} + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)"""
+HP={3:'.2.2',2:'.2.1',1:'.1'}
 def lemma(j):
     zs=''.join(f"\n    have hz{i} : {X(i)} = 0 := hc.{'1' if False else ''}" for i in range(0))
     # destructure hc
@@ -42,6 +43,7 @@ theorem lem{j} (x : BitVec 64) :
   janus_intro hs
   simp only [Disjoint] at hdis
   janus_run calls [hS := Fv256.Arm64.Float64.lsh_summary (s.sp - 40#64) x]
+  all_goals try (exfalso; have hor := (show {X(1)} ||| {X(2)} ||| {X(3)} = 0 by janus_assumption); simp only [Nat.or_eq_zero_iff, and_assoc] at hor; exact hxj hor{HP[j]})
   all_goals clear_states
   all_goals (simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat] at *)
   all_goals (refine ⟨?_, ?_⟩; rotate_right; janus_frame)
@@ -63,6 +65,7 @@ theorem lem{j} (x : BitVec 64) :
   all_goals have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
   all_goals have hS4 := hS3
   all_goals simp only [hexp, e8, e16, e24{zr}, Nat.mul_zero, Nat.add_zero] at hS4
+  all_goals clear hS3 hdis hx hx' hg1 hg2 hg3 hal hb ha hw hf h_pc h_lr h_x0 hs hret
   all_goals first
     | ({leaf("leaf0",j)})
     | ({leaf("leaf1",j)})

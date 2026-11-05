@@ -1,0 +1,103 @@
+tactic execution of Lean.Parser.Tactic.assumption took 3.44s
+tactic execution of Lean.Parser.Tactic.assumption took 3.05s
+tactic execution of Lean.Parser.Tactic.assumption took 3.24s
+tactic execution of Lean.Parser.Tactic.assumption took 6.31s
+tactic execution of Lean.Parser.Tactic.assumption took 6.78s
+tactic execution of Lean.Parser.Tactic.assumption took 5.95s
+tactic execution of Lean.Parser.Tactic.assumption took 9.96s
+tactic execution of Lean.Parser.Tactic.assumption took 9.43s
+tactic execution of Lean.Parser.Tactic.assumption took 10.6s
+tactic execution of Lean.Parser.Tactic.assumption took 11.7s
+tactic execution of Lean.Parser.Tactic.assumption took 11.6s
+tactic execution of Lean.Parser.Tactic.assumption took 10.1s
+tactic execution of Lean.Parser.Tactic.assumption took 11s
+tactic execution of Lean.Parser.Tactic.assumption took 10.9s
+tactic execution of Lean.Parser.Tactic.assumption took 11.1s
+tactic execution of Lean.Parser.Tactic.assumption took 15s
+tactic execution of Lean.Parser.Tactic.assumption took 18.8s
+tactic execution of Lean.Parser.Tactic.assumption took 15.5s
+tactic execution of Lean.Parser.Tactic.assumption took 11.3s
+tactic execution of Lean.Parser.Tactic.assumption took 10.9s
+tactic execution of Lean.Parser.Tactic.assumption took 67.6s
+tactic execution of Lean.Parser.Tactic.assumption took 71.4s
+tactic execution of Lean.Parser.Tactic.assumption took 10.4s
+tactic execution of Lean.Parser.Tactic.assumption took 9.82s
+tactic execution of Lean.Parser.Tactic.assumption took 53.5s
+tactic execution of Lean.Parser.Tactic.assumption took 66.1s
+tactic execution of Lean.Parser.Tactic.assumption took 14.1s
+tactic execution of Lean.Parser.Tactic.assumption took 13.4s
+tactic execution of Lean.Parser.Tactic.assumption took 5.69s
+tactic execution of Lean.Parser.Tactic.assumption took 58.9s
+tactic execution of Lean.Parser.Tactic.assumption took 68s
+tactic execution of Lean.Parser.Tactic.assumption took 16s
+tactic execution of Lean.Parser.Tactic.assumption took 16s
+tactic execution of Lean.Parser.Tactic.assumption took 7.87s
+tactic execution of Lean.Parser.Tactic.assumption took 57.5s
+tactic execution of Lean.Parser.Tactic.assumption took 63.7s
+tactic execution of Lean.Parser.Tactic.assumption took 18.9s
+tactic execution of Lean.Parser.Tactic.assumption took 16.1s
+tactic execution of Lean.Parser.Tactic.assumption took 9.81s
+tactic execution of Lean.Parser.Tactic.assumption took 77.7s
+tactic execution of Lean.Parser.Tactic.assumption took 68.6s
+tactic execution of Lean.Parser.Tactic.assumption took 20.9s
+tactic execution of Lean.Parser.Tactic.assumption took 19.7s
+tactic execution of Lean.Parser.Tactic.assumption took 10.4s
+tactic execution of Lean.Parser.Tactic.assumption took 48.7s
+tactic execution of Lean.Parser.Tactic.assumption took 56.9s
+tactic execution of Lean.Parser.Tactic.assumption took 7.49s
+tactic execution of Lean.Parser.Tactic.assumption took 53.3s
+tactic execution of Lean.Parser.Tactic.assumption took 7.45s
+tactic execution of Lean.Parser.Tactic.assumption took 10.2s
+tactic execution of Lean.Parser.Tactic.assumption took 54.5s
+tactic execution of Lean.Parser.Tactic.assumption took 10.1s
+tactic execution of Lean.Parser.Tactic.assumption took 14.9s
+tactic execution of Lean.Parser.Tactic.assumption took 5.2s
+tactic execution of Lean.Parser.Tactic.assumption took 54.7s
+tactic execution of Lean.Parser.Tactic.assumption took 12.1s
+tactic execution of Lean.Parser.Tactic.assumption took 14.7s
+tactic execution of Lean.Parser.Tactic.assumption took 7.18s
+tactic execution of Lean.Parser.Tactic.assumption took 50.9s
+tactic execution of Lean.Parser.Tactic.assumption took 15s
+tactic execution of Lean.Parser.Tactic.assumption took 15.5s
+tactic execution of Lean.Parser.Tactic.assumption took 7.41s
+tactic execution of Lean.Parser.Tactic.assumption took 47.4s
+tactic execution of Lean.Parser.Tactic.assumption took 19.2s
+tactic execution of Lean.Parser.Tactic.assumption took 22.9s
+tactic execution of Lean.Parser.Tactic.assumption took 11.1s
+tactic execution of Lean.Parser.Tactic.assumption took 42.7s
+tactic execution of Lean.Parser.Tactic.assumption took 16.7s
+tactic execution of Lean.Parser.Tactic.assumption took 7.21s
+tactic execution of Lean.Parser.Tactic.assumption took 7.02s
+tactic execution of Lean.Parser.Tactic.assumption took 9.72s
+tactic execution of Lean.Parser.Tactic.assumption took 10.2s
+tactic execution of Lean.Parser.Tactic.assumption took 4.72s
+tactic execution of Lean.Parser.Tactic.assumption took 12.2s
+tactic execution of Lean.Parser.Tactic.assumption took 12.1s
+tactic execution of Lean.Parser.Tactic.assumption took 7.16s
+tactic execution of Lean.Parser.Tactic.assumption took 14.4s
+tactic execution of Lean.Parser.Tactic.assumption took 14.1s
+tactic execution of Lean.Parser.Tactic.assumption took 6.85s
+tactic execution of Lean.Parser.Tactic.assumption took 14.2s
+tactic execution of Lean.Parser.Tactic.assumption took 13.6s
+tactic execution of Lean.Parser.Tactic.assumption took 9.28s
+tactic execution of Lean.Parser.Tactic.assumption took 16.1s
+tactic execution of Lean.Parser.Tactic.assumption took 16.1s
+Fv256/Arm64/Float64.lean:16:8: warning: declaration uses `sorry`
+cumulative profiling times:
+	attribute application 0.016ms
+	compilation (IR) 3.49ms
+	compilation (LCNF base) 48.8ms
+	compilation (LCNF impure) 17.3ms
+	compilation (LCNF mono) 28.5ms
+	congr simp thm 255ms
+	elaboration 134ms
+	fix level params 20.8ms
+	instantiate metavars 169ms
+	interpretation 357ms
+	let-to-have transformation 0.03ms
+	process pre-definitions 320ms
+	share common exprs 410ms
+	simp 24.5s
+	tactic execution 2e+03s
+	type checking 3.03s
+	typeclass inference 25.5s
