@@ -10,55 +10,69 @@ Pure `Nat` lemmas about the Knuth/Hacker's-Delight `divlu` digit step that Go's 
 
 namespace Fv256.D64
 
-/-- The first estimate of a digit is at most `2^32 + 1`. -/
-theorem init_bound (yn1 yn0 A : Nat) (h1 : 2 ^ 31 ≤ yn1) (h0 : yn0 < 2 ^ 32) (hA : A < yn1 * 2 ^ 32 + yn0) :
-    A / yn1 ≤ 2 ^ 32 + 1 := by
+/-- The first estimate of a digit is at most `B + 1` (`B = 2^32`, `B <= 2 * yn1`). -/
+theorem init_bound (B yn1 yn0 A : Nat) (h1 : B ≤ 2 * yn1) (h0 : yn0 < B) (hA : A < yn1 * B + yn0) :
+    A / yn1 ≤ B + 1 := by
   have hp : 0 < yn1 := by omega
-  have : A < yn1 * (2 ^ 32 + 2) := by
-    have e : yn1 * (2 ^ 32 + 2) = yn1 * 2 ^ 32 + yn1 * 2 := by rw [Nat.mul_add]
-    have : 2 ^ 32 ≤ yn1 * 2 := by omega
+  have : A < yn1 * (B + 2) := by
+    have e : yn1 * (B + 2) = yn1 * B + yn1 * 2 := by rw [Nat.mul_add]
     omega
   have := Nat.div_lt_of_lt_mul this
   omega
 
 /-- A trial digit rejected by the correction loop condition is strictly above the true digit. -/
-theorem step_gt (yn1 yn0 A B q rhat : Nat) (h0 : yn0 < 2 ^ 32) (hB : B < 2 ^ 32) (hA : A < yn1 * 2 ^ 32 + yn0)
-    (hI : q * yn1 + rhat = A) (hc : 2 ^ 32 ≤ q ∨ 2 ^ 32 * rhat + B < q * yn0) :
-    (A * 2 ^ 32 + B) / (yn1 * 2 ^ 32 + yn0) < q := by
+theorem step_gt (B yn1 yn0 A C q rhat : Nat) (hB : C < B) (hA : A < yn1 * B + yn0)
+    (hI : q * yn1 + rhat = A) (hc : B ≤ q ∨ B * rhat + C < q * yn0) :
+    (A * B + C) / (yn1 * B + yn0) < q := by
   rcases hc with hc | hc
-  · have : (A * 2 ^ 32 + B) / (yn1 * 2 ^ 32 + yn0) < 2 ^ 32 := by
+  · have : (A * B + C) / (yn1 * B + yn0) < B := by
       apply Nat.div_lt_of_lt_mul
-      have : (A + 1) * 2 ^ 32 ≤ (yn1 * 2 ^ 32 + yn0) * 2 ^ 32 := Nat.mul_le_mul_right _ (by omega)
+      have : (A + 1) * B ≤ (yn1 * B + yn0) * B := Nat.mul_le_mul_right _ (by omega)
       rw [Nat.add_mul] at this
-      rw [Nat.mul_comm _ (2 ^ 32)]
       omega
     omega
   · apply Nat.div_lt_of_lt_mul
-    have e : (yn1 * 2 ^ 32 + yn0) * q = (q * yn1) * 2 ^ 32 + q * yn0 := by grind
-    have e2 : A * 2 ^ 32 = (q * yn1) * 2 ^ 32 + rhat * 2 ^ 32 := by rw [← hI]; grind
+    have e : (yn1 * B + yn0) * q = (q * yn1) * B + q * yn0 := by grind
+    have e2 : A * B = (q * yn1) * B + rhat * B := by rw [← hI]; grind
     rw [e]
-    have : 2 ^ 32 * rhat = rhat * 2 ^ 32 := Nat.mul_comm _ _
+    have : B * rhat = rhat * B := Nat.mul_comm _ _
     omega
 
 /-- The exit of the correction loop: the digit is exact. -/
-theorem exit_eq (yn1 yn0 A B q rhat : Nat) (hI : q * yn1 + rhat = A) (hge : (A * 2 ^ 32 + B) / (yn1 * 2 ^ 32 + yn0) ≤ q)
-    (hc : q * yn0 ≤ 2 ^ 32 * rhat + B) (hy : 0 < yn1 * 2 ^ 32 + yn0) :
-    q = (A * 2 ^ 32 + B) / (yn1 * 2 ^ 32 + yn0) := by
+theorem exit_eq (B yn1 yn0 A C q rhat : Nat) (hI : q * yn1 + rhat = A) (hge : (A * B + C) / (yn1 * B + yn0) ≤ q)
+    (hc : q * yn0 ≤ B * rhat + C) (hy : 0 < yn1 * B + yn0) :
+    q = (A * B + C) / (yn1 * B + yn0) := by
   apply Nat.le_antisymm _ hge
   rw [Nat.le_div_iff_mul_le hy]
-  have e : q * (yn1 * 2 ^ 32 + yn0) = (q * yn1) * 2 ^ 32 + q * yn0 := by grind
-  have e2 : A * 2 ^ 32 = (q * yn1) * 2 ^ 32 + rhat * 2 ^ 32 := by rw [← hI]; grind
-  have : 2 ^ 32 * rhat = rhat * 2 ^ 32 := Nat.mul_comm _ _
+  have e : q * (yn1 * B + yn0) = (q * yn1) * B + q * yn0 := by grind
+  have e2 : A * B = (q * yn1) * B + rhat * B := by rw [← hI]; grind
+  have : B * rhat = rhat * B := Nat.mul_comm _ _
   omega
 
-/-- Exit by the `rhat >= 2^32` break: the digit is exact too (needs `q <= 2^32`). -/
-theorem exit_break (yn1 yn0 A B q rhat : Nat) (hI : q * yn1 + rhat = A)
-    (hge : (A * 2 ^ 32 + B) / (yn1 * 2 ^ 32 + yn0) ≤ q) (hr : 2 ^ 32 ≤ rhat) (hq : q ≤ 2 ^ 32)
-    (h0 : yn0 < 2 ^ 32) (hy : 0 < yn1 * 2 ^ 32 + yn0) :
-    q = (A * 2 ^ 32 + B) / (yn1 * 2 ^ 32 + yn0) := by
-  apply exit_eq yn1 yn0 A B q rhat hI hge _ hy
-  have : q * yn0 ≤ 2 ^ 32 * 2 ^ 32 := Nat.mul_le_mul hq (by omega)
-  have : 2 ^ 32 * 2 ^ 32 ≤ 2 ^ 32 * rhat := Nat.mul_le_mul_left _ hr
+/-- Exit by the `rhat >= B` break: the digit is exact too (needs `q <= B`). -/
+theorem exit_break (B yn1 yn0 A C q rhat : Nat) (hI : q * yn1 + rhat = A)
+    (hge : (A * B + C) / (yn1 * B + yn0) ≤ q) (hr : B ≤ rhat) (hq : q ≤ B)
+    (h0 : yn0 < B) (hy : 0 < yn1 * B + yn0) :
+    q = (A * B + C) / (yn1 * B + yn0) := by
+  apply exit_eq B yn1 yn0 A C q rhat hI hge _ hy
+  have : q * yn0 ≤ B * B := Nat.mul_le_mul hq (by omega)
+  have : B * B ≤ B * rhat := Nat.mul_le_mul_left _ hr
+  omega
+
+/-- The first estimate `A / d1` is an upper bound on the true digit. -/
+theorem est_ge (B d1 d0 A C : Nat) (hB : 0 < B) (hC : C < B) (hd1 : 0 < d1) :
+    (A * B + C) / (d1 * B + d0) ≤ A / d1 := by
+  have h1 : (A * B + C) / (d1 * B + d0) ≤ (A * B + C) / (d1 * B) :=
+    Nat.div_le_div_left (by omega) (Nat.mul_pos hd1 hB)
+  refine Nat.le_trans h1 ?_
+  rw [Nat.le_div_iff_mul_le hd1]
+  have h2 := Nat.div_mul_le_self (A * B + C) (d1 * B)
+  have h3 : (A * B + C) / (d1 * B) * d1 * B ≤ A * B + C := by
+    have : (A * B + C) / (d1 * B) * d1 * B = (A * B + C) / (d1 * B) * (d1 * B) := by grind
+    omega
+  have h4 : (A * B + C) / (d1 * B) * d1 * B < (A + 1) * B := by
+    rw [Nat.add_mul]; omega
+  have := Nat.lt_of_mul_lt_mul_right h4
   omega
 
 /-- The remainder after a digit is exact is below the divisor and is what a 64-bit wrap-free subtraction gives. -/
@@ -106,13 +120,12 @@ theorem assemble (hi lo y s : Nat) (hy : 0 < y) (hys : y * 2 ^ s < 2 ^ 64) (hhi 
     rw [hr0, hq0]; omega
   have hr0lt : r0 < y * 2 ^ s := by rw [hr0, hq0]; exact rem_lt _ _ hY
   have hT : (hi * 2 ^ 64 + lo) * 2 ^ s = (y * 2 ^ s) * (q1 * 2 ^ 32 + q0) + r0 := by
-    rw [hU, h32, hd1, hN0, ← hN0]
-    have : (q1 * (y * 2 ^ s) + r1) * 2 ^ 32 + un10 % 2 ^ 32 = q1 * (y * 2 ^ s) * 2 ^ 32 + N0 := by
-      rw [hN0]; grind
-    rw [this, hd0]
+    have h1 : N1 * 2 ^ 32 + un10 % 2 ^ 32 = q1 * (y * 2 ^ s) * 2 ^ 32 + N0 := by
+      rw [hd1, hN0]; grind
+    rw [hU, h32, h1, hd0]
     grind
-  have := norm_div (hi * 2 ^ 64 + lo) y (2 ^ s) (q1 * 2 ^ 32 + q0) r0 hp hy (by rw [hT]; grind) hr0lt
-  refine ⟨this.1.symm, ?_⟩
+  have := norm_div (hi * 2 ^ 64 + lo) y (2 ^ s) (q1 * 2 ^ 32 + q0) r0 hp hy (by rw [hT]) hr0lt
+  refine ⟨this.1, ?_⟩
   rw [this.2, Nat.mul_div_cancel _ hp]
 where
   norm_div (U D t Q Rn : Nat) (ht : 0 < t) (hD : 0 < D) (h : U * t = D * t * Q + Rn) (hR : Rn < D * t) :
