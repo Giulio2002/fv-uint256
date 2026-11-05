@@ -68,9 +68,68 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hacs : s.mem.accessible pp.toNat cc.toNat true = true := by
       rw [← (show MemFrame s.mem S.mem _ from hfrH).accessible]; exact hacc
     janus64_data hd [hws, hacs]
+    have hin : InRanges (pp.toNat + len.toNat) 8 (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) := by
+      rcases hwho with ⟨h1, h2⟩ | ⟨r, hr, h1, h2⟩
+      · exact ⟨(dp + len0, dp + cap0), by simp, by omega, by omega⟩
+      · exact ⟨r, by simp [hr], by omega, by omega⟩
     janus64_run until [Extracted.entry + 0x63]
-    trace_state
-    sorry
+    have e : len.toNat + 8 + pp.toNat - 8 = pp.toNat + len.toNat := by omega
+    rw [e]
+    refine hcont _ pp cc b L (by first | rfl | decide) ?_ (by omega)
+    have hfrU := show MemFrame s.mem S.mem _ from hfrH
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    · simp [setRegF, hsp]
+    · simp [setRegF, h0]
+    · simp [setRegF, h3]
+    · simp [setRegF]; bv_omega
+    · simp [setRegF, h7]
+    · simp [setRegF, h5]
+    · simp [setRegF, h14]
+    · simp [hx15]
+    · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hap; omega)]; exact h_rd1
+    · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hap; omega)]; exact h_rd2
+    · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hap; omega)]; exact h_rd3
+    · dsimp only; rw [Memory.accessible_writeLE]; exact hw
+    · exact hfrU.writeLE_inRanges _ hin
+    · intro hng'
+      obtain ⟨h1, h2, h3'⟩ := hng hng'
+      refine ⟨h1, h2, ?_⟩
+      have h3w := h3'.mono (rs' := [(dp + len0, dp + len.toNat + 8), ((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24)]) (by
+        intro a n ho
+        simp only [outside_cons, outside_nil, and_true] at ho ⊢
+        omega)
+      exact (h3w.writeLE_inRanges _ ⟨(dp + len0, dp + len.toNat + 8), by simp, by omega, by omega⟩).mono (by
+        intro a n ho
+        simp only [outside_cons, outside_nil, and_true] at ho ⊢
+        omega)
+    · intro i hi; dsimp only
+      rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzpd; omega)]; exact hzs i hi
+    · dsimp only
+      rcases hdest with ⟨r, hr, h1, h2⟩ | h
+      · rw [view_writeLE_live ⟨r, hr, by omega, by omega⟩]; exact hinv
+      · rw [view_writeLE_out (Outside.of_sub h (by omega) (by omega))]; exact hinv
+    · exact hLs
+    · exact hzL
+    · exact hzpd
+    · rw [hlen8]; omega
+    · rw [hlen8]; omega
+    · rw [hlen8]; omega
+    · exact hC
+    · exact hPb
+    · exact hdj
+    · intro _; dsimp only; rw [Memory.accessible_writeLE]; exact ⟨hacc, hdest⟩
+    · intro _ h0'; dsimp only; rw [Memory.accessible_writeLE]
+      exact Memory.accessible_sub S.mem hacc (Or.inl rfl) (Nat.le_refl _) (by rw [hlen8] at *; omega)
+    · exact Nat.le_trans (Nat.mul_le_mul_right _ (Nat.le_succ m)) hbud
+    · rw [hlen8]; exact hrdy.2 hl
+    · exact hwho
+    · intro i hi; dsimp only
+      rw [Memory.bytes_writeLE_outside _ (Or.inl (by omega))]; exact hpre i hi
+    · dsimp only
+      have e : pp.toNat + len0 = pp.toNat + len.toNat := by omega
+      simp only [Nat.add_zero] at hz8
+      rw [hlen8, show len.toNat + 8 - len0 = 8 by omega, e, Memory.readLE_writeLE_self, hz8]
+      exact Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _)
   · have hcostK := cost_le len0 len.toNat cc.toNat (by omega) (by omega)
     have hK : Kc len0 ≤ b := by rw [Nat.succ_mul] at hbud; omega
     obtain ⟨hrd⟩ := (⟨hgrow (by omega)⟩ : Nonempty _)
