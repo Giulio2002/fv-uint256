@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -8,7 +8,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.DivWork
 
-abbrev by1 : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivremBy1"
+abbrev by1 : Nat := segAddr Fv256.ChainProg.program "github.com/holiman/uint256.udivremBy1"
 abbrev by1Head : Nat := by1 + 0x64
 
 theorem by1Head_lt : by1Head + 200 < 2 ^ 47 := by decide
@@ -35,7 +35,7 @@ theorem by1_loop (s0 : State) (q u n d v : Nat) (hn : 2 ≤ n) (hn2 : n < 2 ^ 20
       MemFrame s0.mem M [(q, q + 8 * (n - 1)), ((s0.regs 4).toNat - 8, (s0.regs 4).toNat),
         ((s0.regs 4).toNat + 8, (s0.regs 4).toNat + 16), ((s0.regs 4).toNat + 32, (s0.regs 4).toNat + 40)] →
       M.readLE ((s0.regs 4).toNat - 8) 8 = (s0.regs 5).toNat →
-      ReachesRet Extracted.program (retAddrOf s0)
+      ReachesRet Fv256.ChainProg.program (retAddrOf s0)
         { s0 with regs := R, rip := BitVec.ofNat 64 by1Head, flags := fl, mem := M }
         (fun S' => ∃ (rem' : Nat) (R' : Nat → W64) (fl' : Flags) (M' : Memory),
           S' = { s0 with regs := R', rip := retAddrOf s0, flags := fl', mem := M' } ∧

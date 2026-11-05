@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -15,11 +15,11 @@ open Fv256.Amd64.UdivremA
 namespace Fv256.Amd64.UdivremE
 
 set_option maxHeartbeats 16000000 in
-theorem midB (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
-    (hs : s ≤ 63) (hn : n ≤ 4) (hn2 : 2 ≤ n) (hulen : ulen ≤ 4) (hulen1 : n ≤ ulen) (hql : ql = 4)
+theorem midB {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hn : n ≤ 4) (hn2 : 2 ≤ n) (hulen : ulen ≤ L) (hulen1 : n ≤ ulen) (hql : ql = L)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x190 true = true)
-    (hqb : qp + 32 ≤ 2 ^ 48) (hqa : M.accessible qp 32 true = true)
-    (hqs : qp + 32 ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
+    (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M.accessible qp (8 * L) true = true)
+    (hqs : qp + 8 * L ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
     (hx15 : s0.xmm 15 = 0) (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M.accessible ((R 14).toNat + 16) 8 false = true)
     (hg3 : M.readLE ((R 14).toNat + 16) 8 < sf - 8) (hgd : (R 14).toNat + 24 ≤ sf - 0x58 ∨ sf + 0x138 ≤ (R 14).toNat + 16)
     (e2 : R 2 = BitVec.ofNat 64 (sf + 72)) (e3 : R 3 = BitVec.ofNat 64 ql) (e10 : R 10 = BitVec.ofNat 64 (ulen + 1)) (e12 : R 12 = BitVec.ofNat 64 n)
@@ -28,7 +28,7 @@ theorem midB (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl :
     (m_f8 : M.readLE (sf + 0xf8) 8 = qp)
     (hdtop : 2 ^ 63 ≤ M.readLE (sf + 0x98 + 8 * (n - 1)) 8)
     (hD : Fv256.B.wv M (sf + 0x48 + 8 * (ulen + 1 - n)) n < Fv256.B.wv M (sf + 0x98) n) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x2e5))
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (ku + 0x2e5))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x29f), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x2e5), flags := fl', mem := M' } ∧
@@ -61,11 +61,11 @@ theorem midB (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl :
   all_goals trace_state
 
 set_option maxHeartbeats 16000000 in
-theorem midB1 (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
-    (hs : s ≤ 63) (hulen : ulen ≤ 4) (hulen1 : 1 ≤ ulen) (hql : ql = 4)
+theorem midB1 {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hulen : ulen ≤ L) (hulen1 : 1 ≤ ulen) (hql : ql = L)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x190 true = true)
-    (hqb : qp + 32 ≤ 2 ^ 48) (hqa : M.accessible qp 32 true = true)
-    (hqs : qp + 32 ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
+    (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M.accessible qp (8 * L) true = true)
+    (hqs : qp + 8 * L ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
     (hx15 : s0.xmm 15 = 0) (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M.accessible ((R 14).toNat + 16) 8 false = true)
     (hg3 : M.readLE ((R 14).toNat + 16) 8 < sf - 8) (hgd : (R 14).toNat + 24 ≤ sf - 0x58 ∨ sf + 0x138 ≤ (R 14).toNat + 16)
     (e2 : R 2 = BitVec.ofNat 64 (sf + 72)) (e3 : R 3 = BitVec.ofNat 64 ql) (e10 : R 10 = BitVec.ofNat 64 (ulen + 1))
@@ -73,7 +73,7 @@ theorem midB1 (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl
     (m_f8 : M.readLE (sf + 0xf8) 8 = qp) (m_98 : M.readLE (sf + 0x98) 8 = d0)
     (hd0 : d0 < 2 ^ 64) (hdtop : 2 ^ 63 ≤ d0)
     (hD : M.readLE (sf + 72 + 8 * ulen) 8 < d0) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x355))
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (ku + 0x355))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x32e), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (rr : Nat),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x355), flags := fl', mem := M' } ∧

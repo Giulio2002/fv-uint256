@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -29,7 +29,7 @@ theorem addback_loop (s0 : State) (up dp n j : Nat) (v cap : W64) (M0 : Memory)
       (∀ k, k ∉ [0, 2, 8, 11, 13] → R k = s0.regs k) →
       Fv256.B.wv M0 (up + 8 * j) i + Fv256.B.wv M0 dp i = Fv256.B.wv M (up + 8 * j) i + c * 2 ^ (64 * i) →
       MemFrame M0 M [(up + 8 * j, up + 8 * j + 8 * i)] →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0x2a7))
+      ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (kn + 0x2a7))
         { s0 with regs := R, rip := BitVec.ofNat 64 (kn + 0x2a2), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (c' : Nat),
           S' = { s0 with regs := R', rip := BitVec.ofNat 64 (kn + 0x2a7), flags := fl', mem := M' } ∧
