@@ -6,9 +6,9 @@ import Fv256.UtilB
 import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.UtilH
-import Fv256.Arm64.UdivremD
-import Fv256.Arm64.UdivremF
-import Fv256.Arm64.KnuthSummary
+import Fv256.Arm64.ChainProg
+import Fv256.Arm64.CodeIn
+import Fv256.Arm64.UdivremFinal
 import Fv256.Arm64.DivLemmas
 import Fv256.Arm64.DivMLem
 import Fv256.Arm64.DivMGlue
@@ -16,6 +16,10 @@ import Fv256.Arm64.DivMGlue
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 
 namespace Fv256.Arm64.DivMod
+
+set_option maxRecDepth 200000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 def intType : Nat := Extracted.dataAddr.«type:uint256.Int#33f34945»
 
@@ -133,8 +137,8 @@ theorem partB (impl : List Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 6
           val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
           val256 s'.mem m'' = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
           MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m', m' + 32), (s.sp.toNat - 4256, s.sp.toNat + 40)])) := by
-  have hKn := Fv256.Arm64.KnuthSummary.knuth_summary
-  have hU := Fv256.H.summary_link impl (Fv256.Arm64.UdivremF.udivrem_rem_L (L := 4) (by omega) (by omega) hKn)
+  have hU := Fv256.H.summary_link impl (Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain
+    (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 4) (by omega) (by omega)))
   have hx0 := Util.readLE8_lt s.mem x.toNat
   have hx1 := Util.readLE8_lt s.mem (x.toNat + 8)
   have hx2 := Util.readLE8_lt s.mem (x.toNat + 16)
