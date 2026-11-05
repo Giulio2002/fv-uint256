@@ -19,7 +19,7 @@ and a stack with room for the frame and the stack-growth check passing, the call
 the ABI, returns `z` in `X0`, the number at `z` afterwards is `Fv256.B.modSpec` of the numbers at `x` and `y` before
 the call, and nothing changes outside `z[0..32)` and the callee's stack frame.
 
-Derived from `Fv256.Arm64.ModSum.mod_summary` (the compiled `Div` with `udivrem` as a verified callee).
+Derived from `Fv256.Arm64.ModSum.mod_summary` (the compiled `Mod` with `udivrem` as a verified callee).
 
 **Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition.
 -/
@@ -55,8 +55,8 @@ theorem correctness (z x y : BitVec 64) :
       (fun s => GuardOK s 448 ∧ StackOK s 488 16 ∧
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 488 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
         Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
-        Disjoint z.toNat 32 (s.sp.toNat - 488) 472 ∧ Disjoint x.toNat 32 (s.sp.toNat - 488) 472 ∧
-        Disjoint y.toNat 32 (s.sp.toNat - 488) 472)
+        Disjoint z.toNat 32 (s.sp.toNat - 488) 504 ∧ Disjoint x.toNat 32 (s.sp.toNat - 488) 504 ∧
+        Disjoint y.toNat 32 (s.sp.toNat - 488) 504)
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 488, s.sp.toNat - 8),
@@ -114,8 +114,8 @@ set_option maxRecDepth 100000 in
 theorem hpre : GuardOK s0 448 ∧ StackOK s0 488 16 ∧
     ((s0.regs 28).toNat + 24 ≤ s0.sp.toNat - 488 ∨ s0.sp.toNat + 16 ≤ (s0.regs 28).toNat + 16) ∧
     Ptr32 s0.mem z true ∧ Ptr32 s0.mem x false ∧ Ptr32 s0.mem x false ∧
-    Disjoint z.toNat 32 (s0.sp.toNat - 488) 472 ∧ Disjoint x.toNat 32 (s0.sp.toNat - 488) 472 ∧
-    Disjoint x.toNat 32 (s0.sp.toNat - 488) 472 := by
+    Disjoint z.toNat 32 (s0.sp.toNat - 488) 504 ∧ Disjoint x.toNat 32 (s0.sp.toNat - 488) 504 ∧
+    Disjoint x.toNat 32 (s0.sp.toNat - 488) 504 := by
   refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, by decide,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_⟩ <;>
     (unfold Disjoint; decide)
@@ -125,8 +125,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
     (GuardOK s 448 ∧ StackOK s 488 16 ∧
       ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 488 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
       Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
-      Disjoint z.toNat 32 (s.sp.toNat - 488) 472 ∧ Disjoint x.toNat 32 (s.sp.toNat - 488) 472 ∧
-      Disjoint y.toNat 32 (s.sp.toNat - 488) 472) :=
+      Disjoint z.toNat 32 (s.sp.toNat - 488) 504 ∧ Disjoint x.toNat 32 (s.sp.toNat - 488) 504 ∧
+      Disjoint y.toNat 32 (s.sp.toNat - 488) 504) :=
   ⟨ret, s0, z, x, x, hret, setup, hpre⟩
 
 end Witness
