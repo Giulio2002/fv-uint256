@@ -50,8 +50,8 @@ theorem decoderune_sum (impl : List Janus.Amd64.Segment) (p k len : BitVec 64) :
   all_goals (try (simp [BitVec.toNat_setWidth, BitVec.toNat_or, BitVec.toNat_and, BitVec.toNat_shiftLeft, BitVec.toNat_ofNat]; done))
   all_goals (try exact Fv256.I.g2 _)
   all_goals (try (simp; done))
-  all_goals (try exact Fv256.I.g1 _ (Fv256.I.jle32_not_127 _ (by assumption)))
-  all_goals (try exact Fv256.I.g1 _ (Nat.le_trans (by omega) (Fv256.I.jle32_not_2047 _ (by assumption))))
+  all_goals (try exact Fv256.I.g1 _ (Fv256.I.jle32_not_127 _ (by first | with_reducible assumption | janus_assumption)))
+  all_goals (try exact Fv256.I.g1 _ (Nat.le_trans (by omega) (Fv256.I.jle32_not_2047 _ (by first | with_reducible assumption | janus_assumption))))
   rename_i b14 b13 b12 b11 b10 b9 b8 b7 b6 b5 b4 b3 b2 b1 b0
   simp only [← BitVec.toNat_inj, BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat, BitVec.toNat_or, BitVec.toNat_and,
     BitVec.toNat_shiftLeft, Nat.reducePow, Nat.reduceMod] at b0 ⊢
