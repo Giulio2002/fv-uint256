@@ -160,7 +160,20 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hgacc : S.mem.accessible ((s.regs 14).toNat + 16) 8 false = true := by
       rw [hfrU.accessible]; exact hgrd
     clear hfrU hOutU
-    janus64_run [hu1, hu2] until [Extracted.entry + 0x47] calls [hg]
+    have hgC : ((S.mem.writeLE ((s.regs 4).toNat - 16) 8 (S.mem.readLE z.toNat 8)).writeLE ((s.regs 4).toNat - 112) 8 4926695).readLE
+        ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 := by
+      rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hga; omega),
+        Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hga; omega)]
+      exact hgS
+    have hgA1 : (s.regs 14).toNat + 16 + 8 ≤ (s.regs 4).toNat - 112 - 4096 ∨ (s.regs 4).toNat - 112 ≤ (s.regs 14).toNat + 16 := by
+      unfold Apart at hga; omega
+    have hgA2 : (s.regs 14).toNat + 16 ≤ (s.regs 4).toNat - 112 ∨ (s.regs 4).toNat - 112 + 32 ≤ (s.regs 14).toNat := by
+      unfold Apart at hga; omega
+    obtain ⟨gp0, gp1, gp2, gp3, gp4, gp5, gp6⟩ := grow_pre len.toNat cc.toNat pp.toNat len0 b (s.regs 4).toNat hlc hlle hl0b hPb hdj hb' hcostK hK _ hgb
+    have pack := And.intro hga (And.intro hgd (And.intro hzd (And.intro hdt (And.intro hdtd (And.intro hdj (And.intro hlc (And.intro hlle (And.intro hlge (And.intro hC (And.intro hPb (And.intro hcostK (And.intro hK (And.intro hbud (And.intro hl0b (And.intro hrdy (And.intro hzs (And.intro hmid (And.intro hpre (And.intro hzpd (And.intro hwho (True.intro)))))))))))))))))))))
+    replace pack := show Hidden _ from pack
+    clear hga hgd hzd hdt hdtd hdj hlc hlle hlge hC hPb hcostK hK hbud hl0b hrdy hzs hmid hpre hzpd hwho
+    janus64_run [hu1, hu2, hgC] until [Extracted.entry + 0x47] calls [hg]
     rename_i r0 r1 r2 jk fl xm xm2 M ex epm hfr' hpost hlf hfresh hapart hinv2
     obtain ⟨hr1, hr2, hin, hlim, hacc2, hcopy, hz1, hz2⟩ := hpost
     have hle := le_growCap 1 true (len.toNat + 8) cc.toNat (by omega)
@@ -205,6 +218,7 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     replace hsM := show Hidden _ from hsM
     janus64_data hd [hws, hsts]
     janus64_run [hM16, hM70] until [Extracted.entry + 0x63]
+    obtain ⟨hga, hgd, hzd, hdt, hdtd, hdj, hlc, hlle, hlge, hC, hPb, hcostK, hK, hbud, hl0b, hrdy, hzs, hmid, hpre, hzpd, hwho, -⟩ := pack
     have hr2pos : 0 < r2.toNat := by omega
     simp only [Nat.mul_one, Nat.add_sub_cancel] at hin hlim hacc2 hcopy
     rw [if_neg (by omega)] at hfresh hinv2
