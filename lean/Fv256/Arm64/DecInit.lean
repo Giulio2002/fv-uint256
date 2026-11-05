@@ -12,9 +12,9 @@ open Fv256.E
 
 namespace Fv256.Arm64.Dec
 
-abbrev decE : Nat := Extracted.entry
+abbrev decE : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec"
 /-- The loop head of `Dec` (arm64): the first iteration's block, `JMP 19(PC)` target. -/
-abbrev decH : Nat := Extracted.entry + 0x110
+abbrev decH : Nat := decE + 0x110
 
 /-- The memory of `Dec` at the loop head, from the entry memory `m` (`r` = entry `SP`, `zp` = the receiver,
 `a29`/`a30` = the saved `X29`/`X30`). -/

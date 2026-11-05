@@ -48,12 +48,31 @@ theorem zeroStr_read {M : Memory} (hd : Extracted.program.DataLoaded M) :
     rw [zeroDat_base, zeroDat_len] at this
     exact accessible_sub this (Or.inl rfl) (by omega) (by omega)
 
-set_option maxHeartbeats 32000000 in
-set_option maxRecDepth 200000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+/-- A `ReachesRet` of the extracted program is one of the linked program. -/
+theorem reachesRet64_link {P : Janus.Program} (impl : List Segment) {t : W64} {s : State} {Q : State → Prop}
+    (h : ReachesRet P t s Q) : ReachesRet (P.link impl) t s Q := by
+  obtain ⟨k, s', hst, hr, hq⟩ := h
+  exact ⟨k, s', steps_link64 impl hst, hr, hq⟩
+
+/-- A function `Summary` gives the `Ensures` form. -/
+theorem ensures_of_summary {p : Janus.Program} {entry : Nat} {args : List W64}
+    {spre pre : State → Prop} {Q post : State → State → Prop}
+    (hsum : Summary p entry spre Q)
+    (hpre : ∀ ret s, RetAddr p ret → CallSetup (p.withExit ret) entry args s → pre s → spre s)
+    (hpost : ∀ ret s s', RetAddr p ret → CallSetup (p.withExit ret) entry args s → pre s → Q s s' →
+      ABIReturn s s' ∧ post s s') :
+    Ensures p entry args pre post := by
+  intro ret hret s hs hp
+  obtain ⟨k, s', hst, hr, hq⟩ := hsum s hs.pc (hpre ret s hret hs hp)
+  refine returns_of_steps (Janus.Program.Steps.withExit hst hret.fetch_none) ?_ (hpost ret s s' hret hs hp hq)
+  rw [hr, hs.lr]
+  simp only [Janus.Program.withExit, BitVec.toNat_ofNat]
+  exact Nat.mod_eq_of_lt hret.lt64
+
+theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
-    Ensures (Extracted.program.link impl) Extracted.entry [z]
-      (fun s => GuardOK s 688 ∧ StackOK s 4608 8 ∧ Extracted.program.DataLoaded s.mem ∧
+    Summary (Extracted.program.link impl) decE
+      (fun s => s.regs 0 = z ∧ GuardOK s 688 ∧ StackOK s 4608 8 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4608) (4608 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
         Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
@@ -62,11 +81,12 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
             (s.regs 28).toNat (s.sp.toNat - 384) (rtView rt s.mem)) ∧
         (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
           H [0, s.sp.toNat - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
-            (s.regs 28).toNat (s.sp.toNat - 384 - 96) (rtView rt s.mem)))
+            (s.regs 28).toNat (s.sp.toNat - 384 - 96) (rtView rt s.mem)) ∧
+        (s.regs 30).toNat < 2 ^ 48 ∧ (s.regs 30).toNat % 4 = 0)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
+        s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])) := by
-  rintro ret hret s hs ⟨hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1⟩
-  janus_intro hs
+  intro s hpc ⟨hz0r, hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1, hr30, hr30a⟩
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, h4608, hsp2, hwa⟩ := hst
   simp only [val256] at hH hH1
@@ -84,21 +104,19 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   clear hv32
   simp only [val256, hvd]
   have hr4 := s.sp.isLt
-  have hlr : s.regs 30 = BitVec.ofNat 64 ret := hs.lr
   by_cases hbig : 2 ^ 64 ≤ v
   · have hH2 := hH hbig
     have hnb : s.mem.readLE (z.toNat + 8) 8 ≠ 0 ∨ s.mem.readLE (z.toNat + 16) 8 ≠ 0 ∨ s.mem.readLE (z.toNat + 24) 8 ≠ 0 := by
       refine Decidable.byContradiction fun hcon => ?_
       simp only [not_or, Decidable.not_not] at hcon
       omega
-    have e0z : s.regs 0 = z := hs.args 0 (by simp)
+    have e0z : s.regs 0 = z := hz0r
     have e0 : s.regs 0 = BitVec.ofNat 64 z.toNat := by rw [e0z]; simp
-    have hret30 : (s.regs 30).toNat < 2 ^ 48 := by rw [hlr, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]; exact hret.user
+    have hret30 : (s.regs 30).toNat < 2 ^ 48 := hr30
     have hg_ : GuardOK s 256 := ⟨hg1, hg2, by omega⟩
-    refine returns_of_reaches ?_
-    refine reaches_of_reachesRet64 hret
-      (dec_init s hs.pc z.toNat e0 hg_ hal (by omega) (by omega) (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) hd
-        ⟨hzn, hza⟩ (by omega) hret30 hnb).regions ?_
+    refine Fv256.E.reachesRet64_bind (reachesRet64_link impl
+      (dec_init s hpc z.toNat e0 hg_ hal (by omega) (by omega) (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) hd
+        ⟨hzn, hza⟩ (by omega) hret30 hnb).regions) ?_
     intro S hrS ⟨⟨h0, h1, h3, h6, h8, h29, hsp, hk, hfr, hwy, hwd, hzero, htabS, hsv1, hsv2⟩, hregS⟩
     have hwy' : Fv256.B.wv S.mem (s.sp.toNat - 384 + 288) 4 = v := by
       rw [show s.sp.toNat - 384 + 288 = s.sp.toNat - 96 by omega, hwy, Fv256.B.wv4_eq, hvd]
@@ -117,11 +135,11 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       have := MemFrame.outside_mem hout hr
       simp only [outside_cons]
       exact ⟨by omega, trivial⟩
-    refine reaches_of_reachesRet64 hret
+    refine Fv256.E.reachesRet64_bind (reachesRet64_link impl
       (dec_loop (s.sp.toNat - 384) v (s.regs 28).toNat S.mem hbig hvlt (by omega) (by omega) (by omega) hwS hg3S hg1 hg2S
         (by omega) v 0 S (by simp) (by omega) hrS (by simpa using h0) h1 (by rw [h8]; exact congrArg _ (by omega))
         (by rw [h3]; exact congrArg _ (by omega)) (by rw [h6]; exact congrArg _ (by omega)) (by rw [hsp]) e28
-        (MemFrame.refl _ _) hwy' hwd' (fun k hk => by omega) (by simpa using hzero) htabS).regions ?_
+        (MemFrame.refl _ _) hwy' hwd' (fun k hk => by omega) (by simpa using hzero) htabS).regions) ?_
     intro S2 hrS2 ⟨⟨q9, q11, qsp, q28, q29, q18, qfr, qdig, qtab⟩, hregS2⟩
     have hrtv : rtView rt S2.mem = rtView rt s.mem := by
       rw [← hrtv1]
@@ -140,8 +158,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
     have hX3 : 0 < decLen v → s.mem.accessible (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) false = true :=
       fun _ => accessible_sub hwa (Or.inl rfl) (by omega) (by omega)
     have hX6 : False → Disjoint (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) 0 32 := fun h => h.elim
-    have hR30 : S.mem.readLE (s.sp.toNat - 384) 8 = ret := by
-      rw [hsv2, hlr, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]
+    have hR30 : S.mem.readLE (s.sp.toNat - 384) 8 = (s.regs 30).toNat := hsv2
     janus_run [q9, q11, hdlm, hR30] calls [hc]
     rename_i w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright
     obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
@@ -150,15 +167,15 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
         have := qdig k hk
         rw [show s.sp.toNat - 384 + 94 + (98 - decLen v) + decLen v - 1 - k = s.sp.toNat - 384 + 94 + 97 - k by omega]
         exact this)
-    refine ⟨⟨?_, ?_, ?_⟩, ⟨?_, hr2, hr3, ?_⟩, ?_⟩
+    refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_, ?_, ?_⟩
+    · rw [hr1, hdig]
+    · rw [hr4, hdig]
     · apply BitVec.eq_of_toNat_eq
       simp only [BitVec.toNat_add, BitVec.toNat_ofNat]
       omega
     · rw [show s.sp.toNat - 384 - 8 = s.sp.toNat - 392 by omega, hsv1]
       simp
     · exact hk 18 (by simp)
-    · rw [hr1, hdig]
-    · rw [hr4, hdig]
     · have h1 : MemFrame s.mem S.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)]) :=
         hfr.mono (fun a n h => by simp only [outside_append, outside_cons, Outside, and_true] at h ⊢; omega)
       have h2 : MemFrame S.mem S2.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)]) :=
@@ -195,7 +212,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       have hdl1 := decLen_pos v
       have hHf : 100 ≤ v → H [0, s.sp.toNat - 384 - 32 + (24 - decLen v), decLen v] (s.regs 28).toNat
           (s.sp.toNat - 384 - 96) (rtView rt s.mem) := fun h => hH1 h hv64
-      have hT : TabsOK ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 ret) := by
+      have hT : TabsOK ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat) := by
         refine TabsOK.writeLE (TabsOK.writeLE (TabsOK.of_loaded hd) (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) _) ?_ _
         simp only [Janus.Arm64.Memory.accessible_writeLE]
         exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
@@ -203,7 +220,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       janus_run [hlow.1, hlow.2.1, hlow.2.2, hl0, Nat.or_eq_zero_iff] calls [hfu]
       rename_i hqtab hqs hqf
       refine ⟨hqs, ?_⟩
-      have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 ret)
+      have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
             (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)]) := by
           refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])
             (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4608, s.sp.toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
@@ -214,6 +231,35 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
         obtain ⟨h1, h2, -⟩ := h
         exact ⟨h1, by omega, trivial⟩)
       exact h1.trans h2 fun a n h => ⟨h, h⟩
+
+
+set_option maxHeartbeats 32000000 in
+set_option maxRecDepth 200000 in
+theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
+    Ensures (Extracted.program.link impl) Extracted.entry [z]
+      (fun s => GuardOK s 688 ∧ StackOK s 4608 8 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4608) (4608 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
+        Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
+        ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
+        (2 ^ 64 ≤ val256 s.mem z.toNat →
+          H [0, s.sp.toNat - 384 + 94 + (98 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 384) (rtView rt s.mem)) ∧
+        (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
+          H [0, s.sp.toNat - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 384 - 96) (rtView rt s.mem)))
+      (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])) :=
+  ensures_of_summary (dec_summary impl rt H z hc)
+    (fun ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11⟩ =>
+      ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, by
+        have := hs.lr
+        rw [this, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]
+        exact hret.user, by
+        have := hs.lr
+        rw [this, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := hret.user; omega)]
+        exact hret.aligned⟩)
+    (fun ret s s' hret hs hp hq => ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩)
 
 namespace Witness
 

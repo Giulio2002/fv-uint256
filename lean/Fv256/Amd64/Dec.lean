@@ -37,12 +37,10 @@ theorem zeroStr_read {M : Memory} (hd : Extracted.program.DataLoaded M) :
     rw [zeroDat_base, zeroDat_len] at this
     exact accessible_sub this (Or.inl rfl) (by omega) (by omega)
 
-set_option maxHeartbeats 32000000 in
-set_option maxRecDepth 200000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem dec_summary (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
-    Ensures (Extracted.program.link impl) Extracted.entry [z]
-      (fun s => StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Extracted.program.DataLoaded s.mem ∧
+    Summary (Extracted.program.link impl) decE
+      (fun s => s.regs 0 = z ∧ StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4568) (4568 + 8) rt ∧ Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧
         (s.regs 4).toNat % 8 = 0 ∧ Buffer s z 32 false ∧
         (z.toNat + 32 ≤ (s.regs 4).toNat - 4568 ∨ (s.regs 4).toNat + 8 ≤ z.toNat) ∧
@@ -52,12 +50,12 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
             (s.regs 14).toNat ((s.regs 4).toNat - 0x178 - 8) (rtView rt s.mem)) ∧
         (100 ≤ s.mem.readLE z.toNat 32 → s.mem.readLE z.toNat 32 < 2 ^ 64 →
           H [0, (s.regs 4).toNat - 384 - 0x20 + (24 - decLen (s.mem.readLE z.toNat 32)), decLen (s.mem.readLE z.toNat 32)]
-            (s.regs 14).toNat ((s.regs 4).toNat - 384 - 0x58) (rtView rt s.mem)))
+            (s.regs 14).toNat ((s.regs 4).toNat - 384 - 0x58) (rtView rt s.mem)) ∧
+        s.xmm 15 = 0 ∧ s.df = false ∧ s.mem.readLE (s.regs 4).toNat 8 < 140737488355328)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
+        s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])) := by
-  rintro ret hret s hs ⟨hg, hw, hd, hout, hrt1, hrt2, hal, ⟨hzn, hza⟩, hzd, hgd, hH, hH1⟩
-  janus64_intro hs
-  janus64_intro hs
+  intro s hpc ⟨hz0r, hg, hw, hd, hout, hrt1, hrt2, hal, ⟨hzn, hza⟩, hzd, hgd, hH, hH1, hxx, hdf0, hret47⟩
   have hg_ : StackGuardOK s 0xf8 := ⟨hg.noWrap, hg.readable, by have := hg.below; omega⟩
   have hw_ : StackWritable s 0x318 0x8 := ⟨by have := hw.1; omega, by have := hw.2.1; omega,
     by have := hw.2.2; exact accessible_sub this (Or.inr rfl) (by omega) (by omega)⟩
@@ -87,13 +85,12 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       simp only [not_or, Decidable.not_not] at hcon
       omega
     have hr4 := (s.regs 4).isLt
-    have hx15 : s.xmm 15 = 0 := hs.zero
-    have e0z : s.regs 0 = z := hs.args 0 (by simp)
+    have hx15 : s.xmm 15 = 0 := hxx
+    have e0z : s.regs 0 = z := hz0r
     have e0 : s.regs 0 = BitVec.ofNat 64 z.toNat := by rw [e0z]; simp
-    have hrip := hs.rip
-    refine returns_of_reaches ?_
-    refine reaches_of_reachesRet hret
-      (dec_init s hrip z.toNat e0 hg_ hw_ hal hd ⟨hzn, hza⟩ (by omega) hnb hx15).regions ?_
+    have hrip := hpc
+    refine Fv256.E.reachesRet_bind' (Fv256.E.reachesRet_link impl
+      (dec_init s hrip z.toNat e0 hg_ hw_ hal hd ⟨hzn, hza⟩ (by omega) hnb hx15).regions) ?_
     intro S hrS ⟨⟨h0, h1, h2, h4, h5, h7, h9, h14, hx, hdf, hfr, hwy, hwd, hzero, htabS, hbpS⟩, hregS⟩
     have hbb : 0x1a0 ≤ (s.regs 4).toNat - 0x178 := by omega
     have hwb2 : S.mem.accessible ((s.regs 4).toNat - 0x178 - 0x1a0) (0x1a0 + 0x180) true = true := by
@@ -111,11 +108,11 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       have := MemFrame.outside_mem hout hr
       simp only [outside_cons]
       exact ⟨by omega, trivial⟩
-    refine reaches_of_reachesRet hret
+    refine Fv256.E.reachesRet_bind' (Fv256.E.reachesRet_link impl
       (dec_loop ((s.regs 4).toNat - 0x178) v (s.regs 14).toNat S.mem hbig hvlt hbb
         (by omega) (by omega) hwb2 hg3S (by omega) hg2S (by omega) v 0 S
         (by simp) (by omega) hrS (by simpa using h0) h1 (by simpa using h2) h4 h5 h7 h9
-        (by rw [h14]; simp) hx (hdf.trans hs.df) (MemFrame.refl _ _) hwy' hwd (fun k hk => by omega) (by simpa using hzero) htabS).regions ?_
+        (by rw [h14]; simp) hx (hdf.trans hdf0) (MemFrame.refl _ _) hwy' hwd (fun k hk => by omega) (by simpa using hzero) htabS).regions) ?_
     intro S2 hrS2 ⟨⟨q2, q13, q4, q5, q14, qx, qdf, qfr, qdig, qtab⟩, hregS2⟩
     have hrtv : rtView rt S2.mem = rtView rt s.mem := by
       rw [← hrtv1]
@@ -139,11 +136,11 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         ((s.regs 4).toNat - 376 - 8) (rtView rt S2.mem) := by rw [hrtv]; exact hH2
     have hX3' : 0 < decLen v → s.mem.accessible ((s.regs 4).toNat - 376 + 86 + (98 - decLen v)) (decLen v) false = true := fun _ => hX3
     have hX6 : False → Spec.Disjoint ((s.regs 4).toNat - 376 + 86 + (98 - decLen v)) (decLen v) 0 32 := fun h => h.elim
-    have hX8 : s.mem.readLE ((s.regs 4).toNat - 376 + 376) 8 = ret := by
+    have hX7 : s.mem.readLE ((s.regs 4).toNat - 376 + 376) 8 < 140737488355328 := by
       rw [show (s.regs 4).toNat - 376 + 376 = (s.regs 4).toNat by omega]
-      exact hs.ret
+      exact hret47
     have hX5 : (s.regs 4).toNat - 376 + 86 + (98 - decLen v) + decLen v ≤ 281474976710656 := by omega
-    janus64_run [q2, q13, q4, q5, q14, hdlm, hX8] calls [hc]
+    janus64_run [q2, q13, q4, q5, q14, hdlm] calls [hc]
     rename_i w9 w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright
     obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
     have hdig : Spec.strBytes S2.mem ((s.regs 4).toNat - 376 + 86 + (98 - decLen v)) (decLen v) = decBytes v :=
@@ -151,15 +148,15 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         have := qdig k hk
         rw [show (s.regs 4).toNat - 376 + 86 + (98 - decLen v) + decLen v - 1 - k = (s.regs 4).toNat - 376 + 86 + 97 - k by omega]
         exact this)
-    refine ⟨⟨?_, ?_⟩, ⟨?_, hr2, hr3, ?_⟩, ?_⟩
+    refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_, ?_⟩
+    · rw [hr1, hdig]; simp [valueAt, hvd]
+    · rw [hr4, hdig, valueAt, hvd]
     · have hx := (s.regs 4).isLt
       apply BitVec.eq_of_toNat_eq
       simp only [BitVec.toNat_add, BitVec.toNat_ofNat]
       omega
     · rw [show (s.regs 4).toNat - 376 + 368 = (s.regs 4).toNat - 8 by omega, hbp]
       simp
-    · rw [hr1, hdig]; simp [valueAt, hvd]
-    · rw [hr4, hdig, valueAt, hvd]
     · have h1 : MemFrame s.mem S.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) :=
         hfr.mono (fun a n h => by simp only [outside_append, outside_cons, Outside, and_true] at h ⊢; omega)
       have h2 : MemFrame S.mem S2.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) :=
@@ -226,6 +223,33 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         obtain ⟨h1, h2, -⟩ := h
         exact ⟨h1, by omega, trivial⟩)
       exact h1.trans h2 fun a n h => ⟨h, h⟩
+
+
+set_option maxHeartbeats 32000000 in
+set_option maxRecDepth 200000 in
+theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
+    Ensures (Extracted.program.link impl) Extracted.entry [z]
+      (fun s => StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 4568) (4568 + 8) rt ∧ Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧
+        (s.regs 4).toNat % 8 = 0 ∧ Buffer s z 32 false ∧
+        (z.toNat + 32 ≤ (s.regs 4).toNat - 4568 ∨ (s.regs 4).toNat + 8 ≤ z.toNat) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4568 ∨ (s.regs 4).toNat + 8 ≤ (s.regs 14).toNat + 16) ∧
+        (2 ^ 64 ≤ s.mem.readLE z.toNat 32 →
+          H [0, (s.regs 4).toNat - 0x178 + 86 + (98 - decLen (s.mem.readLE z.toNat 32)), decLen (s.mem.readLE z.toNat 32)]
+            (s.regs 14).toNat ((s.regs 4).toNat - 0x178 - 8) (rtView rt s.mem)) ∧
+        (100 ≤ s.mem.readLE z.toNat 32 → s.mem.readLE z.toNat 32 < 2 ^ 64 →
+          H [0, (s.regs 4).toNat - 384 - 0x20 + (24 - decLen (s.mem.readLE z.toNat 32)), decLen (s.mem.readLE z.toNat 32)]
+            (s.regs 14).toNat ((s.regs 4).toNat - 384 - 0x58) (rtView rt s.mem)))
+      (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])) :=
+  ensures_of_summary64 (dec_summary impl rt H z hc)
+    (fun ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12⟩ =>
+      ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, hs.zero, hs.df, by
+        have := hs.ret
+        rw [this]
+        exact Nat.lt_of_lt_of_le hret.user (by decide)⟩)
+    (fun ret s s' hret hs hp hq => ⟨⟨hq.2.1, hq.2.2.1, hq.2.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩)
 
 namespace Witness
 

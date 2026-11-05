@@ -233,4 +233,29 @@ theorem reaches_of_reachesRet {P : Janus.Amd64.Program} {impl : List Janus.Amd64
   exact Janus.Amd64.Tactic.Reaches.of_steps
     (Janus.Amd64.Program.Steps.withExit (steps_link impl hst) hret.fetch_none) (h2 s' hr hq)
 
+/-- A `ReachesRet` of `P` is one of `P` linked with further code. -/
+theorem reachesRet_link {P : Janus.Amd64.Program} (impl : List Janus.Amd64.Segment) {t : Janus.Amd64.W64}
+    {s : Janus.Amd64.State} {Q : Janus.Amd64.State → Prop}
+    (h : Janus.Amd64.Tactic.ReachesRet P t s Q) : Janus.Amd64.Tactic.ReachesRet (P.link impl) t s Q := by
+  obtain ⟨k, s', hst, hr, hq⟩ := h
+  exact ⟨k, s', steps_link impl hst, hr, hq⟩
+
+/-- A function `Summary` gives the `Ensures` form, when the summary's postcondition gives the ABI facts. -/
+theorem ensures_of_summary64 {p : Janus.Amd64.Program} {entry : Nat} {args : List Janus.Amd64.W64}
+    {spre pre : Janus.Amd64.State → Prop} {Q post : Janus.Amd64.State → Janus.Amd64.State → Prop}
+    (hsum : Janus.Amd64.Tactic.Summary p entry spre Q)
+    (hpre : ∀ ret s, Janus.Amd64.GoABI.RetAddr p ret →
+      Janus.Amd64.GoABI.CallSetup (p.withExit ret) entry args s → pre s → spre s)
+    (hpost : ∀ ret s s', Janus.Amd64.GoABI.RetAddr p ret →
+      Janus.Amd64.GoABI.CallSetup (p.withExit ret) entry args s → pre s → Q s s' →
+      Janus.Amd64.GoABI.ABIReturn s s' ∧ post s s') :
+    Janus.Amd64.GoABI.Ensures p entry args pre post := by
+  intro ret hret s hs hp
+  obtain ⟨k, s', hst, hr, hq⟩ := hsum s hs.rip (hpre ret s hret hs hp)
+  refine Janus.Amd64.GoABI.returns_of_steps (Janus.Amd64.Program.Steps.withExit hst hret.fetch_none) ?_
+    (hpost ret s s' hret hs hp hq)
+  rw [hr, Janus.Amd64.Tactic.retAddrOf, hs.ret]
+  simp only [Janus.Amd64.Program.withExit, BitVec.toNat_ofNat]
+  exact Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le hret.user (by decide))
+
 end Fv256.E

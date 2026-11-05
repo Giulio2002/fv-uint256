@@ -11,9 +11,9 @@ open Fv256.E
 namespace Fv256.Amd64.Dec
 
 /-- Entry of `(*Int).Dec` (the extraction's entry point). -/
-abbrev decE : Nat := Extracted.entry
+abbrev decE : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec"
 /-- The loop head of `Dec` (`MOVQ CX, 0x100(SP)`), `0x16c` bytes into the function. -/
-abbrev decH : Nat := Extracted.entry + 0x16c
+abbrev decH : Nat := decE + 0x16c
 
 theorem zeros_tab : ∀ i, i < 98 → Extracted.data[3]!.bytes[i]! = 48 := by
   decide +kernel
