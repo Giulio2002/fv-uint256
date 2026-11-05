@@ -7,6 +7,8 @@ def arm(op,iop,spec):
     while body and body[-1].strip()=='' : body.pop()
     body=[l[2:] if l.startswith('  ') else l for l in body]
     body='\n'.join(body).replace('· simp only [Disjoint] at *','  simp only [Disjoint] at *',1)
+    k=body.index('\n',body.index('janus_run'))
+    body=body[:k]+'\n  all_goals refine And.intro ?_ (by simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff])'+body[k:]
     sym={'Lsh':'<<','Rsh':'>>'}[op]
     out=f'''import Extracted
 import Fv256.Spec
@@ -16,8 +18,8 @@ import Fv256.Util
 # `(*uint256.Int).I{op}(n uint) *Int` (arm64): in place, `z = z {sym} n`
 
 **Guarantee.** For every pointer `z` (receiver, `X0`), every shift count `n` (`X1`, any 64-bit value; counts of 256 or more give
-zero) and every Go call state such that the stack-growth check falls through (`GuardOK s 0`), the window `[SP-48, SP)` (the 48-byte
-frame) is writable and aligned (`StackOK s 48 0`), the 32 bytes at `z` are writable and do not overlap the frame window: the call
+zero) and every Go call state such that the stack-growth check falls through (`GuardOK s 0`), the window `[SP-56, SP)` (the 56-byte
+frame) is writable and aligned (`StackOK s 56 0`), the 32 bytes at `z` are writable and do not overlap the frame window: the call
 returns (no fault, no panic), obeys the ABI, returns `z` in `X0`, the number at `z` afterwards is `Fv256.Spec.{spec}` of the number at
 `z` before the call, shifted by `n`, and no byte outside `z[0..32)` and the frame window changes (`Fv256.Util.OnlyWrites2`).
 
@@ -30,10 +32,10 @@ namespace Fv256.Arm64.I{op}
 
 theorem correctness (z n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, n]
-      (fun s => GuardOK s 0 ∧ StackOK s 48 0 ∧ Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 48) 48)
+      (fun s => GuardOK s 0 ∧ StackOK s 56 0 ∧ Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 56) 56)
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Spec.{spec} (val256 s.mem z.toNat) n.toNat ∧
-        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 48) 48) := by
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 56) 56) := by
   intro ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, ⟨hz, hz'⟩, hd1⟩
   janus_intro hs
 {body}
@@ -60,12 +62,12 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n
     intro i h; simp at h
     rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl <;> rfl⟩
 
-theorem hpre : GuardOK s0 0 ∧ StackOK s0 48 0 ∧ Ptr32 s0.mem z true ∧ Disjoint z.toNat 32 (s0.sp.toNat - 48) 48 :=
+theorem hpre : GuardOK s0 0 ∧ StackOK s0 56 0 ∧ Ptr32 s0.mem z true ∧ Disjoint z.toNat 32 (s0.sp.toNat - 56) 56 :=
   ⟨by unfold GuardOK; decide, by unfold StackOK; decide, ⟨by decide, by decide⟩, by unfold Disjoint; decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s ∧
-    (GuardOK s 0 ∧ StackOK s 48 0 ∧ Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 48) 48) :=
+    (GuardOK s 0 ∧ StackOK s 56 0 ∧ Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 56) 56) :=
   ⟨ret, s0, z, n, hret, setup, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
