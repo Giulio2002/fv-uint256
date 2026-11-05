@@ -64,14 +64,14 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
     ∀ y t (s : State), y = z / 10 ^ (19 * t) → y ≠ 0 →
       s.pc = BitVec.ofNat 64 decH → s.regs 0 = BitVec.ofNat 64 (98 - 19 * t) → s.regs 1 = 19#64 →
       s.regs 8 = BitVec.ofNat 64 (b + 75) → s.regs 3 = BitVec.ofNat 64 (b + 288) → s.regs 6 = BitVec.ofNat 64 (b + 320) →
-      s.sp = BitVec.ofNat 64 b → s.regs 28 = BitVec.ofNat 64 g → MemFrame M0 s.mem [(b - 344, b - 8), (b + 8, b + 384)] →
+      s.sp = BitVec.ofNat 64 b → s.regs 28 = BitVec.ofNat 64 g → MemFrame M0 s.mem [(b - 344, b - 8), (b + 8, b + 376)] →
       Fv256.B.wv s.mem (b + 288) 4 = y → Fv256.B.wv s.mem (b + 320) 4 = 10 ^ 19 →
       (∀ k, k < 19 * t → s.mem.readLE (b + 94 + 97 - k) 1 = 48 + z / 10 ^ k % 10) →
       (∀ k, 19 * t ≤ k → k < 98 → s.mem.readLE (b + 94 + 97 - k) 1 = 48) → TabsOK s.mem →
       ReachesRet Extracted.program (BitVec.ofNat 64 decX) s
         (fun S' => S'.regs 9 = BitVec.ofNat 64 (b + 94 + (98 - decLen z)) ∧ S'.regs 11 = BitVec.ofNat 64 (decLen z) ∧
           S'.sp = BitVec.ofNat 64 b ∧ S'.regs 28 = BitVec.ofNat 64 g ∧ S'.regs 29 = s.regs 29 ∧ S'.regs 18 = s.regs 18 ∧
-          MemFrame M0 S'.mem [(b - 344, b - 8), (b + 8, b + 384)] ∧
+          MemFrame M0 S'.mem [(b - 344, b - 8), (b + 8, b + 376)] ∧
           (∀ k, k < decLen z → S'.mem.readLE (b + 94 + 97 - k) 1 = 48 + z / 10 ^ k % 10) ∧ TabsOK S'.mem) := by
   intro y
   induction y using Nat.strongRecOn with
@@ -99,8 +99,8 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
       rw [← Nat.pow_add]; congr 1
     have hy19 : z / 10 ^ (19 * (t + 1)) = y / 10 ^ 19 := by
       rw [hy, Nat.div_div_eq_div_mul, hpow]
-    have hfm2 : ∀ S2 : State, MemFrame s.mem S2.mem [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (98 - 19 * t - decLen (y % 10 ^ 19)), b + 94 + (98 - 19 * t)), (b + 192, b + 384)] →
-        MemFrame M0 S2.mem [(b - 344, b - 8), (b + 8, b + 384)] := by
+    have hfm2 : ∀ S2 : State, MemFrame s.mem S2.mem [(b - 344, b - 8), (b + 8, b + 94), (b + 94 + (98 - 19 * t - decLen (y % 10 ^ 19)), b + 94 + (98 - 19 * t)), (b + 192, b + 376)] →
+        MemFrame M0 S2.mem [(b - 344, b - 8), (b + 8, b + 376)] := by
       intro S2 hf
       refine hfm.trans (hf.mono ?_) (fun a n h => ⟨h, h⟩)
       intro a n h
@@ -110,7 +110,7 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
     rintro S' hrip' ⟨r0, r2, r8, r9, r11, r10, r28, r29, r18, rsp, hy', hd', hdig, hfr, htab'⟩
     have hnd19 : decLen (y % 10 ^ 19) ≤ 19 := decLen_le_of_lt_pow _ 19 (by decide) (Nat.mod_lt _ (by decide))
     have hnd1 := decLen_pos (y % 10 ^ 19)
-    have hfrM : MemFrame M0 S'.mem [(b - 344, b - 8), (b + 8, b + 384)] := hfm2 S' hfr
+    have hfrM : MemFrame M0 S'.mem [(b - 344, b - 8), (b + 8, b + 376)] := hfm2 S' hfr
     by_cases h0 : y / 10 ^ 19 = 0
     · -- the last chunk
       have hz10' : S'.regs 10 = 0#64 := r10.2 h0
