@@ -33,7 +33,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).CmpUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
 | `(*uint256.Int).Dec` | FV-E | verified (+ witness) | verified (+ witness) | fv/we 6d0c974 (merged), Janus dbd8224e, correctness + Witness.nonvacuous in one run per ISA (amd64 52m34s, arm64 41m15s); formatBits is real extracted code (call pruned by base 10), no formatBits contract; hypothesis contract: runtime slicebytetostring only (growslice, gopanic pinned stubs). Structure: dec_summary + generic Summary-to-Ensures bridge. Witness: toy slicebytetostring with z = 0 (zero path; a big-path witness is still to do) |
 | `(*uint256.Int).Div` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 114 s after speed pass 1 (was 2519 s cold; fv/wb-master bc15219); shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress | ; arm64 (FV-G, fv/wg f8d44ba, Janus ffaae554, correctness + Witness.nonvacuous in one run): unconditional (calls udivrem_nil_L_final), summary body ~8 min cold, verify 14.5 s warm 
-| `(*uint256.Int).DivMod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 2625 s cold; shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress |
+| `(*uint256.Int).DivMod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 419 s after speed pass 2 (was 2625 s cold; DivModB compiles in 163 s); shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress |
 | `(*uint256.Int).EncodeRLP` | FV-E | todo | todo | |
 | `(*uint256.Int).Eq` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | FV-F | todo | todo | |
@@ -219,3 +219,4 @@ Not exported symbols: rows deliberately do not start with a backtick, so scripts
 
 
 Division speed pass 1 (FV-B, bc15219, Janus 6365855c, all 3 theorems each): SDiv 2611 to 192 s, SMod 2924 to 12 s, Div 2519 to 114 s, Mod 2637 to 240 s (DivMod unchanged at 2625 s).
+Division speed pass 2 (FV-B): DivMod amd64 correctness + Witness.nonvacuous 2625 to 419 s; DivModB compile 163 s.
