@@ -3252,6 +3252,7 @@ theorem sbq16 (m : Memory) (p : Nat) :
   rw [e2] at e
   have a := sbq8 m p
   have b := sbq8 m (p + 8)
+  simp only [Nat.add_assoc] at b
   rw [e, ← a, ← b]
   simp only [Nat.reducePow]
   omega
