@@ -31,9 +31,9 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Cmp` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Cmp.lean |
 | `(*uint256.Int).CmpBig` | FV-C | verified | verified | callees SetFromBig + Cmp extracted; z.Cmp(FromBig(b)) with overflow/sign handling; no runtime call |
 | `(*uint256.Int).CmpUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/CmpUint64.lean |
-| `(*uint256.Int).Dec` | FV-E | todo | todo | |
-| `(*uint256.Int).Div` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 164fed3/90b9fb6): `Fv256.Amd64.Div.correctness` + `Witness.nonvacuous` (+ `returns`) in one `janus verify` on Janus 6365855c; lean/Fv256/Amd64/Div.lean + DivSum.lean (Div 39 s, DivSum 42 s; 2519 s wall incl. queue and cold build). Spec divSpec (y = 0 gives 0). arm64 waits on the arm64 udivrem chain |
-| `(*uint256.Int).DivMod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 607ad32/739112e): one `janus verify` on Janus 6365855c checked `Fv256.Amd64.DivMod.correctness` and `Fv256.Amd64.DivMod.Witness.nonvacuous`; support DivModB (compile 487 s, speed debt, target 300 s), DivModW (witness, 11 s), DivMod (20 s). Contract runtime.newobject (NewobjectContract64). Spec divSpec/modSpec, y=0 gives 0. x.Eq(y) is XOR on master (`Util.xor_ofNat_zero_iff`). arm64 todo on master |
+| `(*uint256.Int).Dec` | FV-E | verified (+ witness) | verified (+ witness) | fv/we 6d0c974 (merged), Janus dbd8224e, correctness + Witness.nonvacuous in one run per ISA (amd64 52m34s, arm64 41m15s); formatBits is real extracted code (call pruned by base 10), no formatBits contract; hypothesis contract: runtime slicebytetostring only (growslice, gopanic pinned stubs). Structure: dec_summary + generic Summary-to-Ensures bridge. Witness: toy slicebytetostring with z = 0 (zero path; a big-path witness is still to do) |
+| `(*uint256.Int).Div` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 114 s after speed pass 1 (was 2519 s cold; fv/wb-master bc15219); shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress | ; arm64 (FV-G, fv/wg f8d44ba, Janus ffaae554, correctness + Witness.nonvacuous in one run): unconditional (calls udivrem_nil_L_final), summary body ~8 min cold, verify 14.5 s warm 
+| `(*uint256.Int).DivMod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 2625 s cold; shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress |
 | `(*uint256.Int).EncodeRLP` | FV-E | todo | todo | |
 | `(*uint256.Int).Eq` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Eq.lean |
 | `(*uint256.Int).Exp` | FV-F | todo | todo | |
@@ -44,7 +44,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).GtUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/GtUint64.lean |
 | `(*uint256.Int).HashTreeRoot` | FV-A | verified | verified | arm64: no calls; amd64: memmove (MemmoveLive contract) ; amd64 re-proved on master 48f3f44 (frameless leaf: no stack check, window [SP-40, SP+40), 9 s, Janus f1d61dc1) |
 | `(*uint256.Int).Hex` | FV-E | blocked U16 (fv/wc) | todo | FV-C; see COVERAGE-C.md on fv/wc |
-| `(*uint256.Int).IntoBig` | FV-C | verified (+ witness) | todo | arm64 (fv/wc cfef22a, merged; Janus ffaae554, correctness + Witness.nonvacuous in one run each): IntoBig arm64: Post has the nil-case frame conjunct and a split caller window; shared lemmas IntoBigCommon. amd64 in progress |
+| `(*uint256.Int).IntoBig` | FV-C | verified (+ witness) | verified (+ witness) | arm64 (fv/wc, Janus ffaae554) and amd64 (Janus aab47543, correctness + Witness.nonvacuous in ONE run, 1997 s cold): lean/Fv256/{Arm64,Amd64}/IntoBig{Defs,FinF,Close,Loop,Tail,Slow3,Mid}.lean + IntoBig.lean (main) + IntoBigCommon. Contracts NewobjectLive(64)Contract@runtime.newobject and WbLive(64)Contract@runtime.gcWriteBarrier1/2. amd64 witness: stub runtime at the contract addresses, IntoBig(z, &b) with b == nil. Extraction flags in scripts/contract-flags.sh |
 | `(*uint256.Int).IsUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsUint64.lean |
 | `(*uint256.Int).IsZero` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/IsZero.lean |
 | `(*uint256.Int).Log10` | FV-A | pending Janus datasym (07f71534) | pending Janus datasym (07f71534) | arm64/amd64: lean/Fv256/{Arm64,Amd64}/Log10.lean (+ L10Cases, 256 modules per ISA); table addresses come from `Extracted.dataAddr/dataSize` (no literals in statements); assumes the writable powers-of-ten tables (L10Defs.lean). Verified on master 48f3f44 with Janus 07f71534: arm64 785 s, amd64 851 s (first-of-cache excluded: framework already built) |
@@ -56,7 +56,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).MarshalSSZAppend` | FV-C | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZAppend.lean: PARTIAL, verified only for `len + 32 <= cap` (compiled code never calls growslice). The reallocating case calls runtime.growslice with a 1-byte element type; the pinned GrowsliceContract covers only 8-byte pointer-free elements, so that case is NOT verified (needs a growslice contract for 1-byte elements) |
 | `(*uint256.Int).MarshalSSZInto` | FV-C | partial | partial | lean/Fv256/{Arm64,Amd64}/MarshalSSZInto.lean: PARTIAL, success path only (`32 <= len <= cap`); error path (fmt.Errorf) not covered |
 | `(*uint256.Int).MarshalText` | FV-E | todo | todo | |
-| `(*uint256.Int).Mod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 164fed3/90b9fb6): `Fv256.Amd64.Mod.correctness` + `Witness.nonvacuous` (+ `returns`) in one `janus verify` on Janus 6365855c; lean/Fv256/Amd64/Mod.lean + ModSum.lean (ModSum 231 s; 2637 s wall incl. queue). Spec modSpec (y = 0 gives 0). arm64 waits on the arm64 udivrem chain (FV-G takes arm64 Div/Mod) |
+| `(*uint256.Int).Mod` | FV-B | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 240 s after speed pass 1 (was 2637 s cold; fv/wb-master bc15219); shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress |
 | `(*uint256.Int).Mul` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Mul.lean; amd64 post allows the 16-byte stack scratch slot (OnlyWrites2) |
 | `(*uint256.Int).MulDivOverflow` | FV-F | todo | verified (+ witness) | amd64 (fv/wf 32167a5, Janus 6365855c, correctness + Witness.nonvacuous in one run, 928 s; ChainProg library + UmulSum.umul_summary). Spec: value = (x*y/d) mod 2^256, flag = 1 iff x*y/d >= 2^256; x, y or d = 0 gives (0, false). Findings: d = 0 is doc-silent (spec = code); the doc's "overflow occurred in multiply process" is misleading, the flag means the quotient does not fit (doc-wording finding). arm64 todo (chain unblocked) |
 | `(*uint256.Int).MulMod` | FV-F | todo | todo | |
@@ -69,8 +69,8 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).PrettyDec` | FV-E | todo | todo | |
 | `(*uint256.Int).PutUint256` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/PutUint256.lean |
 | `(*uint256.Int).Rsh` | FV-A | verified | verified | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |
-| `(*uint256.Int).SDiv` | FV-B | todo (needs bits.Div64 summary, U10) | on branch fv/wb: verified (pending merge) | branch fv/wb |
-| `(*uint256.Int).SMod` | FV-B | todo (needs bits.Div64 summary, U10) | on branch fv/wb: verified (pending merge) | branch fv/wb |
+| `(*uint256.Int).SDiv` | FV-B | todo (needs bits.Div64 summary, U10) | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 192 s after speed pass 1 (was 2611 s cold; fv/wb-master bc15219); shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress |
+| `(*uint256.Int).SMod` | FV-B | todo (needs bits.Div64 summary, U10) | verified (+ witness) | amd64 on master 48f3f44 (FV-B, fv/wb-master 69d4089, Janus 6365855c, correctness + Witness.nonvacuous in one run, 12 s after speed pass 1 (was 2924 s cold; fv/wb-master bc15219); shared DivProg/SDivProg/SModProg/ChainProg libraries, spec divSpec/modSpec/sdiv/smod, y = 0 gives 0). arm64: FV-G/FV-H in progress |
 | `(*uint256.Int).SRsh` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SRsh.lean |
 | `(*uint256.Int).Scan` | FV-E | todo | todo | |
 | `(*uint256.Int).Set` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Set.lean |
@@ -212,3 +212,10 @@ Not exported symbols: rows deliberately do not start with a backtick, so scripts
 | udivremBy1 | arm64 | FV-G | verified | fv/wg 76882db, Arm64/By1.lean |
 | udivremKnuth | arm64 | FV-H | verified | fv/wh 0aa9a06, Arm64/KnuthSummary.lean (16 min wall cold) |
 | udivrem entry | arm64 | FV-G | conditional on hKn | fv/wg 409c8d8, Arm64/UdivremE.lean; FV-G re-verifying unconditionally. Exported arm64 Div/Mod (FV-G) and DivMod/SDiv/SMod (FV-H) in progress |
+
+## Pending rows reported by workers (not yet merged into fv/master)
+* FV-E: `Dec` amd64 (53 min) and arm64 (41 min) verified with witnesses; interim: formatBits stubbed, branch proved unreachable (base 10); re-verify without the stub after the repin to dbd8224e.
+* FV-D: `ISDiv` 2501 s and `ISMod` 2898 s amd64 verified on the per-extraction chain; re-verify on the library form pending.
+
+
+Division speed pass 1 (FV-B, bc15219, Janus 6365855c, all 3 theorems each): SDiv 2611 to 192 s, SMod 2924 to 12 s, Div 2519 to 114 s, Mod 2637 to 240 s (DivMod unchanged at 2625 s).

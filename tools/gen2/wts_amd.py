@@ -123,7 +123,7 @@ theorem hpre : StackWritable s0 8 24 ∧ Buffer s0 z 32 false ∧ (8 : BitVec 64
     (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat :=
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩, by decide, ⟨by decide, by decide⟩, by decide, by decide, by decide, by decide⟩
 
-theorem nonvacuous : ∃ (ret : Nat) (s : Amd64.State) (z d : BitVec 64), RetAddr Extracted.program ret ∧
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z d : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, d, 8, 8] s ∧
     (StackWritable s 8 24 ∧ Buffer s z 32 false ∧ (8 : BitVec 64).toNat < 2 ^ 48 ∧
     Buffer s d (8 : BitVec 64).toNat true ∧
