@@ -3,6 +3,8 @@ import Fv256.Spec
 import Fv256.Util
 import Fv256.HexLemmas
 import Fv256.SpecI
+import Fv256.UtilI
+import Fv256.SumC64
 
 /-!
 # `internal/strconv.ParseUint(s, 10, 64)` on a string of 1 to 19 bytes (amd64)
@@ -36,7 +38,11 @@ set_option maxRecDepth 10000 in
 theorem loop (impl : List Janus.Amd64.Segment) (s : State) (M : Memory) (p len : BitVec 64)
     (hL : 1 ≤ len.toNat) (hL2 : len.toNat ≤ 19)
     (hsa : M.accessible p.toNat len.toNat false = true) (hp : p.toNat + len.toNat ≤ 2 ^ 48)
-    (hret : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) :
+    (hret : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47)
+    (hlow : 0x20 ≤ (s.regs 4).toNat) (hnw : (s.regs 4).toNat + 16 ≤ 2 ^ 48)
+    (hacc : M.accessible ((s.regs 4).toNat - 0x20) (0x20 + 16) true = true)
+    (hrM : M.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8)
+    (hbp : M.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat) :
     ∀ n (S : State) (i : Nat), n = len.toNat - i → i ≤ len.toNat →
       S.rip = BitVec.ofNat 64 head → S.regs 1 = BitVec.ofNat 64 i → S.regs 6 = len →
       S.regs 10 = p → S.regs 11 = BitVec.ofNat 64 (decSum (Fv256.C.bytesAt M p.toNat) 0 i) →
@@ -49,6 +55,94 @@ theorem loop (impl : List Janus.Amd64.Segment) (s : State) (M : Memory) (p len :
   induction n using Nat.strongRecOn with
   | _ n ih =>
     intro S i hn hi hpc h1 h6 h10 h11 h2 h8 h7 h0 h12 h4 h5 h14 hx15 hdf hfs hmem hdig
-    sorry
+    have hb256 : (Fv256.C.bytesAt M p.toNat i) < 256 ^ 1 := Janus.Arm64.Memory.readLE_lt M (p.toNat + i) 1
+    have hdlt : decSum (Fv256.C.bytesAt M p.toNat) 0 i < 10 ^ i := decSum_lt _ 0 i (by simpa using hdig)
+    have hd18 : i < len.toNat → decSum (Fv256.C.bytesAt M p.toNat) 0 i < 1000000000000000000 := fun h =>
+      Nat.lt_of_lt_of_le hdlt (Nat.pow_le_pow_right (by decide) (by omega : i ≤ 18))
+    have hy : (BitVec.setWidth 32 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (M.readLE (p.toNat + i) 1)))) |||
+        32#32).toNat < 256 := by
+      rw [BitVec.toNat_or]
+      have h1 : (BitVec.setWidth 32 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (M.readLE (p.toNat + i) 1))))).toNat < 2 ^ 8 := by
+        simp only [BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; omega
+      exact Nat.or_lt_two_pow (n := 8) h1 (by decide)
+    have hcb0 : M.readLE (p.toNat + i) 1 < 256 := by simpa using Janus.Arm64.Memory.readLE_lt M (p.toNat + i) 1
+    have hm10 : i < len.toNat → (BitVec.ofNat 64 (decSum (Fv256.C.bytesAt M p.toNat) 0 i) * 10#64).toNat =
+        decSum (Fv256.C.bytesAt M p.toNat) 0 i * 10 := by
+      intro hlt
+      have := hd18 hlt
+      rw [BitVec.toNat_mul, BitVec.toNat_ofNat, BitVec.toNat_ofNat]
+      have h1 : decSum (Fv256.C.bytesAt M p.toNat) 0 i % 2 ^ 64 = decSum (Fv256.C.bytesAt M p.toNat) 0 i :=
+        Nat.mod_eq_of_lt (by omega)
+      rw [h1]
+      exact Nat.mod_eq_of_lt (by omega)
+    by_cases hlt : i < len.toNat
+    all_goals (try have hm := hm10 hlt)
+    all_goals (try have hd := hd18 hlt)
+    all_goals janus64_run until [head]
+    all_goals (try (exfalso; omega; done))
+    all_goals (try (refine ih (len.toNat - (i + 1)) (by omega) _ (i + 1) rfl (by omega) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_))
+    all_goals (try (simp [setRegF_apply, hmem, hdf, hx15, hfs, h14, h6, h10, h2, h8, h7, h0, h12, h4, h5]; done))
+    all_goals (try (first | rfl | (simp only []; rfl) | decide))
+    all_goals (try (unfold LoopQ))
+    all_goals (try (refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩))
+    all_goals (try (simp [setRegF_apply, retAddrOf, hmem, hdf, hx15, hfs, h14, h6, h10, h2, h8, h7, h0, h12, h4, h5]; done))
+    all_goals (try (case refine_18 => 
+      (intro k hk hk'
+       by_cases hki : k < i
+       · exact hdig k hk hki
+       · have hk2 : k = i := by omega
+         subst hk2
+         unfold isDec
+         simp only [Fv256.C.bytesAt] at hb256 ⊢
+         omega)))
+    all_goals (try (case h.refine_5 =>
+      (have hc : 48 ≤ M.readLE (p.toNat + i) 1 ∧ M.readLE (p.toNat + i) 1 ≤ 57 := by
+         simp only [Fv256.C.bytesAt] at hb256
+         omega
+       simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
+       rw [Fv256.I.step_val _ _ hc.1 hc.2]
+       simp only [decSum, Fv256.C.bytesAt, Nat.zero_add])))
+    all_goals (try (case hq.refine_9 =>
+      first
+      | (have hil : i = len.toNat := by omega
+         subst hil
+         left
+         simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
+         refine ⟨hdig, ?_, rfl, rfl⟩
+         have h10 : 10 ^ len.toNat ≤ 10 ^ 19 := Nat.pow_le_pow_right (by decide) hL2
+         rw [BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega)])
+      | (right
+         simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
+         refine ⟨?_, ?_, ?_, ?_⟩
+         · intro hall
+           have h := hall i (by omega) (by omega)
+           simp only [Fv256.C.bytesAt, isDec] at h
+           have hcb : M.readLE (p.toNat + i) 1 < 256 := by simpa using Janus.Arm64.Memory.readLE_lt M (p.toNat + i) 1
+           have hD64 : decSum (Fv256.C.bytesAt M p.toNat) 0 i < 18446744073709551616 :=
+             Nat.lt_of_lt_of_le hdlt (Nat.le_trans (Nat.pow_le_pow_right (by decide) hi |> fun h => Nat.le_trans h (Nat.pow_le_pow_right (by decide) hL2)) (by decide))
+           clear ih hmem hpc h1 h6 h10 h11 h2 h8 h7 h0 h12 h4 h5 h14 hx15 hdf hfs hdig hsa hacc hrM hbp hret hy hdlt hb256 hall
+           generalize M.readLE (p.toNat + i) 1 = c at *
+           generalize decSum (Fv256.C.bytesAt M p.toNat) 0 i = D at *
+           simp only [← BitVec.toNat_inj, BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat,
+             BitVec.toNat_or, BitVec.toNat_mul, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod] at *
+           try rw [Nat.mod_eq_of_lt hD64] at *
+           omega
+         · first | rfl | decide
+         · first | rfl | decide
+         · first | rfl | decide)))
+    all_goals (try (
+      exfalso
+      have hD64 : decSum (Fv256.C.bytesAt M p.toNat) 0 i < 18446744073709551616 :=
+        Nat.lt_of_lt_of_le hdlt (Nat.le_trans (Nat.pow_le_pow_right (by decide) hi |> fun h => Nat.le_trans h (Nat.pow_le_pow_right (by decide) hL2)) (by decide))
+      have hcb : M.readLE (p.toNat + i) 1 < 256 := by simpa using Janus.Arm64.Memory.readLE_lt M (p.toNat + i) 1
+      clear ih hmem hpc h1 h6 h10 h11 h2 h8 h7 h0 h12 h4 h5 h14 hx15 hdf hfs hdig hsa hacc hrM hbp hret hy hdlt hb256
+      generalize M.readLE (p.toNat + i) 1 = c at *
+      generalize decSum (Fv256.C.bytesAt M p.toNat) 0 i = D at *
+      simp only [← BitVec.toNat_inj, BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat,
+        BitVec.toNat_or, BitVec.toNat_mul, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod] at *
+      try rw [Nat.mod_eq_of_lt hD64] at *
+      omega
+      done))
+
 
 end Fv256.Amd64.SfdParse

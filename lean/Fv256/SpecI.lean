@@ -570,4 +570,11 @@ theorem decParse_syntax (b : Nat → Nat) (n lo len : Nat) (h : decParse b n = .
       · exact key h
     · rw [if_neg h78'] at h; simp at h
 
+/-- splitting the number `[lo, n)` at `hi`: the high part `[lo, hi)` times `10^(n-hi)` plus the low part `[hi, n)` -/
+theorem decSum_split (b : Nat → Nat) (lo hi n : Nat) (h1 : lo ≤ hi) (h2 : hi ≤ n) :
+    decSum b lo (n - lo) = decSum b lo (hi - lo) * 10 ^ (n - hi) + decSum b hi (n - hi) := by
+  have := decSum_add b lo (hi - lo) (n - hi)
+  rw [show hi - lo + (n - hi) = n - lo by omega, show lo + (hi - lo) = hi by omega] at this
+  exact this
+
 end Fv256.I

@@ -146,4 +146,22 @@ theorem g1' (E : BitVec 32) (hge : 128 ≤ E.toNat) :
 theorem g2 (E : BitVec 32) : (BitVec.setWidth 64 E).toNat < 2 ^ 32 := by
   rw [BitVec.toNat_setWidth_of_le (by omega)]; exact E.isLt
 
+/-- the digit value `c - 48` of the byte `c`, as the machine computes it (`lea -0x30(%r13), %r15d` and `movzx`). -/
+theorem digitBV (c : Nat) (h1 : 48 ≤ c) (h2 : c ≤ 57) :
+    BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32
+      (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 c)) - 48#64))))) =
+      BitVec.ofNat 64 (c - 48) := by
+  apply BitVec.eq_of_toNat_eq
+  simp only [BitVec.toNat_setWidth, BitVec.toNat_sub, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]
+  omega
+
+theorem step_val (D c : Nat) (h1 : 48 ≤ c) (h2 : c ≤ 57) :
+    BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32
+      (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 c)) - 48#64))))) + BitVec.ofNat 64 D * 10#64 =
+      BitVec.ofNat 64 (D * 10 + (c - 48)) := by
+  rw [digitBV c h1 h2]
+  apply BitVec.eq_of_toNat_eq
+  simp only [BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]
+  omega
+
 end Fv256.I
