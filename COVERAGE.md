@@ -122,7 +122,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Sub` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
 | `(*uint256.Int).SubOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubOverflow.lean |
 | `(*uint256.Int).SubUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubUint64.lean |
-| `(*uint256.Int).ToBig` | FV-C | verified (+ witness) | todo | arm64 (fv/wc cfef22a, merged; Janus ffaae554, correctness + Witness.nonvacuous in one run each): ToBig arm64: premise `ImplApart Extracted.program impl`; the internal call to IntoBig goes through ofImpl / Ensures.toSummaryIn (first fully verified internal-call proof); shared lemmas IntoBigCommon. amd64 in progress |
+| `(*uint256.Int).ToBig` | FV-C | verified (+ witness) | verified (+ witness) | arm64 (fv/wc cfef22a, merged; Janus ffaae554, correctness + Witness.nonvacuous in one run each): ToBig arm64: premise `ImplApart Extracted.program impl`; the internal call to IntoBig goes through ofImpl / Ensures.toSummaryIn (first fully verified internal-call proof); shared lemmas IntoBigCommon. amd64 in progress | amd64 (fv/wc 7ef75da, Janus 2452acd6, correctness + Witness.nonvacuous in one run): 1260 s; Summary.mono call to IntoBig.
 | `(*uint256.Int).Uint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |
 | `(*uint256.Int).Uint64WithOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64WithOverflow.lean |
 | `(*uint256.Int).UnmarshalJSON` | FV-E | todo | todo | |
