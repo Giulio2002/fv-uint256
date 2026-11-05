@@ -15,11 +15,11 @@ open Fv256.Amd64.UdivremA
 namespace Fv256.Amd64.UdivremE
 
 set_option maxHeartbeats 16000000 in
-theorem midB (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
-    (hs : s ≤ 63) (hn : n ≤ 4) (hn2 : 2 ≤ n) (hulen : ulen ≤ 4) (hulen1 : n ≤ ulen) (hql : ql = 4)
+theorem midB {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hn : n ≤ 4) (hn2 : 2 ≤ n) (hulen : ulen ≤ L) (hulen1 : n ≤ ulen) (hql : ql = L)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x190 true = true)
-    (hqb : qp + 32 ≤ 2 ^ 48) (hqa : M.accessible qp 32 true = true)
-    (hqs : qp + 32 ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
+    (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M.accessible qp (8 * L) true = true)
+    (hqs : qp + 8 * L ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
     (hx15 : s0.xmm 15 = 0) (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M.accessible ((R 14).toNat + 16) 8 false = true)
     (hg3 : M.readLE ((R 14).toNat + 16) 8 < sf - 8) (hgd : (R 14).toNat + 24 ≤ sf - 0x58 ∨ sf + 0x138 ≤ (R 14).toNat + 16)
     (e2 : R 2 = BitVec.ofNat 64 (sf + 72)) (e3 : R 3 = BitVec.ofNat 64 ql) (e10 : R 10 = BitVec.ofNat 64 (ulen + 1)) (e12 : R 12 = BitVec.ofNat 64 n)
@@ -61,11 +61,11 @@ theorem midB (s0 : State) (qp qcap ql ulen n s sf : Nat) (R : Nat → W64) (fl :
   all_goals trace_state
 
 set_option maxHeartbeats 16000000 in
-theorem midB1 (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
-    (hs : s ≤ 63) (hulen : ulen ≤ 4) (hulen1 : 1 ≤ ulen) (hql : ql = 4)
+theorem midB1 {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen s sf d0 : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
+    (hs : s ≤ 63) (hulen : ulen ≤ L) (hulen1 : 1 ≤ ulen) (hql : ql = L)
     (hsf : sf + 0x138 ≤ 2 ^ 48) (hsf0 : 0x60 ≤ sf) (hMs : M.accessible (sf - 0x58) 0x190 true = true)
-    (hqb : qp + 32 ≤ 2 ^ 48) (hqa : M.accessible qp 32 true = true)
-    (hqs : qp + 32 ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
+    (hqb : qp + 8 * L ≤ 2 ^ 48) (hqa : M.accessible qp (8 * L) true = true)
+    (hqs : qp + 8 * L ≤ sf - 0x58 ∨ sf + 0x138 ≤ qp)
     (hx15 : s0.xmm 15 = 0) (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M.accessible ((R 14).toNat + 16) 8 false = true)
     (hg3 : M.readLE ((R 14).toNat + 16) 8 < sf - 8) (hgd : (R 14).toNat + 24 ≤ sf - 0x58 ∨ sf + 0x138 ≤ (R 14).toNat + 16)
     (e2 : R 2 = BitVec.ofNat 64 (sf + 72)) (e3 : R 3 = BitVec.ofNat 64 ql) (e10 : R 10 = BitVec.ofNat 64 (ulen + 1))
