@@ -43,21 +43,24 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
 namespace Witness
 
 open Janus.Contracts.SatAmd64
-open Janus.Contracts.Sat (rtW H0)
+open Janus.Contracts.Sat (rtW)
 
-def implAt : List Amd64.Segment := [{ name := "model", base := ssAddr, bytes := constCode64 0 0 0 }]
+/-- a toy `slicebytetostring` (accepts every call): returns the argument string itself, `MOV RAX,RBX; MOV RBX,RCX; RET` -/
+def implAt : List Amd64.Segment := [{ name := "model", base := ssAddr, bytes := [0x48, 0x89, 0xd8, 0x48, 0x89, 0xcb, 0xc3] }]
 def linked : Amd64.Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
 theorem linked_eq : Extracted.program.link implAt = linked := rfl
 
-theorem model : RtContract64 (Extracted.program.link implAt) ssAddr rtW 4096 H0 slicebytetostringSpec := by
+/-- the toy runtime is ready for every call -/
+def Hall : RtReady := fun _ _ _ _ => True
+
+theorem model : RtContract64 (Extracted.program.link implAt) ssAddr rtW 4096 Hall slicebytetostringSpec := by
   rw [linked_eq]
-  rintro s hpc ⟨⟨hra, hal, hsb, hsa, hacc⟩, -, -, -, hH⟩
-  have ha := ready_of rfl hH
-  simp only [Ready64, H0, arg, List.getD_eq_getElem?_getD] at ha
+  rintro s hpc ⟨⟨hra, hal, hsb, hsa, hacc⟩, ⟨hbuf, hstr, hdis⟩, -, -, -⟩
+  simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD] at hstr
   janus64_run
   apply rtPost_const <;> (try rfl) <;> (try simp [retAddrOf]) <;> (try simp [setRegF])
-  simp only [slicebytetostringSpec] at ha ⊢
-  simp [ha, Spec.strBytes]
+  simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, GoABI.argReg, GoABI.intArgRegs]
+  simpa [StrIn] using hstr
 
 def ret : Nat := 0x200000
 def sp0 : Nat := 0x100000
@@ -67,6 +70,7 @@ def dsegs : List DataSegment := Extracted.data
 
 def bytes (a : Nat) : Byte :=
   if a = sp0 + 2 then 0x20 else
+  if a = zp + 8 then 1 else
   match dsegs.find? (fun d => decide (d.base ≤ a ∧ a < d.base + d.bytes.length)) with
   | some d => BitVec.ofNat 8 (d.bytes.getD (a - d.base) 0)
   | none => 0
@@ -97,22 +101,17 @@ theorem pre : StackGuardOK s0 0x378 ∧ StackWritable s0 4568 8 ∧ Extracted.pr
     (arg.toNat + 32 ≤ (s0.regs 4).toNat - 4568 ∨ (s0.regs 4).toNat + 8 ≤ arg.toNat) ∧
     ((s0.regs 14).toNat + 24 ≤ (s0.regs 4).toNat - 4568 ∨ (s0.regs 4).toNat + 8 ≤ (s0.regs 14).toNat + 16) ∧
     (2 ^ 64 ≤ s0.mem.readLE arg.toNat 32 →
-      H0 [0, (s0.regs 4).toNat - 0x178 + 86 + (98 - decLen (s0.mem.readLE arg.toNat 32)), decLen (s0.mem.readLE arg.toNat 32)]
+      Hall [0, (s0.regs 4).toNat - 0x178 + 86 + (98 - decLen (s0.mem.readLE arg.toNat 32)), decLen (s0.mem.readLE arg.toNat 32)]
         (s0.regs 14).toNat ((s0.regs 4).toNat - 0x178 - 8) (rtView rtW s0.mem)) ∧
     (100 ≤ s0.mem.readLE arg.toNat 32 → s0.mem.readLE arg.toNat 32 < 2 ^ 64 →
-      H0 [0, (s0.regs 4).toNat - 384 - 0x20 + (24 - decLen (s0.mem.readLE arg.toNat 32)), decLen (s0.mem.readLE arg.toNat 32)]
+      Hall [0, (s0.regs 4).toNat - 384 - 0x20 + (24 - decLen (s0.mem.readLE arg.toNat 32)), decLen (s0.mem.readLE arg.toNat 32)]
         (s0.regs 14).toNat ((s0.regs 4).toNat - 384 - 0x58) (rtView rtW s0.mem)) := by
-  have hz : s0.mem.readLE arg.toNat 32 = 0 := by
-    unfold s0 arg zp
-    decide
   refine ⟨⟨by decide, by decide, by unfold stackguard0 stackguard0Offset regG regSP; decide⟩,
     ⟨by decide, by decide, by decide⟩, dataLoaded, ?_, ?_, ?_, by decide, ⟨by decide, by decide⟩, by decide, by decide,
-    fun h => ?_, fun h _ => ?_⟩
+    fun _ => trivial, fun _ _ => trivial⟩
   · simp only [rtW, outside_cons, outside_nil]; decide
   · simp only [rtW, outside_cons, outside_nil]; decide
   · simp only [rtW, outside_cons, outside_nil]; decide
-  · rw [hz] at h; exact absurd h (by decide)
-  · rw [hz] at h; exact absurd h (by decide)
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
@@ -131,7 +130,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     (100 ≤ s.mem.readLE z.toNat 32 → s.mem.readLE z.toNat 32 < 2 ^ 64 →
       H [0, (s.regs 4).toNat - 384 - 0x20 + (24 - decLen (s.mem.readLE z.toNat 32)), decLen (s.mem.readLE z.toNat 32)]
         (s.regs 14).toNat ((s.regs 4).toNat - 384 - 0x58) (rtView rt s.mem))) :=
-  ⟨implAt, rtW, H0, ret, s0, arg, model, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+  ⟨implAt, rtW, Hall, ret, s0, arg, model, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
 
 end Witness
 
