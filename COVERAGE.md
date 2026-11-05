@@ -203,3 +203,11 @@ Light check by grep on every branch (`namespace Witness`, `nonvacuous`, `returns
 * `tools/v.sh` and `scripts/verify-all.sh` accept `WITNESS=1`: they then also pass `--theorem Fv256.<ISA>.<Fn>.Witness.nonvacuous` for every proof that has such a theorem. Off by default until Janus accepts repeated `--theorem`.
 * 180 proofs have a theorem named `Witness.nonvacuous`; 10 do not (FromBig, MustFromBig, FromHex, MustFromHex, MarshalSSZ on both ISAs): FV-C owns the conversion.
 * Shape not yet checked against the final rule (statement must be `∃ …` with a conjunct for every hypothesis, contract hypotheses included): the allocation-contract proofs Clone, NewInt, Bytes, PaddedBytes (both ISAs where present) state `nonvacuous` as `CallSetup … ∧ pre` with no `∃` and without the `hnew`/`hmk` contract as a conjunct. FV-A will restate these four once the rule lands.
+
+## Internal summaries (non-exported callees, master 48f3f44)
+| Internal | ISA | Owner | Status | Notes |
+|---|---|---|---|---|
+| `math/bits.Div64` | arm64 | FV-G | verified | fv/wg 38fe41e, Arm64/Div64.lean, Janus ffaae554 |
+| `udivremBy1` | arm64 | FV-G | verified | fv/wg 76882db, Arm64/By1.lean |
+| `udivremKnuth` | arm64 | FV-H | verified | fv/wh 0aa9a06, Arm64/KnuthSummary.lean (16 min wall cold) |
+| `udivrem` entry | arm64 | FV-G | conditional on hKn | fv/wg 409c8d8, Arm64/UdivremE.lean; FV-G re-verifying unconditionally. Exported arm64 Div/Mod (FV-G) and DivMod/SDiv/SMod (FV-H) in progress |
