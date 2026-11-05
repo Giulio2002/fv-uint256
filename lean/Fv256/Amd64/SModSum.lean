@@ -8,11 +8,17 @@ import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
+import Fv256.CodeIn
+import Fv256.ModProg
 import Fv256.Amd64.ModSum
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.SModSum
+
+set_option maxRecDepth 100000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 abbrev smodEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SMod"
 
@@ -47,7 +53,7 @@ theorem smod_summary :
   have hy2 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 16)
   have hy3 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 24)
   have hdv := Nat.div_le_self (s.mem.readLE (s.regs 3).toNat 8) (s.mem.readLE (s.regs 1).toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.Amd64.ModSum.mod_summary]
+  janus64_run [Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.ModSum.mod_summary]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)

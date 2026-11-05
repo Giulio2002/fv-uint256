@@ -8,6 +8,8 @@ import Fv256.UtilB2
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
+import Fv256.CodeIn
+import Fv256.DivProg
 import Fv256.Amd64.DivSum
 
 /-!
@@ -26,6 +28,10 @@ The proof uses the verified summary of `Div` (proved in this file for this extra
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.SDiv
+
+set_option maxRecDepth 100000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.DivProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 open Fv256.Amd64.DivSum
 
@@ -48,6 +54,8 @@ end Local
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
+set_option profiler true in
+set_option profiler.threshold 5000 in
 theorem correctness (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => StackGuardOK s 0x210 ∧ 0x268 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x260 0x10 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
@@ -74,7 +82,7 @@ theorem correctness (z x y : BitVec 64) :
   have hy1 := Util.readLE8_lt s.mem (y.toNat + 8)
   have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
   have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
-  janus64_run [Util.msb_m1, Util.msb_0, Util.msb_1, Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.Amd64.DivSum.div_summary]
+  janus64_run [Util.msb_m1, Util.msb_0, Util.msb_1, Util.readLE_32, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.DivSum.div_summary]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
