@@ -118,7 +118,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).SizeSSZ` | FV-C | verified | verified | lean/Fv256/{Arm64,Amd64}/SizeSSZ.lean |
 | `(*uint256.Int).Slt` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Slt.lean |
 | `(*uint256.Int).Sqrt` | FV-F | todo | todo | |
-| `(*uint256.Int).String` | FV-E | todo | todo | |
+| `(*uint256.Int).String` | FV-E | verified (+ witness) | verified (+ witness) | fv/we 6b04caf, correctness + Witness.nonvacuous in one run per ISA (arm64 41m14s, amd64 44m07s, pre-repin; dec_summary over the ChainProg library); lean/Fv256/{Arm64,Amd64}/String.lean, spec PrettyMath.lean |
 | `(*uint256.Int).Sub` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
 | `(*uint256.Int).SubOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubOverflow.lean |
 | `(*uint256.Int).SubUint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubUint64.lean |
@@ -143,10 +143,10 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).IMul` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/IMul.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 116 s / amd64 159 s) |
 | `(*uint256.Int).IDiv` | FV-D | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-D, fv/wd 1c20bf1, on the shared ChainProg/ModProg library; correctness + Witness.nonvacuous in one run; 2097 s cold, 8 s warm): lean/Fv256/Amd64/IDiv.lean calling DivSum/ModSum summaries; spec z' = divSpec z x, x = 0 gives 0; z and x may overlap. arm64 todo |
 | `(*uint256.Int).IMod` | FV-D | todo | verified (+ witness) | amd64 on master 48f3f44 (FV-D, fv/wd 1c20bf1, on the shared ModProg library; correctness + Witness.nonvacuous in one run; 1785 s cold): lean/Fv256/Amd64/IMod.lean calling DivSum/ModSum summaries; spec z' = modSpec z x, x = 0 gives 0; z and x may overlap. arm64 todo |
-| `(*uint256.Int).ISMod` | FV-D | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISMod` | FV-D | todo | verified (+ witness) | amd64 fv/wd e2fc9ae, correctness + Witness.nonvacuous in one run, pre-library chain 2898 s, SModProg form with Extracted-importing summaries 3261 s; re-verified on the Extracted-free library form (fv/wd e2fc9ae, 9 s warm in wd/wip-d/logs): exact cold time NOT recorded in FV-D's logs (log overwritten by the cached rerun), to be re-measured. arm64 todo |
 | `(*uint256.Int).IMulModWithReciprocal` | FV-D | todo | todo | new in master 48f3f44 |
 | `(*uint256.Int).IMulMod` | FV-D | todo | todo | new in master 48f3f44 |
-| `(*uint256.Int).ISDiv` | FV-D | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISDiv` | FV-D | todo | verified (+ witness) | amd64 fv/wd e2fc9ae, correctness + Witness.nonvacuous in one run, 282 s on the library form (SDivProg + Extracted-free SDivSum, as reported by FV-D's predecessor; the log kept on disk is the 9 s warm rerun; earlier forms: 2501 s per-extraction chain, 2818 s with Extracted-importing summaries). arm64 todo |
 | `(*uint256.Int).ILsh` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/ILsh.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 97 s / amd64 128 s) |
 | `(*uint256.Int).IRsh` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/IRsh.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 98 s / amd64 146 s) |
 | `(*uint256.Int).ISRsh` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/ISRsh.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 97 s / amd64 261 s) |
@@ -215,7 +215,7 @@ Not exported symbols: rows deliberately do not start with a backtick, so scripts
 
 ## Pending rows reported by workers (not yet merged into fv/master)
 * FV-E: `Dec` amd64 (53 min) and arm64 (41 min) verified with witnesses; interim: formatBits stubbed, branch proved unreachable (base 10); re-verify without the stub after the repin to dbd8224e.
-* FV-D: `ISDiv` 2501 s and `ISMod` 2898 s amd64 verified on the per-extraction chain; re-verify on the library form pending.
+* (merged 2026-11-05: ISDiv/ISMod amd64, String both ISAs.)
 
 
 Division speed pass 1 (FV-B, bc15219, Janus 6365855c, all 3 theorems each): SDiv 2611 to 192 s, SMod 2924 to 12 s, Div 2519 to 114 s, Mod 2637 to 240 s (DivMod unchanged at 2625 s).
