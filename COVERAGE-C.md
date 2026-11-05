@@ -92,3 +92,6 @@ FV-E (fv/we) now owns the decimal/text family on master: Dec, String, PrettyDec,
 
 ## IntoBig / ToBig arm64: VERIFIED (2026-11-05, janus integ/speed15 ffaae554)
 `janus verify`: Fv256.Arm64.IntoBig.{correctness, Witness.nonvacuous} and Fv256.Arm64.ToBig.{correctness, Witness.nonvacuous}: all four "verified" (axioms Classical.choice/Quot.sound/propext, leanchecker passed). ToBig is the first internal-call proof: premise `ImplApart Extracted.program impl`, callee IntoBig proved over `(P.onlySegments [IntoBig]).link impl` and bridged with `Ensures.toSummary`. Logs: /srv/fv-uint256-wC-v/{vtb3,vib4}.log. Pending: amd64 ports.
+
+## IntoBig amd64: VERIFIED (2026-11-05, janus integ/speed15 aab47543)
+`janus verify` one run, both theorems: Fv256.Amd64.IntoBig.correctness VERIFIED + Fv256.Amd64.IntoBig.Witness.nonvacuous VERIFIED, 1997 s wall cold (LEAN_NUM_THREADS=8, JANUS_JOBS=2). Contracts assumed: NewobjectLiveContract64@runtime.newobject, WbLiveContract64@runtime.gcWriteBarrier1/2. Witness: stub runtime (newobjectSeg/wbSeg) at the contract addresses, IntoBig(z,&b) with b==nil. Chain: lean/Fv256/Amd64/IntoBig{Defs,FinF,Close,Loop,Tail,Slow3,Mid,T}.lean sharing lean/Fv256/IntoBigCommon.lean with arm64. Speed recipe (janus_assumption) not yet applied. Log /srv/fv-uint256-wC-v/vib5.log.
