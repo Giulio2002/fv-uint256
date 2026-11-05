@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -35,7 +35,7 @@ theorem caseOne {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (R : Nat → W
     (hrs : remp ≠ 0 → remp + 32 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ remp) (hra47 : ra < 2 ^ 47) (hx15 : s0.xmm 15 = 0)
     (hg1 : (R 14).toNat + 24 ≤ 2 ^ 48) (hg2 : M0.accessible ((R 14).toNat + 16) 8 false = true)
     (hg3 : M0.readLE ((R 14).toNat + 16) 8 < sp0 - 0xf8) (hgd : (R 14).toNat + 24 ≤ sp0 - 0x148 ∨ sp0 + 0x48 ≤ (R 14).toNat + 16) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 ra)
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 ra)
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x1a0), flags := fl, mem := M }
       (UPost L s0 M0 sp0 dp qp up remp ra rbpv g) := by
   have hcode := ku_lt

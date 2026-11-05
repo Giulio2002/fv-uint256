@@ -8,6 +8,7 @@ import Fv256.UtilB2
 import Fv256.SpecF
 import Fv256.UtilF
 import Fv256.Amd64.UmulSum
+import Fv256.CodeIn
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
@@ -15,6 +16,10 @@ import Fv256.Amd64.UdivremL
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.MulDivOverflow
+
+set_option maxRecDepth 100000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
@@ -41,7 +46,7 @@ theorem correctness (z x y d : BitVec 64) :
   simp only [regSP] at hacc hlow hnw hdz hdx hdy hdd hsp
   simp only [valueAt]
   have hL : 4 ≤ 8 ∧ 8 ≤ 8 := by omega
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero4, Fv256.F.wv_zero4', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UmulSum.umul_summary, Fv256.Amd64.UdivremL.udivrem_nil_L (L := 8) (by omega)]
+  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero4, Fv256.F.wv_zero4', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UmulSum.umul_summary, Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_nil_L (L := 8) (by omega))]
   all_goals (first
     | (refine ⟨?_, ?_, ?_⟩
        · simp_all [Fv256.F.muldivOv, Fv256.F.muldivSpec]

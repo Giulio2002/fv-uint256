@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -28,7 +28,7 @@ theorem midB {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen 
     (m_f8 : M.readLE (sf + 0xf8) 8 = qp)
     (hdtop : 2 ^ 63 ≤ M.readLE (sf + 0x98 + 8 * (n - 1)) 8)
     (hD : Fv256.B.wv M (sf + 0x48 + 8 * (ulen + 1 - n)) n < Fv256.B.wv M (sf + 0x98) n) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x2e5))
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (ku + 0x2e5))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x29f), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x2e5), flags := fl', mem := M' } ∧
@@ -73,7 +73,7 @@ theorem midB1 {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) (s0 : State) (qp qcap ql ulen
     (m_f8 : M.readLE (sf + 0xf8) 8 = qp) (m_98 : M.readLE (sf + 0x98) 8 = d0)
     (hd0 : d0 < 2 ^ 64) (hdtop : 2 ^ 63 ≤ d0)
     (hD : M.readLE (sf + 72 + 8 * ulen) 8 < d0) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x355))
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (ku + 0x355))
       { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x32e), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (rr : Nat),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x355), flags := fl', mem := M' } ∧

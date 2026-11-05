@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -21,7 +21,7 @@ theorem knuth_entry (s : State) (up dp qp n m ql cap dh dl : Nat)
     (hdh63 : 2 ^ 63 ≤ dh)
     (hdp : dp + 8 * n ≤ 2 ^ 48) (hda : s.mem.accessible dp (8 * n) false = true)
     (hw : StackWritable s 0x50 0x40) (hdisj : dp + 8 * n ≤ (s.regs 4).toNat - 0x50 ∨ (s.regs 4).toNat + 0x40 ≤ dp) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0xd1)) { s with rip := BitVec.ofNat 64 kn }
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (kn + 0xd1)) { s with rip := BitVec.ofNat 64 kn }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory) (v : Nat),
         S' = { s with regs := R', rip := BitVec.ofNat 64 (kn + 0xd1), flags := fl', mem := M' } ∧
         v + 2 ^ 64 = (2 ^ 64 * 2 ^ 64 - 1) / dh ∧

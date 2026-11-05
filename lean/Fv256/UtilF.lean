@@ -123,4 +123,20 @@ theorem mdo_main (X Y D sp : Nat) (M : Janus.Arm64.Memory) (hsp : 136 ≤ sp) (h
       simp [this]
   · omega
 
+
+theorem lsb_w64 (w : Nat) : (BitVec.ofNat 64 w).getLsbD 0 = decide (w % 2 = 1) := by
+  rw [BitVec.getLsbD_eq_getElem (by decide)]
+  rw [BitVec.getElem_eq_testBit_toNat, BitVec.toNat_ofNat]
+  simp [Nat.testBit_zero]
+
+theorem lsb_w32 (w : Nat) : (BitVec.setWidth 32 (BitVec.ofNat 64 w)).getLsbD 0 = decide (w % 2 = 1) := by
+  rw [BitVec.getLsbD_eq_getElem (by decide)]
+  rw [BitVec.getElem_eq_testBit_toNat, BitVec.toNat_setWidth, BitVec.toNat_ofNat]
+  simp [Nat.testBit_zero, Nat.mod_mod_of_dvd]
+
+theorem shr1_w64 (w : Nat) (hw : w < 2 ^ 64) : (BitVec.ofNat 64 w >>> 1) = BitVec.ofNat 64 (w / 2) := by
+  apply BitVec.eq_of_toNat_eq
+  simp [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]
+  omega
+
 end Fv256.F

@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -20,7 +20,7 @@ theorem ofNat_toNat64 (x : W64) : BitVec.ofNat 64 x.toNat = x := by simp
 
 set_option maxHeartbeats 32000000 in
 theorem udivrem_summary_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
-    Summary Extracted.program ku
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = L ∧ (s.regs 3).toNat = L ∧
@@ -139,7 +139,7 @@ theorem udivrem_summary_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
 
 /-- the `L = 4` instance (unchanged statement; used by the 4-limb `Div`/`Mod`/`DivMod` wrappers) -/
 theorem udivrem_summary :
-    Summary Extracted.program ku
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = 4 ∧ (s.regs 3).toNat = 4 ∧

@@ -5,6 +5,7 @@ import Fv256.SpecB
 import Fv256.UtilB
 import Fv256.SpecB2
 import Fv256.UtilB2
+import Fv256.CodeIn
 import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
@@ -28,6 +29,10 @@ before the call (`x % y`, or `0` when `y = 0`), and no byte outside `z[0..32)` a
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Mod
+
+set_option maxRecDepth 100000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
@@ -61,7 +66,7 @@ theorem correctness (z x y : BitVec 64) :
   have hs72 : (s.regs 4 - 72#64).toNat = (s.regs 4).toNat - 72 := by
     rw [BitVec.toNat_sub]; simp only [BitVec.toNat_ofNat]; have := (s.regs 4).isLt; omega
   have hr1 : s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true := Janus.Arm64.Memory.accessible_mono _ hacc (by omega) (by omega)
-  janus64_run [hs72, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.Amd64.UdivremL.udivrem_rem]
+  janus64_run [hs72, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcChain Fv256.Amd64.UdivremL.udivrem_rem]
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)

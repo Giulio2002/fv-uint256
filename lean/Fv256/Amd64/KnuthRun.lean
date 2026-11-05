@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -18,7 +18,7 @@ theorem knuth_loop (s0 : State) (up dp qp n m ql v dl dh cap : Nat) (M0 : Memory
     (K : KC up dp qp n m ql v dl dh cap sp.toNat M0) :
     ∀ k, k ≤ m - n → ∀ (R : Nat → W64) (fl : Flags) (M : Memory), HeadR R k v n m up dp dl dh cap ql sp →
       KInv M0 M up dp qp n m sp.toNat k →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0x26b))
+      ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (kn + 0x26b))
         { s0 with regs := R, rip := BitVec.ofNat 64 (kn + 0xd1), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
           S' = { s0 with regs := R', rip := BitVec.ofNat 64 (kn + 0x26b), flags := fl', mem := M' } ∧
