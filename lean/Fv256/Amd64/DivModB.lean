@@ -104,16 +104,23 @@ theorem partB (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (z x y m : Bi
          (first
            | omega
            | (exfalso; omega)
+           | (with_reducible exact Fv256.B.one_eq_div _ _ (by omega) (by omega))
            | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
+           | (with_reducible exact (Nat.div_eq_of_lt (by omega)).symm)
            | exact (Nat.div_eq_of_lt (by omega)).symm
+           | (with_reducible exact Fv256.B.div_congr _ _ _ (by omega))
            | exact Fv256.B.div_congr _ _ _ (by omega)))
     | (rw [Fv256.B.modSpec]
        split <;>
          (first
            | omega
            | (exfalso; omega)
+           | (rw [Fv256.B.mod64_mod _ _ (by omega)]; with_reducible exact Fv256.B.mod_congr _ _ _ (by omega))
+           | (with_reducible exact Fv256.B.zero_eq_mod_self _ _ (by omega))
            | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
+           | (with_reducible exact (Nat.mod_eq_of_lt (by omega)).symm)
            | exact (Nat.mod_eq_of_lt (by omega)).symm
+           | (with_reducible exact Fv256.B.mod_congr _ _ _ (by omega))
            | exact Fv256.B.mod_congr _ _ _ (by omega)
            | (rw [Fv256.B.mod64_mod _ _ (by omega)]; exact Fv256.B.mod_congr _ _ _ (by omega))))
     | (exfalso; omega))
