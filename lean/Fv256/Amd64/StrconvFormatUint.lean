@@ -14,6 +14,15 @@ namespace Fv256.Amd64.Dec
 abbrev fu : Nat := segAddr Extracted.program "internal/strconv.FormatUint"
 abbrev ssAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"
 
+theorem tabs_frame_out {M M' : Memory} (h : TabsOK M) {rs : List (Nat × Nat)} (hf : MemFrame M M' rs)
+    (h1 : Outside 5163273 256 rs) (h2 : Outside 5176582 256 rs) : TabsOK M' := by
+  refine TabsOK.intro (by rw [hf.accessible]; exact h.acc1) (by rw [hf.accessible]; exact h.acc2) (fun d hd => ?_) (fun d hd => ?_)
+    (fun a n hw' => ?_)
+  · rw [hf.readLE _ _ (Outside.of_sub h1 (by omega) (by omega))]; exact h.dig d hd
+  · rw [hf.readLE _ _ (Outside.of_sub h2 (by omega) (by omega)), hf.readLE _ _ (Outside.of_sub h2 (by omega) (by omega))]
+    exact h.smalls d hd
+  · rw [hf.accessible] at hw'; exact h.ap _ _ hw'
+
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady)
@@ -76,7 +85,7 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
     have hdl20 := decLen_le_20 _ hu
     have hsp := (s.regs 4).isLt
     janus64_run [hb10] until [4227552]
-    refine ReachesRet.call fb ?_ ?_ ?_
+    refine ReachesRet.call_regions fb ?_ ?_ ?_
     · rfl
     · have h58 := toNat_sub_lit (s.regs 4) 0x58 (by omega)
       have h20 := toNat_sub_lit (s.regs 4) 0x20 (by omega)
@@ -92,7 +101,7 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
         | (simp only [Janus.Arm64.Memory.accessible_writeLE]; exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega))
         | (rw [Janus.Arm64.Memory.readLE_writeLE_self]; decide)
         | skip
-    · intro sA hrip ⟨b0, b4, b5, b14, bx, bdf, bmx, bdig, bfr, btab⟩
+    · intro sA hrip ⟨b0, b4, b5, b14, bx, bdf, bmx, bdig, bfr, btab⟩ hrgA
       simp [setRegF] at b0 b4 b5 b14 bx bdig bfr
       have e32 : (18446744073709551584 + (s.regs 4).toNat) % 18446744073709551616 = (s.regs 4).toNat - 32 := by omega
       simp only [e32] at bfr bdig
@@ -103,7 +112,67 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
       have hb0' : (sA.regs 0).toNat = 24 - decLen (s.regs 0).toNat := by
         rw [b0, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega)]
       have hH2 := hH hge
+      have hfs : MemFrame s.mem sA.mem [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)] := by
+        refine MemFrame.trans (rs := [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) ?_ bfr ?_
+        · repeat' (first | exact MemFrame.refl _ _ | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) ?_ ?_)
+          all_goals (dsimp only; omega)
+        · intro a n h
+          refine ⟨h, ?_⟩
+          simp only [outside_cons] at h ⊢
+          refine ⟨?_, ?_, ?_, trivial⟩ <;> omega
+      have hrtv : rtView rt sA.mem = rtView rt s.mem := by
+        refine Janus.Contracts.Stack.rtView_eq_of_frame hfs ?_ ?_
+        · simpa using hrgA
+        · intro a ha
+          obtain ⟨r, hr, h1, h2⟩ := ha
+          have := MemFrame.outside_mem hrt1 hr
+          simp only [outside_cons]
+          exact ⟨by omega, trivial⟩
+      have hacc3 : 0 < 18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat)) →
+          Arm64.Memory.accessible s.mem ((s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48)
+            (18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat))) false = true :=
+        fun _ => accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
+      have hH3 : H [0, (s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48,
+          18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat))]
+          (s.regs 14).toNat ((s.regs 4).toNat - 88) (rtView rt sA.mem) := by
+        rw [hrtv]
+        have e1 : (s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48 = (s.regs 4).toNat - 0x20 + (24 - decLen (s.regs 0).toNat) := by omega
+        have e2 : 18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat)) = decLen (s.regs 0).toNat := by omega
+        rw [e1, e2]; exact hH2
+      have hF : False → Spec.Disjoint ((s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48)
+          (18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat))) 0 32 := fun h => h.elim
       janus64_run [hmask, hmask2] calls [hc]
-      all_goals (try trace_state)
-      all_goals sorry
+      rename_i _ w9 w8 _ _ _ _ _ w2 _ _ hleft hright
+      obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
+      have eL : 18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat)) = decLen (s.regs 0).toNat := by omega
+      have eA : (s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48 = (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) := by omega
+      rw [eL, eA] at hr1 hr4
+      have hdig : strBytes sA.mem ((s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat)) (decLen (s.regs 0).toNat) = decBytes (s.regs 0).toNat :=
+        strBytes_dec _ _ _ (fun k hk => by
+          have := bdig k hk
+          rw [← Janus.Arm64.Memory.readLE_one] at this
+          have e : (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) + decLen (s.regs 0).toNat - 1 - k = (s.regs 4).toNat - 32 + 23 - k := by omega
+          rw [e]; exact this)
+      have hap := htab.apart hwa
+      refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_⟩
+      · rw [hr1, hdig]
+      · rw [hr4]; exact hdig
+      · have hfs' : MemFrame s.mem sA.mem (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) :=
+          hfs.mono (fun a n h => by simp only [outside_append] at h; exact h.2)
+        have h1 : MemFrame sA.mem (Arm64.Memory.writeLE sA.mem ((s.regs 4).toNat - 88) 8 4225542)
+            (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) :=
+          MemFrame.of_writeLE sA.mem 4225542 (List.mem_append_right _ (List.mem_singleton_self _)) (by dsimp only; omega) (by dsimp only; omega)
+        have h2 : MemFrame (Arm64.Memory.writeLE sA.mem ((s.regs 4).toNat - 88) 8 4225542) w2
+            (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) := by
+          refine hleft.mono (fun a n h => ?_)
+          simp only [outside_append, outside_cons] at h ⊢
+          refine ⟨h.1, ?_, ?_, trivial⟩ <;> omega
+        exact hfs'.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+      · have hacc : sA.mem.accessible ((s.regs 4).toNat - 88) 8 true = true := by
+          rw [hfs.accessible]; exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
+        refine tabs_frame_out (btab.writeLE hacc 4225542) hleft ?_ ?_
+        · simp only [outside_append, outside_cons]
+          refine ⟨hrt2, ?_, ?_, trivial⟩ <;> omega
+        · simp only [outside_append, outside_cons]
+          refine ⟨hrt3, ?_, ?_, trivial⟩ <;> omega
 end Fv256.Amd64.Dec
