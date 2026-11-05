@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -10,7 +10,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.UdivremA
 
-abbrev ku : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivrem"
+abbrev ku : Nat := segAddr Fv256.Arm64.ChainProg.program "github.com/holiman/uint256.udivrem"
 
 abbrev dhead : Nat := ku + 0x30
 abbrev dexit : Nat := ku + 0x4c
@@ -36,11 +36,11 @@ theorem dlen_loop (T : State) (ret : W64) (Q : State → Prop) (dp : Nat) (M : M
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (n : Nat), R' 9 = BitVec.ofNat 64 n → n ≤ 4 →
       (∀ j, n ≤ j → j < 4 → M.readLE (dp + 8 * j) 8 = 0) → (0 < n → M.readLE (dp + 8 * (n - 1)) 8 ≠ 0) →
       (∀ k, k ∉ [5, 9, 27] → R' k = R0 k) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 dexit, flags := fl', mem := M } Q) :
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 dexit, flags := fl', mem := M } Q) :
     ∀ t (R : Nat → W64) (fl : Flags), t ≤ 4 → R 6 = BitVec.ofNat 64 dp → R 5 = BitVec.ofNat 64 t - 1 →
       (∀ k, k ∉ [5, 9, 27] → R k = R0 k) →
       (∀ j, t ≤ j → j < 4 → M.readLE (dp + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 dhead, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 dhead, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : dhead
   janus_eval_nat hh2 : dexit
@@ -97,8 +97,8 @@ theorem pro1 (s : State) (ret : W64) (Q : State → Prop)
       MemFrame s.mem M' [(s.sp.toNat - 232, s.sp.toNat - 216), (s.sp.toNat + 8, s.sp.toNat + 16), (s.sp.toNat + 32, s.sp.toNat + 40)] →
       M'.readLE (s.sp.toNat - 224) 8 = (s.regs 30).toNat → M'.readLE (s.sp.toNat - 232) 8 = (s.regs 29).toNat →
       M'.readLE (s.sp.toNat + 8) 8 = (s.regs 0).toNat → M'.readLE (s.sp.toNat + 32) 8 = (s.regs 3).toNat →
-      ReachesRet Extracted.program ret { s with regs := R', sp := s.sp - 224#64, pc := BitVec.ofNat 64 dhead, flags := fl', mem := M' } Q) :
-    ReachesRet Extracted.program ret s Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { s with regs := R', sp := s.sp - 224#64, pc := BitVec.ofNat 64 dhead, flags := fl', mem := M' } Q) :
+    ReachesRet Fv256.Arm64.ChainProg.program ret s Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : dhead
   simp only [hh1] at hK
@@ -136,8 +136,8 @@ theorem pro2 (T : State) (ret : W64) (Q : State → Prop) (dp n : Nat) (M : Memo
       R' 11 = BitVec.ofNat 64 s → R' 12 = BitVec.ofNat 64 (T.sp.toNat + 160) → R' 13 = BitVec.ofNat 64 (s + 64) →
       (∀ k, k ∉ [5, 10, 11, 12, 13, 27] → R' k = R k) →
       MemFrame M M' [(T.sp.toNat + 160, T.sp.toNat + 192)] → (∀ j, j < 4 → M'.readLE (T.sp.toNat + 160 + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 nhead, flags := fl', mem := M' } Q) :
-    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 dexit, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 nhead, flags := fl', mem := M' } Q) :
+    ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 dexit, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : nhead
   janus_eval_nat hh2 : dexit
@@ -178,14 +178,14 @@ theorem dn_loop (T : State) (ret : W64) (Q : State → Prop) (dp n s : Nat) (M0 
       MemFrame M0 M' [(T.sp.toNat + 160, T.sp.toNat + 192)] →
       (∀ j, 1 ≤ j → j < n → M'.readLE (T.sp.toNat + 160 + 8 * j) 8 = (M0.readLE (dp + 8 * j) 8 * 2 ^ s) % 2 ^ 64 + M0.readLE (dp + 8 * (j - 1)) 8 / 2 ^ (64 - s)) →
       (∀ j, n ≤ j → j < 4 → M'.readLE (T.sp.toNat + 160 + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 nexit, flags := fl', mem := M' } Q) :
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 nexit, flags := fl', mem := M' } Q) :
     ∀ t (R : Nat → W64) (fl : Flags) (M : Memory), t ≤ n - 1 →
       R 6 = BitVec.ofNat 64 dp → R 10 = BitVec.ofNat 64 t → R 11 = BitVec.ofNat 64 s → R 13 = BitVec.ofNat 64 (s + 64) →
       R 12 = BitVec.ofNat 64 (T.sp.toNat + 160) → (∀ k, k ∉ [10, 14, 15, 16, 17] → R k = R0 k) →
       MemFrame M0 M [(T.sp.toNat + 160, T.sp.toNat + 192)] →
       (∀ j, t < j → j < n → M.readLE (T.sp.toNat + 160 + 8 * j) 8 = (M0.readLE (dp + 8 * j) 8 * 2 ^ s) % 2 ^ 64 + M0.readLE (dp + 8 * (j - 1)) 8 / 2 ^ (64 - s)) →
       (∀ j, n ≤ j → j < 4 → M.readLE (T.sp.toNat + 160 + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 nhead, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 nhead, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : nhead
   janus_eval_nat hh2 : nexit
@@ -237,11 +237,11 @@ theorem ulen_loop (T : State) (ret : W64) (Q : State → Prop) (up L : Nat) (M :
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (n : Nat), R' 10 = BitVec.ofNat 64 n → n ≤ L →
       (∀ j, n ≤ j → j < L → M.readLE (up + 8 * j) 8 = 0) → (0 < n → M.readLE (up + 8 * (n - 1)) 8 ≠ 0) →
       (∀ k, k ∉ [10, 14] → R' k = R0 k) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 uexit, flags := fl', mem := M } Q) :
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 uexit, flags := fl', mem := M } Q) :
     ∀ t (R : Nat → W64) (fl : Flags), t ≤ L → R 3 = BitVec.ofNat 64 up → R 14 = BitVec.ofNat 64 t - 1 →
       (∀ k, k ∉ [10, 14] → R k = R0 k) →
       (∀ j, t ≤ j → j < L → M.readLE (up + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 uhead, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 uhead, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : uhead
   janus_eval_nat hh2 : uexit
@@ -307,8 +307,8 @@ theorem pro3 (T : State) (ret : W64) (Q : State → Prop) (dp n s L : Nat) (M0 M
       MemFrame M0 M' [(T.sp.toNat + 160, T.sp.toNat + 192)] →
       M'.readLE (T.sp.toNat + 160) 8 = (M0.readLE dp 8 * 2 ^ s) % 2 ^ 64 →
       (∀ j, 1 ≤ j → M'.readLE (T.sp.toNat + 160 + 8 * j) 8 = M.readLE (T.sp.toNat + 160 + 8 * j) 8) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 uhead, flags := fl', mem := M' } Q) :
-    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 nexit, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 uhead, flags := fl', mem := M' } Q) :
+    ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 nexit, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : uhead
   janus_eval_nat hh2 : nexit
@@ -347,14 +347,14 @@ theorem un_loop (T : State) (ret : W64) (Q : State → Prop) (up ulen s : Nat) (
       MemFrame M0 M' [(T.sp.toNat + 80, T.sp.toNat + 152)] →
       (∀ j, 1 ≤ j → j < ulen → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = (M0.readLE (up + 8 * j) 8 * 2 ^ s) % 2 ^ 64 + M0.readLE (up + 8 * (j - 1)) 8 / 2 ^ (64 - s)) →
       (∀ j, ulen ≤ j → j < 9 → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = M0.readLE (T.sp.toNat + 80 + 8 * j) 8) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 lexit, flags := fl', mem := M' } Q) :
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 lexit, flags := fl', mem := M' } Q) :
     ∀ t (R : Nat → W64) (fl : Flags) (M : Memory), t ≤ ulen - 1 →
       R 3 = BitVec.ofNat 64 up → R 16 = BitVec.ofNat 64 t → R 11 = BitVec.ofNat 64 s → R 13 = BitVec.ofNat 64 (64 - s) →
       R 14 = BitVec.ofNat 64 (T.sp.toNat + 80) → (∀ k, k ∉ [10, 16, 17, 19] → R k = R0 k) →
       MemFrame M0 M [(T.sp.toNat + 80, T.sp.toNat + 152)] →
       (∀ j, t < j → j < ulen → M.readLE (T.sp.toNat + 80 + 8 * j) 8 = (M0.readLE (up + 8 * j) 8 * 2 ^ s) % 2 ^ 64 + M0.readLE (up + 8 * (j - 1)) 8 / 2 ^ (64 - s)) →
       (∀ j, ulen ≤ j → j < 9 → M.readLE (T.sp.toNat + 80 + 8 * j) 8 = M0.readLE (T.sp.toNat + 80 + 8 * j) 8) →
-      ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 lhead, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 lhead, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : lhead
   janus_eval_nat hh2 : lexit
@@ -414,8 +414,8 @@ theorem pro4 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L : Nat) 
       MemFrame M M' [(T.sp.toNat + 80, T.sp.toNat + 152)] →
       M'.readLE (T.sp.toNat + 80 + 8 * ulen) 8 = M.readLE (up + 8 * (ulen - 1)) 8 / 2 ^ (64 - s) →
       (∀ j, j < ulen → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = 0) → (∀ j, ulen < j → j < 9 → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 lhead, flags := fl', mem := M' } Q) :
-    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 uexit, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 lhead, flags := fl', mem := M' } Q) :
+    ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 uexit, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : uexit
   janus_eval_nat hh2 : lhead
@@ -476,7 +476,7 @@ theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : 
       (∀ j, 1 ≤ j → j < 9 → M'.readLE (T.sp.toNat + 80 + 8 * j) 8 = M.readLE (T.sp.toNat + 80 + 8 * j) 8) →
       M'.readLE (T.sp.toNat + 288) 8 = remp → M'.readLE (T.sp.toNat + 208) 8 = s →
       M'.readLE (T.sp.toNat + 160) 8 = M.readLE (T.sp.toNat + 160) 8 →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 by1pc, flags := fl', mem := M' } Q)
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 by1pc, flags := fl', mem := M' } Q)
     (hK2 : n ≠ 1 → ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory), R' 3 = BitVec.ofNat 64 (T.sp.toNat + 80) → R' 4 = BitVec.ofNat 64 (ulen + 1) →
       R' 5 = 9#64 → R' 6 = BitVec.ofNat 64 (T.sp.toNat + 160) → R' 7 = BitVec.ofNat 64 n → R' 8 = 4#64 →
       (∀ k, k ∉ [3, 4, 5, 6, 7, 8, 10] → R' k = R k) →
@@ -486,8 +486,8 @@ theorem pro5 (T : State) (ret : W64) (Q : State → Prop) (up n ulen s L remp : 
       M'.readLE (T.sp.toNat + 288) 8 = remp → M'.readLE (T.sp.toNat + 208) 8 = s →
       M'.readLE (T.sp.toNat + 200) 8 = n - 1 → M'.readLE (T.sp.toNat + 152) 8 = ulen + 1 → M'.readLE (T.sp.toNat + 192) 8 = 64 - s →
       (∀ j, j < 4 → M'.readLE (T.sp.toNat + 160 + 8 * j) 8 = M.readLE (T.sp.toNat + 160 + 8 * j) 8) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 knpc, flags := fl', mem := M' } Q) :
-    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 lexit, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 knpc, flags := fl', mem := M' } Q) :
+    ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 lexit, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : lexit
   janus_eval_nat hh2 : by1pc
@@ -571,7 +571,7 @@ theorem by1tail (T : State) (ret : W64) (Q : State → Prop) (Mc : Memory) (R : 
       (remp ≠ 0 → Mf.readLE remp 8 = r1 / 2 ^ s ∧ Mf.readLE (remp + 8) 8 = 0 ∧ Mf.readLE (remp + 16) 8 = 0 ∧ Mf.readLE (remp + 24) 8 = 0 ∧
         MemFrame Mc Mf [(remp, remp + 32)]) → (remp = 0 → Mf = Mc) →
       Q { T with regs := R', sp := T.sp + 224#64, pc := BitVec.ofNat 64 x30, flags := fl', mem := Mf }) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 x30) { T with regs := R, pc := BitVec.ofNat 64 by1ret, flags := fl, mem := Mc } Q := by
+    ReachesRet Fv256.Arm64.ChainProg.program (BitVec.ofNat 64 x30) { T with regs := R, pc := BitVec.ofNat 64 by1ret, flags := fl, mem := Mc } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : by1ret
   simp only [hh1]
@@ -614,13 +614,13 @@ theorem rem_loop (T : State) (ret : W64) (Q : State → Prop) (remp n ulen s : N
     (hK : ∀ (R' : Nat → W64) (fl' : Flags) (M' : Memory), R' 5 = BitVec.ofNat 64 (n - 1) → (∀ k, k ∉ [5, 6, 7, 8, 9] → R' k = R0 k) →
       MemFrame M0 M' [(remp, remp + 8 * (n - 1))] →
       (∀ j, j < n - 1 → M'.readLE (remp + 8 * j) 8 = M0.readLE (T.sp.toNat + 80 + 8 * j) 8 / 2 ^ s + (M0.readLE (T.sp.toNat + 80 + 8 * (j + 1)) 8 * 2 ^ (64 - s)) % 2 ^ 64) →
-      ReachesRet Extracted.program ret { T with regs := R', pc := BitVec.ofNat 64 rexit, flags := fl', mem := M' } Q) :
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R', pc := BitVec.ofNat 64 rexit, flags := fl', mem := M' } Q) :
     ∀ t (R : Nat → W64) (fl : Flags) (M : Memory), t + 1 ≤ n → 
       R 0 = BitVec.ofNat 64 remp → R 1 = BitVec.ofNat 64 s → R 2 = BitVec.ofNat 64 (n - 1) → R 3 = BitVec.ofNat 64 (64 - s) →
       R 4 = BitVec.ofNat 64 (ulen + 1) → R 5 = BitVec.ofNat 64 (n - 1 - t) → (∀ k, k ∉ [5, 6, 7, 8, 9] → R k = R0 k) →
       MemFrame M0 M [(remp, remp + 8 * (n - 1))] → 
       (∀ j, j < n - 1 - t → M.readLE (remp + 8 * j) 8 = M0.readLE (T.sp.toNat + 80 + 8 * j) 8 / 2 ^ s + (M0.readLE (T.sp.toNat + 80 + 8 * (j + 1)) 8 * 2 ^ (64 - s)) % 2 ^ 64) →
-      ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 rhead, flags := fl, mem := M } Q := by
+      ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 rhead, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : rhead
   janus_eval_nat hh2 : rexit
@@ -681,7 +681,7 @@ theorem kntail (T : State) (ret : W64) (Q : State → Prop) (Mc : Memory) (R : N
         Mf.readLE (remp + 8 * (n - 1)) 8 = Mc.readLE (T.sp.toNat + 80 + 8 * (n - 1)) 8 / 2 ^ s ∧ MemFrame Mc Mf [(remp, remp + 8 * n)]) →
       (remp = 0 → Mf = Mc) →
       Q { T with regs := R', sp := T.sp + 224#64, pc := BitVec.ofNat 64 x30, flags := fl', mem := Mf }) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 x30) { T with regs := R, pc := BitVec.ofNat 64 knret, flags := fl, mem := Mc } Q := by
+    ReachesRet Fv256.Arm64.ChainProg.program (BitVec.ofNat 64 x30) { T with regs := R, pc := BitVec.ofNat 64 knret, flags := fl, mem := Mc } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : knret
   simp only [hh1]
@@ -741,8 +741,8 @@ theorem kntail (T : State) (ret : W64) (Q : State → Prop) (Mc : Memory) (R : N
 set_option maxHeartbeats 8000000 in
 theorem ltjump (T : State) (ret : W64) (Q : State → Prop) (M : Memory) (R : Nat → W64) (fl : Flags) (n ulen : Nat)
     (hn : n ≤ 4) (hu : ulen ≤ 8) (hlt : ulen < n) (r9 : R 9 = BitVec.ofNat 64 n) (r10 : R 10 = BitVec.ofNat 64 ulen)
-    (hK : ∀ fl' : Flags, ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 ltpc, flags := fl', mem := M } Q) :
-    ReachesRet Extracted.program ret { T with regs := R, pc := BitVec.ofNat 64 uexit, flags := fl, mem := M } Q := by
+    (hK : ∀ fl' : Flags, ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 ltpc, flags := fl', mem := M } Q) :
+    ReachesRet Fv256.Arm64.ChainProg.program ret { T with regs := R, pc := BitVec.ofNat 64 uexit, flags := fl, mem := M } Q := by
   have hcode := ku_lt
   janus_eval_nat hh1 : uexit
   janus_eval_nat hh2 : ltpc

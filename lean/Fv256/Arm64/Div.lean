@@ -7,6 +7,7 @@ import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.Arm64.SummaryEnsures
 import Fv256.Arm64.DivSum
+import Fv256.Arm64.CodeIn
 
 /-!
 # `(*uint256.Int).Div(x, y *Int) *Int` (arm64): `z = x / y` (`0` when `y = 0`)
@@ -26,6 +27,28 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Div
 
+set_option maxRecDepth 200000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
+
+set_option maxRecDepth 200000 in
+theorem div_summary_ex : Summary Extracted.program Extracted.entry
+    (fun s => (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 416 ∧ StackOK s 456 16 ∧
+        ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 456 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
+        (s.regs 0).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 32 true = true ∧
+        (s.regs 1).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 1).toNat 32 false = true ∧
+        (s.regs 2).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 2).toNat 32 false = true ∧
+        ((s.regs 0).toNat + 32 ≤ s.sp.toNat - 456 ∨ s.sp.toNat + 16 ≤ (s.regs 0).toNat) ∧
+        ((s.regs 1).toNat + 32 ≤ s.sp.toNat - 456 ∨ s.sp.toNat + 16 ≤ (s.regs 1).toNat) ∧
+        ((s.regs 2).toNat + 32 ≤ s.sp.toNat - 456 ∨ s.sp.toNat + 16 ≤ (s.regs 2).toNat))
+    (fun s s' => s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
+        s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
+        (∀ i, i ∉ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] → s'.regs i = s.regs i) ∧
+        s'.mem.readLE (s.regs 0).toNat 32 = Fv256.B.divSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) ∧
+        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 456, s.sp.toNat - 8),
+          (s.sp.toNat + 8, s.sp.toNat + 16)]) :=
+  Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain Fv256.Arm64.DivSum.div_summary
+
 theorem correctness (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => GuardOK s 416 ∧ StackOK s 456 16 ∧
@@ -37,7 +60,7 @@ theorem correctness (z x y : BitVec 64) :
         val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 456, s.sp.toNat - 8),
           (s.sp.toNat + 8, s.sp.toNat + 16)]) := by
-  refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ Fv256.Arm64.DivSum.div_summary ?_ ?_
+  refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ div_summary_ex ?_ ?_
   · intro ret hret s hsu ⟨hg, hs, hgw, ⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, hdz, hdx, hdy⟩
     have h30 : s.regs 30 = BitVec.ofNat 64 ret := by
       have := hsu.lr; exact this

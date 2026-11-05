@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -18,12 +18,12 @@ open Fv256.Arm64.UdivremD
 
 namespace Fv256.Arm64.ModSum
 
-abbrev modEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Mod"
+abbrev modEntry : Nat := segAddr Fv256.Arm64.ChainProg.program "github.com/holiman/uint256.(*Int).Mod"
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem mod_summary :
-    Summary Extracted.program modEntry
+    Summary Fv256.Arm64.ChainProg.program modEntry
       (fun s => (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 448 ∧ StackOK s 488 16 ∧
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 488 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
         (s.regs 0).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 32 true = true ∧

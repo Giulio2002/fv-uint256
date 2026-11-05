@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -33,7 +33,7 @@ def UPost (L : Nat) (s s' : State) : Prop :=
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 20000 in
 theorem udivrem_summary_L {L : Nat} (hL4 : 4 ≤ L) (hL8 : L ≤ 8) (hKn : KnuthStmt) :
-    Summary Extracted.program ku
+    Summary Fv256.Arm64.ChainProg.program ku
       (fun s => (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 304 ∧ StackOK s 344 72 ∧
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 344 ∨ s.sp.toNat + 72 ≤ (s.regs 28).toNat + 16) ∧
         (s.regs 1).toNat = L ∧ (s.regs 4).toNat = L ∧
@@ -65,7 +65,7 @@ theorem udivrem_summary_L {L : Nat} (hL4 : 4 ≤ L) (hL8 : L ≤ 8) (hKn : Knuth
   have hd64 := (s.regs 6).isLt
   have hr64 := (s.regs 7).isLt
   have hx30 : (s.regs 30).toNat < 2 ^ 64 := (s.regs 30).isLt
-  show ReachesRet Extracted.program (s.regs 30) s _
+  show ReachesRet Fv256.Arm64.ChainProg.program (s.regs 30) s _
   obtain ⟨hg1, hg2, hg3⟩ := hgd
   obtain ⟨hsal, hsb, hsc, hsw⟩ := hst
   rw [e30]
