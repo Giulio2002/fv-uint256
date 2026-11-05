@@ -14,7 +14,7 @@ namespace Fv256.Arm64.Dec
 set_option maxHeartbeats 8000000 in
 set_option maxRecDepth 100000 in
 /-- The last one or two digits of `formatBase10` (`lo < 100`, `fb+0x17c` to `fb+0x1cc`). -/
-theorem fin_last (s : State) (ptr len lo i : Nat) (hlo : lo < 100) (hlo0 : 0 < lo ∨ True) (hi : decLen lo ≤ i) (hil : i ≤ len)
+theorem fin_last (s : State) (ptr len lo i : Nat) (hlo : lo < 100) (hi : decLen lo ≤ i) (hil : i ≤ len)
     (hp : ptr + len ≤ 2 ^ 48) (hacc : s.mem.accessible ptr len true = true) (hd : TabsOK s.mem)
     (hpc : s.pc = BitVec.ofNat 64 (fb + 0x17c)) (e0 : s.regs 0 = BitVec.ofNat 64 ptr) (e2 : s.regs 2 = BitVec.ofNat 64 len)
     (e1 : s.regs 1 = BitVec.ofNat 64 i) (e3 : s.regs 3 = BitVec.ofNat 64 lo) :
