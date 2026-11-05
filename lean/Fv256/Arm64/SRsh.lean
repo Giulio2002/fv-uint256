@@ -22,7 +22,7 @@ namespace Fv256.Arm64.SRsh
 
 set_option maxHeartbeats 8000000 in
 set_option maxRecDepth 100000 in
-theorem correctness (z x n : BitVec 64) (ret : Nat)
+theorem core (z x n : BitVec 64) (ret : Nat)
     (hret : RetAddr Extracted.program ret) (s : State)
     (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, n] s)
     (hg : GuardOK s 0) (hst : StackOK s 56 0) :
@@ -408,6 +408,15 @@ theorem correctness (z x n : BitVec 64) (ret : Nat)
       omega
 
 
+theorem correctness (z x n : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, n]
+      (fun s => GuardOK s 0 ∧ StackOK s 56 0 ∧ Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Aliasing z x ∧
+        Disjoint z.toNat 32 (s.sp.toNat - 56) 56 ∧ Disjoint x.toNat 32 (s.sp.toNat - 56) 56)
+      (fun s s' => s'.regs 0 = z ∧ val256 s'.mem z.toNat = Spec.srsh (val256 s.mem x.toNat) n.toNat ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 56) 56) := by
+  intro ret hret s hs ⟨hg, hst, h1, h2, h3, h4, h5⟩
+  exact core z x n ret hret s hs hg hst h1 h2 h3 h4 h5
+
 namespace Witness
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
@@ -440,14 +449,14 @@ theorem hpre : Ptr32 s0.mem z true ∧ Ptr32 s0.mem x false ∧ Aliasing z x ∧
     by unfold Disjoint; decide, by unfold Disjoint; decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x n : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, n] s ∧ GuardOK s 0 ∧ StackOK s 56 0 ∧
-    (Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Aliasing z x ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, n] s ∧
+    (GuardOK s 0 ∧ StackOK s 56 0 ∧ Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Aliasing z x ∧
       Disjoint z.toNat 32 (s.sp.toNat - 56) 56 ∧ Disjoint x.toNat 32 (s.sp.toNat - 56) 56) :=
   ⟨ret, s0, z, x, n, hret, setup, hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z x n ret hret s0 setup hg hst hpre.1 hpre.2.1 hpre.2.2.1 hpre.2.2.2.1 hpre.2.2.2.2).mono ?_
+  refine (core z x n ret hret s0 setup hg hst hpre.1 hpre.2.1 hpre.2.2.1 hpre.2.2.2.1 hpre.2.2.2.2).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]

@@ -215,11 +215,17 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4176 24 ∧ Extracted.program.DataLoad
 
 /-- The preconditions and the allocator contract are jointly satisfiable: a concrete call state (with the toy allocator linked at
 the `runtime.newobject` address) meets every hypothesis of `correctness`. -/
-theorem nonvacuous : CallSetup (linked.withExit ret) Extracted.entry [arg] s0 ∧
-    (GuardOK s0 0 ∧ StackOK s0 4176 24 ∧ Extracted.program.DataLoaded s0.mem ∧
-    Outside (s0.sp.toNat - 4176) 4200 rt ∧ Ptr32 s0.mem arg false ∧ Outside arg.toNat 32 rt ∧
-    Disjoint arg.toNat 32 (s0.sp.toNat - 4176) 4200 ∧
-    H [intType] (s0.regs 28).toNat (s0.sp.toNat - 80) (rtView rt s0.mem)) := And.intro setup pre
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
+    NewobjectContract (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (GuardOK s 0 ∧ StackOK s 4176 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    Outside (s.sp.toNat - 4176) 4200 rt ∧ Ptr32 s.mem z false ∧ Outside z.toNat 32 rt ∧
+    Disjoint z.toNat 32 (s.sp.toNat - 4176) 4200 ∧
+    H [intType] (s.regs 28).toNat (s.sp.toNat - 80) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre⟩
+
 
 /-- The theorem fires: for the number `0x1234` the call returns a slice of length 2 inside a fresh object. -/
 theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧ (s'.regs 1).toNat = 2 ∧ (s'.regs 2).toNat = 2) := by

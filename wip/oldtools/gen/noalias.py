@@ -1,0 +1,12 @@
+import sys
+# stdin: generated amd64 binary-op file; make it alias-free (valid when all loads precede all stores)
+s=sys.stdin.read()
+s=s.replace(" ∧ Alias z x ∧ Alias z y ∧ Alias x y","")
+s=s.replace(", hds, hzx, hzy, hxy",", hds")
+s=s.replace("  rcases hzx with rfl | hzx <;> rcases hzy with rfl | hzy <;> rcases hxy with h | hxy\n  all_goals try subst h\n","")
+s=s.replace("Alias z x ∧ Alias z x ∧ Alias x x","True")
+s=s.replace("Or.inr (by unfold Disjoint; decide), Or.inr (by unfold Disjoint; decide), Or.inl rfl","trivial")
+s=s.replace("Disjoint z 32 (s.regs regSP) 8 ∧ True","Disjoint z 32 (s.regs regSP) 8")
+s=s.replace("**Guarantee.** For all pointers `z`, `x`, `y` and every Go call state","**Guarantee.** For all pointers `z`, `x`, `y` (any overlap between them is allowed: every input limb is loaded before the first store) and every Go call state")
+s=s.replace(", and every pair of the three pointers is equal or disjoint,",",")
+print(s,end='')

@@ -20,7 +20,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.SetBytes30
 
-theorem correctness (z ptr len cap : BitVec 64) (ret : Nat)
+theorem core (z ptr len cap : BitVec 64) (ret : Nat)
     (hret : RetAddr Extracted.program ret) (s : State)
     (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s)
     (hg : GuardOK s 0) (hst : StackOK s 24 24) :
@@ -42,6 +42,25 @@ theorem correctness (z ptr len cap : BitVec 64) (ret : Nat)
     · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
   · intro ⟨_hzw, _hzw'⟩
     janus_run
+
+theorem correctness (z ptr len cap : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, ptr, len, cap]
+      (fun s => GuardOK s 0 ∧ StackOK s 24 24 ∧ 30 ≤ len.toNat ∧ Ptr32 s.mem z true ∧ Ptr s.mem ptr 30 false ∧
+        Disjoint z.toNat 32 ptr.toNat 30 ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
+        Disjoint ptr.toNat 30 (s.sp.toNat - 24) 48)
+      (fun s s' => s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Spec.fromBE (fun i => s.mem.readLE (ptr.toNat + i) 1) 30 ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 24) 48) := by
+  intro ret hret s hs ⟨hg, hst, hl, h1, h2, h3, h4, h5⟩
+  exact (core z ptr len cap ret hret s hs hg hst).1 hl h1 h2 h3 h4 h5
+
+/-- The bounds check: with fewer than 30 bytes the call reaches the panic stub. -/
+theorem panics (z ptr len cap : BitVec 64) (ret : Nat)
+    (hret : RetAddr Extracted.program ret) (s : State)
+    (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s)
+    (hg : GuardOK s 0) (hst : StackOK s 24 24) :
+    len.toNat < 30 → Ptr32 s.mem z true → Panics (Extracted.program.withExit ret) s :=
+  (core z ptr len cap ret hret s hs hg hst).2
 
 namespace Witness
 
@@ -74,16 +93,17 @@ theorem hpre : 30 ≤ (30 : BitVec 64).toNat ∧ Ptr32 s0.mem z true ∧ Ptr s0.
   refine ⟨by decide, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_⟩ <;> (unfold Disjoint; decide)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s ∧ GuardOK s 0 ∧ StackOK s 24 24 ∧
-    (30 ≤ len.toNat ∧ Ptr32 s.mem z true ∧ Ptr s.mem ptr 30 false ∧ Disjoint z.toNat 32 ptr.toNat 30 ∧
-      Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧ Disjoint ptr.toNat 30 (s.sp.toNat - 24) 48) :=
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s ∧
+    (GuardOK s 0 ∧ StackOK s 24 24 ∧ 30 ≤ len.toNat ∧ Ptr32 s.mem z true ∧ Ptr s.mem ptr 30 false ∧
+      Disjoint z.toNat 32 ptr.toNat 30 ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
+      Disjoint ptr.toNat 30 (s.sp.toNat - 24) 48) :=
   ⟨ret, s0, z, ptr, 30, 30, hret, setup, hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧
       val256 s'.mem z.toNat = Fv256.Spec.fromBE (fun i => s0.mem.readLE (ptr.toNat + i) 1) 30 ∧
       Fv256.Util.OnlyWrites2 s0.mem s'.mem z.toNat 32 (s0.sp.toNat - 24) 48 :=
-  (correctness z ptr 30 30 ret hret s0 setup hg hst).1 hpre.1 hpre.2.1 hpre.2.2.1 hpre.2.2.2.1 hpre.2.2.2.2.1 hpre.2.2.2.2.2
+  (core z ptr 30 30 ret hret s0 setup hg hst).1 hpre.1 hpre.2.1 hpre.2.2.1 hpre.2.2.2.1 hpre.2.2.2.2.1 hpre.2.2.2.2.2
 
 end Witness
 

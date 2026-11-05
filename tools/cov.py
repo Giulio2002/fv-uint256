@@ -10,7 +10,7 @@ for fn in sys.argv[1:]:
     for isa in ('arm64','amd64'):
         try: st[isa]=open((ROOT+f'/build/log-{isa}-{fn}')).readline().startswith('Verified')
         except OSError: st[isa]=False
-    pat=re.compile(r'(\| `\(\*uint256\.Int\)\.%s` \| )([^|]*)\|([^|]*)\|([^\n]*)'%re.escape(fn))
+    pat=re.compile(r'(\| `\(\*uint256\.Int\)\.%s` \|[^|]*\| )([^|]*)\|([^|]*)\|([^\n]*)'%re.escape(fn))
     m=pat.search(s)
     if not m: print('no row',fn); continue
     a='verified' if st['arm64'] else m.group(2).strip()

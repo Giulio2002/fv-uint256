@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -22,7 +22,7 @@ set_option maxHeartbeats 8000000 in
 theorem iter (s0 : State) (up dp qp n m ql v dl dh cap : Nat) (M0 : Memory) (R : Nat → W64) (sp : W64) (fl : Flags)
     (M : Memory) (j : Nat) (K : KC up dp qp n m ql v dl dh cap sp.toNat M0) (hj : j + n + 1 ≤ m)
     (hR : HeadR R (j + 1) v n m up dp dl dh cap ql sp) (hI : KInv M0 M up dp qp n m sp.toNat (j + 1)) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0xd1))
+    ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (kn + 0xd1))
       { s0 with regs := R, rip := BitVec.ofNat 64 (kn + 0xd1), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (kn + 0xd1), flags := fl', mem := M' } ∧
