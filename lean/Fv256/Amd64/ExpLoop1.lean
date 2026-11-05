@@ -59,7 +59,7 @@ theorem loop1 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
     janus64_run [r3, r7, r9, r8, r0, r1, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev, hkt3, hnt] until [head1] calls [Fv256.Amd64.ExpSum.mul_summary, Fv256.Amd64.ExpSum.sq_summary]
     · rename_i hm hf
       have hodd : ¬ (w % 2 = 1) := by
-        have := ‹(BitVec.setWidth 32 (BitVec.ofNat 64 w)).getLsbD 0 = false›
+        have := hbr
         rw [Fv256.F.lsb_w32] at this
         simpa using this
       have e1 : (Fv256.F.expStep (r, b, w)).1 = r := by simp [Fv256.F.expStep, hodd]
