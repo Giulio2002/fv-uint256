@@ -327,11 +327,18 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoad
     by simp only [rt, outside_cons, outside_nil]; decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by unfold Disjoint; decide, hH⟩
 
-theorem nonvacuous : CallSetup (linked.withExit ret) Extracted.entry [zp, 5#64] s0 ∧
-    (GuardOK s0 0 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoaded s0.mem ∧
-    Outside (s0.sp.toNat - 4144) 4168 rt ∧ Ptr32 s0.mem zp false ∧ Outside zp.toNat 32 rt ∧
-    Disjoint zp.toNat 32 (s0.sp.toNat - 4144) 4168 ∧
-    H [byteType, 5, 5] (s0.regs 28).toNat (s0.sp.toNat - 48) (rtView rt s0.mem)) := And.intro setup pre
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z n : BitVec 64),
+    MakesliceContract (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, n] s ∧
+    n.toNat ≤ 2 ^ 48 ∧
+    (GuardOK s 0 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+    Outside (s.sp.toNat - 4144) 4168 rt ∧ Ptr32 s.mem z false ∧ Outside z.toNat 32 rt ∧
+    Disjoint z.toNat 32 (s.sp.toNat - 4144) 4168 ∧
+    H [byteType, n.toNat, n.toNat] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre⟩
+
 
 /-- The theorem fires: for `n = 5` the call returns a slice of length and capacity 5 inside a fresh object. -/
 theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧ (s'.regs 1).toNat = 5 ∧ (s'.regs 2).toNat = 5) := by

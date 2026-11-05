@@ -2159,6 +2159,8 @@ theorem wb248 (h i j k : Nat) (hh : h < 18446744073709551616) (hi : i < 18446744
 
 theorem add_sub_norm (a d c : Nat) (h : c ≤ a) : a + d - c = d + (a - c) := by omega
 
+theorem bv_sub_sub_cancel (a b : BitVec 64) : a - (a - b) = b := by bv_omega
+
 theorem bv_add_sub_left {w : Nat} (x y : BitVec w) : x + y - x = y := by rw [BitVec.add_comm]; exact BitVec.add_sub_cancel _ _
 
 -- Bytes20 helpers
@@ -2661,6 +2663,13 @@ theorem bl_amd (v w : BitVec 64) (hw : w = v + 7#64) (hv : v.toNat ≤ 256) :
   rw [BitVec.toNat_sshiftRight_of_msb_false hmsb, hwn]
   simp only [Nat.shiftRight_eq_div_pow, Nat.reducePow]
 
+theorem bl_amd_bv (v w : BitVec 64) (hw : w = v + 7#64) (hv : v.toNat ≤ 256) :
+    BitVec.sshiftRight (v + (BitVec.sshiftRight w 63 >>> 61) + 7#64) 3 = BitVec.ofNat 64 ((v.toNat + 7) / 8) := by
+  apply BitVec.eq_of_toNat_eq
+  rw [bl_amd v w hw hv]
+  simp only [BitVec.toNat_ofNat, Nat.reducePow]
+  omega
+
 theorem blS_zero' (u : BitVec 64) (hu : u.toNat < 2 ^ 63) :
     ((if u.getLsbD 63 = true then 18446744073709551615#64 else 0#64) &&& 18446744073709551614#64 |||
       u.rotateRight 63 &&& 18446744073709551615#64 &&& 1#64) >>> 61 = 0#64 := blS_zero u hu
@@ -2739,6 +2748,32 @@ theorem ptr_arith (w K1 K2 bl : Nat) (hw : w ≤ 281474976710624) (h1 : K1 = bl)
     omega
   · rw [if_neg h, if_neg h, and_ones _ (by omega)]
     omega
+
+/-- amd64 `Bytes` pointer arithmetic: `(32 - n) & mask(n)` where the mask is `(0 - n) >>s 63`. -/
+theorem amd_off (n : Nat) (hn : n ≤ 32) :
+    ((18446744073709551616 - (18446744073709551584 + (BitVec.ofNat 64 n).toNat) % 18446744073709551616) % 18446744073709551616 &&&
+      ((0#64 - BitVec.ofNat 64 n).sshiftRight 63).toNat) = if n = 0 then 0 else 32 - n := by
+  have e : (BitVec.ofNat 64 n).toNat = n := by simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
+  rw [e, mask_asr n hn]
+  by_cases h : n = 0
+  · subst h; simp
+  · rw [if_neg h, if_neg h, and_ones _ (by omega)]
+    omega
+
+theorem byteLen_le_32 (v : Nat) (h : v < 2 ^ 256) : Spec.byteLen v ≤ 32 := by
+  by_cases hv : v = 0
+  · subst hv; simp [Spec.byteLen, Spec.bitLen]
+  · have h1 := (bitLen_bounds v hv).1
+    have h2 : 2 ^ (Spec.bitLen v - 1) < 2 ^ 256 := Nat.lt_of_le_of_lt h1 h
+    have h3 : Spec.bitLen v - 1 < 256 := (Nat.pow_lt_pow_iff_right (by omega)).1 h2
+    unfold Spec.byteLen; omega
+
+theorem rb8_lt (x : Nat) : Janus.Arm64.revBytesNat 8 x < 18446744073709551616 := by
+  have := revBytes_lt 8 x
+  simpa using this
+
+theorem pk_lo (a b : Nat) (ha : a < 18446744073709551616) : (a + 18446744073709551616 * b) % 18446744073709551616 = a := by omega
+theorem pk_hi (a b : Nat) (ha : a < 18446744073709551616) : (a + 18446744073709551616 * b) / 18446744073709551616 % 18446744073709551616 = b % 18446744073709551616 := by omega
 
 theorem byteLen_zero (v : Nat) (h : Spec.byteLen v = 0) : v = 0 := by
   unfold Spec.byteLen at h
@@ -2838,6 +2873,91 @@ theorem pad_big2 (M0 : Janus.Arm64.Memory) (obj n L0 L1 L2 L3 : Nat) (hn : 32 �
     · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rc8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
       first | (rw [wb240 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb240 _ _ _ _ h0 h1 h2 h3]; omega) | omega
     · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rc8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb248 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb248 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+
+theorem pad_big3 (M0 : Janus.Arm64.Memory) (obj n L0 L1 L2 L3 : Nat) (hn : 32 ≤ n)
+    (hzb : Janus.Contracts.ZeroBytes M0 obj n) (h0 : L0 < 18446744073709551616) (h1 : L1 < 18446744073709551616)
+    (h2 : L2 < 18446744073709551616) (h3 : L3 < 18446744073709551616) :
+    Spec.fromBE (fun i => (((((M0.writeLE (obj + (n - 8)) 8 (Janus.Arm64.revBytesNat 8 L0)).writeLE (obj + (n - 16)) 8 (Janus.Arm64.revBytesNat 8 L1)).writeLE (obj + (n - 24)) 8 (Janus.Arm64.revBytesNat 8 L2)).writeLE (obj + (n - 32)) 8 (Janus.Arm64.revBytesNat 8 L3)).readLE (obj + i) 1)) n =
+      (L0 + 18446744073709551616 * L1 + 340282366920938463463374607431768211456 * L2 +
+        6277101735386680763835789423207666416102355444464034512896 * L3) % 2 ^ (8 * n) := by
+  refine (fromBE_congr ?_).trans (fromBE_bytes _ _)
+  intro a ha
+  obtain ⟨m, rfl⟩ : ∃ m, n = m + 32 := ⟨n - 32, by omega⟩
+  by_cases hlow : a + 32 < m + 32
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [Janus.Contracts.ZeroBytes.readLE hzb (k := a) (j := 1) (by omega)]
+    have hp : 2 ^ 256 ≤ 2 ^ (8 * (m + 32 - 1 - a)) := Nat.pow_le_pow_right (by omega) (by omega)
+    rw [Nat.div_eq_of_lt (by simp only [Nat.reducePow] at hp ⊢; omega)]
+  · obtain ⟨k, hk, hk1, hk32⟩ : ∃ k, a = m + 32 - k ∧ 1 ≤ k ∧ k ≤ 32 := ⟨m + 32 - a, by omega, by omega, by omega⟩
+    have hexp : m + 32 - 1 - a = k - 1 := by omega
+    rw [hexp]
+    subst hk
+    have hsim : ∀ q : Nat, 1 ≤ q → q ≤ 32 → m + 32 - q = m + (32 - q) := fun q _ _ => by omega
+    rcases (show k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 ∨ k = 6 ∨ k = 7 ∨ k = 8 ∨ k = 9 ∨ k = 10 ∨ k = 11 ∨ k = 12 ∨ k = 13 ∨ k = 14 ∨ k = 15 ∨ k = 16 ∨ k = 17 ∨ k = 18 ∨ k = 19 ∨ k = 20 ∨ k = 21 ∨ k = 22 ∨ k = 23 ∨ k = 24 ∨ k = 25 ∨ k = 26 ∨ k = 27 ∨ k = 28 ∨ k = 29 ∨ k = 30 ∨ k = 31 ∨ k = 32 by omega) with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb0 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb0 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb8 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb8 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb16 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb16 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb24 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb24 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb32 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb32 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb40 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb40 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb48 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb48 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb56 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb56 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb64 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb64 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb72 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb72 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb80 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb80 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb88 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb88 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb96 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb96 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb104 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb104 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb112 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb112 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb120 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb120 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb128 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb128 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb136 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb136 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb144 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb144 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb152 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb152 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb160 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb160 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb168 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb168 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb176 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb176 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb184 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb184 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb192 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb192 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb200 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb200 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb208 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb208 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb216 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb216 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb224 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb224 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb232 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb232 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
+      first | (rw [wb240 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb240 _ _ _ _ h0 h1 h2 h3]; omega) | omega
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, rb8_mem_byte, Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.sub_self, Nat.reduceSub, Nat.reducePow, Nat.reduceMul, Nat.reduceSubDiff, Nat.reduceAdd, hsim]
       first | (rw [wb248 _ _ _ _ h0 h1 h2 h3]; done) | (rw [wb248 _ _ _ _ h0 h1 h2 h3]; omega) | omega
 
 theorem rev8_zero : Janus.Arm64.revBytesNat 8 0 = 0 := by decide
@@ -3068,5 +3188,74 @@ theorem xor_top (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
 theorem bvxor_toNat (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
     (BitVec.ofNat 64 a ^^^ BitVec.ofNat 64 b).toNat = a ^^^ b := by
   simp only [BitVec.toNat_xor, BitVec.toNat_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
+
+theorem xor_eq_zero_nat (a b : Nat) : a ^^^ b = 0 ↔ a = b := xor_zero_iff a b
+
+theorem xor_ofNat_zero_iff (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
+    (BitVec.ofNat 64 a ^^^ BitVec.ofNat 64 b).toNat = 0 ↔ a = b := by
+  rw [bvxor_toNat a b ha hb]; exact xor_zero_iff a b
+
+
+theorem fin0 (x0 x1 x2 x3 : Nat) :
+    x3 * 6277101735386680763835789423207666416102355444464034512896 + x2 * 340282366920938463463374607431768211456 + x1 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+theorem fin1 (x0 x1 x2 x3 : Nat) (h3 : x3 = 0) :
+    0 * 6277101735386680763835789423207666416102355444464034512896 + x2 * 340282366920938463463374607431768211456 + x1 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+theorem fin2 (x0 x1 x2 x3 : Nat) (h3 : x3 = 0) (h2 : x2 = 0) :
+    0 * 6277101735386680763835789423207666416102355444464034512896 + 0 * 340282366920938463463374607431768211456 + x1 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+theorem fin3 (x0 x1 x2 x3 : Nat) (h3 : x3 = 0) (h2 : x2 = 0) (h1 : x1 = 0) :
+    0 * 6277101735386680763835789423207666416102355444464034512896 + 0 * 340282366920938463463374607431768211456 + 0 * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by omega
+
+theorem fin_all (x0 x1 x2 x3 a b c : Nat) (ha : a = x3 ∨ (x3 = 0 ∧ a = 0)) (hb : b = x2 ∨ (x2 = 0 ∧ b = 0))
+    (hc : c = x1 ∨ (x1 = 0 ∧ c = 0)) :
+    a * 6277101735386680763835789423207666416102355444464034512896 + b * 340282366920938463463374607431768211456 + c * 18446744073709551616 + x0 = x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3 := by
+  rcases ha with rfl | ⟨rfl, rfl⟩ <;> rcases hb with rfl | ⟨rfl, rfl⟩ <;> rcases hc with rfl | ⟨rfl, rfl⟩ <;> omega
+
+section SBQ
+open Janus.Arm64
+theorem sbq_rb (m : Memory) (p k : Nat) : revBytesNat k (m.readLE p k) < 256 ^ k := revBytes_lt k _
+
+/-- amd64 `SetBytesN` closers on master (single BSWAP loads). -/
+theorem sbq4 (m : Memory) (p : Nat) :
+    revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296 = Spec.fromBE (fun i => m.readLE (p + i) 1) 4 := by
+  have h : m.readLE p 4 < 4294967296 := by simpa using Memory.readLE_lt m p 4
+  have h1 := revBytes_lt 4 (m.readLE p 4)
+  simp only [Nat.reducePow] at h1
+  rw [Nat.mod_eq_of_lt h, Nat.mod_eq_of_lt h1, revBytes_readLE]
+
+theorem sbq8 (m : Memory) (p : Nat) :
+    revBytesNat 8 (m.readLE p 8) % 18446744073709551616 = Spec.fromBE (fun i => m.readLE (p + i) 1) 8 := by
+  have hl := revBytes_lt 8 (m.readLE p 8)
+  simp only [Nat.reducePow] at hl
+  rw [Nat.mod_eq_of_lt hl, revBytes_readLE]
+
+theorem sbq12 (m : Memory) (p : Nat) :
+    revBytesNat 8 (m.readLE (p + 4) 8) % 18446744073709551616 +
+      18446744073709551616 * (revBytesNat 4 (m.readLE p 4 % 4294967296) % 4294967296) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 12 := by
+  have a := sbq4 m p
+  have b := sbq8 m (p + 4)
+  have e : Spec.fromBE (fun i => m.readLE (p + i) 1) 12 =
+      Spec.fromBE (fun i => m.readLE (p + i) 1) 4 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (4 + i)) 1) 8 :=
+    fromBE_add (fun i => m.readLE (p + i) 1) 4 8
+  simp only [Nat.add_assoc] at b
+  rw [a, b, e]
+  simp only [Nat.reducePow]
+  omega
+
+theorem sbq16 (m : Memory) (p : Nat) :
+    revBytesNat 8 (m.readLE (p + 8) 8) % 18446744073709551616 +
+      18446744073709551616 * (revBytesNat 8 (m.readLE p 8) % 18446744073709551616) =
+    Spec.fromBE (fun i => m.readLE (p + i) 1) 16 := by
+  have e : Spec.fromBE (fun i => m.readLE (p + i) 1) (8 + 8) =
+      Spec.fromBE (fun i => m.readLE (p + i) 1) 8 * 256 ^ 8 + Spec.fromBE (fun i => m.readLE (p + (8 + i)) 1) 8 := fromBE_add _ 8 8
+  have e2 : (8 + 8 : Nat) = 16 := rfl
+  rw [e2] at e
+  have a := sbq8 m p
+  have b := sbq8 m (p + 8)
+  simp only [Nat.add_assoc] at b
+  rw [e, ← a, ← b]
+  simp only [Nat.reducePow]
+  omega
+end SBQ
 
 end Fv256.Util

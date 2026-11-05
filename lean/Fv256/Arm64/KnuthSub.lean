@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -11,7 +11,7 @@ set_option linter.unusedSimpArgs false
 set_option linter.unusedVariables false
 
 namespace Fv256.Arm64.KnuthSub
-abbrev kn : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivremKnuth"
+abbrev kn : Nat := segAddr Fv256.Arm64.ChainProg.program "github.com/holiman/uint256.udivremKnuth"
 
 set_option maxHeartbeats 8000000 in
 /-- multiply-subtract inner loop of `udivremKnuth` (head at +0x1a8, exit at +0x1b0): `x[0..n) -= qh * d[0..n)` with borrow in X15. -/
@@ -26,7 +26,7 @@ theorem submul_loop (s0 : State) (ux dp n qh : Nat) (M0 : Memory)
       (∀ k, k ∉ [11, 15, 16, 17, 19, 20, 21] → R k = s0.regs k) →
       Fv256.B.wv M0 ux i + (R 15).toNat * 2 ^ (64 * i) = Fv256.B.wv M ux i + qh * Fv256.B.wv M0 dp i →
       MemFrame M0 M [(ux, ux + 8 * i)] →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0x1b0))
+      ReachesRet Fv256.Arm64.ChainProg.program (BitVec.ofNat 64 (kn + 0x1b0))
         { s0 with regs := R, pc := BitVec.ofNat 64 (kn + 0x1a8), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
           S' = { s0 with regs := R', pc := BitVec.ofNat 64 (kn + 0x1b0), flags := fl', mem := M' } ∧

@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -13,7 +13,7 @@ set_option linter.unusedSimpArgs false
 set_option linter.unusedVariables false
 
 namespace Fv256.Arm64.KnuthEntry
-abbrev kn : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivremKnuth"
+abbrev kn : Nat := segAddr Fv256.Arm64.ChainProg.program "github.com/holiman/uint256.udivremKnuth"
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 16000000 in
@@ -35,7 +35,7 @@ theorem knuth_entry (s : State) (up dp qp n m ql cap dh dl : Nat)
     (e4 : s.regs 4 = BitVec.ofNat 64 m) (e5 : s.regs 5 = BitVec.ofNat 64 cap) (e6 : s.regs 6 = BitVec.ofNat 64 dp)
     (e7 : s.regs 7 = BitVec.ofNat 64 n)
     (hpc : s.pc = BitVec.ofNat 64 kn) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (kn + 0xbc)) s (fun S => S.pc = BitVec.ofNat 64 (kn + 0xbc) ∧ S.sp = s.sp - 80#64 ∧
+    ReachesRet Fv256.Arm64.ChainProg.program (BitVec.ofNat 64 (kn + 0xbc)) s (fun S => S.pc = BitVec.ofNat 64 (kn + 0xbc) ∧ S.sp = s.sp - 80#64 ∧
         (∃ v, v + 2 ^ 64 = (2 ^ 64 * 2 ^ 64 - 1) / dh ∧ HeadR S.regs (m - n) v n m up dp dl dh cap) ∧
         S.regs 18 = s.regs 18 ∧ S.regs 28 = s.regs 28 ∧ S.regs 29 = s.sp - 88#64 ∧
         (∀ i, 22 ≤ i → i ≠ 29 → i ≠ 30 → S.regs i = s.regs i) ∧
