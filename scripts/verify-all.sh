@@ -16,6 +16,8 @@ GO="${GO:-$(command -v go || true)}"
 [ -n "$GO" ] && [ -x "$GO" ] || { echo "error: no Go toolchain found: set GO=/path/to/go or put go on PATH (Go >= 1.21; it downloads go1.26.0 itself)"; exit 2; }
 # the proofs depend on the pinned Janus revision through lake (lean/lakefile.toml): fetch it once
 if [ ! -d lean/.lake/packages/janus ]; then (cd lean && lake update janus) || { echo "lake update janus failed"; exit 2; }; fi
+# ToBig's proof imports the IntoBig modules re-targeted at ToBig's extraction (generated, not committed)
+[ -f lean/Fv256/Arm64/ToBig.lean ] && bash scripts/gen-tb-intobig.sh lean
 # per-function extraction flags (runtime contracts); see scripts/contract-flags.sh
 . "$root/scripts/contract-flags.sh"
 if [ -z "${SKIP_HARNESS:-}" ]; then
