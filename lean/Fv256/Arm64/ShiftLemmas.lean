@@ -74,4 +74,43 @@ theorem shr_val' (y s : Nat) (hs : s ≤ 63) (hy : y < 2 ^ 64) :
   have hs64 : s % 64 = s := Nat.mod_eq_of_lt (by omega)
   rw [if_pos (by omega), hs64, BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow, BitVec.toNat_ofNat, Nat.mod_eq_of_lt hy]
 
+/-- `(y >> s) | (x << (64 - s))` as the arm64 code computes it for the remainder write-out. -/
+theorem rem_val (x y s : Nat) (hs : s ≤ 63) (hx : x < 2 ^ 64) (hy : y < 2 ^ 64) :
+    ((if s < 64 then BitVec.ofNat 64 y >>> (s % 64) else 0#64).toNat |||
+      (if 64 - s < 64 then BitVec.ofNat 64 (x * 2 ^ ((64 - s) % 64)) else 0#64).toNat) =
+      y / 2 ^ s + (x * 2 ^ (64 - s)) % 2 ^ 64 := by
+  have hs64 : s % 64 = s := Nat.mod_eq_of_lt (by omega)
+  by_cases h0 : s = 0
+  · subst h0
+    simp only [Nat.sub_zero, Nat.pow_zero, Nat.div_one]
+    rw [if_pos (by omega), if_neg (by omega)]
+    simp only [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Nat.pow_zero, Nat.div_one, Nat.zero_mod]
+    simp [Nat.mod_eq_of_lt hy]
+  · have e1 : (64 - s) % 64 = 64 - s := Nat.mod_eq_of_lt (by omega)
+    rw [if_pos (by omega), if_pos (by omega), e1, hs64]
+    simp only [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]
+    rw [Nat.mod_eq_of_lt hy]
+    have e64 : 2 ^ 64 = 2 ^ s * 2 ^ (64 - s) := by rw [← Nat.pow_add, Nat.add_sub_cancel' (by omega)]
+    -- low part: (x * 2^(64-s)) % 2^64 = (x % 2^s) * 2^(64-s); y / 2^s < 2^(64-s)
+    have h1 : (x * 2 ^ (64 - s)) % 2 ^ 64 = (x % 2 ^ s) * 2 ^ (64 - s) := by
+      rw [e64, Nat.mul_mod_mul_right]
+    have h2 : y / 2 ^ s < 2 ^ (64 - s) := by
+      apply Nat.div_lt_of_lt_mul
+      rw [← e64]; exact hy
+    rw [h1, Fv256.Util.or_hi _ _ _ h2]
+
+theorem rem_lt (x y s : Nat) (hs : s ≤ 63) (hy : y < 2 ^ 64) :
+    y / 2 ^ s + (x * 2 ^ (64 - s)) % 2 ^ 64 < 2 ^ 64 := by
+  have e64 : 2 ^ 64 = 2 ^ s * 2 ^ (64 - s) := by rw [← Nat.pow_add, Nat.add_sub_cancel' (by omega)]
+  have h1 : (x * 2 ^ (64 - s)) % 2 ^ 64 = (x % 2 ^ s) * 2 ^ (64 - s) := by
+    rw [e64, Nat.mul_mod_mul_right]
+  have h2 : y / 2 ^ s < 2 ^ (64 - s) := by
+    apply Nat.div_lt_of_lt_mul
+    rw [← e64]; exact hy
+  have h3 : x % 2 ^ s + 1 ≤ 2 ^ s := Nat.mod_lt _ (Nat.two_pow_pos s)
+  have h4 := Nat.mul_le_mul_right (2 ^ (64 - s)) h3
+  rw [h1, e64]
+  rw [Nat.add_mul, Nat.one_mul] at h4
+  omega
+
 end Fv256.Arm64.Shift
