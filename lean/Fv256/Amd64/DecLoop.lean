@@ -45,10 +45,12 @@ theorem dec_br_loop (S : State) (hpc : S.rip = BitVec.ofNat 64 decBr) (pf sf : O
     simp only [List.mem_cons, List.not_mem_nil, or_false, not_or] at hk
     simp [setRegF, hk]
 
+theorem arith1 (b t L n : Nat) (hL : L = n + 19 * t) (ht : t ≤ 4) (hn : n ≤ 19) :
+    b + (98 - 19 * t - n) + 86 = b + 86 + (98 - L) := by omega
+theorem arith2 (t L n : Nat) (hL : L = n + 19 * t) (ht : t ≤ 4) (hn : n ≤ 19) : 98 - (98 - 19 * t - n) = L := by omega
+
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-set_option profiler true in
-set_option profiler.threshold 3000 in
 /-- The whole loop of `Dec`, from the head with `t` completed iterations to `decX`. -/
 theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^ 256)
     (hb : 0x1a0 ≤ b) (hb8 : b % 8 = 0) (hb2 : b + 0x180 ≤ 2 ^ 48)
@@ -119,8 +121,8 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
       have hL : decLen z = decLen (y % 10 ^ 19) + 19 * t := by
         rw [decLen_div_pow z (19 * t) hz10, ← hy, hnd]
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · rw [hrg, r2]; congr 1; omega
-      · rw [hrg, r13]; congr 1; omega
+      · rw [hrg, r2]; exact congrArg (BitVec.ofNat 64) (arith1 b t (decLen z) (decLen (y % 10 ^ 19)) hL ht4 hnd19)
+      · rw [hrg, r13]; exact congrArg (BitVec.ofNat 64) (arith2 t (decLen z) (decLen (y % 10 ^ 19)) hL ht4 hnd19)
       · rw [hrg]; exact r4
       · rw [hrg]; exact r5
       · rw [hrg, r14, e14]
@@ -133,9 +135,51 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
         · rw [hfr.readLE _ _ (by simp only [Outside, and_true]; omega), hout1 k hk1]
         · have hk2 : k - 19 * t < decLen (y % 10 ^ 19) := by omega
           have := hdig (k - 19 * t) hk2
-          rw [show b + 86 + (98 - 19 * t) - 1 - (k - 19 * t) = b + 86 + 97 - k by omega, this, hy,
+          rw [show b + 86 + (98 - 19 * t) - 1 - (k - 19 * t) = b + 86 + 97 - k by omega] at this
+          rw [this, hy,
             Nat.div_div_eq_div_mul, ← Nat.pow_add, show 19 * t + (k - 19 * t) = k by omega]
       · rw [hmem]; exact htab'
     · -- another chunk
-      sorry
+      have hzf : decide (y / 10 ^ 19 = 0) = false := by simp [h0]
+      rw [hzf] at hfl
+      have ht3 : t ≤ 3 := Nat.le_of_not_lt (fun hc => by
+        have h3 : 10 ^ 95 ≤ 10 ^ (19 * (t + 1)) := Nat.pow_le_pow_right (by omega) (by omega)
+        have h5 : (2:Nat) ^ 256 < 10 ^ 95 := by decide
+        have h4 : z / 10 ^ (19 * (t + 1)) = 0 := Nat.div_eq_of_lt (by omega)
+        have : y / 10 ^ 19 = 0 := by rw [← hy19]; exact h4
+        exact h0 this)
+      refine Fv256.E.reachesRet_bind' (dec_br_loop S' hrip' pf sf (98 - 19 * t) b (by omega) (by omega) hfl r0 r1 r11 r4 hb2) ?_
+      rintro S'' hrip'' ⟨q0, q2, q7, q9, qk, qm, qx, qd⟩
+      have hym2 : Fv256.B.wv S''.mem (b + 280) 4 = y / 10 ^ 19 := by rw [qm]; exact hy'
+      have hdm2 : Fv256.B.wv S''.mem (b + 312) 4 = 10 ^ 19 := by rw [qm]; exact hd'
+      refine ih (y / 10 ^ 19) (Nat.div_lt_self (by omega) (by decide)) (t + 1) S'' hy19.symm h0 hrip'' ?_ ?_ q2 ?_ ?_ q7 q9 ?_ ?_ ?_ ?_ hym2 hdm2 ?_ ?_ ?_
+      · rw [q0]; exact congrArg (BitVec.ofNat 64) (show 98 - 19 * t - 19 = 98 - 19 * (t + 1) by omega)
+      · rw [qk 1 (by simp)]; exact r1
+      · rw [qk 4 (by simp)]; exact r4
+      · rw [qk 5 (by simp)]; exact r5
+      · rw [qk 14 (by simp)]; rw [r14, e14]
+      · rw [qx]; exact rx
+      · rw [qd]; exact rdf
+      · rw [qm]; exact hfrM
+      · intro k hk
+        rw [qm]
+        by_cases hk1 : k < 19 * t
+        · rw [hfr.readLE _ _ (by simp only [Outside, and_true]; omega), hout1 k hk1]
+        · by_cases hk3 : k - 19 * t < decLen (y % 10 ^ 19)
+          · have := hdig (k - 19 * t) hk3
+            rw [show b + 86 + (98 - 19 * t) - 1 - (k - 19 * t) = b + 86 + 97 - k by omega] at this
+            rw [this, hy, Nat.div_div_eq_div_mul, ← Nat.pow_add, show 19 * t + (k - 19 * t) = k by omega]
+          · rw [hfr.readLE _ _ (by simp only [Outside, and_true]; omega), hout2 k (by omega) (by omega)]
+            have hlt := decLen_lt_pow (y % 10 ^ 19)
+            have hz0 : y % 10 ^ 19 / 10 ^ (k - 19 * t) = 0 :=
+              Nat.div_eq_of_lt (Nat.lt_of_lt_of_le hlt (Nat.pow_le_pow_right (by omega) (by omega)))
+            have := Fv256.E.digit_mod y (k - 19 * t) 19 (by omega)
+            rw [hz0] at this
+            rw [hy, Nat.div_div_eq_div_mul, ← Nat.pow_add, show 19 * t + (k - 19 * t) = k by omega] at this
+            omega
+      · intro k hk1 hk2
+        rw [qm]
+        rw [hfr.readLE _ _ (by simp only [Outside, and_true]; omega)]
+        exact hout2 k (by omega) hk2
+      · rw [qm]; exact htab'
 end Fv256.Amd64.Dec
