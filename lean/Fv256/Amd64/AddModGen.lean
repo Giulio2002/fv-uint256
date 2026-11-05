@@ -14,6 +14,7 @@ import Fv256.Amd64.UdivremA
 import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
 import Fv256.Amd64.ModSum
+import Fv256.Amd64.AddModTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -90,6 +91,7 @@ theorem gen (z x y m : BitVec 64) :
        unfold Fv256.F.addmodSpec
        rw [if_neg (by intro h; omega)]
        refine congrArg (fun t => t % _) ?_
-       omega))
+       decide_facts
+       omega_s))
 
 end Fv256.Amd64.AddModGen
