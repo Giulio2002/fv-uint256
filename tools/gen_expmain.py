@@ -12,7 +12,7 @@ def block_entry(k, names, c, extra_inv_tail):
     out=f"""  · rename_i {names}
     have hcl := (Fv256.B.clz_norm {Ek} {'e%dnz'%k} (Fv256.Util.readLE8_lt _ _)).1
     have hn0 : {NN} < 2 ^ 20 := by omega_e
-    refine Fv256.Amd64.ExpLoop1.loop1 s _ {NN} {Z} {EPN} {B8} hn0 (by omega_e) hnw hacc (min {NN} 64) 0 1 {B32} {E(0)} _ (by omega_e) ?inv ?hex
+    refine Fv256.Amd64.ExpLoop1.loop1 s _ {NN} {Z} {EPN} {B8} hn0 (by omega_e) hnw hacc (min {NN} 64) 0 1 {B32} {E(0)} _ (by omega_e) ?inv{k} ?hex{k}
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
       · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]

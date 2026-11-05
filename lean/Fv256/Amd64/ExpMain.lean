@@ -12,6 +12,7 @@ import Fv256.Amd64.ExpLoop3
 import Fv256.Amd64.ExpLoop4
 import Fv256.Amd64.EnsuresOfW
 import Fv256.ExpPro
+import Fv256.Amd64.ExpTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -206,7 +207,69 @@ theorem exp_summary :
         simpa using b3
   · rename_i hg e3z e2z e1z hev hbl
     exact ⟨Fv256.F.early0 _ _ _ _ _ (Fv256.Util.readLE8_lt _ _) (Fv256.F.even_of_lsb _ hev) _ hbl, by janus_frame⟩
-  · sorry
+  · rename_i g1 e3z e2z e1nz
+    have hcl := (Fv256.B.clz_norm (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) e1nz (Fv256.Util.readLE8_lt _ _)).1
+    have hn0 : (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) < 2 ^ 20 := by omega_e
+    refine Fv256.Amd64.ExpLoop1.loop1 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega_e) ?inv1 ?hex1
+    · unfold Fv256.Amd64.ExpLoop1.Inv1
+      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · omega_e
+      · decide
+      · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
+        simpa using this
+      · exact Fv256.Util.readLE8_lt _ _
+      · exact Fv256.Util.readLE8_lt _ _
+      · simp [setRegF]
+      · simp [setRegF]; exact Fv256.F.nbvk _ 65
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF]
+      · simp [setRegF, setXmmF, hx15]
+      · simp only []
+        rw [Janus.Arm64.Memory.readLE_add _ _ 16 16]
+        have e1 : BitVec.toNat (s.regs 4) - 104 + 16 = BitVec.toNat (s.regs 4) - 88 := by omega_e
+        rw [e1]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        try simp
+      · simp only []
+        rw [Janus.Arm64.Memory.readLE_add _ _ 16 16]
+        have e1 : BitVec.toNat (s.regs 4) - 72 + 16 = BitVec.toNat (s.regs 4) - 56 := by omega_e
+        rw [e1]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        rw [Nat.mod_eq_of_lt (by have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 16; simpa using this),
+          Nat.mod_eq_of_lt (by have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3) + 16) 16; simpa using this),
+          ← Janus.Arm64.Memory.readLE_add]
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := (s.regs 0).isLt
+        simp only [Nat.reducePow, Nat.reducePow] at this ⊢
+        omega_e
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := (s.regs 1).isLt
+        omega_e
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        omega_e
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := Fv256.Util.readLE8_lt s.mem (BitVec.toNat (s.regs 3))
+        omega_e
+      · rfl
+      · rfl
+      · simp only []
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+        have := (s.regs 5).isLt
+        omega_e
+      · janus_frame
+    · sorry
   · rename_i g1 e3z e2z e1nz hev0
     exact (Fv256.F.contra_big _ 65 (by decide) (by decide) (Fv256.Util.readLE8_lt _ _) hbr).elim
   · rename_i hg e3z e2z e1nz hev hbl
