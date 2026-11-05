@@ -100,4 +100,27 @@ theorem qh_val (u2 u1 v : Nat) (h2 : u2 < 2^64) (h1 : u1 < 2^64) (hv : v < 2^64)
   rw [hc]
 
 
+/-- Go slice pointer arithmetic `p + ((j & ((j - cap) >> 63)) << 3)` for an in-range index (arm64). -/
+theorem slice_ptr_arm (j up : Nat) (c : Nat) (hj : j < c) (hc : c < 2 ^ 55) :
+    BitVec.ofNat 64 up + (BitVec.ofNat 64 j &&& (BitVec.ofNat 64 j - BitVec.ofNat 64 c).sshiftRight 63) <<< 3 =
+      BitVec.ofNat 64 (up + 8 * j) := by
+  have hm : (BitVec.ofNat 64 j - BitVec.ofNat 64 c).msb = true := by
+    rw [BitVec.msb_eq_decide]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
+    have : j < 2 ^ 64 := by omega
+    have : c < 2 ^ 64 := by omega
+    rw [Nat.mod_eq_of_lt (show j < 2 ^ 64 by omega), Nat.mod_eq_of_lt (show c < 2 ^ 64 by omega)]
+    simp; omega
+  rw [Fv256.B.sshr63_msb _ hm]
+  have hmk : ∀ y : BitVec 64, (y &&& 18446744073709551615#64) = y := by
+    intro y; apply BitVec.eq_of_toNat_eq; simp [BitVec.toNat_and]
+    have := y.isLt
+    exact Nat.and_two_pow_sub_one_of_lt_two_pow this
+  rw [hmk]
+  apply BitVec.eq_of_toNat_eq
+  simp only [BitVec.toNat_add, BitVec.toNat_shiftLeft, BitVec.toNat_ofNat, Nat.reducePow]
+  have : j < 2 ^ 64 := by omega
+  have : up < 2 ^ 64 ∨ 2 ^ 64 ≤ up := by omega
+  rw [Nat.mod_eq_of_lt (show j < 2 ^ 64 by omega)]
+  omega
+
 end Fv256.Arm64.KnuthLem
