@@ -171,4 +171,10 @@ theorem nbvk (a c : Nat) : BitVec.ofNat 64 a + BitVec.ofNat 64 c = BitVec.ofNat 
 
 theorem nmemk (a c : Nat) (h : a + c < 256 ^ 8) : (a + c) % 256 ^ 8 = a + c := Nat.mod_eq_of_lt h
 
+theorem contra_big (e c : Nat) (hc : 8 < c) (hc2 : c < 2 ^ 20) (hb : e < 2 ^ 64)
+    (h : (BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e) + BitVec.ofNat 64 c).toInt ≤ 8) : False := by
+  have hcl : 63 - Janus.Arm64.clzNat 64 e ≤ 63 := by omega
+  rw [toInt_add_small _ _ (by omega)] at h
+  omega
+
 end Fv256.F
