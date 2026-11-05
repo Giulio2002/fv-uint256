@@ -198,36 +198,39 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
          | exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption)
          | omega
          | (simp only [errItab, herr] at *; omega))
-      | (refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
-         case F =>
-           obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields (‹InRanges _ 48 R.rt›) (rs' := R.rt) (fun r hr => hr)
-           te_frame
-         case obj =>
-           refine ⟨?c1, ?c2, ?c3, ?c4, ?c5, ?c6, ?c7, ?c8, ?c9, ?c10, ?c11, ?c12⟩
-           case c1 => assumption
-           case c2 => rw [blockSize48]; assumption
-           case c3 => assumption
-           case c4 =>
-             simp only [apartAll_append, apartAll_cons, apartAll_nil, and_true, blockSize48, Nat.add_sub_cancel_left]
-             exact ‹ApartAll _ 48 L ∧ _›
-           case c12 => trace_state; sorry
-           all_goals
-             rw [hesn] at hsRe hePr hoE
-             have eR0 : Outside 5996272 8 R.rt := Outside.of_sub hsRe (by omega) (by omega)
-             have eR1 : Outside 5996280 8 R.rt := Outside.of_sub hsRe (by omega) (by omega)
-             have eP0 : Outside 5996272 8 R2.priv := Outside.of_sub hePr (by omega) (by omega)
-             have eP1 : Outside 5996280 8 R2.priv := Outside.of_sub hePr (by omega) (by omega)
-             simp only [Janus.outside_cons, Janus.outside_nil, and_true] at hoE
-             simp only [Janus.Apart] at *
-           case c5 => te_walk
-           case c6 => te_walk
-           case c7 => te_walk
-           case c8 => te_walk
-           case c9 => rw [hesn]; te_walk
-           case c10 => rw [hesn]; te_walk
-           case c11 => trace_state; sorry
-         all_goals first | rfl | (simp [hx15, hdf]; done) | skip
-         trace_state
-         all_goals sorry)
+      | skip
+    · refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
+      case F =>
+        obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields (‹InRanges _ 48 R.rt›) (rs' := R.rt) (fun r hr => hr)
+        te_frame
+      case obj =>
+        refine ⟨?c1, ?c2, ?c3, ?c4, ?c5, ?c6, ?c7, ?c8, ?c9, ?c10, ?c11, ?c12⟩
+        case c1 => assumption
+        case c2 => rw [blockSize48]; assumption
+        case c3 => assumption
+        case c4 =>
+          simp only [apartAll_append, apartAll_cons, apartAll_nil, and_true, blockSize48, Nat.add_sub_cancel_left]
+          exact ‹ApartAll _ 48 L ∧ _›
+        all_goals
+          rw [hesn] at hsRe hePr hoE
+          have eR0 : Outside 5996272 8 R.rt := Outside.of_sub hsRe (by decide) (by decide)
+          have eR1 : Outside 5996280 8 R.rt := Outside.of_sub hsRe (by decide) (by decide)
+          have eP0 : Outside 5996272 8 R2.priv := Outside.of_sub hePr (by decide) (by decide)
+          have eP1 : Outside 5996280 8 R2.priv := Outside.of_sub hePr (by decide) (by decide)
+          simp only [Janus.outside_cons, Janus.outside_nil, and_true] at hoE
+          have hA := hAe
+          simp only [Apart, hesn] at hA
+        case c5 => te_walk
+        case c6 => te_walk
+        case c7 => te_walk
+        case c8 => te_walk
+        case c9 => rw [hesn]; te_walk
+        case c10 => rw [hesn]; te_walk
+        case c11 => te_inv
+        all_goals sorry
+      all_goals first | rfl | (simp [hx15, hdf]; done) | skip
+      all_goals sorry
+    all_goals sorry
+  all_goals (exfalso; exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption))
 
 end Fv256.Amd64.SfdToError

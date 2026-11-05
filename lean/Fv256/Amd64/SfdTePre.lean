@@ -156,6 +156,16 @@ macro "te_disch" : tactic => `(tactic| first
      repeat' apply And.intro
      all_goals first | assumption | omega))
 
+macro "te_close" : tactic => `(tactic| first
+  | with_reducible exact Nat.mod_eq_of_lt (Janus.Arm64.Memory.readLE_lt _ _ _)
+  | (rw [show (256 : Nat) ^ 8 = 2 ^ 64 from rfl]; with_reducible exact Nat.mod_eq_of_lt (BitVec.isLt _))
+  | skip)
+
+theorem inRanges_last2 {a n : Nat} {l : List (Nat × Nat)} {r1 r : Nat × Nat} (h : r.1 ≤ a ∧ a + n ≤ r.2) :
+    InRanges a n (l ++ [r1, r]) := ⟨r, by simp, h.1, h.2⟩
+
+theorem append_two {α : Type} (l : List α) (a b : α) : l ++ [a, b] = l ++ [a] ++ [b] := by simp
+
 open Lean Elab Tactic Meta in
 /-- rewrite memory reads through stores and through the `LiveFrame`/`MemFrame` facts of the context -/
 elab "te_walk" : tactic => withMainContext do
@@ -167,8 +177,16 @@ elab "te_walk" : tactic => withMainContext do
     if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
       let h ← Term.exprToSyntax d.toExpr
       rules := rules.push (← `(($h).readLE))
+  evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]))
   evalTactic (← `(tactic| simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
     Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*]))
+  evalTactic (← `(tactic| te_close))
+
+/-- the invariant for the finished object: the stores into the fresh object do not change the view -/
+macro "te_inv" : tactic => `(tactic|
+  (rw [blockSize48, append_two]
+   simp (disch := te_disch) only [Janus.Contracts.view_writeLE_live]
+   janus_assumption))
 
 theorem te_post_intro {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)} {fp fl sp sl : BitVec 64} {s s' : State}
     (hk : Fv256.C.Kept s s')
