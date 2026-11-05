@@ -58,7 +58,8 @@ def TePre (R : RtInv) (R2 : IfaceModel) (T : Nat) (b : Nat) (L : List (Nat × Na
   s.mem.accessible sp.toNat sl.toNat false = true ∧ sp.toNat + sl.toNat ≤ 2 ^ 48 ∧
   (sp.toNat + sl.toNat ≤ (s.regs 4).toNat - 4192 ∨ (s.regs 4).toNat + 72 ≤ sp.toNat) ∧
   Spec.Disjoint ((s.regs 14).toNat + 16) 8 ((s.regs 4).toNat - 4192) 4264 ∧
-  Outside ((s.regs 14).toNat + 16) 8 R.rt
+  Outside ((s.regs 14).toNat + 16) 8 R.rt ∧
+  (∀ r ∈ R.rt, 0 < r.1)
 
 theorem reach_name {p : Janus.Amd64.Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
     (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl
@@ -81,7 +82,7 @@ theorem te_explore (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
     Summary (Extracted.program.link impl) te (TePre R R2 T b L fp fl sp sl) (fun _ _ => True) := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, h9, h10, hsl1, hsl2, hg, ⟨hlow, hnw, hacc⟩, hal, hd, hdep, hc2,
-    hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR⟩
+    hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR, hrt0⟩
   have hgl := hg.load
   have hgb := hg.below
   have hgn := hg.noWrap
@@ -143,7 +144,7 @@ theorem te_explore (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     have h3 : (S.regs 3).toNat = synConst := by rw [hSreg.2.2]; simp only [BitVec.toNat_ofNat]; decide
     rw [hS0, hTS, h1, h3]
     exact fun _ => ⟨hTty, hcmp.1⟩
-  · intro s' hpc' ⟨r, x, y, fl, m', zh, kr, hs', hfr, henv', hres⟩
+  · intro s' hpc' ⟨r, x, y, flI, m', zh, kr, hs', hfr, henv', hres⟩
     have h1 : (S.regs 1).toNat = synConst := by rw [hSreg.2.1]; simp only [BitVec.toNat_ofNat]; decide
     have h3 : (S.regs 3).toNat = synConst := by rw [hSreg.2.2]; simp only [BitVec.toNat_ofNat]; decide
     have hres' : (r 0).toNat % 256 = 1 := by
@@ -198,7 +199,8 @@ theorem te_explore (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     simp only [Spec.Disjoint] at hgdis
     clear hres hpc' hpre0 hcmp hdesc hxacc hres' hfr' hinvS hSf hSreg hSacc hS4 hret0 hSra hra' hS0 henv' h1 h3
     janus64_run [hal1, hgm] until [Extracted.program.contractAddr "runtime.memmove"] calls [hmg.pos]
-    rename_i q j2 f2 x2 y2 m2 z2 k2 hLF hMF hApA hInR hQ48 hQacc hQa8 hQa16 hQz hQsl hAp hInv2 hAw hAn
+    rename_i q j2 f2 x2 y2 m2 z2 k2 hLF hMF hApA hInR hQ48 hQacc hQa8 hQa16 hQz hQsl hAp hInv2 hAw hAn hAwb
+    try clear hTS hregS hndS hszS
     have hrsp : (s.regs 4 - 96#64).toNat = (s.regs 4).toNat - 96 := hs496
     have hgm2 : m2.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 := by
       rw [hMF.readLE _ _ (by
@@ -222,9 +224,173 @@ theorem te_explore (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
         simp only [outside_append, outside_cons, outside_nil, and_true]
         exact ⟨h2, by omega, by omega⟩)]
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
-    all_goals trace_state
-    janus64_run [hal1, hgm, hgm2] calls [hmv]
-    all_goals trace_state
-    all_goals sorry
+    have hs8 : ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE ((s.regs 4).toNat - 96) 8 4771679).readLE ((s.regs 4).toNat + 8) 8 = fp.toNat := by
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+        Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hMF.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout (by omega) (by omega), by omega, by omega⟩)]
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hfr.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout2 (by omega) (by omega), by omega, by omega⟩)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      have e : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+      rw [e]; exact Nat.mod_eq_of_lt fp.isLt
+    have hs16 : ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE ((s.regs 4).toNat - 96) 8 4771679).readLE ((s.regs 4).toNat + 16) 8 = fl.toNat := by
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+        Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hMF.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout (by omega) (by omega), by omega, by omega⟩)]
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hfr.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout2 (by omega) (by omega), by omega, by omega⟩)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      have e : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+      rw [e]; exact Nat.mod_eq_of_lt fl.isLt
+    have hs24 : ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE ((s.regs 4).toNat - 96) 8 4771679).readLE ((s.regs 4).toNat + 24) 8 = sp.toNat := by
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+        Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hMF.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout (by omega) (by omega), by omega, by omega⟩)]
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hfr.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout2 (by omega) (by omega), by omega, by omega⟩)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      have e : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+      rw [e]; exact Nat.mod_eq_of_lt sp.isLt
+    have hs32 : ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE ((s.regs 4).toNat - 96) 8 4771679).readLE ((s.regs 4).toNat + 32) 8 = sl.toNat := by
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+        Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hMF.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout (by omega) (by omega), by omega, by omega⟩)]
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      rw [hfr.readLE _ _ (by
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        exact ⟨Outside.of_sub hout2 (by omega) (by omega), by omega, by omega⟩)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      have e : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+      rw [e]; exact Nat.mod_eq_of_lt sl.isLt
+    have hsq : ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE ((s.regs 4).toNat - 96) 8 4771679).readLE ((s.regs 4).toNat - 16) 8 = q.toNat := by
+      rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      simp only [Janus.Arm64.Memory.readLE_writeLE_self]
+      have e : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+      rw [e]; exact Nat.mod_eq_of_lt q.isLt
+    have hacc2 : ∀ a n w, ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE
+        ((s.regs 4).toNat - 96) 8 4771679).accessible a n w = s.mem.accessible a n w := by
+      intro a n w
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hfr.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+    have hret2 : ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE
+        ((s.regs 4).toNat - 96) 8 4771679).readLE ((s.regs 4).toNat - 96) 8 = 4771679 := by
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+    have hfm2 : MemFrame m2 ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE
+        ((s.regs 4).toNat - 96) 8 4771679) [((s.regs 4).toNat - 16, (s.regs 4).toNat - 8),
+          ((s.regs 4).toNat - 96, (s.regs 4).toNat - 88)] := by
+      janus_frame
+    generalize ((Arm64.Memory.writeLE m2 ((s.regs 4).toNat - 16) 8 q.toNat).writeLE
+        ((s.regs 4).toNat - 96) 8 4771679) = M2 at hacc2 hret2 hfm2 hrd hs8 hs16 hs24 hs32 hsq ⊢
+    have hWg : Outside ((s.regs 14).toNat + 16) 8 [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)] := by
+      simp only [outside_cons, outside_nil, and_true]; omega
+    have hgM2 : M2.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 :=
+      hrd _ _ hgR hgo2 hWg
+    refine ReachesRet.call (hmv (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)]) (b - blockSize sl.toNat true))
+      (by rfl) ⟨?eq, ?lm, ?inp, ?ld⟩ ?cont
+    case eq =>
+      simp only [MemAmd64.EqPre, MemAmd64.CallOK, setRegF_apply, callRegs64_apply, reduceIte, Nat.reduceEqDiff, calleeStack,
+        MapAmd64.calleeStack, MemAmd64.calleeStack, hrsp, MapAmd64.keepABI_apply, or_true, if_true, regG, regSP, stackguard0Offset, Janus.Amd64.GoABI.stackguard0]
+      refine ⟨⟨?_, ?_, ?_⟩, ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩, ?_⟩
+      · simp only [regG, regSP, stackguard0Offset, Janus.Amd64.GoABI.stackguard0, setRegF_apply, callRegs64_apply, MapAmd64.keepABI_apply, reduceIte, Nat.reduceEqDiff, or_true, if_true, hrsp]; omega
+      · simp only [regG, regSP, stackguard0Offset, Janus.Amd64.GoABI.stackguard0, setRegF_apply, callRegs64_apply, MapAmd64.keepABI_apply, reduceIte, Nat.reduceEqDiff, or_true, if_true, hrsp]; rw [hacc2]; exact hgr
+      · simp only [regG, regSP, stackguard0Offset, Janus.Amd64.GoABI.stackguard0, setRegF_apply, callRegs64_apply, MapAmd64.keepABI_apply, reduceIte, Nat.reduceEqDiff, or_true, if_true, hrsp]; rw [hgM2]; omega
+      · omega
+      · omega
+      · omega
+      · rw [hacc2]; exact Arm64.Memory.accessible_mono _ hacc (by omega) (by omega)
+      · rfl
+      · trivial
+      · rw [hret2]; omega
+      · try simp only [regG, regSP, stackguard0Offset, Janus.Amd64.GoABI.stackguard0, setRegF_apply, callRegs64_apply, MapAmd64.keepABI_apply, reduceIte, Nat.reduceEqDiff, or_true, if_true, hrsp]
+        simp only [outside_cons, outside_nil, and_true]; omega
+    case lm =>
+      simp only [LiveMemAt64, liveWin64, calleeStack64, MapAmd64.calleeStack, MemAmd64.calleeStack, setRegF_apply, callRegs64_apply,
+        reduceIte, Nat.reduceEqDiff, hrsp, regG, regSP, or_false, or_self, or_true, if_true, if_false, List.getD_cons_zero,
+        MapAmd64.keepABI_apply]
+      refine ⟨hokv q.toNat, ?_, ?_, ?_⟩
+      · exact RtInv.inv_frame' hfm2 (by
+          intro r hr
+          left
+          simp only [List.mem_cons, List.mem_nil_iff, or_false] at hr
+          rcases hr with rfl | rfl <;> exact Outside.of_sub hout (by omega) (by omega)) hInv2
+      · intro r hr
+        simp only [List.mem_append, List.mem_singleton] at hr
+        rcases hr with hr | hr
+        · have h := hLs r hr
+          simp only [outside_cons, outside_nil, and_true, outside_append] at h ⊢
+          omega
+        · subst hr
+          unfold Apart at hAw
+          simp only [outside_cons, outside_nil, and_true, outside_append]
+          omega
+      · intro r hr
+        simp only [List.mem_append, List.mem_cons, List.mem_nil_iff, or_false, List.mem_singleton] at hr
+        rcases hr with (rfl | rfl) | rfl <;> exact Outside.of_sub hout (by omega) (by omega)
+    case inp =>
+      simp only [LiveDest64, MemAmd64.Input, calleeStack64, MapAmd64.calleeStack, MemAmd64.calleeStack, setRegF_apply, callRegs64_apply, reduceIte, Nat.reduceEqDiff, hrsp, regG, regSP, or_false, or_self, or_true, if_true, if_false, List.getD_cons_zero, MapAmd64.keepABI_apply]
+      refine ⟨hsp48, ?_, ?_⟩
+      · rw [hacc2]; exact hsacc
+      · simp only [outside_cons, outside_nil, and_true]; omega
+    case ld =>
+      simp only [LiveDest64, MemAmd64.Input, calleeStack64, MapAmd64.calleeStack, MemAmd64.calleeStack, setRegF_apply, callRegs64_apply, reduceIte, Nat.reduceEqDiff, hrsp, regG, regSP, or_false, or_self, or_true, if_true, if_false, List.getD_cons_zero, MapAmd64.keepABI_apply]
+      refine ⟨by omega, ?_, ?_, Or.inl ?_, ?_⟩
+      · rw [hacc2]; exact Arm64.Memory.accessible_mono _ hQacc (by omega) (by omega)
+      · unfold Apart at hAw
+        simp only [outside_cons, outside_nil, and_true]; omega
+      · exact ⟨(q.toNat, q.toNat + blockSize sl.toNat true), by simp, Nat.le_refl _, by omega⟩
+      · unfold Apart at hAw
+        simp only [outside_cons, outside_nil, and_true]; omega
+    case cont =>
+      intro s3 hpc3 ⟨j3, f3, x3, y3, m3, z3, k3, hs3, hfr3, hlf3, hinv3, hcp3⟩
+      subst hs3
+      simp only [calleeStack64, MapAmd64.calleeStack, MemAmd64.calleeStack, setRegF_apply, callRegs64_apply, reduceIte,
+        Nat.reduceEqDiff, hrsp, regG, regSP, or_false, or_self, or_true, if_true, if_false, List.getD_cons_zero,
+        MapAmd64.keepABI_apply, liveWin64, List.append_nil] at hfr3
+      have hinv3' : R.inv (b - blockSize sl.toNat true) (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)])
+          (s.regs 14).toNat (view R.rt (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)]) m3) := by
+        simpa only [setRegF_apply, callRegs64_apply, reduceIte, Nat.reduceEqDiff, hrsp, regG, regSP, or_false, or_self, or_true, if_true, if_false, List.getD_cons_zero, MapAmd64.keepABI_apply] using hinv3
+      have hcp3' : Mem.Copied M2 m3 q.toNat sp.toNat sl.toNat := by
+        simpa only [setRegF_apply, callRegs64_apply, reduceIte, Nat.reduceEqDiff, hrsp, regG, regSP, or_false, or_self, or_true, if_true, if_false, List.getD_cons_zero, MapAmd64.keepABI_apply] using hcp3
+      clear hinv3 hcp3 hlf3
+      simp only [retState64, retAddrOf, setRegF_apply, reduceIte, Nat.reduceEqDiff, hrsp, hret2]
+      have hgm3 : m3.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 := by
+        rw [hfr3.readLE _ _ (by
+          simp only [outside_append, outside_cons, outside_nil, and_true]
+          refine ⟨⟨hgR, ?_, ?_⟩, ?_⟩
+          · omega
+          · omega
+          · have := InRanges.disjoint hInR hgR
+            omega)]
+        exact hgM2
+      have hM2acc : M2.accessible ((s.regs 4).toNat - 4192) (4192 + 72) true = true := by
+        rw [hacc2]; exact hacc
+      have hM2accF : M2.accessible ((s.regs 4).toNat - 4192) (4192 + 72) false = true :=
+        Arm64.Memory.accessible_weaken _ hM2acc
+      have hqpos : 0 < q.toNat := by
+        obtain ⟨r, hr, h1, h2⟩ := hInR
+        have := hrt0 r hr
+        omega
+      simp only [Apart] at hAw hAn h_apart
+      clear hrd hret2 hfm2
+      janus64_run [hgm3] calls [hnew.pos]
+      all_goals trace_state
+      all_goals sorry
 
 end Fv256.Amd64.SfdToError
