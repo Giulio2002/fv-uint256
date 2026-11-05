@@ -28,7 +28,8 @@ def Inv4 (s0 : State) (n z ep ev k r b w : Nat) (S : State) : Prop :=
   S.mem.readLE ((s0.regs 4).toNat - 104) 32 = r ∧ S.mem.readLE ((s0.regs 4).toNat - 72) 32 = b ∧
   S.mem.readLE ((s0.regs 4).toNat + 8) 8 = z ∧ S.mem.readLE ((s0.regs 4).toNat + 24) 8 = ep ∧
   S.mem.readLE ((s0.regs 4).toNat - 120) 8 = n ∧ S.mem.readLE ((s0.regs 4).toNat - 16) 8 = ev ∧
-  MemFrame s0.mem S.mem [((s0.regs 4).toNat - 0xa8, (s0.regs 4).toNat + 0x20)]
+  S.df = s0.df ∧ S.mxcsr = s0.mxcsr ∧ S.mem.readLE ((s0.regs 4).toNat - 8) 8 = (s0.regs 5).toNat ∧
+  MemFrame s0.mem S.mem [((s0.regs 4).toNat - 0xa8, (s0.regs 4).toNat), ((s0.regs 4).toNat + 8, (s0.regs 4).toNat + 0x20)]
 
 theorem slt_small (k n : Nat) (hk : k < n) (hn : n < 2 ^ 20) : ¬ (BitVec.ofNat 64 k).slt (BitVec.ofNat 64 n) = false := by
   simp only [BitVec.slt, decide_eq_false_iff_not, Decidable.not_not]
@@ -57,7 +58,7 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
     exact hex S (by simpa [Fv256.F.expIter, ← hkt] using hI)
   | succ t ih =>
     intro k r b w S hkt hI hex
-    obtain ⟨hpc, hk64, hr, hb, hw, hev, r3, r7, r8, r0, r2, r6, r4, r5, r14, x15, mr, mb, mz, mep, mn, mev, hfr⟩ := hI
+    obtain ⟨hpc, hk64, hr, hb, hw, hev, r3, r7, r8, r0, r2, r6, r4, r5, r14, x15, mr, mb, mz, mep, mn, mev, hdfS, hmxS, mbp, hfr⟩ := hI
     have hcode := head4_lt
     have hMa : S.mem.accessible ((s0.regs 4).toNat - 0xa8) (0xa8 + 0x20) true = true := by rw [hfr.accessible]; exact hwin
     have hk : k < min n 256 := by omega
@@ -66,7 +67,7 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
     have hkt3 : (BitVec.ofNat 64 k).toNat = k := by rw [BitVec.toNat_ofNat]; omega
     have hnt : (BitVec.ofNat 64 n).toNat = n := by rw [BitVec.toNat_ofNat]; omega
     have hcmp : ¬ (BitVec.ofNat 64 k).slt (BitVec.ofNat 64 n) = false := slt_small k n hk1 hn
-    janus64_run [r3, r7, r8, r0, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev, hkt3, hnt] until [head4] calls [Fv256.Amd64.ExpSum.mul_summary, Fv256.Amd64.ExpSum.sq_summary]
+    janus64_run [r3, r7, r8, r0, r2, r6, r4, r5, r14, mr, mb, mz, mep, mn, mev, mbp, hkt3, hnt] until [head4] calls [Fv256.Amd64.ExpSum.mul_summary, Fv256.Amd64.ExpSum.sq_summary]
     · rename_i ha h4 h5 h14 hx15 hdf hmx hm hf
       have hodd : ¬ (w % 2 = 1) := by
         have := hbr
@@ -79,7 +80,7 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
         (by omega) ?inv (fun S' h => hex S' h)
       unfold Inv4
       rw [e1, e2, e3]
-      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
       · simp [setRegF, head4, Extracted.entry]
       · omega
       · exact hr
@@ -112,6 +113,11 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
       · rw [hf.readLE _ _ (by simp [Outside]; omega)]
         simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
         exact mev
+      · first | exact hdfS | (simp [hdf, hdfS]; done)
+      · first | exact hmxS | (simp [hmx, hmxS]; done)
+      · rw [hf.readLE _ _ (by simp [Outside] <;> omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mbp
       · janus_frame
     · rename_i ha1 g0 g4 g5 g14 gx gdf gmx hmv hmf ha h4 h5 h14 hx15 hdf hmx hm hf
       have hodd : w % 2 = 1 := by
@@ -125,7 +131,7 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
         (by omega) ?inv2 (fun S' h => hex S' h)
       unfold Inv4
       rw [e1, e2, e3]
-      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
       · simp [setRegF, head4, Extracted.entry]
       · omega
       · exact Nat.mod_lt _ (Nat.two_pow_pos _)
@@ -166,4 +172,11 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
         rw [hmf.readLE _ _ (by simp [Outside]; omega)]
         simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
         exact mev
+      · first | exact hdfS | (simp [hdf, gdf, hdfS]; done)
+      · first | exact hmxS | (simp [hmx, gmx, hmxS]; done)
+      · rw [hf.readLE _ _ (by simp [Outside] <;> omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        rw [hmf.readLE _ _ (by simp [Outside] <;> omega)]
+        simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+        exact mbp
       · janus_frame

@@ -23,8 +23,8 @@ def gen(v,H,U,keep_ep=True):
     new='      · simp [setRegF]\n      · simp [setRegF]\n      · simp [setRegF]; exact Fv256.F.shr1_w64 w hw\n'+'      · simp [setRegF]\n'*(n-3)
     assert t.count(old)==2
     t=t.replace(old,new)
-    q='⟨'+', '.join(['?_']*25)+'⟩'
-    nq=24 if keep_ep else 23
+    q='⟨'+', '.join(['?_']*28)+'⟩'
+    nq=27 if keep_ep else 26
     assert t.count(q)==2
     t=t.replace(q,'⟨'+', '.join(['?_']*nq)+'⟩')
     return t
