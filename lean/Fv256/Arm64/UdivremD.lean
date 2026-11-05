@@ -35,18 +35,15 @@ def KnuthStmt : Prop :=
         2 ^ 63 ≤ s.mem.readLE ((s.regs 6).toNat + 8 * ((s.regs 7).toNat - 1)) 8 ∧
         Fv256.B.wv s.mem ((s.regs 3).toNat + 8 * ((s.regs 4).toNat - (s.regs 7).toNat)) (s.regs 7).toNat <
           Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat)
-      (fun s s' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
-        s' = { s with regs := R', pc := s.regs 30, flags := fl', mem := M' } ∧
-        R' 18 = s.regs 18 ∧ R' 28 = s.regs 28 ∧ R' 29 = s.regs 29 ∧ R' 30 = s.regs 30 ∧
-        (∀ i, 22 ≤ i → R' i = s.regs i) ∧
+      (fun s s' => s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
+        s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧ (∀ i, 22 ≤ i → s'.regs i = s.regs i) ∧
         Fv256.B.wv s.mem (s.regs 3).toNat (s.regs 4).toNat =
-          Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat * Fv256.B.wv M' (s.regs 0).toNat ((s.regs 4).toNat - (s.regs 7).toNat) +
-            Fv256.B.wv M' (s.regs 3).toNat (s.regs 7).toNat ∧
-        Fv256.B.wv M' (s.regs 3).toNat (s.regs 7).toNat < Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat ∧
-        MemFrame s.mem M' [((s.regs 3).toNat, (s.regs 3).toNat + 8 * (s.regs 4).toNat),
+          Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat * Fv256.B.wv s'.mem (s.regs 0).toNat ((s.regs 4).toNat - (s.regs 7).toNat) +
+            Fv256.B.wv s'.mem (s.regs 3).toNat (s.regs 7).toNat ∧
+        Fv256.B.wv s'.mem (s.regs 3).toNat (s.regs 7).toNat < Fv256.B.wv s.mem (s.regs 6).toNat (s.regs 7).toNat ∧
+        MemFrame s.mem s'.mem [((s.regs 3).toNat, (s.regs 3).toNat + 8 * (s.regs 4).toNat),
           ((s.regs 0).toNat, (s.regs 0).toNat + 8 * ((s.regs 4).toNat - (s.regs 7).toNat)),
           (s.sp.toNat - 120, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 72)])
-
 
 abbrev knuth : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivremKnuth"
 
@@ -104,7 +101,17 @@ theorem caseK (hKn : KnuthStmt) (T : State) (ret : W64) (Q : State → Prop) (M0
     exact h1
   have htopn : 2 ^ 63 ≤ M5.readLE (T.sp.toNat + 160 + 8 * (n - 1)) 8 := F.dntop
   janus_run [r0, r1, r3, r4, r5, r6, r7, r8, hm] until [ku + 0x210] calls [hc := hKn]
-  rename_i R2 fl2 M2 c18 c28 c29 c30 cu cwv clt cfr
+  have cpc : s'.pc = BitVec.ofNat 64 knret := by
+    have := ‹s'.pc = _›
+    janus_eval_nat hbr : knret
+    simpa [setReg, hbr] using this
+  have cf := ‹MemFrame M5 s'.mem _›
+  have csp : s'.sp = T.sp := ‹s'.sp = _›
+  have cwv := ‹Fv256.B.wv M5 (T.sp.toNat + 80) (ulen + 1) = _›
+  have clt := ‹Fv256.B.wv s'.mem (T.sp.toNat + 80) n < _›
+  have cu := ‹∀ i : Nat, 22 ≤ i → s'.regs i = _›
+  have e : ({ s' with regs := s'.regs, pc := BitVec.ofNat 64 knret, flags := s'.flags, mem := s'.mem } : State) = s' := by
+    cases s'; simp only at cpc; subst cpc; rfl
   have hkr : knret = 767136 := by
     janus_eval_nat hh : knret
     exact hh
@@ -113,71 +120,73 @@ theorem caseK (hKn : KnuthStmt) (T : State) (ret : W64) (Q : State → Prop) (M0
     have : 0 < M0.readLE (dp + 8 * (n - 1)) 8 * 2 ^ (64 - 64 + 64 * (n - 1)) := Nat.mul_pos (Nat.pos_of_ne_zero F.dtop) (Nat.two_pow_pos _)
     simp only [Nat.sub_self, Nat.zero_add] at this
     omega
-  have key := Fv256.Arm64.UdivremA.kntail T (BitVec.ofNat 64 x30) Q M2 R2 fl2 remp n ulen s x29 x30 hn2 F.hn4 hnu (by omega) hs hx30a hx30b hal hsp hspb
+  have key := Fv256.Arm64.UdivremA.kntail s' (BitVec.ofNat 64 x30) Q s'.mem s'.regs s'.flags remp n ulen s x29 x30 hn2 F.hn4 hnu (by omega) hs hx30a hx30b
+    (by rw [csp]; exact hal) (by rw [csp]; exact hsp) (by rw [csp]; exact hspb)
     ?hMc ?hremb hremp ?hsrem ?hss ?hsn' ?hsu' ?hsc' ?h29 ?h30 ?hQ'
-  simp only [hkr] at key
+  rw [e] at key
   exact key
   case hMc =>
-    rw [cfr.accessible, F.frame.accessible]
+    rw [csp, cf.accessible, F.frame.accessible]
     exact Janus.Arm64.Memory.accessible_mono _ hW (by omega) (by omega)
   case hremb =>
     intro hr
     obtain ⟨h1, h2, h3, h4, h5⟩ := hrem hr
-    refine ⟨h1, ?_, by omega⟩
-    rw [cfr.accessible, F.frame.accessible]; exact h2
+    refine ⟨h1, ?_, by rw [csp]; omega⟩
+    rw [cf.accessible, F.frame.accessible]; exact h2
   case hsrem =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact F.s_rem
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact F.s_rem
   case hss =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact F.s_s
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact F.s_s
   case hsn' =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hsn
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hsn
   case hsu' =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hsu5
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hsu5
   case hsc' =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hsc5
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hsc5
   case h29 =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact F.s_x29
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact F.s_x29
   case h30 =>
-    rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hs30
+    rw [csp, cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hs30
   case hQ' =>
     intro R' fl' Mf h29' h30' hRu' hMf hMf0
+    simp only [csp] at hMf
     have hD0 : 0 < Fv256.B.wv M0 dp n := hdn0
     have hun := F.un
     rw [cwv, F.dn] at hun
-    have hnd := Fv256.B.norm_div_eq (Fv256.B.wv M0 up ulen) (Fv256.B.wv M0 dp n) (2 ^ s) (Fv256.B.wv M2 qp (ulen + 1 - n)) (Fv256.B.wv M2 (T.sp.toNat + 80) n)
+    have hnd := Fv256.B.norm_div_eq (Fv256.B.wv M0 up ulen) (Fv256.B.wv M0 dp n) (2 ^ s) (Fv256.B.wv s'.mem qp (ulen + 1 - n)) (Fv256.B.wv s'.mem (T.sp.toNat + 80) n)
       (Nat.two_pow_pos s) hD0 hun.symm (by rw [F.dn] at clt; exact clt)
     obtain ⟨hQe, hRe⟩ := hnd
-    have hr1s : Fv256.B.wv M2 (T.sp.toNat + 80) n / 2 ^ s = Fv256.B.wv M0 up ulen % Fv256.B.wv M0 dp n := by
+    have hr1s : Fv256.B.wv s'.mem (T.sp.toNat + 80) n / 2 ^ s = Fv256.B.wv M0 up ulen % Fv256.B.wv M0 dp n := by
       rw [hRe]; exact Nat.mul_div_cancel _ (Nat.two_pow_pos s)
-    have hqz : ∀ j, ulen + 1 - n ≤ j → j < L → M2.readLE (qp + 8 * j) 8 = 0 := by
+    have hqz : ∀ j, ulen + 1 - n ≤ j → j < L → s'.mem.readLE (qp + 8 * j) 8 = 0 := by
       intro j h1 h2
-      rw [cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega), F.frame.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]
+      rw [cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega), F.frame.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]
       exact Fv256.B.wv_zero_word M0 qp L hq0 j h2
-    have hwq : Fv256.B.wv M2 qp L = Fv256.B.wv M2 qp (ulen + 1 - n) := Fv256.B.wv_ext M2 qp (ulen + 1 - n) L (by omega) hqz
-    have hQL : Fv256.B.wv M2 qp L = Fv256.B.wv M0 up L / Fv256.B.wv M0 dp 4 := by
+    have hwq : Fv256.B.wv s'.mem qp L = Fv256.B.wv s'.mem qp (ulen + 1 - n) := Fv256.B.wv_ext s'.mem qp (ulen + 1 - n) L (by omega) hqz
+    have hQL : Fv256.B.wv s'.mem qp L = Fv256.B.wv M0 up L / Fv256.B.wv M0 dp 4 := by
       rw [hwq, hQe, F.uwv, F.dwv]
-    have hF1 : MemFrame M0 M2 [(qp, qp + 8 * L), (T.sp.toNat - 120, T.sp.toNat + 216), (T.sp.toNat + 232, T.sp.toNat + 296)] := by
-      refine (F.frame.trans cfr ?_)
+    have hF1 : MemFrame M0 s'.mem [(qp, qp + 8 * L), (T.sp.toNat - 120, T.sp.toNat + 216), (T.sp.toNat + 232, T.sp.toNat + 296)] := by
+      refine (F.frame.trans cf ?_)
       intro a n' h
       simp only [outside_cons, outside_nil, and_true] at h ⊢
       omega
-    refine hQ T R' fl' Mf rfl ⟨?_, ?_, ?_, ?_⟩ h29' h30' ?_
+    refine hQ s' R' fl' Mf csp ⟨?_, ?_, ?_, ?_⟩ h29' h30' ?_
     · by_cases hr0 : remp = 0
       · rw [hMf0 hr0, hQL]
       · obtain ⟨_, _, _, h4, _⟩ := hrem hr0
         obtain ⟨_, _, hfm⟩ := hMf hr0
-        rw [Fv256.B.wv_of_frame M2 Mf [(remp, remp + 8 * n)] hfm qp L (by simp only [outside_cons, outside_nil, and_true]; have := F.hn4; omega), hQL]
+        rw [Fv256.B.wv_of_frame s'.mem Mf [(remp, remp + 8 * n)] hfm qp L (by simp only [outside_cons, outside_nil, and_true]; have := F.hn4; omega), hQL]
     · intro hr0
       obtain ⟨hlow, hlast, hfm⟩ := hMf hr0
       obtain ⟨_, _, _, h4, h5⟩ := hrem hr0
       have hz : ∀ j, n ≤ j → j < 4 → Mf.readLE (remp + 8 * j) 8 = 0 := by
         intro j h1 h2
         rw [hfm.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega),
-          cfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega),
+          cf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega),
           F.frame.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]
         exact Fv256.B.wv_zero_word M0 remp 4 h5 j h2
       have hw4 : Fv256.B.wv Mf remp 4 = Fv256.B.wv Mf remp n := Fv256.B.wv_ext Mf remp n 4 F.hn4 hz
-      have hsr := Fv256.B.shr_vec M2 Mf s (by omega) n (T.sp.toNat + 80) remp (by
+      have hsr := Fv256.B.shr_vec s'.mem Mf s (by omega) n (T.sp.toNat + 80) remp (by
         intro i hi
         by_cases hin : i + 1 < n
         · rw [if_pos hin]; exact hlow i (by omega)
