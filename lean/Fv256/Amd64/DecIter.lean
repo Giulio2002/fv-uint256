@@ -5,7 +5,9 @@ import Fv256.Amd64.DecA
 import Fv256.Amd64.DecInit
 import Fv256.Amd64.StrconvMemmove
 import Fv256.Amd64.StrconvAppend
-import Fv256.Amd64.UdivremM
+import Fv256.ChainProg
+import Fv256.CodeIn
+import Fv256.Amd64.UdivremL
 import Fv256.UtilB2
 import Fv256.Amd64.DecT
 import Fv256.Util
@@ -14,6 +16,10 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 open Fv256.E
 
 namespace Fv256.Amd64.Dec
+
+set_option maxRecDepth 100000 in
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 /-- The branch of `Dec`'s loop after the copy: `JNE` at `0x2e3`. -/
 def decBr : Nat := decE + 0x2e3
@@ -57,7 +63,7 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.rip = BitVec.
     have h2 := hdm
     simp only [Fv256.B.wv, Nat.add_assoc, Nat.reduceAdd, Nat.mul_zero, Nat.add_zero] at h2
     omega
-  janus64_run [e0, e1, e2, e7, e9, e4, e5, Fv256.Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, hdm, hdnz, Fv256.B.bv128_zero_toNat] until [au] calls [Fv256.Amd64.UdivremM.udivrem_rem_s]
+  janus64_run [e0, e1, e2, e7, e9, e4, e5, Fv256.Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, hdm, hdnz, Fv256.B.bv128_zero_toNat] until [au] calls [Fv256.CodeIn.lib_summary hcChain Fv256.Amd64.UdivremL.udivrem_rem]
   rename_i R1 fl1 X1 M1 kr1 hq hrm hfr
   have hfrM : MemFrame M M1 [(b - 0x1a0, b + 0x180)] := by
     refine MemFrame.trans (rs := [(b - 0x1a0, b + 0x180)]) (rs' := [(b - 0x1a0, b + 0x180)]) ?_ (hfr.mono ?_)
@@ -93,8 +99,8 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.rip = BitVec.
     simp only [Fv256.B.wv, Nat.add_assoc, Nat.reduceAdd, Nat.mul_zero, Nat.add_zero] at h2
     simp only [Nat.add_assoc, Nat.reduceAdd]
     omega
-  rw [hyx, hdx, Fv256.B.divSpec_of_ne _ _ (by decide)] at hq
-  rw [hyx, hdx, Fv256.B.modSpec_of_ne _ _ (by decide)] at hrm
+  rw [hyx, hdx] at hq
+  rw [hyx, hdx] at hrm
   have hrlt : y % 10 ^ 19 < 10 ^ 19 := Nat.mod_lt _ (by decide)
   have h19 : 10 ^ 19 < 2 ^ 64 := by decide
   have hr0 : M1.readLE (b + 184) 8 = y % 10 ^ 19 ∧ M1.readLE (b + 184 + 8) 8 = 0 ∧ M1.readLE (b + 184 + 16) 8 = 0 ∧
