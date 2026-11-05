@@ -37,6 +37,16 @@ theorem probe (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
   rw [h_a] at hty2 hok2
   rw [h_f] at hflag
   janus64_run until [Extracted.entry + 0x68] calls [hnew.pos, hwb1, hwb2]
-  all_goals (trace_state; fail "probe")
+  rotate_left 2
+  · trace_state; fail "mid1"
+  · trace_state; fail "mid2"
+  · trace_state; fail "mid3"
+  all_goals (refine ⟨fun _ => ?_, fun h => absurd ‹z.toNat = 0› h, ?_, fun _ => ?_⟩)
+  all_goals (try janus64_simp)
+  all_goals first
+    | (with_reducible assumption)
+    | janus_live
+    | janus_frame
+    | (trace_state; fail "post")
 
 end Fv256.Amd64.IntoBig
