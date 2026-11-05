@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -10,7 +10,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.UdivremA
 
-abbrev ku : Nat := segAddr Extracted.program "github.com/holiman/uint256.udivrem"
+abbrev ku : Nat := segAddr Fv256.ChainProg.program "github.com/holiman/uint256.udivrem"
 
 theorem ku_lt : ku + 0x440 < 2 ^ 47 := by decide
 
@@ -20,7 +20,7 @@ theorem dlen_loop (s0 : State) (dp : Nat) (M : Memory)
     (hdp : dp + 32 ≤ 2 ^ 48) (hda : M.accessible dp 32 false = true) :
     ∀ t (R : Nat → W64) (fl : Flags), t ≤ 4 → R 9 = BitVec.ofNat 64 dp → R 2 = BitVec.ofNat 64 t - 1 →
       (∀ j, t ≤ j → j < 4 → M.readLE (dp + 8 * j) 8 = 0) →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (ku + 0x4c))
+      ReachesRet Fv256.ChainProg.program (BitVec.ofNat 64 (ku + 0x4c))
         { s0 with regs := R, rip := BitVec.ofNat 64 (ku + 0x34), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (n : Nat),
           S' = { s0 with regs := R', rip := BitVec.ofNat 64 (ku + 0x4c), flags := fl', mem := M } ∧

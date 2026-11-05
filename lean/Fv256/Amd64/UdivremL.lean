@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -15,7 +15,7 @@ namespace Fv256.Amd64.UdivremL
 set_option maxHeartbeats 8000000 in
 /-- `udivrem(quot, u, d, nil)`: only the quotient is produced. -/
 theorem udivrem_nil_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
-    Summary Extracted.program ku
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = L ∧ (s.regs 3).toNat = L ∧
@@ -39,7 +39,7 @@ theorem udivrem_nil_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
 set_option maxHeartbeats 8000000 in
 /-- `udivrem(quot, u, d, rem)` with a non-nil `rem`. -/
 theorem udivrem_rem_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
-    Summary Extracted.program ku
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = L ∧ (s.regs 3).toNat = L ∧
@@ -67,7 +67,7 @@ theorem udivrem_rem_L {L : Nat} (hL : 4 ≤ L ∧ L ≤ 8) :
 
 /-- the `L = 4` instance -/
 theorem udivrem_nil :
-    Summary Extracted.program ku
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = 4 ∧ (s.regs 3).toNat = 4 ∧
@@ -86,7 +86,7 @@ theorem udivrem_nil :
 
 /-- the `L = 4` instance -/
 theorem udivrem_rem :
-    Summary Extracted.program ku
+    Summary Fv256.ChainProg.program ku
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x150 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0xf8 ∧ StackWritable s 0x148 0x48 ∧ s.xmm 15 = 0 ∧
         (s.regs 6).toNat = 4 ∧ (s.regs 3).toNat = 4 ∧

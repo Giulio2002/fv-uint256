@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ChainProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -11,7 +11,7 @@ open Fv256.Amd64.DivWork
 namespace Fv256.Amd64.DivWork2
 
 theorem by1_summary :
-    Summary Extracted.program by1
+    Summary Fv256.ChainProg.program by1
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         StackGuardOK s 0 ∧ StackWritable s 16 40 ∧
         2 ≤ (s.regs 6).toNat ∧ (s.regs 6).toNat < 2 ^ 20 ∧ 2 ^ 63 ≤ (s.regs 9).toNat ∧
