@@ -1,5 +1,6 @@
 import Fv256.UdivMathB
 import Fv256.ExpFinal
+import Fv256.UtilF
 namespace Fv256.F
 open Fv256.Spec
 
@@ -72,5 +73,75 @@ theorem bitLen_le (e k : Nat) (h : e < 2 ^ k) : bitLen e ≤ k := by
   · rename_i hz
     have := (Nat.log2_lt hz).2 h
     omega
+
+theorem toInt_add_small (a c : Nat) (h : a + c < 2 ^ 62) :
+    (BitVec.ofNat 64 a + BitVec.ofNat 64 c).toInt = ((a + c : Nat) : Int) := by
+  rw [BitVec.toInt_eq_toNat_of_lt (by simp [BitVec.toNat_add, BitVec.toNat_ofNat]; omega)]
+  simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+  omega
+
+theorem ge256_of_bitLen (E : Nat) (h : 8 < bitLen E) : 256 ≤ E := by
+  have := bitLen_pow_le E (by omega)
+  have h2 : 2 ^ 8 ≤ 2 ^ (bitLen E - 1) := Nat.pow_le_pow_right (by omega) (by omega)
+  omega
+
+theorem even_of_lsb (b0 : Nat) (h : ¬ (BitVec.setWidth 32 (BitVec.ofNat 64 b0)).getLsbD 0 = true) : b0 % 2 = 0 := by
+  rw [Fv256.F.lsb_w32] at h
+  simpa using h
+
+theorem early3 (b0 b1 b2 b3 e0 e1 e2 e3 : Nat) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^ 64) (h2 : e2 < 2 ^ 64) (h3 : e3 < 2 ^ 64)
+    (hz : e3 ≠ 0) (hB : b0 % 2 = 0)
+    (hbl : ¬ (BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e3) + 193#64).toInt ≤ 8) :
+    0 = expSpec (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3) (e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2 + 2 ^ 192 * e3) := by
+  have hc := (Fv256.B.clz_norm e3 hz h3).1
+  have := toInt_add_small (63 - Janus.Arm64.clzNat 64 e3) 193 (by omega)
+  have e193 : (193#64 : BitVec 64) = BitVec.ofNat 64 193 := rfl
+  rw [e193, this] at hbl
+  have hn := n_top3 e0 e1 e2 e3 h0 h1 h2 h3 hz
+  have := ge256_of_bitLen (e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2 + 2 ^ 192 * e3) (by omega)
+  unfold expSpec
+  exact (even_exp_zero _ _ (by omega) this).symm
+
+theorem early2 (b0 b1 b2 b3 e0 e1 e2 : Nat) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^ 64) (h2 : e2 < 2 ^ 64)
+    (hz : e2 ≠ 0) (hB : b0 % 2 = 0)
+    (hbl : ¬ (BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e2) + 129#64).toInt ≤ 8) :
+    0 = expSpec (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3) (e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2) := by
+  have hc := (Fv256.B.clz_norm e2 hz h2).1
+  have := toInt_add_small (63 - Janus.Arm64.clzNat 64 e2) 129 (by omega)
+  have ec : (129#64 : BitVec 64) = BitVec.ofNat 64 129 := rfl
+  rw [ec, this] at hbl
+  have hn := n_top2 e0 e1 e2 h0 h1 h2 hz
+  have := ge256_of_bitLen (e0 + 2 ^ 64 * e1 + 2 ^ 128 * e2) (by omega)
+  unfold expSpec
+  exact (even_exp_zero _ _ (by omega) this).symm
+
+theorem early1 (b0 b1 b2 b3 e0 e1 : Nat) (h0 : e0 < 2 ^ 64) (h1 : e1 < 2 ^ 64)
+    (hz : e1 ≠ 0) (hB : b0 % 2 = 0)
+    (hbl : ¬ (BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e1) + 65#64).toInt ≤ 8) :
+    0 = expSpec (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3) (e0 + 2 ^ 64 * e1) := by
+  have hc := (Fv256.B.clz_norm e1 hz h1).1
+  have := toInt_add_small (63 - Janus.Arm64.clzNat 64 e1) 65 (by omega)
+  have ec : (65#64 : BitVec 64) = BitVec.ofNat 64 65 := rfl
+  rw [ec, this] at hbl
+  have hn := n_top1 e0 e1 h0 h1 hz
+  have := ge256_of_bitLen (e0 + 2 ^ 64 * e1) (by omega)
+  unfold expSpec
+  exact (even_exp_zero _ _ (by omega) this).symm
+
+theorem early0 (b0 b1 b2 b3 e0 : Nat) (h0 : e0 < 2 ^ 64) (hB : b0 % 2 = 0) (K : BitVec 64)
+    (hbl : ¬ ((if e0 = 0 then 18446744073709551615#64 else if e0 = 0 then K else BitVec.ofNat 64 (63 - Janus.Arm64.clzNat 64 e0)) + 1#64).toInt ≤ 8) :
+    0 = expSpec (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3) e0 := by
+  by_cases hz : e0 = 0
+  · rw [if_pos hz] at hbl
+    exact absurd (by decide) hbl
+  · rw [if_neg hz, if_neg hz] at hbl
+    have hc := (Fv256.B.clz_norm e0 hz h0).1
+    have := toInt_add_small (63 - Janus.Arm64.clzNat 64 e0) 1 (by omega)
+    have ec : (1#64 : BitVec 64) = BitVec.ofNat 64 1 := rfl
+    rw [ec, this] at hbl
+    have hn := n_top0 e0 h0 hz
+    have := ge256_of_bitLen e0 (by omega)
+    unfold expSpec
+    exact (even_exp_zero _ _ (by omega) this).symm
 
 end Fv256.F
