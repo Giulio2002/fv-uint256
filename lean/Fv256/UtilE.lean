@@ -162,4 +162,7 @@ theorem mod32_read (M : Janus.Arm64.Memory) (a : Nat) : M.readLE a 4 % 429496729
 theorem mod64_read (M : Janus.Arm64.Memory) (a : Nat) : M.readLE a 8 % 18446744073709551616 = M.readLE a 8 :=
   Nat.mod_eq_of_lt (by simpa using Janus.Arm64.Memory.readLE_lt M a 8)
 
+theorem toNat_sub_lit (x : BitVec 64) (k : Nat) (h : k ≤ x.toNat) : (x - BitVec.ofNat 64 k).toNat = x.toNat - k := by
+  rw [bv_sub_lit x k h, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by have := x.isLt; omega)]
+
 end Fv256.E

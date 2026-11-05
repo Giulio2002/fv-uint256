@@ -26,7 +26,8 @@ theorem fb10_summary :
         (∀ k, k < decLen (s.regs 7).toNat →
           s'.mem.readLE ((s.regs 0).toNat + (s.regs 3).toNat - 1 - k) 1 = 48 + (s.regs 7).toNat / 10 ^ k % 10) ∧
         MemFrame s.mem s'.mem [((s.regs 0).toNat + (s.regs 3).toNat - decLen (s.regs 7).toNat, (s.regs 0).toNat + (s.regs 3).toNat),
-          ((s.regs 4).toNat - 8, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)]) := by
+          ((s.regs 4).toNat - 8, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] ∧
+        Extracted.program.DataLoaded s'.mem) := by
   intro s hpc ⟨hp, hacc, hdl, hsp, hspu, hsa, hd, hdisj, hret⟩
   have hu64 := (s.regs 7).isLt
   have hs4 := (s.regs 4).isLt
@@ -48,7 +49,7 @@ theorem fb10_summary :
     (by rw [show (s.regs 4).toNat - 8 + 8 = (s.regs 4).toNat by omega, am1]) (by rw [a0, t0]) (by rw [a3, Nat.sub_zero, t3])
     (by rw [a1, t3]) (by rw [a7, t7]) a4 (by intro k hk; omega) (Or.inr rfl)) ?_
   rintro S ⟨R2, fl2, M2, rfl, b0, b4, b5, bk, bm, bfr, bd⟩
-  refine ⟨?_, ?_, ?_, ?_, rfl, rfl, rfl, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, rfl, rfl, rfl, ?_, ?_, ?_⟩
   · exact b0
   · show R2 4 = s.regs 4 + 8
     rw [b4, show (s.regs 4).toNat - 8 + 16 = (s.regs 4).toNat + 8 by omega]
@@ -63,4 +64,5 @@ theorem fb10_summary :
     intro a n h
     simp only [Outside, and_true] at h ⊢
     omega
+  · exact bd
 end Fv256.Amd64.Dec

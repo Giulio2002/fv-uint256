@@ -114,4 +114,15 @@ theorem decLen_of (u d : Nat) (hd : 1 ≤ d) (h1 : 10 ^ (d - 1) ≤ u) (h2 : u <
     omega)
   omega
 
+/-- `decLen` of a 64-bit number is at most 20. -/
+theorem decLen_le_20 (u : Nat) (hu : u < 2 ^ 64) : decLen u ≤ 20 := by
+  by_cases h0 : u = 0
+  · subst h0; simp [decLen, decBytes_lt 0 (by decide)]
+  · have a2 := pow_decLen_le u (by omega)
+    by_cases hc : decLen u ≤ 20
+    · exact hc
+    · have : 10 ^ 20 ≤ 10 ^ (decLen u - 1) := Nat.pow_le_pow_right (by omega) (by omega)
+      have h64 : 2 ^ 64 < 10 ^ 20 := by decide
+      omega
+
 end Fv256.E
