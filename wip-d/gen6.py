@@ -16,7 +16,7 @@ import Fv256.Util
 **Guarantee.** For every pointer `z` (receiver, `X0`) and shift count `n` (`X1`, any 64-bit value), every Go call whose
 stack-growth check falls through (`GuardOK s 56`: covers the check of `ISRsh` and of the `SRsh` it calls) and whose stack window
 `[SP-112, SP)` (the frames of `ISRsh` and `SRsh`) is writable and aligned (`StackOK s 112 0`): if the 32 bytes at `z` are writable and
-do not overlap the stack window, then the call returns (no fault, no panic), obeys the ABI, returns `z` in `X0`, the number at `z`
+do not overlap the stack window, and the goroutine's stack-guard word (`g.stackguard0`) is not inside that window, then the call returns (no fault, no panic), obeys the ABI, returns `z` in `X0`, the number at `z`
 afterwards is `Fv256.Spec.srsh` of the number at `z` before the call (the two's-complement reading shifted right by `n` with sign
 fill; counts of 256 or more give 0 or all ones), and no byte changes outside `z[0..32)` and the stack window
 (`Fv256.Util.OnlyWrites2`).
@@ -35,13 +35,14 @@ theorem correctness (z n : BitVec 64) (ret : Nat)
     (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s)
     (hg : GuardOK s 56) (hst : StackOK s 112 0) :
     (Ptr32 s.mem z true → Disjoint z.toNat 32 (s.sp.toNat - 112) 112 →
+      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 112) 112 →
       Returns (Extracted.program.withExit ret) s (fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Spec.srsh (val256 s.mem z.toNat) n.toNat ∧
           Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 112) 112)) := by
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, hb, ha, hw⟩ := hst
   janus_intro hs
-  intro ⟨hz, hz'⟩ hd1
+  intro ⟨hz, hz'⟩ hd1 hdg
 BODY
 
 namespace Witness
@@ -69,17 +70,19 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n
     intro i h; simp at h
     rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl <;> rfl⟩
 
-theorem hpre : Ptr32 s0.mem z true ∧ Disjoint z.toNat 32 (s0.sp.toNat - 112) 112 :=
-  ⟨⟨by decide, by decide⟩, by unfold Disjoint; decide⟩
+theorem hpre : Ptr32 s0.mem z true ∧ Disjoint z.toNat 32 (s0.sp.toNat - 112) 112 ∧
+    Disjoint ((s0.regs 28).toNat + 16) 8 (s0.sp.toNat - 112) 112 :=
+  ⟨⟨by decide, by decide⟩, by unfold Disjoint; decide, by unfold Disjoint; decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s ∧ GuardOK s 56 ∧ StackOK s 112 0 ∧
-    (Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 112) 112) :=
+    (Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 112) 112 ∧
+      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 112) 112) :=
   ⟨ret, s0, z, n, hret, setup, hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z n ret hret s0 setup hg hst hpre.1 hpre.2).mono ?_
+  refine (correctness z n ret hret s0 setup hg hst hpre.1 hpre.2.1 hpre.2.2).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]

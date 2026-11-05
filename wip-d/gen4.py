@@ -6,7 +6,7 @@ def amd(op,iop,spec):
     body=t[i0+1:i1]
     while body and body[-1].strip()=='' : body.pop()
     body=[l[2:] if l.startswith('  ') else l for l in body]
-    body='\n'.join(body).replace('· try simp only [Disjoint, Alias] at *','try simp only [Disjoint, Alias] at *',1)
+    body='\n'.join(body).replace('· try simp only [Disjoint, Alias] at *','  try simp only [Disjoint, Alias] at *',1)
     body=body.replace('Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self','Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff')
     sym={'Lsh':'<<','Rsh':'>>'}[op]
     mh=''

@@ -35,7 +35,7 @@ theorem correctness (z n : BitVec 64) :
   have hgr := hg.readable
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hacc hlow hnw hds
   simp only [valueAt, Disjoint] at *
-try simp only [Disjoint, Alias] at *
+  try simp only [Disjoint, Alias] at *
   janus64_run [Util.readLE_32, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Util.readLE8_mod]
   · refine ⟨?_, ?_⟩
     · have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); generalize hm : n.toNat = m at *
