@@ -1,38 +1,59 @@
-def X(i): return "s.mem.readLE x.toNat 8" if i==0 else f"s.mem.readLE (x.toNat + {8*i}) 8"
+import os
+SOLO=os.environ.get('SOLO')
+def X(i): return "(s.mem.readLE x.toNat 8)" if i==0 else f"(s.mem.readLE (x.toNat + {8*i}) 8)"
 def Y(i): return f"s'.mem.readLE (BitVec.toNat s.sp - {40-8*i}) 8"
 def branch(j):
-    zs=''.join(f"\n       have hz{i} : {X(i)} = 0 := ‹{X(i)} = 0›" for i in range(j+1,4))
+    zs=''.join(f"\n       have hz{i} : {X(i)} = 0 := (by omega)" for i in range(j+1,4))
+    zr=''.join(f", hz{i}" for i in range(j+1,4))
     blargs=' '.join(X(i) for i in range(j+1))
     lim=' '.join(f"l{i}" for i in range(j+1))
-    Vexpr=' + '.join(['%s' % X(0)]+[f"{[0,18446744073709551616,340282366920938463463374607431768211456,6277101735386680763835789423207666416102355444464034512896][i]} * {X(i)}" for i in range(1,j+1)])
     c=64*j+64
-    return f'''(have hxj : {X(j)} ≠ 0 := ‹¬ {X(j)} = 0›{zs}
+    leaf=lambda L, extra: f"""refine Fv256.D.{L} _ ({c} - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - ({c} - k) = {257-c} + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)"""
+    return f'''(have hxj : {X(j)} ≠ 0 := (by omega){zs}
        have hkj : clzNat 64 {X(j)} < 64 := (Fv256.B.clz_cases _ l{j}).resolve_left hxj
        have hbl := Fv256.B.f64_bl{j} {blargs} (clzNat 64 {X(j)}) {lim} hxj rfl
-       have hS3 := ‹val256 s'.mem _ = Spec.lsh _ _›
+       grab_lsh hS3
        generalize clzNat 64 {X(j)} = k at *
        have m0 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 40)
        have m1 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 32)
        have m2 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 24)
        have m3 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 16)
-       have hsp40 : (s.sp - 40#64).toNat = s.sp.toNat - 40 := by rw [BitVec.toNat_sub]; simp; omega
-       have hsh : (257#64 - (64#64 - BitVec.ofNat 64 k + {64*j}#64)).toNat = {257-c} + k := by
-         rw [BitVec.toNat_sub, BitVec.toNat_sub, BitVec.toNat_add]; simp; omega
-       simp (disch := omega) only [val256, Spec.lsh, Spec.W, setReg_apply, hsp40, hsh, Janus.Arm64.Memory.readLE_writeLE_of_disjoint] at hS3
-       simp only [lsb_ofNat _ 11 (by decide), lsb0_toNat, fr_toNat _ m3, Nat.or_eq_zero_iff] at *
-       sorry)'''
+       have hexp : (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + {64*j}) % 18446744073709551616 + 257) % 18446744073709551616 = {257-c} + k := by omega
+       have e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32 := by omega
+       have e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24 := by omega
+       have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
+       have hS4 := hS3
+       simp only [hexp, e8, e16, e24{zr}, Nat.mul_zero, Nat.add_zero] at hS4
+       first
+        | ({leaf("leaf0","")})
+        | ({leaf("leaf1","")}))''' if not SOLO else f'''(have hxj : {X(j)} ≠ 0 := (by omega){zs}
+       have hkj : clzNat 64 {X(j)} < 64 := (Fv256.B.clz_cases _ l{j}).resolve_left hxj
+       have hbl := Fv256.B.f64_bl{j} {blargs} (clzNat 64 {X(j)}) {lim} hxj rfl
+       grab_lsh hS3
+       generalize clzNat 64 {X(j)} = k at *
+       have m0 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 40)
+       have m1 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 32)
+       have m2 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 24)
+       have m3 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 16)
+       have hexp : (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + {64*j}) % 18446744073709551616 + 257) % 18446744073709551616 = {257-c} + k := by omega
+       have e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32 := by omega
+       have e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24 := by omega
+       have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
+       have hS4 := hS3
+       simp only [hexp, e8, e16, e24{zr}, Nat.mul_zero, Nat.add_zero] at hS4
+       {leaf(SOLO,"?hn")}'''
 bs=[branch(j) for j in (3,2,1)]
 body='''  janus_run calls [hS := Fv256.Arm64.Float64.lsh_summary (s.sp - 40#64) x]
   all_goals clear_states
   all_goals (simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat] at *)
   all_goals (refine ⟨?_, ?_⟩; rotate_right; janus_frame)
-  have l0 := Util.readLE8_lt s.mem x.toNat
-  have l1 := Util.readLE8_lt s.mem (x.toNat + 8)
-  have l2 := Util.readLE8_lt s.mem (x.toNat + 16)
-  have l3 := Util.readLE8_lt s.mem (x.toNat + 24)
+  all_goals have l0 := Util.readLE8_lt s.mem x.toNat
+  all_goals have l1 := Util.readLE8_lt s.mem (x.toNat + 8)
+  all_goals have l2 := Util.readLE8_lt s.mem (x.toNat + 16)
+  all_goals have l3 := Util.readLE8_lt s.mem (x.toNat + 24)
   all_goals first
     | ''' + '\n    | '.join(bs) + '''
-    | sorry
+    | skip
 '''
 main=open('/srv/fv-uint256-wd/wip-d/f64_arm_main.txt').read()
 i=main.index("  janus_run calls")
