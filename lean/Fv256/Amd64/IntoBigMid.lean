@@ -67,7 +67,7 @@ theorem mid (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
       have hcapLt : s.mem.readLE (P + 24) 8 < 2 ^ 64 := by simpa using Janus.Arm64.Memory.readLE_lt s.mem (P + 24) 8
       janus64_run until [Extracted.entry + 0x166]
       all_goals first
-        | (exfalso; exact absurd ‹(_ : BitVec 64).msb = true› (by decide))
+        | (exfalso; exact absurd (show (_ : BitVec 64).msb = true by janus_assumption) (by decide))
         | (refine finF impl R b z bp ret hret s hwb2 hpre0 hz0 _ ?hsp ?h28 ?h29 ?hx ?hrd1 ?hrd2 (s.mem.readLE (P + 8) 8) P 0 (s.mem.readLE (P + 24) 8) ?hfrA ?hpc ?h0 ?h1 ?h2 ?h3 (by omega) hcap.1 hcap.2 ?hPv hP rfl hPpa hPpb hPo hPd.symm hPb.symm hPz.symm hApa hApb hAo hAd.symm hAb'.symm hAz.symm hAP ?hword ?hnorm ?hzero ?hinv hP0
            case hsp => simpa [setRegF_apply] using hsp
            case h28 => simp [setRegF_apply, h28]
