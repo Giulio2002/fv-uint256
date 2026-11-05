@@ -10,6 +10,7 @@ import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
 import Fv256.CodeIn
 import Fv256.ModProg
+import Fv256.SModProg
 import Fv256.Amd64.ModSum
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
@@ -17,15 +18,15 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.SModSum
 
 set_option maxRecDepth 100000 in
-theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Extracted.program :=
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Fv256.SModProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
-abbrev smodEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SMod"
+abbrev smodEntry : Nat := segAddr Fv256.SModProg.program "github.com/holiman/uint256.(*Int).SMod"
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem smod_summary :
-    Summary Extracted.program smodEntry
+    Summary Fv256.SModProg.program smodEntry
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x268 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x210 ∧ StackWritable s 0x260 0x10 ∧ s.xmm 15 = 0 ∧
         Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧

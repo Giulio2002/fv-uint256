@@ -41,7 +41,7 @@ L.append(",\n".join(segs) + " ]")
 L += ["", "def stubs : List Stub := ["]
 L.append(",\n".join('  { name := "%s", addr := %s, kind := %s }' % (k, a, kd) for k, (a, kd) in sorted(ref_st.items())) + " ]")
 if base:
-    L += ["", "def program : Amd64.Program := { %s with segments := %s.segments ++ segments, stubs := %s.stubs ++ stubs }" % (base, base.rsplit(".", 1)[0] if False else base.replace(".program", ""), base.replace(".program", ""))]
+    L += ["", "def program : Amd64.Program := { %s with segments := %s.segments ++ segments, stubs := %s.stubs ++ stubs }" % (base, base, base)]
 else:
     L += ["", "def program : Amd64.Program := { segments := segments, stubs := stubs, exitAddr := 0, data := [] }"]
 L += ["", "end " + ns, ""]

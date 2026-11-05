@@ -10,6 +10,7 @@ import Fv256.Amd64.UdivremK
 import Fv256.Amd64.UdivremL
 import Fv256.CodeIn
 import Fv256.DivProg
+import Fv256.SDivProg
 import Fv256.Amd64.DivSum
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
@@ -17,7 +18,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.SDivSum
 
 set_option maxRecDepth 100000 in
-theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.DivProg.program Extracted.program :=
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.DivProg.program Fv256.SDivProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 namespace Local
@@ -37,12 +38,12 @@ theorem sdivSpec_zr (x : Nat) : sdivSpec x 0 = 0 := sdivSpec_y0 x 0 rfl
 
 end Local
 
-abbrev sdivEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SDiv"
+abbrev sdivEntry : Nat := segAddr Fv256.SDivProg.program "github.com/holiman/uint256.(*Int).SDiv"
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem sdiv_summary :
-    Summary Extracted.program sdivEntry
+    Summary Fv256.SDivProg.program sdivEntry
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x268 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x210 ∧ StackWritable s 0x260 0x10 ∧ s.xmm 15 = 0 ∧
         Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧
