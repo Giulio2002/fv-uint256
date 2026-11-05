@@ -113,5 +113,5 @@ for k in range(32):
         M += "      exact (case0 impl rt H z hmk ret hret s hs hpre).mono fun s' ⟨hab, ptr, a, b, c, g⟩ =>\n        ⟨hab, ptr, a, b, c, fun h => absurd h (by simp), by simp [Spec.fromBE, Nat.mod_one], g⟩\n"
     else:
         M += f"      exact (case{k} impl rt H z hmk ret hret s hs hpre).mono fun s' ⟨hab, ptr, a, b, c, d, e, f, g⟩ =>\n        ⟨hab, ptr, a, b, c, fun _ => ⟨d, e⟩, f, g⟩\n"
-M += "\nend Fv256.Amd64.PaddedBytes\n"
+M += "\n" + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pad_amd_witness.lean')).read() + "\nend Fv256.Amd64.PaddedBytes\n"
 open(ROOT + '/lean/Fv256/Amd64/PaddedBytes.lean', 'w').write(M)

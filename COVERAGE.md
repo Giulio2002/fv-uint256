@@ -65,7 +65,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Neg` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Neg.lean |
 | `(*uint256.Int).Not` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Not.lean |
 | `(*uint256.Int).Or` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Or.lean |
-| `(*uint256.Int).PaddedBytes` | FV-A | verified | todo | arm64: lean/Fv256/Arm64/PaddedBytes.lean (+ PadCases) on master 48f3f44, Janus f1d61dc1 (256 s); makeslice contract hypothesis; amd64 not yet re-proved on master |
+| `(*uint256.Int).PaddedBytes` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/PaddedBytes.lean (+ PadCases, 33 modules per ISA) on master 48f3f44, Janus f1d61dc1 (arm64 256 s, amd64 250 s); makeslice contract hypothesis (hmk); Witness toy allocator (n = 5): nonvacuous + example fires; restatement as exists-with-contract pending repin |
 | `(*uint256.Int).PrettyDec` | FV-E | todo | todo | |
 | `(*uint256.Int).PutUint256` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/PutUint256.lean |
 | `(*uint256.Int).Rsh` | FV-A | verified | verified | arm64: lean/Fv256/Arm64/Rsh.lean; amd64 not yet done (same idioms as Lsh) |
