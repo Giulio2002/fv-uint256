@@ -253,7 +253,7 @@ theorem partB (impl : List Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 6
     simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
   rw [e112] at a8
   rw [e80] at a9
-  simp only [e112, e80] at a10
+  simp (config := { decide := true }) only [setReg_apply, ↓reduceIte, e112, e80] at a10
   rw [← hMM] at a10 a8 a9
   have hMM144 : MM.readLE (st.sp.toNat + 144) 8 = m' := by
     rw [hMM]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
@@ -266,11 +266,13 @@ theorem partB (impl : List Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 6
   rw [g4, g5] at a8
   rw [g4, g5] at a9
   have hq : Fv256.B.wv s'.mem (s'.sp.toNat + 112) 4 = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
-    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a8, Fv256.B.wv4_eq, Fv256.B.wv4_eq, Fv256.B.divSpec_of_ne _ _ hyne]
-    rfl
+    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a8, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
+    show _ = Fv256.B.divSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
+    rw [Fv256.B.divSpec_of_ne _ _ hyne]
   have hr : Fv256.B.wv s'.mem (s'.sp.toNat + 80) 4 = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
-    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a9, Fv256.B.wv4_eq, Fv256.B.wv4_eq, Fv256.B.modSpec_of_ne _ _ hyne]
-    rfl
+    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a9, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
+    show _ = Fv256.B.modSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
+    rw [Fv256.B.modSpec_of_ne _ _ hyne]
   have hC := partC impl rt z.toNat m' ret _ _ hret s s' hal hb ha hdz0 hdm0 hzm0 hza hma hpcS hS (by rw [a3]; exact h18) (by rw [a4]; exact h28)
     gf0 hw hzb hmb (by rw [hS]; exact g0) (by rw [hS]; exact g1) (by rw [hS]; exact g2) (by rw [hS]; exact g3) hq hr
   refine Fv256.H.reaches_mono hC ?_
@@ -280,5 +282,6 @@ theorem partB (impl : List Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 6
     obtain ⟨c1, c2, c3, c4, c5, c6⟩ := ho
     exact ⟨c1, by rw [c2]; simp, _, c3, rfl, c4, c5, c6⟩
   | stub _ _ _ => exact ho.elim
+
 
 end Fv256.Arm64.DivMod
