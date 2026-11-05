@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -8,7 +8,7 @@ open Fv256.E
 
 namespace Fv256.Amd64.Dec
 
-abbrev mm : Nat := segAddr Extracted.program "runtime.memmove"
+abbrev mm : Nat := segAddr Fv256.DecProg.program "runtime.memmove"
 
 set_option maxHeartbeats 16000000 in
 /-- `runtime.memmove(dst, src, n)` for `n ≤ 32` (the register-only paths), non-overlapping buffers. -/
@@ -19,7 +19,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
     (e0 : R 0 = BitVec.ofNat 64 dst) (e3 : R 3 = BitVec.ofNat 64 src) (e1 : R 1 = BitVec.ofNat 64 n)
     (e4 : R 4 = BitVec.ofNat 64 sp) (hsp : sp + 8 ≤ 2 ^ 48) (hspa : M.accessible sp 8 false = true)
     (hdsp : dst + n ≤ sp ∨ sp + 8 ≤ dst) (hret : M.readLE sp 8 < 2 ^ 47) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (M.readLE sp 8))
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (M.readLE sp 8))
       { s0 with regs := R, rip := BitVec.ofNat 64 mm, flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (X' : Nat → BitVec 128) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (M.readLE sp 8), flags := fl', xmm := X', mem := M' } ∧
@@ -131,7 +131,7 @@ theorem memmove_small (s0 : State) (dst src n sp : Nat) (R : Nat → W64) (fl : 
 
 /-- `memmove_small` as a callee summary. -/
 theorem memmove_sum :
-    Summary Extracted.program mm
+    Summary Fv256.DecProg.program mm
       (fun s => (s.regs 1).toNat ≤ 32 ∧ (s.regs 0).toNat + (s.regs 1).toNat ≤ 2 ^ 48 ∧
         (s.regs 3).toNat + (s.regs 1).toNat ≤ 2 ^ 48 ∧
         s.mem.accessible (s.regs 0).toNat (s.regs 1).toNat true = true ∧

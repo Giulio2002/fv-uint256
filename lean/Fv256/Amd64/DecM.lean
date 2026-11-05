@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -14,7 +14,7 @@ set_option maxHeartbeats 16000000 in
 /-- Summary of `internal/strconv.formatBase10(a []byte, u uint64) int`: `a[i:]` holds the decimal digits of `u`
 (`i = len(a) - decLen u`, returned in `AX`); nothing else of `a` changes. -/
 theorem fb10_summary :
-    Summary Extracted.program fb
+    Summary Fv256.DecProg.program fb
       (fun s => (s.regs 0).toNat + (s.regs 3).toNat ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat (s.regs 3).toNat true = true ∧
         decLen (s.regs 7).toNat ≤ (s.regs 3).toNat ∧ 8 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 16 ≤ 2 ^ 48 ∧
         s.mem.accessible ((s.regs 4).toNat - 8) 24 true = true ∧ TabsOK s.mem ∧

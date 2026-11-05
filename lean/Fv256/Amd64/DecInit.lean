@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -11,11 +11,11 @@ open Fv256.E
 namespace Fv256.Amd64.Dec
 
 /-- Entry of `(*Int).Dec` (the extraction's entry point). -/
-def decE : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec"
+def decE : Nat := segAddr Fv256.DecProg.program "github.com/holiman/uint256.(*Int).Dec"
 /-- The loop head of `Dec` (`MOVQ CX, 0x100(SP)`), `0x16c` bytes into the function. -/
 def decH : Nat := decE + 0x16c
 
-theorem zeros_tab : ∀ i, i < 98 → Extracted.data[3]!.bytes[i]! = 48 := by
+theorem zeros_tab : ∀ i, i < 98 → Fv256.DecProg.data[2]!.bytes[i]! = 48 := by
   decide +kernel
 
 /-- The memory of `Dec` at the loop head, from the entry memory `m` (`r` = entry `RSP`, `zp` = the receiver,
@@ -104,12 +104,12 @@ set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 20000 in
 theorem dec_init (s : State) (hpc : s.rip = BitVec.ofNat 64 decE) (zp : Nat) (e0 : s.regs 0 = BitVec.ofNat 64 zp)
     (hg : StackGuardOK s 0xf8) (hw : StackWritable s 0x318 0x8) (hal : (s.regs 4).toNat % 8 = 0)
-    (hd : Extracted.program.DataLoaded s.mem)
+    (hd : Fv256.DecProg.program.DataLoaded s.mem)
     (hz : zp + 32 ≤ 2 ^ 48 ∧ s.mem.accessible zp 32 false = true)
     (hzd : zp + 32 ≤ (s.regs 4).toNat - 0x318 ∨ (s.regs 4).toNat + 8 ≤ zp)
     (hbig : s.mem.readLE (zp + 8) 8 ≠ 0 ∨ s.mem.readLE (zp + 16) 8 ≠ 0 ∨ s.mem.readLE (zp + 24) 8 ≠ 0)
     (hx15 : s.xmm 15 = 0) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decH) s
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 decH) s
       (fun S' => S'.regs 0 = BitVec.ofNat 64 98 ∧ S'.regs 1 = 19#64 ∧
         S'.regs 2 = BitVec.ofNat 64 ((s.regs 4).toNat - 0x178 + 67) ∧
         S'.regs 4 = BitVec.ofNat 64 ((s.regs 4).toNat - 0x178) ∧

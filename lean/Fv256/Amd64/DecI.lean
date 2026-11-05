@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -13,7 +13,7 @@ theorem tail199 (s0 : State) (sp bp ret : Nat) (R : Nat → W64) (fl : Flags) (M
     (hsp : sp + 16 ≤ 2 ^ 48) (hacc : M.accessible sp 16 false = true)
     (e4 : R 4 = BitVec.ofNat 64 sp) (m0 : M.readLE sp 8 = bp) (m1 : M.readLE (sp + 8) 8 = ret)
     (hret : ret < 2 ^ 47) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 ret)
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 ret)
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x199), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 ret, flags := fl', mem := M } ∧
@@ -33,7 +33,7 @@ theorem tail1b4 (s0 : State) (sp bp ret : Nat) (R : Nat → W64) (fl : Flags) (M
     (hsp : sp + 16 ≤ 2 ^ 48) (hacc : M.accessible sp 16 false = true)
     (e4 : R 4 = BitVec.ofNat 64 sp) (m0 : M.readLE sp 8 = bp) (m1 : M.readLE (sp + 8) 8 = ret)
     (hret : ret < 2 ^ 47) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 ret)
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 ret)
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x1b4), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 ret, flags := fl', mem := M } ∧

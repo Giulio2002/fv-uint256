@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -24,7 +24,7 @@ theorem fin_loop (ptr len u0 i0 : Nat) (hu : u0 < 2 ^ 29) (hdl : decLen u0 ≤ i
       s.regs 0 = BitVec.ofNat 64 ptr → s.regs 2 = BitVec.ofNat 64 len → s.regs 1 = BitVec.ofNat 64 (i0 - c) →
       s.regs 3 = BitVec.ofNat 64 lo →
       (∀ k, k < c → s.mem.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x17c)) s (fun S' => ∃ c' : Nat,
+      ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 (fb + 0x17c)) s (fun S' => ∃ c' : Nat,
         c ≤ c' ∧ (c' = c ∨ 1 ≤ u0 / 10 ^ c') ∧ c' + decLen (u0 / 10 ^ c') ≤ i0 ∧ u0 / 10 ^ c' < 100 ∧
         S'.regs 0 = BitVec.ofNat 64 ptr ∧ S'.regs 2 = BitVec.ofNat 64 len ∧ S'.regs 1 = BitVec.ofNat 64 (i0 - c') ∧
         S'.regs 3 = BitVec.ofNat 64 (u0 / 10 ^ c') ∧

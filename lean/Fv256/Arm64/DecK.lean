@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -34,7 +34,7 @@ theorem outer (ptr len u0 i0 bp ret : Nat) (hu0 : u0 < 2 ^ 64) (hdl : decLen u0 
       s.mem.accessible (s.sp.toNat - 8) 16 false = true → (ptr + len ≤ s.sp.toNat - 8 ∨ s.sp.toNat + 16 ≤ ptr) →
       s.mem.readLE (s.sp.toNat - 8) 8 = bp → s.mem.readLE s.sp.toNat 8 = ret →
       (∀ k, k < c → s.mem.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) → (0 < u ∨ c = 0) →
-      ReachesRet Extracted.program (BitVec.ofNat 64 ret) s (fun S' =>
+      ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 ret) s (fun S' =>
         S'.regs 0 = BitVec.ofNat 64 (i0 - decLen u0) ∧ S'.sp = s.sp + 16#64 ∧ S'.regs 29 = BitVec.ofNat 64 bp ∧
         (∀ k, k ∉ Clob → S'.regs k = s.regs k) ∧
         (∀ k, k < decLen u0 → S'.mem.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) ∧

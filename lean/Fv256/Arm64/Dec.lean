@@ -4,13 +4,7 @@ import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
 import Fv256.StrE
-import Fv256.Arm64.DecT
-import Fv256.Arm64.DecA
-import Fv256.Arm64.DecInit
-import Fv256.Arm64.DecIter
-import Fv256.Arm64.DecLoop
-import Fv256.Arm64.StrconvFormatUint
-import Fv256.Arm64.DecSummary
+import Fv256.Arm64.DecExt
 
 open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
 open Fv256.E
@@ -38,7 +32,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)])) := by
     rw [← decE_entry]
-    refine ensures_of_summary (dec_summary impl rt H z hc) ?_ ?_
+    refine ensures_of_summary (dec_summary_ext impl rt H z hc) ?_ ?_
     · intro ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11⟩
       have hl : s.regs 30 = BitVec.ofNat 64 ret := hs.lr
       have hrl : (s.regs 30).toNat = ret := by

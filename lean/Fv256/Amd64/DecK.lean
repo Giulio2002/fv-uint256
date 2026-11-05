@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -35,7 +35,7 @@ theorem outer (s0 : State) (ptr len u0 i0 sp bp ret : Nat) (hu0 : u0 < 2 ^ 64) (
       R 0 = BitVec.ofNat 64 ptr → R 3 = BitVec.ofNat 64 (i0 - c) → R 1 = BitVec.ofNat 64 len →
       R 7 = BitVec.ofNat 64 u → R 4 = BitVec.ofNat 64 sp →
       (∀ k, k < c → M.readLE (ptr + i0 - 1 - k) 1 = 48 + u0 / 10 ^ k % 10) → (0 < u ∨ c = 0) →
-      ReachesRet Extracted.program (BitVec.ofNat 64 ret)
+      ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 ret)
         { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x17), flags := fl, mem := M }
         (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
           S' = { s0 with regs := R', rip := BitVec.ofNat 64 ret, flags := fl', mem := M' } ∧

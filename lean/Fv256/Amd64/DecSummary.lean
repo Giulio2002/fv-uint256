@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
@@ -21,18 +21,18 @@ set_option maxRecDepth 100000 in
 theorem AtEntry.rip {s : State} (h : AtEntry s) : s.rip = BitVec.ofNat 64 decE := by unfold AtEntry at h; exact h
 
 set_option maxRecDepth 100000 in
-theorem decE_seg : decE = segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec" := rfl
+theorem decE_seg : decE = segAddr Fv256.DecProg.program "github.com/holiman/uint256.(*Int).Dec" := rfl
 
-abbrev zeroDat : Janus.DataSegment := Extracted.data[1]
+abbrev zeroDat : Janus.DataSegment := Fv256.DecProg.data[0]
 set_option maxRecDepth 100000 in
 theorem zeroDat_base : zeroDat.base = 5134938 := by decide
 set_option maxRecDepth 100000 in
 theorem zeroDat_len : zeroDat.bytes.length = 256 := by decide
-theorem zeroDat_mem : zeroDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
+theorem zeroDat_mem : zeroDat ∈ Fv256.DecProg.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
 set_option maxRecDepth 100000 in
 theorem zeroDat_b0 : zeroDat.bytes[0]! = 48 := by decide +kernel
 
-theorem zeroStr_read {M : Memory} (hd : Extracted.program.DataLoaded M) :
+theorem zeroStr_read {M : Memory} (hd : Fv256.DecProg.program.DataLoaded M) :
     M.readLE 5134938 1 = 48 ∧ M.accessible 5134938 1 false = true := by
   have b0 := DataLoaded.byte hd zeroDat_mem 0 (by rw [zeroDat_len]; omega)
   rw [zeroDat_base] at b0
@@ -48,9 +48,9 @@ theorem zeroStr_read {M : Memory} (hd : Extracted.program.DataLoaded M) :
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem dec_summary (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
-    Summary (Extracted.program.link impl) decE
-      (fun s => s.regs 0 = z ∧ StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Extracted.program.DataLoaded s.mem ∧
+    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+    Summary (Fv256.DecProg.program.link impl) decE
+      (fun s => s.regs 0 = z ∧ StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Fv256.DecProg.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4568) (4568 + 8) rt ∧ Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧
         (s.regs 4).toNat % 8 = 0 ∧ Buffer s z 32 false ∧
         (z.toNat + 32 ≤ (s.regs 4).toNat - 4568 ∨ (s.regs 4).toNat + 8 ≤ z.toNat) ∧

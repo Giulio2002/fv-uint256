@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -16,7 +16,7 @@ theorem inner_loop (ptr len x0 i0 : Nat) (hi : 8 ≤ i0) (hil : i0 ≤ len) (hlo
     ∀ r j (s : State), j + r + 1 = 4 → s.mem.accessible ptr len true = true → TabsOK s.mem →
       s.pc = BitVec.ofNat 64 (fb + 0x78) → s.regs 0 = BitVec.ofNat 64 ptr → s.regs 2 = BitVec.ofNat 64 len →
       s.regs 1 = BitVec.ofNat 64 (i0 - 2 * j) → s.regs 6 = BitVec.ofNat 64 j → s.regs 3 = BitVec.ofNat 64 (x0 / 100 ^ j) →
-      ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0xd4)) s (fun S' =>
+      ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 (fb + 0xd4)) s (fun S' =>
         S'.regs 0 = BitVec.ofNat 64 ptr ∧ S'.regs 2 = BitVec.ofNat 64 len ∧ S'.regs 1 = BitVec.ofNat 64 (i0 - 8) ∧
         S'.regs 3 = BitVec.ofNat 64 (x0 / 10 ^ 8) ∧ S'.regs 6 = BitVec.ofNat 64 4 ∧
         (∀ k, k ∉ [1, 3, 6, 7, 8, 9, 10, 11] → S'.regs k = s.regs k) ∧ S'.sp = s.sp ∧
