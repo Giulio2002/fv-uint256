@@ -145,4 +145,77 @@ theorem loop (impl : List Janus.Amd64.Segment) (s : State) (M : Memory) (p len :
       done))
 
 
+theorem rr_mono {p : Janus.Amd64.Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
+    (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
+  obtain ⟨k, s', a, b, c⟩ := h
+  exact ⟨k, s', a, b, hQ _ c⟩
+
+def PuPre (p len : BitVec 64) (s : State) : Prop :=
+  Fv256.C.RetOK s ∧ s.regs 0 = p ∧ s.regs 3 = len ∧ s.regs 1 = 10#64 ∧ s.regs 7 = 64#64 ∧
+  Buffer s p len.toNat false ∧ 1 ≤ len.toNat ∧ len.toNat ≤ 19 ∧ StackGuardOK s 0 ∧ StackWritable s 0x20 16 ∧
+  (p.toNat + len.toNat ≤ (s.regs 4).toNat - 0x20 ∨ (s.regs 4).toNat + 16 ≤ p.toNat)
+
+def PuPost (p len : BitVec 64) (s s' : State) : Prop :=
+  Fv256.C.Kept s s' ∧
+  MemFrame s.mem s'.mem [((s.regs 4).toNat - 8, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] ∧
+  ((allDec (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat ∧
+      (s'.regs 0).toNat = decSum (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat ∧ s'.regs 3 = 0 ∧ s'.regs 1 = 0) ∨
+   (¬ allDec (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat ∧ s'.regs 0 = 0 ∧ (s'.regs 3).toNat = errItab ∧
+      (s'.regs 1).toNat = synAddr))
+
+set_option maxHeartbeats 16000000 in
+set_option maxRecDepth 10000 in
+theorem pu_sum (impl : List Janus.Amd64.Segment) (p len : BitVec 64) :
+    Summary (Extracted.program.link impl) ip (PuPre p len) (PuPost p len) := by
+  intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, ⟨hpw, hp⟩, hL, hL2, hg, ⟨hlow, hnw, hacc⟩, hdisj⟩
+  simp only [regSP] at hacc hlow hnw hdisj
+  have hgl := hg.load
+  have hgb := hg.below
+  have hgn := hg.noWrap
+  have hgr := hg.readable
+  simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hgn hgr
+  janus64_run until [head]
+  obtain ⟨M, hM⟩ : ∃ M, M = (Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE ((s.regs 4).toNat + 8) 8 p.toNat := ⟨_, rfl⟩
+  rw [← hM]
+  have hbytes : ∀ k, k < len.toNat → Fv256.C.bytesAt M p.toNat k = Fv256.C.bytesAt s.mem p.toNat k := by
+    intro k hk
+    simp only [hM, Fv256.C.bytesAt]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  have hsum : decSum (Fv256.C.bytesAt M p.toNat) 0 len.toNat = decSum (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat :=
+    decSum_congr _ _ 0 _ (fun k _ hk => hbytes k (by omega))
+  have hall : allDec (Fv256.C.bytesAt M p.toNat) 0 len.toNat ↔ allDec (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat :=
+    ⟨fun h k a b => by rw [← hbytes k (by omega)]; exact h k a b, fun h k a b => by rw [hbytes k (by omega)]; exact h k a b⟩
+  refine rr_mono (loop impl s M p len hL hL2 ?_ hpw hra2 hlow hnw ?_ ?_ ?_ (len.toNat - 0) _ 0 rfl (by omega)
+    ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
+  case h.refine_1 => rw [hM]; simpa using hp
+  case h.refine_2 => rw [hM]; simpa using hacc
+  case h.refine_3 =>
+    rw [hM]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  case h.refine_4 =>
+    rw [hM]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    have h8 : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+    rw [h8]; exact Nat.mod_eq_of_lt (s.regs 5).isLt
+  case h.refine_22 => intro k _ hk; omega
+  all_goals (try (simp [setRegF_apply, hM, retAddrOf, hdf, hx15]; done))
+  case h.refine_5 =>
+    simp only [setRegF_apply]
+    first | rfl | decide | (simp only [head, ip]; decide)
+  case h.refine_9 =>
+    simp only [setRegF_apply, decSum]
+    rfl
+  case h.refine_23 =>
+    intro s' hq
+    obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩ := hq
+    refine ⟨⟨h1, h2, h3, h4, h5, h6, h7⟩, ?_, ?_⟩
+    · rw [h8, hM]
+      exact (((Janus.MemFrame.refl s.mem _).writeLE _ (r := ((s.regs 4).toNat - 8, (s.regs 4).toNat)) (by simp)
+        (by dsimp only; omega) (by dsimp only; omega)).writeLE _ (r := ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16))
+        (by simp) (by dsimp only; omega) (by dsimp only; omega))
+    · rw [hall.symm.trans (Iff.refl _)] at *
+      rcases h9 with ⟨a, b, c, d⟩ | ⟨a, b, c, d⟩
+      · exact Or.inl ⟨hall.mp a, by rw [b, hsum], c, d⟩
+      · exact Or.inr ⟨fun h => a (hall.mpr h), b, c, d⟩
+
 end Fv256.Amd64.SfdParse
