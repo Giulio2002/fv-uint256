@@ -61,8 +61,8 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
     (hwb2 : WbLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
-    (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (z pS' nS' : BitVec 64),
-      SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo hi z pS' nS') :
+    (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
+      SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [pS, nS] (Pre R R2 T b L lo hi pS nS)
       (fun s s' =>
         (∀ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v →
@@ -109,9 +109,9 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
     simp only [List.mem_cons, List.mem_nil_iff, or_false] at hr
     left
     rcases hr with rfl | rfl <;> exact Outside.of_sub hr9 (by omega) (by simp only; omega)
-  refine Reaches.call (Summary.withExit (hsfd (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) zv pS nS) hret) ?_ ?_ ?_
+  refine Reaches.call (Summary.withExit (hsfd (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) lo ((s.regs 4).toNat - 16) zv pS nS) hret) ?_ ?_ ?_
   · first | rfl | decide
-  · refine Fv256.Amd64.FromDecimalSpec.toppre_of_call cfg hpreC (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+  · refine Fv256.Amd64.FromDecimalSpec.toppre_of_call cfg hpreC (hi3 := (s.regs 4).toNat - 16) (by omega) (Nat.le_refl _) (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
       (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply]) (by simp) (by simpa using h_df) ?_ hF hInR hApL hAcc (by omega) hInv'
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     decide

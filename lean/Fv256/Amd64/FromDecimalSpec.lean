@@ -57,15 +57,15 @@ theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : l
   obtain ⟨h1, h2⟩ := h
   exact ⟨h2, h1, by omega, by omega⟩
 
-theorem chunkOK_mono {R : RtInv} {R2 : IfaceModel} {L L' : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64} {lo hi : Nat}
-    {m m' : Janus.Arm64.Memory} (h : ChunkOK C R R2 L b sp sl lo hi m) (hL : ∀ r ∈ L, r ∈ L')
-    (hacc : m'.accessible sp.toNat sl.toNat false = true) : ChunkOK C R R2 L' b sp sl lo hi m' := by
+theorem chunkOK_mono {R : RtInv} {R2 : IfaceModel} {L L' : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64} {lo hi hi3 : Nat}
+    {m m' : Janus.Arm64.Memory} (h : ChunkOK C R R2 L b sp sl lo hi m) (hL : ∀ r ∈ L, r ∈ L') (hh : hi3 ≤ hi)
+    (hacc : m'.accessible sp.toNat sl.toNat false = true) : ChunkOK C R R2 L' b sp sl lo hi3 m' := by
   obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩ := h
-  exact ⟨h1, h2, h3, hacc, h5, h6, h7.elim Or.inl (fun hi => Or.inr (hi.of_subset hL)), h8⟩
+  exact ⟨h1, h2, h3, hacc, h5, by omega, h7.elim Or.inl (fun hi => Or.inr (hi.of_subset hL)), h8⟩
 
 theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi tI : Nat}
-    {pS nS zv : BitVec 64} {s S3 : State}
-    (hpre : PreC C R R2 T b L lo hi tI pS nS s)
+    {pS nS zv : BitVec 64} {s S3 : State} {hi3 : Nat}
+    (hpre : PreC C R R2 T b L lo hi tI pS nS s) (hh3 : hi3 ≤ hi) (hh3' : (s.regs 4).toNat - 16 ≤ hi3)
     (hr0 : S3.regs 0 = zv) (hr3 : S3.regs 3 = pS) (hr1 : S3.regs 1 = nS) (hr4 : S3.regs 4 = s.regs 4 - 48#64)
     (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false)
     (hret : S3.mem.readLE ((s.regs 4).toNat - 48) 8 < 2 ^ 47)
@@ -73,13 +73,29 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
     (hz : InRanges zv.toNat 32 R.rt) (hzL : ApartAll zv.toNat 32 L) (hza : s.mem.accessible zv.toNat 32 true = true) (hz48 : zv.toNat + 32 ≤ 2 ^ 48)
     (hInv : R.inv (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) (S3.regs 14).toNat
       (view R.rt (L ++ [(zv.toNat, zv.toNat + 32)]) S3.mem)) :
-    TopPre C R R2 T (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) lo hi zv pS nS S3 := by
+    TopPre C R R2 T (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) lo hi3 zv pS nS S3 := by
   obtain ⟨hRet, h0, h3, hMod, hEnv, hlo, hhi, hok, hbud, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hBuf, hPS, hPR, hPW, hCh⟩ := hpre
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hsp : (S3.regs 4).toNat = (s.regs 4).toNat - 48 := by
     rw [hr4]; have := (s.regs 4).isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   have hspS : 48 ≤ (s.regs 4).toNat := by omega
+  have e3s : hi3 ≤ 2 ^ 48 := by omega
+  have e9s : Outside lo (hi3 - lo) R.rt := Outside.of_sub e9 (Nat.le_refl _) (by omega)
+  have e10s : Outside lo (hi3 - lo) R2.priv := Outside.of_sub e10 (Nat.le_refl _) (by omega)
+  have e13s : (s.regs 14).toNat + 16 + 8 ≤ lo ∨ hi3 ≤ (s.regs 14).toNat + 16 := by omega
+  have e14s : ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(lo, hi3)] := by
+    intro r hr
+    have := e14 r hr
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
+  have e5s : s.mem.accessible lo (hi3 - lo) true = true :=
+    Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (Nat.le_refl _) (by omega)
+  have e18s : ∀ r ∈ L, Outside r.1 (r.2 - r.1) [(lo, hi3)] := by
+    intro r hr
+    have := e18 r hr
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
   have hrt : ∀ a n, Outside a n R.rt → Outside a n [(lo, hi)] → S3.mem.readLE a n = s.mem.readLE a n := by
     intro a n h1 h2
     exact hF.readLE a n (by rw [outside_append]; exact ⟨h1, h2⟩)
@@ -109,9 +125,9 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
     · simp only [List.mem_singleton] at h; subst h; simpa using hzP
   · -- Env
     have hgz : (S3.regs 14).toNat = (s.regs 14).toNat := by rw [hr14]
-    refine ⟨by omega, by omega, e3, by omega, ?_, by rw [hgz]; exact e6, ?_, ?_, e9, e10, by rw [hgz]; exact e11,
-      by rw [hgz]; exact e12, by rw [hgz]; exact e13, e14, ?_, ?_, hInv, ?_⟩
-    · rw [hF.accessible]; exact e5
+    refine ⟨by omega, by omega, e3s, by omega, ?_, by rw [hgz]; exact e6, ?_, ?_, e9s, e10s, by rw [hgz]; exact e11,
+      by rw [hgz]; exact e12, by rw [hgz]; exact e13s, e14s, ?_, ?_, hInv, ?_⟩
+    · rw [hF.accessible]; exact e5s
     · rw [hgz, hF.accessible]; exact e7
     · rw [hgz, hrt _ _ e11 (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact e8
     · refine StaticOK.frame e15 hF ?_
@@ -131,7 +147,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
       omega
     · intro r hr
       rcases List.mem_append.1 hr with h | h
-      · exact e18 r h
+      · exact e18s r h
       · simp only [List.mem_singleton] at h; subst h
         simp only [outside_cons, outside_nil, and_true]
         unfold Apart at hWinZ; omega
@@ -145,7 +161,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
     · have := InRanges.apart hz hMt
       simp only [outside_cons, outside_nil, and_true]
       unfold Apart at this
-      exact ⟨u2'.1, by omega⟩
+      exact ⟨by omega, by omega⟩
     · intro k hk1 hk2
       obtain ⟨v1, v2, v3, v4⟩ := u3 k hk1 hk2
       have v4' := v4
@@ -165,18 +181,18 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
       · have := InRanges.apart hz hMk'
         unfold Apart at this
         simp only [outside_cons, outside_nil, and_true]
-        exact ⟨v4'.1, by omega⟩
+        exact ⟨by omega, by omega⟩
   · -- ioEOF
     rw [hF.accessible]; exact hE1
   · have := InRanges.apart hz hE3
     unfold Apart at this
     simp only [outside_cons, outside_nil, and_true] at hE2 ⊢
-    exact ⟨hE2, by omega⟩
+    exact ⟨by omega, by omega⟩
   · rw [hF.accessible]; exact hB1
   · have := InRanges.apart hz hB3
     unfold Apart at this
     simp only [outside_cons, outside_nil, and_true] at hB2 ⊢
-    exact ⟨hB2, by omega⟩
+    exact ⟨by omega, by omega⟩
   · -- Buffer z
     exact ⟨hz48, by rw [hF.accessible]; exact hza⟩
   · unfold Apart at hWinZ; omega
@@ -187,7 +203,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
   · -- Buffer pS
     obtain ⟨b1, b2⟩ := hBuf
     exact ⟨b1, by rw [hF.accessible]; exact b2⟩
-  · exact hPS
+  · omega
   · rcases hPR with h | h
     · have := InRanges.apart hz h
       unfold Apart at this; omega
@@ -196,7 +212,10 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
   · -- ChunkAll
     intro sp sl h1 h2 h3 h4
     have := hCh sp sl h1 h2 h3 h4
-    refine chunkOK_mono C this (fun r hr => List.mem_append_left _ hr) ?_
+    have hbs : blockSize 32 true = 32 := by decide
+    rw [hbs] at hCh
+    have this := hCh sp sl h1 h2 h3 h4
+    refine chunkOK_mono C this (fun r hr => List.mem_append_left _ hr) hh3 ?_
     rw [hF.accessible]; exact this.2.2.2.1
 
 end Fv256.Amd64.FromDecimalSpec
