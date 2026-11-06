@@ -1,0 +1,130 @@
+import Fv256.Amd64.R4Live
+
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
+open Fv256.Amd64.ReduceSpec
+
+namespace Fv256.Amd64.R4Seg
+
+def P_1cd_1d9 (s : State) (x1cdrax x1cdrdx x1cdrsi x1cdrdi x1cdr8 x1cdr9 x1cdr10 x1cdr11 x1cdr13 x1cdr15 x1cdm0 x1cdm8 x1cdm10 x1cdm18 x1cdm20 x1cdm28 x1cdm40 x1cdm48 x1cdm50 x1cdm58 x1cdm60 x1cdm68 x1cdm70 x1cdm78 x1cdm80 x1cdm88 x1cdm90 x1cdm98 x1cdma0 x1cdma8 x1cdmb0 x1cdmb8 x1cdmc0 x1cdmc8 x1cdmd0 x1cdmd8 x1cdme0 x1cdme8 x1cdmf0 x1cdmf8 x1cdm100 x1cdm108 x1cdm110 x1cdm128 : Nat) (S' : State) : Prop :=
+  ∃ x1d9r13 x1d9r15, L1d9 s S' x1cdrax x1cdrdx x1cdrsi x1cdrdi x1cdr8 x1cdr9 x1cdr10 x1cdr11 x1d9r13 x1d9r15 x1cdm0 x1cdm8 x1cdm10 x1cdm18 x1cdm20 x1cdm28 x1cdm40 x1cdm48 x1cdm50 x1cdm60 x1cdm68 x1cdm70 x1cdm78 x1cdm80 x1cdm88 x1cdm90 x1cdm98 x1cdma0 x1cdma8 x1cdmb0 x1cdmb8 x1cdmc0 x1cdmc8 x1cdmd0 x1cdmd8 x1cdme0 x1cdme8 x1cdmf0 x1cdmf8 x1cdm100 x1cdm108 x1cdm110 x1cdm128 ∧ x1d9r13 = (x1cdm58 + (x1cdr15 + x1cdr13) / 18446744073709551616) % 18446744073709551616 ∧ x1d9r15 = (x1cdr15 + x1cdr13) % 18446744073709551616 ∧ R4Regs s S' ∧ R4Mem s S'.mem
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem g_1cd_1d9 (s S : State) (hpc : S.rip = BitVec.ofNat 64 (r4Entry + 0x1cd)) (hs : R4Pre s)
+    (hR : R4Regs s S) (hM : R4Mem s S.mem) (x1cdrax x1cdrdx x1cdrsi x1cdrdi x1cdr8 x1cdr9 x1cdr10 x1cdr11 x1cdr13 x1cdr15 x1cdm0 x1cdm8 x1cdm10 x1cdm18 x1cdm20 x1cdm28 x1cdm40 x1cdm48 x1cdm50 x1cdm58 x1cdm60 x1cdm68 x1cdm70 x1cdm78 x1cdm80 x1cdm88 x1cdm90 x1cdm98 x1cdma0 x1cdma8 x1cdmb0 x1cdmb8 x1cdmc0 x1cdmc8 x1cdmd0 x1cdmd8 x1cdme0 x1cdme8 x1cdmf0 x1cdmf8 x1cdm100 x1cdm108 x1cdm110 x1cdm128 : Nat) (hL : L1cd s S x1cdrax x1cdrdx x1cdrsi x1cdrdi x1cdr8 x1cdr9 x1cdr10 x1cdr11 x1cdr13 x1cdr15 x1cdm0 x1cdm8 x1cdm10 x1cdm18 x1cdm20 x1cdm28 x1cdm40 x1cdm48 x1cdm50 x1cdm58 x1cdm60 x1cdm68 x1cdm70 x1cdm78 x1cdm80 x1cdm88 x1cdm90 x1cdm98 x1cdma0 x1cdma8 x1cdmb0 x1cdmb8 x1cdmc0 x1cdmc8 x1cdmd0 x1cdmd8 x1cdme0 x1cdme8 x1cdmf0 x1cdmf8 x1cdm100 x1cdm108 x1cdm110 x1cdm128) :
+    ReachesRet Fv256.ReduceProg.program (BitVec.ofNat 64 (r4Entry + 0x1d9)) S (P_1cd_1d9 s  x1cdrax x1cdrdx x1cdrsi x1cdrdi x1cdr8 x1cdr9 x1cdr10 x1cdr11 x1cdr13 x1cdr15 x1cdm0 x1cdm8 x1cdm10 x1cdm18 x1cdm20 x1cdm28 x1cdm40 x1cdm48 x1cdm50 x1cdm58 x1cdm60 x1cdm68 x1cdm70 x1cdm78 x1cdm80 x1cdm88 x1cdm90 x1cdm98 x1cdma0 x1cdma8 x1cdmb0 x1cdmb8 x1cdmc0 x1cdmc8 x1cdmd0 x1cdmd8 x1cdme0 x1cdme8 x1cdmf0 x1cdmf8 x1cdm100 x1cdm108 x1cdm110 x1cdm128) := by
+  obtain ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hmw, hm⟩, ⟨hux, hu⟩, hdz, hdx, hdm, hdu, hdg, hm3, hmu⟩ := hs
+  clear hmu hm3 hdz hdx hdm hdu hdg
+  obtain ⟨hr4, hr5, hr14, hx15, hrdf, hrmx⟩ := hR
+  have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM.1
+  simp only [regSP] at hacc hlow hnw hsp
+  have hacc' : S.mem.accessible ((s.regs 4).toNat - 288) (288 + 16) true = true := by
+    rw [hfr.accessible]; exact hacc
+  have hsp4 : (S.regs 4).toNat = (s.regs 4).toNat - 288 := by
+    rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  obtain ⟨hE_x1cdrax, hB_x1cdrax, hE_x1cdrdx, hB_x1cdrdx, hE_x1cdrsi, hB_x1cdrsi, hE_x1cdrdi, hB_x1cdrdi, hE_x1cdr8, hB_x1cdr8, hE_x1cdr9, hB_x1cdr9, hE_x1cdr10, hB_x1cdr10, hE_x1cdr11, hB_x1cdr11, hE_x1cdr13, hB_x1cdr13, hE_x1cdr15, hB_x1cdr15, hE_x1cdm0, hB_x1cdm0, hE_x1cdm8, hB_x1cdm8, hE_x1cdm10, hB_x1cdm10, hE_x1cdm18, hB_x1cdm18, hE_x1cdm20, hB_x1cdm20, hE_x1cdm28, hB_x1cdm28, hE_x1cdm40, hB_x1cdm40, hE_x1cdm48, hB_x1cdm48, hE_x1cdm50, hB_x1cdm50, hE_x1cdm58, hB_x1cdm58, hE_x1cdm60, hB_x1cdm60, hE_x1cdm68, hB_x1cdm68, hE_x1cdm70, hB_x1cdm70, hE_x1cdm78, hB_x1cdm78, hE_x1cdm80, hB_x1cdm80, hE_x1cdm88, hB_x1cdm88, hE_x1cdm90, hB_x1cdm90, hE_x1cdm98, hB_x1cdm98, hE_x1cdma0, hB_x1cdma0, hE_x1cdma8, hB_x1cdma8, hE_x1cdmb0, hB_x1cdmb0, hE_x1cdmb8, hB_x1cdmb8, hE_x1cdmc0, hB_x1cdmc0, hE_x1cdmc8, hB_x1cdmc8, hE_x1cdmd0, hB_x1cdmd0, hE_x1cdmd8, hB_x1cdmd8, hE_x1cdme0, hB_x1cdme0, hE_x1cdme8, hB_x1cdme8, hE_x1cdmf0, hB_x1cdmf0, hE_x1cdmf8, hB_x1cdmf8, hE_x1cdm100, hB_x1cdm100, hE_x1cdm108, hB_x1cdm108, hE_x1cdm110, hB_x1cdm110, hE_x1cdm128, hB_x1cdm128⟩ := hL
+  janus64_run [Util.readLE_32, hE_x1cdrax, hE_x1cdrdx, hE_x1cdrsi, hE_x1cdrdi, hE_x1cdr8, hE_x1cdr9, hE_x1cdr10, hE_x1cdr11, hE_x1cdr13, hE_x1cdr15, hE_x1cdm0, hE_x1cdm8, hE_x1cdm10, hE_x1cdm18, hE_x1cdm20, hE_x1cdm28, hE_x1cdm40, hE_x1cdm48, hE_x1cdm50, hE_x1cdm58, hE_x1cdm60, hE_x1cdm68, hE_x1cdm70, hE_x1cdm78, hE_x1cdm80, hE_x1cdm88, hE_x1cdm90, hE_x1cdm98, hE_x1cdma0, hE_x1cdma8, hE_x1cdmb0, hE_x1cdmb8, hE_x1cdmc0, hE_x1cdmc8, hE_x1cdmd0, hE_x1cdmd8, hE_x1cdme0, hE_x1cdme8, hE_x1cdmf0, hE_x1cdmf8, hE_x1cdm100, hE_x1cdm108, hE_x1cdm110, hE_x1cdm128, hsp4, Nat.mod_eq_of_lt hB_x1cdrax, Nat.mod_eq_of_lt hB_x1cdrdx, Nat.mod_eq_of_lt hB_x1cdrsi, Nat.mod_eq_of_lt hB_x1cdrdi, Nat.mod_eq_of_lt hB_x1cdr8, Nat.mod_eq_of_lt hB_x1cdr9, Nat.mod_eq_of_lt hB_x1cdr10, Nat.mod_eq_of_lt hB_x1cdr11, Nat.mod_eq_of_lt hB_x1cdr13, Nat.mod_eq_of_lt hB_x1cdr15, Nat.mod_eq_of_lt hB_x1cdm0, Nat.mod_eq_of_lt hB_x1cdm8, Nat.mod_eq_of_lt hB_x1cdm10, Nat.mod_eq_of_lt hB_x1cdm18, Nat.mod_eq_of_lt hB_x1cdm20, Nat.mod_eq_of_lt hB_x1cdm28, Nat.mod_eq_of_lt hB_x1cdm40, Nat.mod_eq_of_lt hB_x1cdm48, Nat.mod_eq_of_lt hB_x1cdm50, Nat.mod_eq_of_lt hB_x1cdm58, Nat.mod_eq_of_lt hB_x1cdm60, Nat.mod_eq_of_lt hB_x1cdm68, Nat.mod_eq_of_lt hB_x1cdm70, Nat.mod_eq_of_lt hB_x1cdm78, Nat.mod_eq_of_lt hB_x1cdm80, Nat.mod_eq_of_lt hB_x1cdm88, Nat.mod_eq_of_lt hB_x1cdm90, Nat.mod_eq_of_lt hB_x1cdm98, Nat.mod_eq_of_lt hB_x1cdma0, Nat.mod_eq_of_lt hB_x1cdma8, Nat.mod_eq_of_lt hB_x1cdmb0, Nat.mod_eq_of_lt hB_x1cdmb8, Nat.mod_eq_of_lt hB_x1cdmc0, Nat.mod_eq_of_lt hB_x1cdmc8, Nat.mod_eq_of_lt hB_x1cdmd0, Nat.mod_eq_of_lt hB_x1cdmd8, Nat.mod_eq_of_lt hB_x1cdme0, Nat.mod_eq_of_lt hB_x1cdme8, Nat.mod_eq_of_lt hB_x1cdmf0, Nat.mod_eq_of_lt hB_x1cdmf8, Nat.mod_eq_of_lt hB_x1cdm100, Nat.mod_eq_of_lt hB_x1cdm108, Nat.mod_eq_of_lt hB_x1cdm110, Nat.mod_eq_of_lt hB_x1cdm128]
+  all_goals (try janus_carry_simp)
+  all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
+  all_goals (try simp only [← BitVec.ofNat_add])
+  all_goals (try janus_carry_simp)
+  all_goals (
+  unfold P_1cd_1d9
+  refine ⟨(x1cdm58 + (x1cdr15 + x1cdr13) / 18446744073709551616) % 18446744073709551616, (x1cdr15 + x1cdr13) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_⟩
+  · unfold L1d9
+    and_intros
+    · first | exact hE_x1cdrax | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdrax)
+    · exact hB_x1cdrax
+    · first | exact hE_x1cdrdx | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdrdx)
+    · exact hB_x1cdrdx
+    · first | exact hE_x1cdrsi | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdrsi)
+    · exact hB_x1cdrsi
+    · first | exact hE_x1cdrdi | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdrdi)
+    · exact hB_x1cdrdi
+    · first | exact hE_x1cdr8 | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdr8)
+    · exact hB_x1cdr8
+    · first | exact hE_x1cdr9 | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdr9)
+    · exact hB_x1cdr9
+    · first | exact hE_x1cdr10 | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdr10)
+    · exact hB_x1cdr10
+    · first | exact hE_x1cdr11 | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_x1cdr11)
+    · exact hB_x1cdr11
+    · first | with_reducible rfl | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; split <;> rfl) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; with_reducible rfl) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact (ofNat_mod64 _).symm) | (simp [setRegF]; done) | (simp [setRegF, BitVec.ofNat_toNat]; done) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; rw [BitVec.ofNat_toNat, BitVec.setWidth_eq]; done) | (simp [setRegF]; bv_omega)
+    · first | exact Nat.mod_lt _ (by decide) | exact BitVec.isLt _ | (split <;> decide)
+    · first | with_reducible rfl | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; split <;> rfl) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; with_reducible rfl) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact (ofNat_mod64 _).symm) | (simp [setRegF]; done) | (simp [setRegF, BitVec.ofNat_toNat]; done) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; rw [BitVec.ofNat_toNat, BitVec.setWidth_eq]; done) | (simp [setRegF]; bv_omega)
+    · first | exact Nat.mod_lt _ (by decide) | exact BitVec.isLt _ | (split <;> decide)
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm0
+    · exact hB_x1cdm0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm8
+    · exact hB_x1cdm8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm10
+    · exact hB_x1cdm10
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm18
+    · exact hB_x1cdm18
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm20
+    · exact hB_x1cdm20
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm28
+    · exact hB_x1cdm28
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm40
+    · exact hB_x1cdm40
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm48
+    · exact hB_x1cdm48
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm50
+    · exact hB_x1cdm50
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm60
+    · exact hB_x1cdm60
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm68
+    · exact hB_x1cdm68
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm70
+    · exact hB_x1cdm70
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm78
+    · exact hB_x1cdm78
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm80
+    · exact hB_x1cdm80
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm88
+    · exact hB_x1cdm88
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm90
+    · exact hB_x1cdm90
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm98
+    · exact hB_x1cdm98
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdma0
+    · exact hB_x1cdma0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdma8
+    · exact hB_x1cdma8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmb0
+    · exact hB_x1cdmb0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmb8
+    · exact hB_x1cdmb8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmc0
+    · exact hB_x1cdmc0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmc8
+    · exact hB_x1cdmc8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmd0
+    · exact hB_x1cdmd0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmd8
+    · exact hB_x1cdmd8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdme0
+    · exact hB_x1cdme0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdme8
+    · exact hB_x1cdme8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmf0
+    · exact hB_x1cdmf0
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdmf8
+    · exact hB_x1cdmf8
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm100
+    · exact hB_x1cdm100
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm108
+    · exact hB_x1cdm108
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm110
+    · exact hB_x1cdm110
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_x1cdm128
+    · exact hB_x1cdm128
+  · with_reducible rfl
+  · with_reducible rfl
+  · unfold R4Regs
+    and_intros <;> first | rfl | simp [setRegF, hr4, hr5, hr14, hx15, hrdf, hrmx]
+  · repeat (refine R4Mem.write ?_ _ _ _ ?_ ?_)
+    all_goals first | exact hM | omega
+  )
+
+end Fv256.Amd64.R4Seg
