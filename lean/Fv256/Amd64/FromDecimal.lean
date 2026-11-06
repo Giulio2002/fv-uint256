@@ -115,7 +115,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
   have hbytes : ∀ k, k < nS.toNat → bytesAt ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4932953) pS.toNat k
       = bytesAt s.mem pS.toNat k := by
     intro k hk
-    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -, -⟩ := hpreC
+    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -⟩ := hpreC
     unfold bytesAt
     have hk' : pS.toNat + k < pS.toNat + nS.toNat := by omega
     refine Fv256.Amd64.FromDecimalSpec.str_read hlo hhi hM0 hMF hLF (by omega) ?_
@@ -167,7 +167,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       · intro h; rw [hv] at h; cases h
       · intro _ _ h; rw [hv] at h; cases h
     · -- io.EOF
-      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, -, hB2, hB3, hEn, hBn, -, -, -, -, -⟩ := hpreC
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, -, hB2, hB3, hInit, -, -, -, -⟩ := hpreC
       have hoS : ∀ a n, a + n ≤ lo ∨ (s.regs 4).toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
           Outside a n [(lo, (s.regs 4).toNat - 16), (zv.toNat, zv.toNat + 32)] := by
         intro a n h1 h2
@@ -193,7 +193,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       have hnz : s'.regs 0 ≠ 0 := by
         intro h0'
         rw [h0', hio _ (Or.inl rfl)] at c0
-        exact hEn (by simpa using c0.symm)
+        exact hInit.1 (by simpa using c0.symm)
       have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
       janus64_run [hs_ret, hs_rbp, hnz']
       have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
@@ -211,7 +211,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       · rw [c0]; exact hio _ (Or.inl rfl)
       · rw [c3]; exact hio _ (Or.inr rfl)
     · -- ErrBig256Range
-      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hB2x, hB3x, -, hBnx, -, -, -, -, -⟩ := hpreC
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hB2x, hB3x, hInit, -, -, -, -⟩ := hpreC
       have hoS : ∀ a n, a + n ≤ lo ∨ (s.regs 4).toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
           Outside a n [(lo, (s.regs 4).toNat - 16), (zv.toNat, zv.toNat + 32)] := by
         intro a n h1 h2
@@ -237,7 +237,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       have hnz : s'.regs 0 ≠ 0 := by
         intro h0'
         rw [h0', hio _ (Or.inl rfl)] at c0
-        exact hBnx (by simpa using c0.symm)
+        exact hInit.2.2.1 (by simpa using c0.symm)
       have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
       janus64_run [hs_ret, hs_rbp, hnz']
       have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
