@@ -22,7 +22,6 @@ theorem r0f_lt (y3 : Nat) (h1 : 2 ^ 63 ≤ y3) (h2 : y3 < 2 ^ 64) : r0f y3 < 2 ^
     omega
 
 
-namespace Fv256.Amd64.RecipSeg
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
