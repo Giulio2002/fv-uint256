@@ -1,11 +1,16 @@
 import Fv256.Arm64.SfdTePre
+import Fv256.Arm64.SfdTeTail0
+import Fv256.Arm64.SfdTeObj0
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I Fv256.Arm64.SfdEnv
 
 namespace Fv256.Arm64.SfdToError
 
-/-- `omega` after dropping the hypotheses unrelated to the goal (the contexts carry giant memory terms) -/
-macro "te_omega" : tactic => `(tactic| first | (janus_clear_irrel; omega) | omega)
+theorem rr_mono {p : Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
+    (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
+  obtain ⟨k, s', a, b, c⟩ := h
+  exact ⟨k, s', a, b, hQ _ c⟩
+
 
 theorem reach_name {p : Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
     (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl
@@ -22,7 +27,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     (hwb2 : WbLiveContract (P.link impl) (P.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
     Summary (P.link impl) te (fun s => TePre R R2 T b L fp fl sp sl s ∧ s.mem.readLE wbFlag 4 = 0)
       (TePost R R2 b L fp fl sp sl) := by
-  intro s hpc ⟨⟨hl1, hl2, h0, h1, h2, h3, h6, h7, hsl1, hsl2, hlow, ⟨_, hdep8, hdep, hTty, hprR, hLpr, hrt0, hsR, hsP, hokn, hok1, hok2⟩,
+  intro s hpc ⟨⟨hl1, hl2, h0, h1, h2, h3, h6, h7, hsl1, hsl2, hlow, ⟨_, hdep8, hdep, hTty, hprR, hLpr, hrt0, hsR, hsP, hokn, hok1, hok2, hT⟩,
     ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩,
     ⟨hokm, hokv, hbud, hsacc, hsp48, hsdisj, hspR, hspP⟩⟩, hfl⟩
   obtain ⟨t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12⟩ := e15
@@ -191,7 +196,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     rename Memory => m3
     rename MemFrame _ m3 _ => hMF2
     have pN := hsR (numErrType, numErrType + 16) (by simp [staticRanges])
-    have qN := hsP (numErrType, numErrType + 16) (by simp [staticRanges])
+    have qN := hsP (numErrType, numErrType + 16) (by simp [staticRanges]) (by intro h; simp [Prod.ext_iff] at h; omega)
     simp only [Nat.add_sub_cancel_left] at pN qN
     have hM3 : ∀ a n, Outside a n R.rt → Outside a n R2.priv → Outside a n [(s.sp.toNat - 4192, s.sp.toNat + 72)] →
         Outside a n [(q.toNat, q.toNat + sl.toNat)] → m3.readLE a n = s.mem.readLE a n := by
@@ -229,8 +234,9 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     rename Memory => m4
     rename MemFrame _ m4 _ => hMF3
     rename InRanges _ (blockSize 48 false) R.rt => hInT
+    rename s.mem.accessible (BitVec.toNat t) 48 true = true => hTacc
     have pW := hsR (wbFlag, wbFlag + 4) (by simp [staticRanges])
-    have qW := hsP (wbFlag, wbFlag + 4) (by simp [staticRanges])
+    have qW := hsP (wbFlag, wbFlag + 4) (by simp [staticRanges]) (by intro h; simp [Prod.ext_iff] at h; omega)
     simp only [Nat.add_sub_cancel_left] at pW qW
     have hqW : Outside wbFlag 4 [(q.toNat, q.toNat + sl.toNat)] := by
       have := InRanges.disjoint hInR pW
@@ -247,10 +253,75 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
           Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by te_omega)]
       exact hf3
     have hInTW := InRanges.disjoint hInT pW
+    have hacc4 : m4.accessible wbFlag 4 false = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact t8
+    have hacc4t : m4.accessible t.toNat 48 true = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact hTacc
+    have hacc4e : m4.accessible strconvErrSyntax 16 false = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact t9
+    have hacc4w : m4.accessible (BitVec.toNat s.sp - 4192) (BitVec.toNat s.sp + 72 - (BitVec.toNat s.sp - 4192)) true = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact e5
     have hf4b : (m4.readLE wbFlag 4 == 0) = true := by simp [hf4]
-    have hInTW' : wbFlag + 4 ≤ t.toNat ∨ t.toNat + 48 ≤ wbFlag := hInTW
-    rcases hInTW' with hdt | hdt
-    all_goals sorry
-    all_goals janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hSlr, hSfp, hof30, hof29]
-    trace_state
-    all_goals sorry
+    rename BitVec.toNat t ≤ 281474976710608 => ht48'
+    rename sl.toNat ≤ blockSize sl.toNat true => hQsl
+    rename ApartAll (BitVec.toNat t) 48 L ∧ Apart (BitVec.toNat t) 48 (BitVec.toNat q) (blockSize sl.toNat true) => hApT
+    rename LiveFrame _ m4 _ _ => hLF3
+    rename Mem.Copied _ m3 _ _ _ => hCop
+    rename R.1 _ _ _ (view R.rt _ m4) => hinvN
+    have pE := hsR (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
+    have qE := hsP (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges]) (by intro h; simp [Prod.ext_iff] at h; omega)
+    simp only [Nat.add_sub_cancel_left] at pE qE
+    have hg18 : S.regs 18 = s.regs 18 := by subst hS; simp [setReg_apply]
+    have hwin : ∀ a n, s.sp.toNat - 4192 ≤ a → a + n ≤ s.sp.toNat + 72 → Outside a n R.rt ∧ Outside a n R2.priv :=
+      fun a n h1 h2 => ⟨Outside.of_sub e9 (by te_omega) (by te_omega), Outside.of_sub e10 (by te_omega) (by te_omega)⟩
+    have hlr4 : m4.readLE (s.sp.toNat - 96) 8 = (s.regs 30).toNat := by
+      rw [te0_lrS hfr' hMF1 hMF2 hMF3 hdep hlow hInR hQsl _ _ (hwin _ _ (by te_omega) (by te_omega)).1
+        (hwin _ _ (by te_omega) (by te_omega)).2 (by te_omega) (by te_omega)
+        (by te_omega) (by te_omega) (by te_omega), ← hSlr]
+    have hfp4 : m4.readLE (s.sp.toNat - 96 - 8) 8 = (s.regs 29).toNat := by
+      rw [te0_lrS hfr' hMF1 hMF2 hMF3 hdep hlow hInR hQsl _ _ (hwin _ _ (by te_omega) (by te_omega)).1
+        (hwin _ _ (by te_omega) (by te_omega)).2 (by te_omega) (by te_omega)
+        (by te_omega) (by te_omega) (by te_omega)]
+      have : s.sp.toNat - 96 - 8 = s.sp.toNat - 104 := by omega
+      rw [this]; exact hSfp
+    have hts4 := InRanges.disjoint hInT e9
+    have hte4 := InRanges.disjoint hInT pE
+    have hwF : wbFlag + 4 ≤ t.toNat ∨ t.toNat + 48 ≤ wbFlag := hInTW
+    janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hacc4, hacc4w, hacc4t, hacc4e, hSlr, hSfp, hof30, hof29] until [te + 0xe0]
+    refine rr_mono (te_tail0 impl _ m4 fl.toNat t (s.regs 30) (s.regs 29) rfl rfl (by simp [callRegs, setReg_apply])
+      (by show m4.readLE (s.sp - 96#64).toNat 8 = _; rw [hsp0]; exact hlr4) (by simpa using hl1)
+      (by simp at hl2 ⊢; omega)
+      (by show m4.readLE ((s.sp - 96#64).toNat - 8) 8 = _; rw [hsp0]; exact hfp4)
+      (by show (s.sp - 96#64).toNat % 16 = 0; rw [hsp0]; te_omega)
+      (by show 4096 ≤ (s.sp - 96#64).toNat; rw [hsp0]; te_omega)
+      (by show (s.sp - 96#64).toNat + 168 ≤ 2 ^ 48; rw [hsp0]; te_omega)
+      (by show m4.accessible ((s.sp - 96#64).toNat - 4096) (4096 + 168) true = true; rw [hsp0]
+          exact Memory.accessible_mono _ hacc4w (by te_omega) (by te_omega))
+      (by te_omega) hacc4t hacc4e hacc4 hf4
+      (by show t.toNat + 48 ≤ (s.sp - 96#64).toNat - 4096 ∨ (s.sp - 96#64).toNat + 168 ≤ t.toNat; rw [hsp0]; te_omega)
+      (by te_omega) hwF) ?_
+    intro s' h
+    exact te0_conv (St := _) hdep hlow e9 e10 hSf hfr' hMF1 hMF2 hMF3 hLF1 hLF3 hCop hinvN hInR hInT hApL hApT hQsl
+      hspR hspP hsdisj hSm8 oE pE qE rfl (by simp [callRegs, setReg_apply, Map.keepABI, hg28]) (by simp [callRegs, setReg_apply, Map.keepABI, hg18]) h
+
+end Fv256.Arm64.SfdToError
