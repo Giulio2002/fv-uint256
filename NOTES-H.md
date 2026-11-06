@@ -26,3 +26,11 @@ Do experiments only on scratch copies (build/lscr.sh, 300 s cap); never edit the
 Hex.lean complete (hexstep/hexbase/hexloop, nibble BitVec lemmas, witness with 3-byte-copy toy slicebytetostring). hH is conditional on the actual digit count. build/lihm.sh = fast main iteration (hexstep/hexbase stubbed).
 
 ## Hex arm64: VERIFIED 2026-11-06 (correctness + Witness.nonvacuous, one run, 6m47, pin 655a23fa). Extraction build/ex-arm64-Hex from build/harness-arm64 (v1.3.3 master). Scripts build/vhexr.sh, lihr.sh, lihrm.sh. Nibble ASR forms: N{0..3}Eq/H{0..3}Eq/SIEq decide-lemmas.
+
+## PrettyDec (taken over 2026-11-06; FV-D2 has no files). STATE: scoping only, no proof started.
+- Re-extracted on the current pin/harness: build/ex-amd64-PrettyDec (8 fns: PrettyDec 871 B @0x4b41a0, udivrem, udivremKnuth, udivremBy1, AppendUint, formatBase10, formatBits, memmove; 5 data objects 1317 B; stubs panicBounds/morestack/panicoverflow)
+  and build/ex-arm64-PrettyDec (9 fns, adds math/bits.Div64). Contracts passed: slicebytetostring, growslice, gopanic (check which are actually called).
+- Same library functions as Dec => reuse DecProg/ChainProg/LinkEq (fb10_summary, append_summary, udivrem_rem_L_final) but data addresses differ: need gen_libprog with its own --fn/--data (see FV-E handover in NOTES-D.md, fv/wd 28efdca).
+- Spec pieces exist: PrettyMath.lean (prettyBytes sep n, plen, pcell, prettyBytes_length/_getD), SpecTxt.prettyBytes_zero.
+- Work items: (1) library program + LibIn per ISA; (2) loop invariant for the outer udivrem/AppendUint/copy-with-separator loop (comma counter persists across 19-digit chunks, zero padding of inner chunks); (3) final slicebytetostring call + StrAt; (4) statement + toy-runtime witness (needs a copying toy sbts, as in Hex witness: H restricted to the one call shape).
+- Estimate: multi-hour per ISA (Dec took ~16-17 min per verify and many files); not started.
