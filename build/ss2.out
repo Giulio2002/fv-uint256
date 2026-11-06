@@ -1,4 +1,0 @@
-Fv256/Arm64/SqrtSmall.lean:37:54: warning: Variable name `hX` is not explicitly referenced.
-real	0m3.510s
-user	0m5.262s
-sys	0m0.346s

@@ -1,4 +1,5 @@
-import Extracted
+import Fv256.Arm64.AddModProg
+import Fv256.Arm64.AddModEntry
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -16,12 +17,12 @@ open Fv256.Arm64.SegCompose (seg_trans seg_mono)
 
 namespace Fv256.Arm64.AddModComp2
 
-theorem rod_of_data (m : Janus.Arm64.Memory) (hd : Extracted.program.DataLoaded m) :
+theorem rod_of_data (m : Janus.Arm64.Memory) (hd : Fv256.Arm64.AddModProg.program.DataLoaded m) :
     m.accessible 1010368 32 false = true := by
-  have hne : Extracted.program.data ≠ [] := by decide
+  have hne : Fv256.Arm64.AddModProg.program.data ≠ [] := by decide
   have h := (hd _ (List.head_mem hne)).1
-  have hb : (Extracted.program.data.head hne).base = 1010368 := rfl
-  have hl : (Extracted.program.data.head hne).bytes.length = 96 := rfl
+  have hb : (Fv256.Arm64.AddModProg.program.data.head hne).base = 1010368 := rfl
+  have hl : (Fv256.Arm64.AddModProg.program.data.head hne).bytes.length = 96 := rfl
   rw [hb, hl] at h
   simp only [List.any_eq_true, Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true'] at h
   obtain ⟨r, hr, ⟨⟨h1, h2⟩, h3⟩, _⟩ := h
@@ -54,7 +55,7 @@ structure AF (s S1 : State) : Prop where
 
 set_option maxRecDepth 200000 in
 theorem AF_of (s S1 : State) (hsb : 856 ≤ s.sp.toNat) (hsc : s.sp.toNat + 16 ≤ 2 ^ 48)
-    (q : S1.pc = BitVec.ofNat 64 (Extracted.entry + 0x1c0) ∧ S1.sp = s.sp - 368 ∧
+    (q : S1.pc = BitVec.ofNat 64 (Fv256.Arm64.AddModProg.entry + 0x1c0) ∧ S1.sp = s.sp - 368 ∧
         (∀ i, i ≠ 8 → i ≠ 9 → i ≠ 16 → i ≠ 17 → i ≠ 20 → i ≠ 29 → S1.regs i = s.regs i) ∧
         S1.regs 8 = BitVec.ofNat 64 (s.mem.readLE ((s.regs 3).toNat + 24) 8) ∧ S1.regs 29 = s.sp - 376 ∧
         S1.mem = (s.mem.writeLE (s.sp.toNat - 376) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 368) 8 (s.regs 30).toNat) :
@@ -84,12 +85,12 @@ theorem AF_of (s S1 : State) (hsb : 856 ≤ s.sp.toNat) (hsc : s.sp.toNat + 16 �
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem gb_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+theorem gb_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)
     (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
     (hne : s.regs 3 ≠ s.regs 0)
     (hm : ¬ (s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0))
     (hnov : s.mem.readLE (s.regs 1).toNat 32 + s.mem.readLE (s.regs 2).toNat 32 < 2 ^ 256) :
-    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by
   obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
   have hzm' := (hzm.resolve_left (fun h => hne h.symm))
   have hrod := rod_of_data _ hdata
@@ -204,12 +205,12 @@ theorem gb_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem gb_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+theorem gb_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)
     (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
     (hne : s.regs 3 ≠ s.regs 0)
     (hm : ¬ (s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0))
     (hov : 2 ^ 256 ≤ s.mem.readLE (s.regs 1).toNat 32 + s.mem.readLE (s.regs 2).toNat 32) :
-    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by
   obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
   have hzm' := (hzm.resolve_left (fun h => hne h.symm))
   have hrod := rod_of_data _ hdata
@@ -362,12 +363,12 @@ theorem gb_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem ga_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+theorem ga_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)
     (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
     (hzeq : s.regs 3 = s.regs 0)
     (hm : ¬ (s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0))
     (hnov : s.mem.readLE (s.regs 1).toNat 32 + s.mem.readLE (s.regs 2).toNat 32 < 2 ^ 256) :
-    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by
   obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
   have hrod := rod_of_data _ hdata
   have hm32 : s.mem.readLE (s.regs 3).toNat 32 ≠ 0 := by
@@ -498,12 +499,12 @@ theorem ga_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem ga_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+theorem ga_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)
     (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
     (hzeq : s.regs 3 = s.regs 0)
     (hm : ¬ (s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0))
     (hov : 2 ^ 256 ≤ s.mem.readLE (s.regs 1).toNat 32 + s.mem.readLE (s.regs 2).toNat 32) :
-    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by
   obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
   have hrod := rod_of_data _ hdata
   have hm32 : s.mem.readLE (s.regs 3).toNat 32 ≠ 0 := by
@@ -672,10 +673,10 @@ theorem ga_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem gz (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+theorem gz (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)
     (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
     (hm : s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0) :
-    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by
   obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
   refine seg_trans (segA s hpc ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ hnc) ?_
   intro S1 h1pc q1
@@ -712,9 +713,9 @@ theorem gz (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem gen_all (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+theorem gen_all (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)
     (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8)) :
-    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by
   by_cases hm0 : (s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0)
   · exact gz s hpc hpre hnc hm0
   · by_cases hz : s.regs 3 = s.regs 0

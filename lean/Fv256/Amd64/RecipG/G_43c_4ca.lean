@@ -22,7 +22,7 @@ theorem g_43c_4ca {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x43crcx, hB_x43crcx, hE_x43crdx, hB_x43crdx, hE_x43crbx, hB_x43crbx, hE_x43crsi, hB_x43crsi, hE_x43cr8, hB_x43cr8, hE_x43cm98, hB_x43cm98, hE_x43cma0, hB_x43cma0, hE_x43cma8, hB_x43cma8, hE_x43cm208, hB_x43cm208, hE_x43cm210, hB_x43cm210, hE_x43cm218, hB_x43cm218, hE_x43cm220, hB_x43cm220⟩ := hL
   janus64_run [Util.readLE_32, hE_x43crcx, hE_x43crdx, hE_x43crbx, hE_x43crsi, hE_x43cr8, hE_x43cm98, hE_x43cma0, hE_x43cma8, hE_x43cm208, hE_x43cm210, hE_x43cm218, hE_x43cm220, hsp4, Nat.mod_eq_of_lt hB_x43crcx, Nat.mod_eq_of_lt hB_x43crdx, Nat.mod_eq_of_lt hB_x43crbx, Nat.mod_eq_of_lt hB_x43crsi, Nat.mod_eq_of_lt hB_x43cr8, Nat.mod_eq_of_lt hB_x43cm98, Nat.mod_eq_of_lt hB_x43cma0, Nat.mod_eq_of_lt hB_x43cma8, Nat.mod_eq_of_lt hB_x43cm208, Nat.mod_eq_of_lt hB_x43cm210, Nat.mod_eq_of_lt hB_x43cm218, Nat.mod_eq_of_lt hB_x43cm220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [← BitVec.ofNat_add])
   all_goals (
   unfold P_43c_4ca

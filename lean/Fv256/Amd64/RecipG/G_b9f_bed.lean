@@ -22,10 +22,10 @@ theorem g_b9f_bed {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_xb9frcx, hB_xb9frcx, hE_xb9frdx, hB_xb9frdx, hE_xb9frbx, hB_xb9frbx, hE_xb9fm40, hB_xb9fm40, hE_xb9fm48, hB_xb9fm48, hE_xb9fm50, hB_xb9fm50, hE_xb9fm60, hB_xb9fm60⟩ := hL
   janus64_run [Util.readLE_32, hE_xb9frcx, hE_xb9frdx, hE_xb9frbx, hE_xb9fm40, hE_xb9fm48, hE_xb9fm50, hE_xb9fm60, hsp4, Nat.mod_eq_of_lt hB_xb9frcx, Nat.mod_eq_of_lt hB_xb9frdx, Nat.mod_eq_of_lt hB_xb9frbx, Nat.mod_eq_of_lt hB_xb9fm40, Nat.mod_eq_of_lt hB_xb9fm48, Nat.mod_eq_of_lt hB_xb9fm50, Nat.mod_eq_of_lt hB_xb9fm60]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_b9f_bed
   refine ⟨(if xb9frdx = 0 then BitVec.ofNat 64 xb9fm60 else BitVec.ofNat 64 xb9fm60 - 1#64).toNat, (if xb9frdx = 0 then BitVec.ofNat 64 xb9frbx else BitVec.ofNat 64 ((xb9frbx % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9fm60 < 1)).toNat) % 18446744073709551616)).toNat, (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm50 else BitVec.ofNat 64 ((xb9fm50 % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9frbx < (decide (xb9fm60 < 1)).toNat)).toNat) % 18446744073709551616)).toNat, (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm48 else BitVec.ofNat 64 ((xb9fm48 % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9fm50 < (decide (xb9frbx < (decide (xb9fm60 < 1)).toNat)).toNat)).toNat) % 18446744073709551616)).toNat, (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm40 else BitVec.ofNat 64 ((xb9fm40 % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9fm48 < (decide (xb9fm50 < (decide (xb9frbx < (decide (xb9fm60 < 1)).toNat)).toNat)).toNat)).toNat) % 18446744073709551616)).toNat, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩

@@ -22,10 +22,10 @@ theorem g_1d0_1f3 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x1d0rcx, hB_x1d0rcx, hE_x1d0rbx, hB_x1d0rbx, hE_x1d0rsi, hB_x1d0rsi, hE_x1d0rdi, hB_x1d0rdi, hE_x1d0r8, hB_x1d0r8, hE_x1d0r9, hB_x1d0r9, hE_x1d0r10, hB_x1d0r10, hE_x1d0r11, hB_x1d0r11, hE_x1d0m208, hB_x1d0m208, hE_x1d0m210, hB_x1d0m210, hE_x1d0m218, hB_x1d0m218, hE_x1d0m220, hB_x1d0m220⟩ := hL
   janus64_run [Util.readLE_32, hE_x1d0rcx, hE_x1d0rbx, hE_x1d0rsi, hE_x1d0rdi, hE_x1d0r8, hE_x1d0r9, hE_x1d0r10, hE_x1d0r11, hE_x1d0m208, hE_x1d0m210, hE_x1d0m218, hE_x1d0m220, hsp4, Nat.mod_eq_of_lt hB_x1d0rcx, Nat.mod_eq_of_lt hB_x1d0rbx, Nat.mod_eq_of_lt hB_x1d0rsi, Nat.mod_eq_of_lt hB_x1d0rdi, Nat.mod_eq_of_lt hB_x1d0r8, Nat.mod_eq_of_lt hB_x1d0r9, Nat.mod_eq_of_lt hB_x1d0r10, Nat.mod_eq_of_lt hB_x1d0r11, Nat.mod_eq_of_lt hB_x1d0m208, Nat.mod_eq_of_lt hB_x1d0m210, Nat.mod_eq_of_lt hB_x1d0m218, Nat.mod_eq_of_lt hB_x1d0m220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_1d0_1f3
   refine ⟨(if (BitVec.ofNat 64 x1d0rbx ||| (BitVec.ofNat 64 x1d0r11 ||| BitVec.ofNat 64 x1d0r10)).toNat = 0 then 18446744073709551615#64 else BitVec.ofNat 64 x1d0r11).toNat, (if (BitVec.ofNat 64 x1d0rbx ||| (BitVec.ofNat 64 x1d0r11 ||| BitVec.ofNat 64 x1d0r10)).toNat = 0 then 18446744073709551615#64 else BitVec.ofNat 64 x1d0r10).toNat, ((if (BitVec.ofNat 64 x1d0rbx ||| (BitVec.ofNat 64 x1d0r11 ||| BitVec.ofNat 64 x1d0r10)).toNat = 0 then 18446744073709551615#64 else BitVec.ofNat 64 x1d0r11).toNat) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_, ?_⟩

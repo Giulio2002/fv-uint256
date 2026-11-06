@@ -1,4 +1,5 @@
-import Extracted
+import Fv256.Arm64.AddModProg
+import Fv256.Arm64.AddModEntry
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -25,17 +26,17 @@ open Fv256.Arm64.AddModSegB (ne_limbs)
 namespace Fv256.Arm64.AddModSegE
 
 set_option maxRecDepth 200000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Fv256.Arm64.AddModProg.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 200000 in
-theorem hcMod : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ModProg.program Extracted.program :=
+theorem hcMod : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ModProg.program Fv256.Arm64.AddModProg.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 abbrev PreS (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 816 ∧
     s.sp.toNat % 16 = 0 ∧ 856 ≤ s.sp.toNat ∧ s.sp.toNat + 16 ≤ 2 ^ 48 ∧ s.mem.accessible (s.sp.toNat - 856) 872 true = true ∧
-    Extracted.program.DataLoaded s.mem ∧
+    Fv256.Arm64.AddModProg.program.DataLoaded s.mem ∧
     ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 856 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
     (s.regs 0).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 32 true = true ∧
     (s.regs 1).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 1).toNat 32 false = true ∧
@@ -52,14 +53,14 @@ abbrev PreS (s : State) : Prop :=
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem segE (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x25c))
+theorem segE (S : State) (hpc : S.pc = BitVec.ofNat 64 (Fv256.Arm64.AddModProg.entry + 0x25c))
     (hsal : S.sp.toNat % 16 = 0) (hsb : 344 ≤ S.sp.toNat) (hsc : S.sp.toNat + 384 ≤ 2 ^ 48)
     (hsw : S.mem.accessible (S.sp.toNat - 344) 728 true = true)
     (hrod : S.mem.accessible 1010368 32 false = true)
     (hzb : (S.regs 0).toNat + 32 ≤ 2 ^ 48) (hza : S.mem.accessible (S.regs 0).toNat 32 true = true)
     (hdz : (S.regs 0).toNat + 32 ≤ S.sp.toNat - 344 ∨ S.sp.toNat + 384 ≤ (S.regs 0).toNat) :
-    Janus.Tactic.ReachesRet Extracted.program (BitVec.ofNat 64 (Extracted.entry + 0x2f4)) S
-      (fun S' => S'.pc = BitVec.ofNat 64 (Extracted.entry + 0x2f4) ∧ S'.sp = S.sp ∧
+    Janus.Tactic.ReachesRet Fv256.Arm64.AddModProg.program (BitVec.ofNat 64 (Fv256.Arm64.AddModProg.entry + 0x2f4)) S
+      (fun S' => S'.pc = BitVec.ofNat 64 (Fv256.Arm64.AddModProg.entry + 0x2f4) ∧ S'.sp = S.sp ∧
         S'.regs 0 = S.sp + 248#64 ∧ S'.regs 1 = 5#64 ∧ S'.regs 2 = 5#64 ∧ S'.regs 3 = S.sp + 144#64 ∧ S'.regs 4 = 5#64 ∧
         S'.regs 5 = 5#64 ∧ S'.regs 6 = S.regs 8 ∧ S'.regs 7 = S.sp + 216#64 ∧
         (∀ i, i ≠ 0 → i ≠ 1 → i ≠ 2 → i ≠ 3 → i ≠ 4 → i ≠ 5 → i ≠ 6 → i ≠ 7 → i ≠ 9 → i ≠ 10 → i ≠ 11 → i ≠ 12 → i ≠ 13 → i ≠ 27 →
@@ -68,10 +69,10 @@ theorem segE (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x25c)
         S'.mem.readLE (S.sp.toNat + 376) 8 = (S.regs 0).toNat ∧
         Fv256.B.wv S'.mem (S.sp.toNat + 144) 5 = S.mem.readLE (S.regs 0).toNat 32 + 2 ^ 256 ∧
         Fv256.B.wv S'.mem (S.sp.toNat + 216) 4 = 0 ∧ Fv256.B.wv S'.mem (S.sp.toNat + 248) 5 = 0) := by
-  janus_run [Util.readLE_32] until [Extracted.entry + 0x2f4]
+  janus_run [Util.readLE_32] until [Fv256.Arm64.AddModProg.entry + 0x2f4]
   apply Janus.Tactic.ReachesRet.done
-  · simp [Extracted.entry]
-  refine ⟨by simp [Extracted.entry], rfl, by simp [setReg], by simp [setReg], by simp [setReg], by simp [setReg], by simp [setReg],
+  · simp [Fv256.Arm64.AddModProg.entry]
+  refine ⟨by simp [Fv256.Arm64.AddModProg.entry], rfl, by simp [setReg], by simp [setReg], by simp [setReg], by simp [setReg], by simp [setReg],
     by simp [setReg], by simp [setReg], by simp [setReg], fun i h0 h1 h2 h3 h4 h5 h6 h7 h9 h10 h11 h12 h13 h27 => by
       simp [setReg, h0, h1, h2, h3, h4, h5, h6, h7, h9, h10, h11, h12, h13, h27], ?_, ?_, ?_, ?_, ?_⟩
   · dsimp only
@@ -96,7 +97,7 @@ theorem segE (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x25c)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem segF (S : State) (R X29 zv : BitVec 64) (V : Nat) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x2f4))
+theorem segF (S : State) (R X29 zv : BitVec 64) (V : Nat) (hpc : S.pc = BitVec.ofNat 64 (Fv256.Arm64.AddModProg.entry + 0x2f4))
     (hsal : S.sp.toNat % 16 = 0) (hsb : 344 ≤ S.sp.toNat) (hsc : S.sp.toNat + 384 ≤ 2 ^ 48)
     (hsw : S.mem.accessible (S.sp.toNat - 344) 728 true = true)
     (hr0 : S.regs 0 = S.sp + 248#64) (hr1 : S.regs 1 = 5#64) (hr2 : S.regs 2 = 5#64) (hr3 : S.regs 3 = S.sp + 144#64)
@@ -113,7 +114,7 @@ theorem segF (S : State) (R X29 zv : BitVec 64) (V : Nat) (hpc : S.pc = BitVec.o
     (hm32 : S.mem.readLE (S.regs 6).toNat 32 ≠ 0)
     (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56)
     (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
-    Janus.Tactic.ReachesRet Extracted.program R S
+    Janus.Tactic.ReachesRet Fv256.Arm64.AddModProg.program R S
       (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = zv ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
         S'.regs 30 = R ∧
         S'.mem.readLE zv.toNat 32 = (V + 2 ^ 256) % S.mem.readLE (S.regs 6).toNat 32 ∧
@@ -122,7 +123,7 @@ theorem segF (S : State) (R X29 zv : BitVec 64) (V : Nat) (hpc : S.pc = BitVec.o
   have e248 : (S.sp + 248#64).toNat = S.sp.toNat + 248 := by simp [BitVec.toNat_add]; omega
   have e144 : (S.sp + 144#64).toNat = S.sp.toNat + 144 := by simp [BitVec.toNat_add]; omega
   have hmw : Fv256.B.wv S.mem (S.regs 6).toNat 4 ≠ 0 := by rw [Fv256.B.wv4_eq]; exact hm32
-  janus_run [hr0, hr1, hr2, hr3, hr4, hr5, hr7, e216, e248, e144, hret, hx29, hspill, hmw, hq0, hrem0, hsum, Util.readLE_32, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] until [Extracted.entry + 0x2f8] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 5) (by decide) (by decide))]
+  janus_run [hr0, hr1, hr2, hr3, hr4, hr5, hr7, e216, e248, e144, hret, hx29, hspill, hmw, hq0, hrem0, hsum, Util.readLE_32, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] until [Fv256.Arm64.AddModProg.entry + 0x2f8] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 5) (by decide) (by decide))]
   rename_i hregs hq hrem hf
   (try simp only [setReg, reduceIte, Nat.reduceEqDiff, hr0, hr3, hr7, e144, e216, e248] at hf hrem)
   have hz8 : s'.mem.readLE (S.sp.toNat + 376) 8 = zv.toNat := by

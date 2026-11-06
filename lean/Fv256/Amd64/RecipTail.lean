@@ -31,10 +31,10 @@ theorem g_tail {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry
   rcases Nat.eq_zero_or_pos xc49rcx with h0 | hpos
   · subst h0
     janus64_run [Util.readLE_32, hE_xc49rcx, hE_xc49rdx, hE_xc49rbx, hE_xc49rsi, hE_xc49r9, hE_xc49r11, hE_xc49m78, hE_xc49m80, hE_xc49m88, hE_xc49m90, hsp4, Nat.mod_eq_of_lt hB_xc49rcx, Nat.mod_eq_of_lt hB_xc49rdx, Nat.mod_eq_of_lt hB_xc49rbx, Nat.mod_eq_of_lt hB_xc49rsi, Nat.mod_eq_of_lt hB_xc49r9, Nat.mod_eq_of_lt hB_xc49r11, Nat.mod_eq_of_lt hB_xc49m78, Nat.mod_eq_of_lt hB_xc49m80, Nat.mod_eq_of_lt hB_xc49m88, Nat.mod_eq_of_lt hB_xc49m90]
-    all_goals (try janus_carry_simp)
+    all_goals (try fv_carry_simp_v1)
     all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
     all_goals (try simp only [← BitVec.ofNat_add])
-    all_goals (try janus_carry_simp)
+    all_goals (try fv_carry_simp_v1)
     refine ⟨xc49rdx, xc49m78, xc49m80, xc49m88, xc49m90, ?_, ?_, ?_, ?_⟩
     · unfold Ld1b
       refine ⟨?_, hB_xc49rdx, ?_, hB_xc49m78, ?_, hB_xc49m80, ?_, hB_xc49m88, ?_, hB_xc49m90⟩
@@ -50,10 +50,10 @@ theorem g_tail {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry
     · repeat (refine RecMem.write ?_ _ _ _ hlow ?_ ?_ ?_ ?_)
       all_goals first | exact hM | omega
   · janus64_run [Util.readLE_32, hE_xc49rcx, hE_xc49rdx, hE_xc49rbx, hE_xc49rsi, hE_xc49r9, hE_xc49r11, hE_xc49m78, hE_xc49m80, hE_xc49m88, hE_xc49m90, hsp4, Nat.mod_eq_of_lt hB_xc49rcx, Nat.mod_eq_of_lt hB_xc49rdx, Nat.mod_eq_of_lt hB_xc49rbx, Nat.mod_eq_of_lt hB_xc49rsi, Nat.mod_eq_of_lt hB_xc49r9, Nat.mod_eq_of_lt hB_xc49r11, Nat.mod_eq_of_lt hB_xc49m78, Nat.mod_eq_of_lt hB_xc49m80, Nat.mod_eq_of_lt hB_xc49m88, Nat.mod_eq_of_lt hB_xc49m90, hcm]
-    all_goals (try janus_carry_simp)
+    all_goals (try fv_carry_simp_v1)
     all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
     all_goals (try simp only [← BitVec.ofNat_add])
-    all_goals (try janus_carry_simp)
+    all_goals (try fv_carry_simp_v1)
     have hmsb : (BitVec.ofNat 64 xc49rcx).msb = false := by
       cases h : (BitVec.ofNat 64 xc49rcx).msb
       · rfl

@@ -1,4 +1,0 @@
-Fv256/Arm64/ExpMain.lean:33:33: warning: Variable name `hep` is not explicitly referenced.
-real	0m14.523s
-user	0m29.226s
-sys	0m0.519s

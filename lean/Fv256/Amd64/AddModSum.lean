@@ -1,7 +1,7 @@
 import Fv256.AddModProg
 import Fv256.Amd64.AddModSpecS
 import Fv256.Amd64.AddModFast
-import Fv256.Amd64.AddModGen
+import Fv256.Amd64.AddModComp
 
 /-!
 # `AddMod` as a library summary over `AddModProg` (Extracted-free)
@@ -22,6 +22,6 @@ theorem addmod_summary :
   intro s hpc hpre
   by_cases hc : AddCase s
   · exact Fv256.Amd64.AddModFast.fast s hpc ⟨hpre, hc⟩
-  · exact Fv256.Amd64.AddModGen.gen s hpc ⟨hpre, hc⟩
+  · exact Fv256.Amd64.AddModComp.gen2 s hpc ⟨hpre, hc⟩
 
 end Fv256.Amd64.AddModSum

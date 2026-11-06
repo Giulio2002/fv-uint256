@@ -13,7 +13,7 @@ def gen(name, clone, ov):
     w = L.append
     ZM = "(hzeq : s.regs 3 = s.regs 0)" if clone else "(hne : s.regs 3 ≠ s.regs 0)"
     ARG = HOV if ov else HNOV
-    w(f"set_option maxHeartbeats 64000000 in\nset_option maxRecDepth 200000 in\ntheorem {name} (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)\n    (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : {HNC})\n    {ZM}\n    (hm : {HM})\n    ({'hov' if ov else 'hnov'} : {ARG}) :\n    ReachesRet Extracted.program (s.regs 30) s (Post s) := by")
+    w(f"set_option maxHeartbeats 64000000 in\nset_option maxRecDepth 200000 in\ntheorem {name} (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.entry)\n    (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : {HNC})\n    {ZM}\n    (hm : {HM})\n    ({'hov' if ov else 'hnov'} : {ARG}) :\n    ReachesRet Fv256.Arm64.AddModProg.program (s.regs 30) s (Post s) := by")
     w(f"  {PRE_OBT}")
     if not clone:
         w("  have hzm' := (hzm.resolve_left (fun h => hne h.symm))")

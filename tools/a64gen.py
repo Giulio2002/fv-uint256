@@ -7,7 +7,7 @@ CUT/A/B = absolute hex addresses. State: regs by index, stack slots [sp,#d] as S
 import re, sys, os, subprocess, json
 sys.path.insert(0, os.path.dirname(__file__))
 import arm64live as AL
-ROOT = '/srv/fv-uint256-wBm'
+ROOT = '/srv/fv-uint256-wB5'
 BASE = 0xb8d80
 INS = AL.parse(ROOT + '/build/recip-arm64.dis')
 LR, LM, LF = AL.analyse(INS)
@@ -52,7 +52,8 @@ OVR = {}         # (A_off, B_off) -> {item: (witness text, closer)}
 COMMON = ['Fv256.B.rot32_and', 'BitVec.toNat_setWidth', 'BitVec.toNat_eq', 'BitVec.toNat_ushiftRight', 'BitVec.toNat_ofNat', 'Nat.shiftRight_eq_div_pow',
           'BitVec.le_def', 'BitVec.lt_def', 'BitVec.toNat_sub', 'BitVec.toNat_add']
 NORM = ('Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, '
-        'BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false')
+        'BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, Fv256.Arm64.RecipBv.rot32_shl, Fv256.Arm64.RecipBv.rot32_hi, '
+        'Fv256.Arm64.RecipBv.toNat_ite, BitVec.toNat_shiftLeft, Nat.shiftLeft_eq')
 def seg_stmt(A, B, q):
     names = Ldef(A)[1]
     vs = '(%s : Nat) ' % ' '.join(names) if names else ''
@@ -213,7 +214,7 @@ def emit_seg(A, B, norm_out):
     for n, W in eqs: out += '  · rfl\n'
     for e, ec in zip(ex, exc): out += '  · ' + EXTAC.get(ec, 'omega') + '\n'
     out += '  · refine ⟨hR.1, ?_, ?_⟩\n    · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)\n    · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)\n'
-    out += '  · dsimp only\n    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)\n    exact hM\n'
+    out += '  · dsimp only\n    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) hsb)\n    exact hM\n'
     out += '  )\n\nend Fv256.Arm64.RecipSeg\n'
     meta = dict(A=off(A), B=off(B), kind='g', invars=namesA, newvars=new_vars, outargs=args, eqs=eqs, extras=ex)
     return out, meta

@@ -61,7 +61,7 @@ theorem panics (z ptr len cap : BitVec 64) (ret : Nat)
     (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s)
     (hg : GuardOK s 0) (hst : StackOK s 24 24) :
     len.toNat < 32 → Ptr32 s.mem z true → Panics (Extracted.program.withExit ret) s :=
-  (core z ptr len cap ret hret s hs hg hst).2
+  fun hl _ => (core z ptr len cap ret hret s hs hg hst).2 hl
 
 namespace Witness
 
