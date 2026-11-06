@@ -1,4 +1,6 @@
 import Fv256.Amd64.RecipLive
+import Fv256.Amd64.RecipShr
+import Fv256.Amd64.RecipStage5Lem
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -33,12 +35,56 @@ theorem g_tail {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry
     all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
     all_goals (try simp only [← BitVec.ofNat_add])
     all_goals (try janus_carry_simp)
-    all_goals (trace_state; sorry)
+    refine ⟨xc49rdx, xc49m78, xc49m80, xc49m88, xc49m90, ?_, ?_, ?_, ?_⟩
+    · unfold Ld1b
+      refine ⟨?_, hB_xc49rdx, ?_, hB_xc49m78, ?_, hB_xc49m80, ?_, hB_xc49m88, ?_, hB_xc49m90⟩
+      all_goals simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self,
+        Nat.mod_eq_of_lt hB_xc49rdx, Nat.mod_eq_of_lt hB_xc49m78, Nat.mod_eq_of_lt hB_xc49m80, Nat.mod_eq_of_lt hB_xc49m88, Nat.mod_eq_of_lt hB_xc49m90]
+    · rw [e1, e2, e3, e4]; simp only [Nat.pow_zero, Nat.div_one]
+    · unfold RecRegs
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hr4
+      · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hr5
+      · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hr14
+      · exact hx
+    · repeat (refine RecMem.write ?_ _ _ _ hlow ?_ ?_ ?_ ?_)
+      all_goals first | exact hM | omega
   · janus64_run [Util.readLE_32, hE_xc49rcx, hE_xc49rdx, hE_xc49rbx, hE_xc49rsi, hE_xc49r9, hE_xc49r11, hE_xc49m78, hE_xc49m80, hE_xc49m88, hE_xc49m90, hsp4, Nat.mod_eq_of_lt hB_xc49rcx, Nat.mod_eq_of_lt hB_xc49rdx, Nat.mod_eq_of_lt hB_xc49rbx, Nat.mod_eq_of_lt hB_xc49rsi, Nat.mod_eq_of_lt hB_xc49r9, Nat.mod_eq_of_lt hB_xc49r11, Nat.mod_eq_of_lt hB_xc49m78, Nat.mod_eq_of_lt hB_xc49m80, Nat.mod_eq_of_lt hB_xc49m88, Nat.mod_eq_of_lt hB_xc49m90, hcm]
     all_goals (try janus_carry_simp)
     all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
     all_goals (try simp only [← BitVec.ofNat_add])
     all_goals (try janus_carry_simp)
-    all_goals (trace_state; sorry)
+    have hmsb : (BitVec.ofNat 64 xc49rcx).msb = false := by
+      cases h : (BitVec.ofNat 64 xc49rcx).msb
+      · rfl
+      · exact absurd ((msb_iff xc49rcx (by omega)).1 h) (by omega)
+    have hk : (18446744073709551616 - xc49rcx) % 64 = 64 - xc49rcx := by omega
+    have hmask : 18446744073709551616 - (18446744073709551552 + xc49rcx) < 64 := by omega
+    simp only [hmsb, hk, hmask, ↓reduceIte]
+    try simp only [e1, e2, e3, e4]
+    have t0 := tw xc49rdx xc49rbx xc49rcx hB_xc49rdx hB_xc49rbx hpos hc
+    have t1 := tw' xc49rbx xc49rsi xc49rcx hB_xc49rbx hB_xc49rsi hpos hc
+    have t2 := tw' xc49rsi xc49r9 xc49rcx hB_xc49rsi hB_xc49r9 hpos hc
+    have t3 := tw' xc49r9 xc49r11 xc49rcx hB_xc49r9 hB_xc49r11 hpos hc
+    have t4 := tw4 xc49r11 xc49rcx hB_xc49r11
+    have l0 := tw_lt xc49rdx xc49rbx xc49rcx hB_xc49rdx
+    have l1 := tw_lt xc49rbx xc49rsi xc49rcx hB_xc49rbx
+    have l2 := tw_lt xc49rsi xc49r9 xc49rcx hB_xc49rsi
+    have l3 := tw_lt xc49r9 xc49r11 xc49rcx hB_xc49r9
+    have l4 : xc49r11 >>> xc49rcx < 2 ^ 64 := by rw [Nat.shiftRight_eq_div_pow]; exact Nat.lt_of_le_of_lt (Nat.div_le_self _ _) hB_xc49r11
+    refine ⟨(xc49rdx >>> xc49rcx ||| (xc49rbx <<< (64 - xc49rcx)) % 2 ^ 64), (xc49rbx >>> xc49rcx ||| (xc49rsi <<< (64 - xc49rcx)) % 2 ^ 64), (xc49rsi >>> xc49rcx ||| (xc49r9 <<< (64 - xc49rcx)) % 2 ^ 64), (xc49r9 >>> xc49rcx ||| (xc49r11 <<< (64 - xc49rcx)) % 2 ^ 64), (xc49r11 >>> xc49rcx), ?_, ?_, ?_, ?_⟩
+    · unfold Ld1b
+      refine ⟨?_, l0, ?_, l1, ?_, l2, ?_, l3, ?_, l4⟩
+      all_goals simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self,
+        t0, t1, t2, t3, t4, Nat.mod_eq_of_lt l0, Nat.mod_eq_of_lt l1, Nat.mod_eq_of_lt l2, Nat.mod_eq_of_lt l3, Nat.mod_eq_of_lt l4]
+    · exact shr5 xc49rcx xc49rdx xc49rbx xc49rsi xc49r9 xc49r11 hpos hc hB_xc49rdx hB_xc49rbx hB_xc49rsi hB_xc49r9 hB_xc49r11
+    · unfold RecRegs
+      refine ⟨?_, ?_, ?_, ?_⟩
+      · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hr4
+      · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hr5
+      · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hr14
+      · exact hx
+    · repeat (refine RecMem.write ?_ _ _ _ hlow ?_ ?_ ?_ ?_)
+      all_goals first | exact hM | omega
 
 end Fv256.Amd64.RecipSeg
