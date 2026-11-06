@@ -41,7 +41,7 @@ theorem addmod_fast : Summary Fv256.Arm64.AddModProg.program Fv256.Arm64.AddModP
         s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
         s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.addmodSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32)
           (s.mem.readLE (s.regs 3).toNat 32) ∧
-        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)]) :=
+        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]) :=
   Fv256.Arm64.AddModF2.fast2
 
 end Fv256.Arm64.AddModF
