@@ -61,7 +61,7 @@ theorem pd_iter1 (s : State) (b c y sepb : Nat) (M : Memory) (hpc : s.rip = BitV
         S'.xmm 15 = 0 ∧ S'.df = false ∧
         Fv256.B.wv S'.mem (b + 0x130) 4 = y / 10 ^ 19 ∧ Fv256.B.wv S'.mem (b + 0x150) 4 = 10 ^ 19 ∧
         (∀ k, k < decLen (y % 10 ^ 19) → S'.mem.readLE (b + 0x40 + decLen (y % 10 ^ 19) - 1 - k) 1 = 48 + y / 10 ^ k % 10) ∧
-        MemFrame M S'.mem [(b - 0x180, b + 83), (b + 216, b + 376)] ∧ TabsOK S'.mem) := by
+        MemFrame M S'.mem [(b - 0x180, b + 83), (b + 216, b + 376)] ∧ TabsOK S'.mem ∧ S'.regs 1 = 19#64) := by
   have hc1 : pdE + 0x5000 < 2 ^ 47 := by decide
   tabs_data hd [hw]
   have hdnz : ¬ (M.readLE (b + 0x150) 8 + 18446744073709551616 * M.readLE (b + 0x150 + 8) 8 +
@@ -219,7 +219,7 @@ theorem pd_iter1 (s : State) (b c y sepb : Nat) (M : Memory) (hpc : s.rip = BitV
     janus64_run [b3', hs280, hs288, hs400, hsx] until [pdI]
     refine ReachesRet.done (by rfl) ?_
     dsimp only
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · simp [setRegF]; exact b0
     · simp [setRegF]; exact Fv256.E.ofNat_sub_ofNat nd 1 (by omega) (by omega)
     · simp [setRegF]; exact b3'
@@ -262,4 +262,5 @@ theorem pd_iter1 (s : State) (b c y sepb : Nat) (M : Memory) (hpc : s.rip = BitV
         simp only [Outside, and_true] at h ⊢
         omega
     · exact btab
+    · simp [setRegF]; exact b1
 end Fv256.Amd64.Pd
