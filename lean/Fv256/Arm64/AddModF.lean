@@ -70,7 +70,7 @@ theorem addmod_fast : Summary Fv256.Arm64.AddModProg.program Fv256.Arm64.AddModP
   have bm1 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 8)
   have bm2 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 16)
   have bm3 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 24)
-  janus_data hdata [hsw, hza]
+  clear hzm hzx hzy hgz hdata
   janus_run [Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div, Fv256.B.wv_writeLE_outside, Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcMod Fv256.Arm64.ModSum.mod_summary, Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 5) (by decide) (by decide))]
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)
