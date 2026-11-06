@@ -31,3 +31,11 @@ The SAME offsets relative to r hold on arm64 (y r-80, divisor r-48, buf r-320, o
 - Tables: digits 989280, smalls 1002589 (inside seg @1002456, +133), zero string 960826. Arm64/Pd/Tabs.lean written (uncompiled).
 - Steps once amd64 77f run ends: rsync, build Arm64.P.Append in build/wsdev3 (WSD=wsdev3), fix Init, then Iter1.. in order.
 - No lsr #32 / rot32_and spots appear in PrettyDec (only used by division/Knuth code already summarised in ChainProg).
+
+## STATUS (handover point)
+- amd64 PrettyDec VERIFIED on 77fb30cc (453 s warm; build/out/vamd64-77f.log) and on 655a23fa (2974 s cold). COVERAGE row sent to FV-A.
+- arm64: libraries build in build/wsdev3 (WSD=wsdev3 build/bld.sh|chk.sh|errs.sh; Extracted for arm64 NOT yet installed there: copy build/ex-arm64-PrettyDec/Extracted.lean to wsdev3/root and
+  `lake env lean -o ../janus/.lake/build/lib/lean/Extracted.olean Extracted.lean`).  DONE+compiled: Arm64/{StrProg,PrettyProg,P/*,Pd/Tabs,Pd/Init(pd_init)}.
+- arm64 TODO in order: Iter1 (udivrem via UdivremFinal.udivrem_rem_L_final: GuardOK s 304, StackOK s 344 72, callee entry sp = body sp b (no push); callee frames [b-344,b-8),[b+8,b+72);
+  need StackWritable below >= 744 -> use 0x300 etc; AppendUint arm64 summary Fv256.Arm64.P.append_summary), Inner, Pad, Tail, Chunk, Loop, Summary (reachesRet64_bind/link, x30 return: restore from saved slot b), Lift, PrettyDec.lean + 5-byte copying witness (Arm64/Hex.lean witness is the template; copy code words need x0..: ldrb/strb encodings).
+- Drafts: Arm64/Pd/draft/*.lean.draft (mechanical, register map in NOTES above). Branch-condition form: use `until [pdK, pdH]`-style probing (shows hbr) with janus_run.
