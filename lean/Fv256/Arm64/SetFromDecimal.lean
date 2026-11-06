@@ -1,5 +1,8 @@
 import Extracted
 import Fv256.Arm64.SfdTopD
+import Fv256.Arm64.SfdCfgE
+import Fv256.Arm64.SfdWitC
+import Fv256.Arm64.SfdWitReg
 import Fv256.Arm64.SfdLink
 import Fv256.Arm64.SummaryEnsures
 
@@ -16,25 +19,6 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
   Fv256.Arm64.SfdTopSpec
 
 namespace Fv256.Arm64.SetFromDecimal
-
-/-- the addresses of this extraction -/
-def cfgE : SfdCfg where
-  ioEOF := Extracted.dataAddr.«io.EOF»
-  errBig := Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range»
-  mulTab := Extracted.dataAddr.«github.com/holiman/uint256.multipliers»
-  numErrType := Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»
-  numErrItab := Extracted.dataAddr.«go:itab.*strconv.NumError,error»
-  errItab := Extracted.dataAddr.«go:itab.internal/strconv.Error,error»
-  synConst := Extracted.dataAddr.«.rodata#9967e7a3»
-  strconvErrSyntax := Extracted.dataAddr.«strconv.ErrSyntax»
-  wbFlag := Extracted.dataAddr.«runtime.writeBarrier»
-  fnStr := Extracted.dataAddr.«.rodata#7233b75a»
-  maxStr := Extracted.dataAddr.«.rodata#575028b4»
-  mallocgc := Extracted.program.contractAddr "runtime.mallocgc"
-  memmove := Extracted.program.contractAddr "runtime.memmove"
-  newobject := Extracted.program.contractAddr "runtime.newobject"
-  wb1 := Extracted.program.contractAddr "runtime.gcWriteBarrier1"
-  wb2 := Extracted.program.contractAddr "runtime.gcWriteBarrier2"
 
 theorem cfgE_eq : cfgE = Fv256.Arm64.SfdTop.cfg := by
   unfold cfgE Fv256.Arm64.SfdTop.cfg; congr 1 <;> decide
@@ -111,5 +95,29 @@ theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
   · intro ret hret s hsu hP; exact hP
   · intro ret hret s hsu hP s' hq
     exact ⟨⟨hq.1, hq.2.2.1, hq.2.1, hq.2.2.2.1⟩, hq⟩
+
+namespace Witness
+
+/-- Non-vacuity: a concrete runtime (stub code at the contract addresses, toy allocator `R`, interface model `R0`), a stack
+window and a call `SetFromDecimal(z, "7")` satisfy EVERY hypothesis of `correctness` (the `ImplApart` premise, the seven runtime
+contracts, the call setup) and its precondition `TopPre` (the model law `hT`, the static objects, the multiplier table, the
+chunk facts). -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (z pS nS : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pS, nS] s ∧
+    TopPre cfgE R R2 T b L lo hi z pS nS s :=
+  nonvacuous_core
+
+end Witness
 
 end Fv256.Arm64.SetFromDecimal

@@ -1,5 +1,4 @@
 import Extracted
-import Fv256.Arm64.SetFromDecimal
 
 /-!
 # Witness for `SetFromDecimal` (arm64), part A: the runtime stand-in and the allocation/copy contracts
