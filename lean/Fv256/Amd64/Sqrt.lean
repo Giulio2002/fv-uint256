@@ -3,6 +3,7 @@ import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecF
 import Fv256.SqrtMath
+import Fv256.Amd64.SqrtBig
 
 /-!
 # `(*uint256.Int).Sqrt(x *Int) *Int` (amd64): `z = ⌊√x⌋` (STUB statement; proof pending)
