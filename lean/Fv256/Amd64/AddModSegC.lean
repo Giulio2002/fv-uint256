@@ -41,7 +41,6 @@ macro "segC_closeh" "[" es:Lean.Parser.Tactic.simpLemma,* "]" : tactic => `(tact
   (try simp (disch := (keep_only bx0 bx1 bx2 bx3 by0 by1 by2 by3; decide_facts; omega)) only [Fv256.F.dec_div] at *)
   clear_env_facts
   janus_carry_nf at *
-  trace_state
   janus_omega_values))
 
 set_option maxHeartbeats 64000000 in
