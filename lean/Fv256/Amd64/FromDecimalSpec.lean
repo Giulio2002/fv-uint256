@@ -46,6 +46,7 @@ def PreC (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo h
   (∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt) ∧
   s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi)] ∧ Outside C.ioEOF 16 R.rt ∧
   s.mem.accessible C.errBig 16 false = true ∧ Outside C.errBig 16 [(lo, hi)] ∧ Outside C.errBig 16 R.rt ∧
+  s.mem.readLE C.ioEOF 8 ≠ 0 ∧ s.mem.readLE C.errBig 8 ≠ 0 ∧
   Buffer s pS nS.toNat false ∧ (pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
   (Outside pS.toNat nS.toNat R.rt ∨ InRanges pS.toNat nS.toNat L) ∧ (∀ r ∈ R2.priv, r.1 ≤ r.2) ∧
   ChunkAll C R R2 L (b - blockSize 32 true) pS.toNat nS.toNat lo hi s.mem
@@ -118,7 +119,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
     (hInv : R.inv (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) (S3.regs 14).toNat
       (view R.rt (L ++ [(zv.toNat, zv.toNat + 32)]) S3.mem)) :
     TopPre C R R2 T (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) lo hi3 zv pS nS S3 := by
-  obtain ⟨hRet, h0, h3, hMod, hEnv, hlo, hhi, hok, hbud, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hBuf, hPS, hPR, hPW, hCh⟩ := hpre
+  obtain ⟨hRet, h0, h3, hMod, hEnv, hlo, hhi, hok, hbud, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hEn, hBn, hBuf, hPS, hPR, hPW, hCh⟩ := hpre
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hsp : (S3.regs 4).toNat = (s.regs 4).toNat - 48 := by

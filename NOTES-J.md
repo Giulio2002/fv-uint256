@@ -37,3 +37,12 @@ z = F.mulmodSpec x y m (0 if m = 0, else x*y mod m); MulModWithReciprocal under 
 ## 2026-11-06 evening
 - arm64 MulMod, IMulMod, MulModWithReciprocal, IMulModWithReciprocal all verified on 655a23fa (ONE run each, merged to fv/master). Re-verify on 77fb30cc: logs/v77.sh (results logs/v77.done, v77_<F>.log).
 - Decimal wrappers: waiting for FV-I3's Extracted-free SfdTopSpec (draft in /srv/fv-uint256-wi SfdFd.lean FdPre/FdPost; top-level shape: ok v / eof / range (z unchanged) / syntax NumError via TeObj; z=RAX, ptr=RBX, len=RCX; error iface RAX/RBX; hypotheses hif hnew hmg hmv hwb1 hwb2). Not started because it names Extracted.dataAddr constants (io.EOF, ErrBig256Range, numErrItab); FV-I3 to decide library program + LinkEq.
+
+## FromDecimal amd64 (2026-11-07 early)
+- lean/Fv256/Amd64/FromDecimal.lean: correctness proved (no sorry) CONDITIONAL on `hsfd : ∀ b' L' lo' hi' z pS' nS', SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS'`
+  (FV-I3's SfdTopSpec 0e29fd7) plus the live runtime contracts (hif hnew hmg hmv hwb1 hwb2). cfg is built from Extracted.dataAddr/contractAddr in the file.
+- Extracted-free helpers: FromDecimalSpec (PreC, toppre_of_call, str_read, s3_reads, outside_sub_stack, chunkOK_mono), SfdEnvC (Env/StaticOK frame lemmas ported to SfdCfg), DecCongr (decParse only reads b 0..b (n-1)).
+- Callee window trick: SetFromDecimal is called with window [lo, sp-16) so that the wrapper's spill slots (z at sp-16, rbp at sp-8, ret at sp) are outside the callee frame.
+- PreC extras vs TopPre: nonzero itab words of io.EOF / ErrBig256Range (so the error branch `test rax,rax` is decidable), R2.priv ranges well-formed, string outside rt or in L, multipliers/ioEOF/errBig outside R.rt.
+- Build env for 77fb30cc: build/mkol77.py ROOT.. (compiles Extracted-free import closure into build/ol77), build/lcx.sh TAG FILE (fd = ex-amd64-FromDecimal; extract with build/ctflags contracts).
+- TODO: Witness.nonvacuous + final file once SfdSummary is proved (then hsfd is discharged by FV-I3's theorem via CodeIn from a library program, as for the other lib transfers); MustFromDecimal (same call pattern + gopanic), UnmarshalText/JSON, Scan.

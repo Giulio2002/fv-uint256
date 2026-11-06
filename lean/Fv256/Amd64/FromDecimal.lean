@@ -10,7 +10,7 @@ import Fv256.Amd64.FromDecimalSpec
 import Fv256.DecCongr
 
 /-!
-# `uint256.FromDecimal(decimal string) (*Int, error)` (amd64)   [DRAFT: conditional on the `SetFromDecimal` summary]
+# `uint256.FromDecimal(decimal string) (*Int, error)` (amd64)   (conditional on the `SetFromDecimal` summary `hsfd`)
 
 `var z Int; if err := z.SetFromDecimal(decimal); err != nil { return nil, err }; return &z, nil`.
 -/
@@ -115,7 +115,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
   have hbytes : ∀ k, k < nS.toNat → bytesAt ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4932953) pS.toNat k
       = bytesAt s.mem pS.toNat k := by
     intro k hk
-    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -, -⟩ := hpreC
+    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -, -⟩ := hpreC
     unfold bytesAt
     have hk' : pS.toNat + k < pS.toNat + nS.toNat := by omega
     refine Fv256.Amd64.FromDecimalSpec.str_read hlo hhi hM0 hMF hLF (by omega) ?_
@@ -166,7 +166,125 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       · intro h; rw [hv] at h; cases h
       · intro h; rw [hv] at h; cases h
       · intro _ _ h; rw [hv] at h; cases h
-    all_goals sorry
-    all_goals sorry
+    · -- io.EOF
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, -, hB2, hB3, hEn, hBn, -, -, -, -, -⟩ := hpreC
+      have hoS : ∀ a n, a + n ≤ lo ∨ (s.regs 4).toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
+          Outside a n [(lo, (s.regs 4).toNat - 16), (zv.toNat, zv.toNat + 32)] := by
+        intro a n h1 h2
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨h1, h2⟩
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_ret]
+        exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_rbp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      have hio : ∀ a, a = cfg.ioEOF ∨ a = cfg.ioEOF + 8 → ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4932953).readLE a 8
+          = s.mem.readLE a 8 := by
+        intro a ha
+        refine hF.readLE a 8 ?_
+        rw [outside_append]
+        refine ⟨?_, ?_⟩
+        · rcases ha with rfl | rfl
+          · exact Outside.of_sub hE3 (by omega) (by omega)
+          · exact Outside.of_sub hE3 (by omega) (by omega)
+        · simp only [outside_cons, outside_nil, and_true] at hE2 ⊢
+          rcases ha with rfl | rfl <;> omega
+      have hnz : s'.regs 0 ≠ 0 := by
+        intro h0'
+        rw [h0', hio _ (Or.inl rfl)] at c0
+        exact hEn (by simpa using c0.symm)
+      have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
+      janus64_run [hs_ret, hs_rbp, hnz']
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_cons, outside_nil, and_true] at h3 ⊢
+        omega
+      refine ⟨(fun v' hv' => (by rw [hv] at hv'; cases hv')), fun _ => ⟨?_, ?_⟩, (fun h => (by rw [hv] at h; cases h)),
+        (fun _ _ h => (by rw [hv] at h; cases h)), hFr⟩
+      · rw [c0]; exact hio _ (Or.inl rfl)
+      · rw [c3]; exact hio _ (Or.inr rfl)
+    · -- ErrBig256Range
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hB2x, hB3x, -, hBnx, -, -, -, -, -⟩ := hpreC
+      have hoS : ∀ a n, a + n ≤ lo ∨ (s.regs 4).toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
+          Outside a n [(lo, (s.regs 4).toNat - 16), (zv.toNat, zv.toNat + 32)] := by
+        intro a n h1 h2
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨h1, h2⟩
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_ret]
+        exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_rbp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      have hio : ∀ a, a = cfg.errBig ∨ a = cfg.errBig + 8 → ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4932953).readLE a 8
+          = s.mem.readLE a 8 := by
+        intro a ha
+        refine hF.readLE a 8 ?_
+        rw [outside_append]
+        refine ⟨?_, ?_⟩
+        · rcases ha with rfl | rfl
+          · exact Outside.of_sub hB3x (by omega) (by omega)
+          · exact Outside.of_sub hB3x (by omega) (by omega)
+        · simp only [outside_cons, outside_nil, and_true] at hB2x ⊢
+          rcases ha with rfl | rfl <;> omega
+      have hnz : s'.regs 0 ≠ 0 := by
+        intro h0'
+        rw [h0', hio _ (Or.inl rfl)] at c0
+        exact hBnx (by simpa using c0.symm)
+      have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
+      janus64_run [hs_ret, hs_rbp, hnz']
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_cons, outside_nil, and_true] at h3 ⊢
+        omega
+      refine ⟨(fun v' hv' => (by rw [hv] at hv'; cases hv')), (fun h => (by rw [hv] at h; cases h)), fun _ => ⟨?_, ?_⟩,
+        (fun _ _ h => (by rw [hv] at h; cases h)), hFr⟩
+      · rw [c0]; exact hio _ (Or.inl rfl)
+      · rw [c3]; exact hio _ (Or.inr rfl)
+    · -- syntax error
+      have hoS : ∀ a n, lo ≤ a → a + n ≤ hi → (s.regs 4).toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
+          Outside a n (R.rt ++ R2.priv ++ [(lo, (s.regs 4).toNat - 16), (zv.toNat, zv.toNat + 32)]) := by
+        intro a n h0 h0' h1 h2
+        simp only [outside_append, outside_cons, outside_nil, and_true]
+        refine ⟨⟨?_, ?_⟩, Or.inr h1, h2⟩
+        · exact Outside.of_sub hr9 (by omega) (by omega)
+        · exact Outside.of_sub hr10 (by omega) (by omega)
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by
+        rw [cMF.readLE _ _ (hoS _ _ (by omega) (by omega) (by omega) (by unfold Apart at hApWin; omega)), hS_ret]
+        exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [cMF.readLE _ _ (hoS _ _ (by omega) (by omega) (by omega) (by unfold Apart at hApWin; omega)), hS_rbp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      have hnz : s'.regs 0 ≠ 0 := by
+        rw [c0]; decide
+      have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
+      have hnz'' : ¬ (BitVec.ofNat 64 cfg.numErrItab).toNat = 0 := by decide
+      have hnum : ¬ cfg.numErrItab = 0 := by decide
+      janus64_run [hs_ret, hs_rbp, hnz', hnz'', hnum]
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_append, outside_cons, outside_nil, and_true] at h3 ⊢
+        exact ⟨⟨h1, h2⟩, by omega, h4⟩
+      refine ⟨(fun v' hv' => (by rw [hv] at hv'; cases hv')), (fun h => (by rw [hv] at h; cases h)),
+        (fun h => (by rw [hv] at h; cases h)), fun _ _ _ => trivial, hFr⟩
 
 end Fv256.Amd64.FromDecimal
