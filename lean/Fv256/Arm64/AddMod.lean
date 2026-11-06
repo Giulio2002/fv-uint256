@@ -3,71 +3,39 @@ import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
 import Fv256.UtilB
-import Fv256.SpecB2
-import Fv256.UtilB2
 import Fv256.SpecF
-import Fv256.UtilF
-import Fv256.UtilMDO
 import Fv256.Arm64.SummaryEnsures
-import Fv256.Arm64.ModSum
-import Fv256.Arm64.UdivremFinal
-import Fv256.Arm64.ChainProg
-import Fv256.Arm64.ModProg
-import Fv256.Arm64.CodeIn
+import Fv256.Arm64.AddModF
+import Fv256.Arm64.AddModComp2
+
+/-!
+# `(*uint256.Int).AddMod(x, y, m *Int) *Int` (arm64): `z = (x + y) mod m` (`0` when `m = 0`)
+
+**Documented behaviour.** "AddMod sets z to the sum ( x+y ) mod m, and returns z. If m == 0, z is set to 0 (OBS: differs from the big.Int)".
+The spec is `Fv256.F.addmodSpec` (full-precision `(x+y) mod m`, `0` for `m = 0`).
+
+**Guarantee.** For all pointers `z` (`X0`), `x` (`X1`), `y` (`X2`), `m` (`X3`) with the 32 bytes at `z` writable and the others
+readable (all below `2^48`), none overlapping the callee window `[SP-856, SP+16)`, `z` equal to or disjoint from each of `x`,
+`y`, `m` (the others may overlap each other arbitrarily), the stack-growth checks falling through (`GuardOK s 816`), the read-only
+data of the binary loaded, and `stackguard0` not overlapping `z`: the call returns (no fault, no panic), obeys the ABI, returns
+`z` in `X0`, the number at `z` afterwards is `addmodSpec` of the numbers at `x`, `y`, `m` before the call, and nothing changes
+outside `z[0..32)` and the window.
+
+Structure: the fast path (`m[3] ≠ 0` and `x[3], y[3] ≤ m[3]`) is `AddModF.addmod_fast` (twelve carry-chain shape closers);
+the generic path is the composition of small segments `AddModSeg`/`AddModSegB`/`AddModSegZ` in `AddModComp2.gen_all`
+(callees `Mod` via `ModSum` and `udivrem` via `UdivremFinal`, both library summaries).
+-/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.AddMod
 
-set_option maxRecDepth 200000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
-  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
-
-set_option maxRecDepth 200000 in
-theorem hcMod : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ModProg.program Extracted.program :=
-  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
-
-abbrev PreS (s : State) : Prop :=
-  (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 816 ∧
-    s.sp.toNat % 16 = 0 ∧ 856 ≤ s.sp.toNat ∧ s.sp.toNat + 16 ≤ 2 ^ 48 ∧ s.mem.accessible (s.sp.toNat - 856) 872 true = true ∧
-    Extracted.program.DataLoaded s.mem ∧
-    ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 856 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
-    (s.regs 0).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 32 true = true ∧
-    (s.regs 1).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 1).toNat 32 false = true ∧
-    (s.regs 2).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 2).toNat 32 false = true ∧
-    (s.regs 3).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 3).toNat 32 false = true ∧
-    ((s.regs 0).toNat + 32 ≤ s.sp.toNat - 856 ∨ s.sp.toNat + 16 ≤ (s.regs 0).toNat) ∧
-    ((s.regs 1).toNat + 32 ≤ s.sp.toNat - 856 ∨ s.sp.toNat + 16 ≤ (s.regs 1).toNat) ∧
-    ((s.regs 2).toNat + 32 ≤ s.sp.toNat - 856 ∨ s.sp.toNat + 16 ≤ (s.regs 2).toNat) ∧
-    ((s.regs 3).toNat + 32 ≤ s.sp.toNat - 856 ∨ s.sp.toNat + 16 ≤ (s.regs 3).toNat) ∧
-    (s.regs 0 = s.regs 3 ∨ (s.regs 0).toNat + 32 ≤ (s.regs 3).toNat ∨ (s.regs 3).toNat + 32 ≤ (s.regs 0).toNat) ∧
-    (s.regs 0 = s.regs 1 ∨ (s.regs 0).toNat + 32 ≤ (s.regs 1).toNat ∨ (s.regs 1).toNat + 32 ≤ (s.regs 0).toNat) ∧
-    (s.regs 0 = s.regs 2 ∨ (s.regs 0).toNat + 32 ≤ (s.regs 2).toNat ∨ (s.regs 2).toNat + 32 ≤ (s.regs 0).toNat) ∧
-    ((s.regs 28).toNat + 24 ≤ (s.regs 0).toNat ∨ (s.regs 0).toNat + 32 ≤ (s.regs 28).toNat + 16)
-
-set_option maxHeartbeats 64000000 in
-set_option maxRecDepth 200000 in
-theorem addmod_summary : Summary Extracted.program Extracted.entry PreS
-    (fun s s' => s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
-        s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
-        s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.addmodSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32)
-          (s.mem.readLE (s.regs 3).toNat 32) ∧
-        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)]) := by
-  intro s hpc ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩
-  have hx0 := Util.readLE8_lt s.mem (s.regs 1).toNat
-  have hx1 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 8)
-  have hx2 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 16)
-  have hx3 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 24)
-  have hy0 := Util.readLE8_lt s.mem (s.regs 2).toNat
-  have hy1 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 8)
-  have hy2 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 16)
-  have hy3 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 24)
-  have hm0 := Util.readLE8_lt s.mem (s.regs 3).toNat
-  have hm1 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 8)
-  have hm2 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 16)
-  have hm3 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 24)
-  janus_data hdata [hsw, hza]
-  janus_run [Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div, Fv256.B.wv_writeLE_outside, Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcMod Fv256.Arm64.ModSum.mod_summary, Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 5) (by decide) (by decide))]
-  all_goals (trace_state; sorry)
+theorem addmod_summary : Summary Extracted.program Extracted.entry Fv256.Arm64.AddModSeg.PreS
+    (fun s s' => Fv256.Arm64.AddModComp2.Post s s') := by
+  intro s hpc hpre
+  by_cases hf : (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧
+      s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8)
+  · exact Fv256.Arm64.AddModF.addmod_fast s hpc ⟨hpre, hf⟩
+  · exact Fv256.Arm64.AddModComp2.gen_all s hpc hpre hf
 
 end Fv256.Arm64.AddMod
