@@ -173,7 +173,10 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     janus_eval_nat h_ut : u8T
     rw [h_ut] at hdt hdtd hdesc hok
     janus_data hd [hw]
-    have hdescS : S.mem.readLE 834336 8 = 1 ∧ S.mem.readLE 834344 8 = 0 ∧ S.mem.accessible 834336 16 false = true := by
+    have hu3 : S.mem.accessible 834336 16 false = true := by
+      rw [hfr.accessible]
+      exact Memory.accessible_sub s.mem (show s.mem.accessible 834336 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
+    have hdescS : S.mem.readLE 834336 8 = 1 ∧ S.mem.readLE 834344 8 = 0 := by
       rcases hdesc with hdto | hR
       · have hOutU : ∀ a n, 834336 ≤ a → a + n ≤ 834336 + 16 →
             Outside a n (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp, dp + cap0)]) := by
@@ -181,14 +184,11 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
           simp only [outside_append, outside_cons, outside_nil, and_true]
           unfold Apart at hdt hdtd
           refine ⟨Outside.of_sub hdto (by omega) (by omega), ?_, ?_⟩ <;> omega
-        refine ⟨?_, ?_, ?_⟩
+        refine ⟨?_, ?_⟩
         · rw [hfr.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
         · rw [hfr.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
-        · rw [hfr.accessible]
-          exact Memory.accessible_sub s.mem (show s.mem.accessible 834336 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
-      · have h := hR b L (s.regs 28).toNat S.mem hinv
-        exact ⟨h.2.1, h.2.2, h.1⟩
-    obtain ⟨hu1, hu2, hu3⟩ := hdescS
+      · exact hR b L (s.regs 28).toNat S.mem hinv
+    obtain ⟨hu1, hu2⟩ := hdescS
     clear hdesc
     obtain ⟨gp1, gp2, gp3, gp4⟩ := grow_pre_a64 len.toNat cc.toNat pp.toNat s.sp.toNat hlc hPb hdj hb'
     have pack := And.intro hrdy (And.intro hdj (And.intro hlc (And.intro hlle (And.intro hlge (And.intro hC (And.intro hPb (And.intro hcostK (And.intro hK (And.intro hbud (And.intro hwho (And.intro hzs (And.intro hmid (And.intro hpre (And.intro hzpd (And.intro hrd (True.intro))))))))))))))))

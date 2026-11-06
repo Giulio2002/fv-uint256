@@ -140,7 +140,10 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
       Memory.accessible_sub S.mem hw (Or.inr rfl) (by omega) (by omega)
     janus64_data hd [hws]
     have hfrU := show MemFrame s.mem S.mem _ from hfrH
-    have hdescS : S.mem.readLE 5008256 8 = 1 ∧ S.mem.readLE 5008264 8 = 0 ∧ S.mem.accessible 5008256 16 false = true := by
+    have hu3 : S.mem.accessible 5008256 16 false = true := by
+      rw [hfrU.accessible]
+      exact Memory.accessible_sub s.mem (show s.mem.accessible 5008256 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
+    have hdescS : S.mem.readLE 5008256 8 = 1 ∧ S.mem.readLE 5008264 8 = 0 := by
       rcases hdesc with hdto | hR
       · have hOutU : ∀ a n, 5008256 ≤ a → a + n ≤ 5008256 + 16 →
             Outside a n (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) := by
@@ -148,14 +151,11 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
           simp only [outside_append, outside_cons, outside_nil, and_true]
           unfold Apart at hdt hdtd
           refine ⟨Outside.of_sub hdto (by omega) (by omega), ?_, ?_⟩ <;> omega
-        refine ⟨?_, ?_, ?_⟩
+        refine ⟨?_, ?_⟩
         · rw [hfrU.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
         · rw [hfrU.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
-        · rw [hfrU.accessible]
-          exact Memory.accessible_sub s.mem (show s.mem.accessible 5008256 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
-      · have h := hR b L (s.regs 14).toNat S.mem hinv
-        exact ⟨h.2.1, h.2.2, h.1⟩
-    obtain ⟨hu1, hu2, hu3⟩ := hdescS
+      · exact hR b L (s.regs 14).toNat S.mem hinv
+    obtain ⟨hu1, hu2⟩ := hdescS
     have hgS : S.mem.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 :=
       hfrU.readLE _ _ (by
         simp only [outside_append, outside_cons, outside_nil, and_true]
