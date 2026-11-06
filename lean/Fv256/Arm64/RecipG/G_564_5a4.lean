@@ -156,7 +156,7 @@ theorem g_564_5a4 (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x564)
     · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)
     · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)
   · dsimp only
-    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)
+    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) hsb)
     exact hM
   )
 

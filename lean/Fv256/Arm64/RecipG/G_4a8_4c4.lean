@@ -78,7 +78,7 @@ theorem g_4a8_4c4 (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x4a8)
     · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)
     · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)
   · dsimp only
-    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)
+    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) hsb)
     exact hM
   )
 
