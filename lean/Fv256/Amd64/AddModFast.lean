@@ -49,7 +49,7 @@ theorem fast :
   have hgr := hg.readable
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg hdgz
   simp only [regSP] at hacc hlow hnw hdz hdx hdy hdm hsp
-  janus64_data hdata [hacc]
+  clear hdgz hdg hzm hzx hzy hdata
   obtain ⟨hm3, hx3, hy3⟩ := hcase
   janus64_run [hz0, hx0, hy0, hm0, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero5, Fv256.F.wv_zero5', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div]
   all_goals (refine ⟨?_, ?_⟩)
