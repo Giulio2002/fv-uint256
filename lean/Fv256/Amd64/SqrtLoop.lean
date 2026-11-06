@@ -144,19 +144,19 @@ theorem big_loop (s0 : State) (X : Nat) (z x : BitVec 64) (Q : State → Prop)
           Util.readLE8_lt M' _, Util.readLE8_lt M' _, Util.readLE8_lt M' _, Util.readLE8_lt M' _,
           Util.readLE8_lt M' _, Util.readLE8_lt M' _, Util.readLE8_lt M' _, Util.readLE8_lt M' _, ?_, ?_, ?_, hzw, hxw, ?_⟩
         · exact (retAddrOf_push _ _ ((s0.regs 4).toNat - 144) 4957573 (by simp [setRegF, hs144]) rfl (by decide)).trans (by decide)
-        · first | (simp [setRegF, r4]; done) | (simp [setRegF, r4, sub144]; done) | (trace "FAIL r4"; sorry)
-        · first | (simp [setRegF, r5]; done) | (trace "FAIL r5"; sorry)
-        · first | (simp [setRegF, r14]; done) | (trace "FAIL r14"; sorry)
-        · first | (simp [setRegF, x15]; done) | (trace "FAIL x15"; sorry)
-        · first | (simp; done) | (trace "FAIL df"; sorry)
-        · first | (simp; done) | (trace "FAIL mx"; sorry)
-        · first | (rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact mret) | (trace "FAIL mret"; sorry)
-        · first | (rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact msav) | (trace "FAIL msav"; sorry)
-        · first | (rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact mz) | (trace "FAIL mz"; sorry)
-        · first | (rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact mx) | (trace "FAIL mx2"; sorry)
-        · first | (rw [hF.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hwin) | (trace "FAIL hwin"; sorry)
-        · first | (rw [hF.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hxacc) | (trace "FAIL hxacc"; sorry)
-        · first | (rw [hF.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hzacc) | (trace "FAIL hzacc"; sorry)
+        · first | (simp [setRegF, r4]; done) | (simp [setRegF, r4, sub144]; done)
+        · simp [setRegF, r5]; done
+        · simp [setRegF, r14]; done
+        · simp [setRegF, x15]; done
+        · simp; done
+        · simp; done
+        · rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact mret
+        · rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact msav
+        · rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact mz
+        · rw [hF.readLE _ _ (by simp [Outside]; omega)]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside]; exact mx
+        · rw [hF.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hwin
+        · rw [hF.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hxacc
+        · rw [hF.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hzacc
         · refine MemFrame.trans (rs := [((s0.regs 4).toNat - 0x1f0, (s0.regs 4).toNat + 0x18)])
               (rs' := [((s0.regs 4).toNat - 0x1f0, (s0.regs 4).toNat + 0x18)]) hfr
               (MemFrame.trans (rs := [((s0.regs 4).toNat - 0x1f0, (s0.regs 4).toNat + 0x18)])
