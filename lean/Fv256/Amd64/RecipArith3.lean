@@ -13,7 +13,7 @@ def sqw (R : Nat) (i : Nat) : Nat := R * R / 2 ^ (64 * i) % 2 ^ 64
 theorem sum3 (s : State) (y3 : Nat) (x1f3rax x1f3rcx x1f3rsi x1f3rdi x1f3r8 x1f3r9 x1f3r10 x1f3mb0 x1f3m208 x1f3m210 x1f3m218 x1f3m220 : Nat)
     (S : State) (h : PC_1f3_43c s y3 x1f3rax x1f3rcx x1f3rsi x1f3rdi x1f3r8 x1f3r9 x1f3r10 x1f3mb0 x1f3m208 x1f3m210 x1f3m218 x1f3m220 S)
     (ha : x1f3rax < 2 ^ 64) (hb : x1f3r10 < 2 ^ 64) (h3 : x1f3rsi < 2 ^ 64) (h2 : x1f3rdi < 2 ^ 64) (h1 : x1f3r8 < 2 ^ 64) (h0 : x1f3r9 < 2 ^ 64) (hmb : x1f3mb0 = x1f3rax) :
-    ∃ x43crdx x43crbx x43cr8 x43cm98 x43cma0 x43cma8, L43c s S x1f3rcx x43crdx x43crbx x1f3rsi x43cr8 x43cm98 x43cma0 x43cma8 x1f3m208 x1f3m210 x1f3m218 x1f3m220 ∧
+    ∃ x43crdx x43crbx x43cr8 x43cm98 x43cma0 x43cma8, L43c s S x1f3rcx x43crdx x43crbx x1f3rsi x43cr8 x43cm98 x43cma0 x43cma8 x1f3m208 x1f3m210 x1f3m218 x1f3m220 ∧ RecRegs s S ∧ RecMem s S.mem y3 ∧
       x43cma0 = x43crbx ∧ x43cm98 = x43cr8 ∧ x43cma8 = x43crdx ∧
       x43crbx + 2 ^ 64 * x43cr8 + 2 ^ 128 * x43crdx =
         2 * ((((x1f3rax + 2 ^ 64 * x1f3r10) * 2 ^ 192 + 2 ^ 320 - (stage3q (sqw (x1f3rax + 2 ^ 64 * x1f3r10) 0) (sqw (x1f3rax + 2 ^ 64 * x1f3r10) 1) (sqw (x1f3rax + 2 ^ 64 * x1f3r10) 2) (sqw (x1f3rax + 2 ^ 64 * x1f3r10) 3) x1f3r9 x1f3r8 x1f3rdi x1f3rsi)) % 2 ^ 320) / 2 ^ 128) % 2 ^ 192 := by
@@ -38,7 +38,7 @@ theorem sum3 (s : State) (y3 : Nat) (x1f3rax x1f3rcx x1f3rsi x1f3rdi x1f3r8 x1f3
       2 * (((x1f3mb0 + 2 ^ 64 * x273mb8) * 2 ^ 192 + 2 ^ 320 - (x3f0r13 + 2 ^ 64 * x3f0r15 + 2 ^ 128 * x3f0rax + 2 ^ 192 * x3f0rdx + 2 ^ 256 * x3f0rdi)) % 2 ^ 320 / 2 ^ 128) % 2 ^ 192 := by
     exact sbb3 x3f0rax x3f0rdx x3f0rdi x3f0r13 x3f0r15 x1f3mb0 x273mb8 x43crdx x43crbx x43cr8 bax bdx bdi b13 b15 bmb0 bmb8 h_x43crdx h_x43crbx h_x43cr8
   rw [hV, hmb, h_x273mb8, Nat.mod_eq_of_lt hb] at hB
-  refine ⟨_, _, _, _, _, _, hLz, ?_, ?_, ?_, hB⟩
+  refine ⟨_, _, _, _, _, _, hLz, hRz, hMz, ?_, ?_, ?_, hB⟩
   · rw [h_x43cma0, h_x43crbx]
   · rw [h_x43cm98, h_x43cr8]
   · rw [h_x43cma8, h_x43crdx]

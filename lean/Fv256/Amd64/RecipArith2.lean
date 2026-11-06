@@ -35,7 +35,7 @@ theorem sum2 (s : State) (y3 : Nat) (x14crax x14crcx x14crdx x14crbx x14crsi x14
     (S : State) (h : PC_14c_1f3 s y3 x14crax x14crcx x14crdx x14crbx x14crsi x14crdi x14cr8 x14cr9 x14cm208 x14cm210 x14cm218 x14cm220 S)
     (hst : Start14c s y3 x14crax x14crcx x14crdx x14crbx x14crsi x14crdi x14cr8 x14cr9 x14cm208 x14cm210 x14cm218 x14cm220)
     (hb : x14cm218 < 2 ^ 64) :
-    ∃ x160rcx x1f3rax x1f3r10 x1f3mb0, L1f3 s S x1f3rax x160rcx x14crsi x14crdi x14cr8 x14cr9 x1f3r10 x1f3mb0 x14cm208 x14cm210 x14cm218 x14cm220 ∧
+    ∃ x160rcx x1f3rax x1f3r10 x1f3mb0, L1f3 s S x1f3rax x160rcx x14crsi x14crdi x14cr8 x14cr9 x1f3r10 x1f3mb0 x14cm208 x14cm210 x14cm218 x14cm220 ∧ RecRegs s S ∧ RecMem s S.mem y3 ∧
       x160rcx = (x14crcx % 64 + 18446744073709551615) % 18446744073709551616 ∧ x1f3mb0 = x1f3rax ∧
       ((x1f3rax + 18446744073709551616 * x1f3r10 + 2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128 =
           (2 * (r1c x14crax x14crdx * 18446744073709551616)) % 2 ^ 128 ∨
@@ -75,7 +75,7 @@ theorem sum2 (s : State) (y3 : Nat) (x14crax x14crcx x14crdx x14crbx x14crsi x14
   rw [hor _ _ _ hbx_lt hlo hhi] at h_x1f3rax h_x1f3r10 h_x1f3mb0
   have hzero : (x14crbx ||| (x1d0r11 ||| x1d0r10)) = 0 ↔ x14crbx = 0 ∧ x1d0r11 = 0 ∧ x1d0r10 = 0 := by
     simp [Nat.or_eq_zero_iff]
-  refine ⟨x160rcx, x1f3rax, x1f3r10, x1f3mb0, ?_, ?_, ?_, ?_⟩
+  refine ⟨x160rcx, x1f3rax, x1f3r10, x1f3mb0, ?_, hRz, hMz, ?_, ?_, ?_⟩
   · exact hLz
   · rw [h_x160rcx]; exact rcx_bv _
   · rw [h_x1f3mb0, h_x1f3rax]

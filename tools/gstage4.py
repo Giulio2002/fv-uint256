@@ -44,6 +44,7 @@ w('''theorem stage4 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (rec
         L801 s S' x43crcx x801rdx x801rbx x801rsi x801r8 x801r9 x801m40 x801m48 x801m50 x801m60 x43cm208 x43cm210 x43cm218 y3 ∧
         x801rdx + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40 =
           r4preF %s x43cm208 x43cm210 x43cm218 y3 ∧
+        x801rdx = x801m60 ∧ x801r8 = x801m50 ∧ x801r9 = x801m48 ∧ x801rsi = x801m40 ∧
         RecRegs s S' ∧ RecMem s S'.mem y3) := by''' % R)
 w('  refine Fv256.SegCompose.seg_trans (c_43c_502 (y3 := y3) s S hpc hs hR hM x43crcx x43crdx x43crbx y3 x43cr8 x43cr8 x43crbx x43crdx x43cm208 x43cm210 x43cm218 y3 hL) ?_')
 w('  intro S1 hpc1 hq1')
@@ -94,7 +95,7 @@ w('  unfold P_7ae_801 at hq4')
 w('  obtain ⟨x801rdx, x801rbx, x801rsi, x801r8, x801r9, x801m40, x801m48, x801m50, x801m60, hL4, h_x801rdx, h_x801rbx, h_x801rsi, h_x801r8, h_x801r9, h_x801m40, h_x801m48, h_x801m50, h_x801m60, hR4, hM4⟩ := hq4')
 sb=[b('L7ae',v,'hL3') for v in ['x7aerax','x7aerdx','x7aerbx','x7aersi','x7aerdi','x7aer8','x7aer11','x7aem98','x7aema0','x7aema8']]
 w('  have hsb := sbb4 x7aerax x7aerdx x7aerbx x7aersi x7aerdi x7aer8 x7aer11 x43cr8 x43crbx x43crdx x801rdx x801rbx x801m50 x801m48 x801m40 %s h_x801rdx h_x801rbx h_x801m40 h_x801m48 h_x801m50' % ' '.join(sb))
-w('  refine ⟨x801rdx, x801rbx, x801rsi, x801r8, x801r9, x801m40, x801m48, x801m50, x801m60, hL4, ?_, hR4, hM4⟩')
+w('  refine ⟨x801rdx, x801rbx, x801rsi, x801r8, x801r9, x801m40, x801m48, x801m50, x801m60, hL4, ?_, h_x801rdx.trans h_x801m60.symm, h_x801r8.trans h_x801m50.symm, h_x801r9.trans h_x801m48.symm, h_x801rsi.trans h_x801m40.symm, hR4, hM4⟩')
 w('  rw [hsb, hT]')
 w('  subst e1 e2 e3 e4 e5')
 w('  rfl')
