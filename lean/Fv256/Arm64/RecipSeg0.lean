@@ -116,6 +116,7 @@ theorem seg0 (s : State) (hpc : s.pc = BitVec.ofNat 64 recEntry) (hpre : RecPre 
       exact Nat.mod_eq_of_lt (BitVec.isLt _)
     · repeat' first
         | exact MemFrame.refl _ _
-        | refine MemFrame.writeLE ?_ _ (r := (s.sp.toNat - 280, s.sp.toNat + 48)) (by simp) (by omega) (by omega))
+        | refine MemFrame.writeLE ?_ _ (r := (s.sp.toNat - 280, s.sp.toNat - 8)) (by simp) (by omega) (by omega)
+        | refine MemFrame.writeLE ?_ _ (r := (s.sp.toNat + 8, s.sp.toNat + 48)) (by simp) (by omega) (by omega))
 
 end Fv256.Arm64.RecipSeg

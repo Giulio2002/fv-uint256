@@ -1,0 +1,2 @@
+  unfold PC_88_108 at h
+  obtain ⟨xbcr0, x108r0, x108m176, hLz, h_xbcr0, h_x108r0, h_x108m176, hx1_0, hx1_1, hRz, hMz⟩ := h

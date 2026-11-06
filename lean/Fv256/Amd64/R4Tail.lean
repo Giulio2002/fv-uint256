@@ -47,7 +47,7 @@ def TailPost (s S' : State) (v : Nat) : Prop :=
   S'.regs 0 = s.regs 0 ∧ S'.regs 4 = s.regs 4 + 8 ∧ S'.regs 5 = s.regs 5 ∧ S'.regs 14 = s.regs 14 ∧
   S'.xmm 15 = s.xmm 15 ∧ S'.df = s.df ∧ S'.mxcsr = s.mxcsr ∧
   S'.mem.readLE (s.regs 0).toNat 32 = v ∧
-  MemFrame s.mem S'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x120, (s.regs 4).toNat + 0x10)]
+  MemFrame s.mem S'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x120, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x10)]
 
 theorem sub64 (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
     BitVec.ofNat 64 a - BitVec.ofNat 64 b = BitVec.ofNat 64 ((a + 2 ^ 64 - b) % 2 ^ 64) := by
@@ -96,7 +96,7 @@ theorem tail4 (s : State) (hs : R4Pre s) :
       have hnb : ¬ (c4 < (decide (c3 < n3 + (decide (c2 < n2 + (decide (c1 < n1 + (decide (c0 < n0)).toNat)).toNat)).toNat)).toNat) := by
         intro hh; simp [hh] at hbr
       exact hnb ((sub5_lt c0 c1 c2 c3 c4 n0 n1 n2 n3 b0 b1 b2 b3 b5 b6 b7 b8).mpr hRM)
-    · have h1 : MemFrame s.mem S.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x120, (s.regs 4).toNat + 0x10)] :=
+    · have h1 : MemFrame s.mem S.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x120, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x10)] :=
         hfr.mono (by intro a n h; simp [Outside] at h ⊢; omega)
       unfold TailPost
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
@@ -112,7 +112,7 @@ theorem tail4 (s : State) (hs : R4Pre s) :
         rw [Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le b0 (by decide)), Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le b1 (by decide)), Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le b2 (by decide)), Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le b3 (by decide))]
         rw [hc4, Nat.mod_eq_of_lt (by omega)]
         omega
-      · exact MemFrame.writeLE (MemFrame.writeLE (MemFrame.writeLE (MemFrame.writeLE (MemFrame.writeLE h1 c0 (r := ((s.regs 4).toNat - 0x120, (s.regs 4).toNat + 0x10)) (by simp) (wr_ok _ hsp).2.2 (by have := (wr_ok _ hsp).2.1; omega)) c3 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 24 (by decide)).1 (zw _ 24 (by decide)).2) c2 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 16 (by decide)).1 (zw _ 16 (by decide)).2) c1 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 8 (by decide)).1 (zw _ 8 (by decide)).2) c0 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 0 (by decide)).1 (by have := (zw (s.regs 0).toNat 0 (by decide)).2; simpa using this)
+      · exact MemFrame.writeLE (MemFrame.writeLE (MemFrame.writeLE (MemFrame.writeLE (MemFrame.writeLE h1 c0 (r := ((s.regs 4).toNat - 0x120, (s.regs 4).toNat)) (by simp) (wr_ok _ hsp).2.2 (by have := (wr_ok _ hsp).2.1; omega)) c3 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 24 (by decide)).1 (zw _ 24 (by decide)).2) c2 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 16 (by decide)).1 (zw _ 16 (by decide)).2) c1 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 8 (by decide)).1 (zw _ 8 (by decide)).2) c0 (r := ((s.regs 0).toNat, (s.regs 0).toNat + 32)) (by simp) (zw _ 0 (by decide)).1 (by have := (zw (s.regs 0).toNat 0 (by decide)).2; simpa using this)
   | succ q ih =>
     intro c0 c1 c2 c3 c4 n0 n1 n2 n3 S hq hM0 hI
     obtain ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hmw, hm⟩, ⟨hux, hu⟩, hdz, hdx, hdm, hdu, hdg, hm3, hmu⟩ := hs

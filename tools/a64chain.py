@@ -3,7 +3,7 @@
 lean/Fv256/Arm64/RecipG/C_A_Z.lean (theorem c_A_Z, def PC_A_Z) + sidecar .json. Units: G_A_B.lean (g) or C_A_B.lean (c)."""
 import re, sys, os, json
 sys.path.insert(0, os.path.dirname(__file__))
-import a64dev as G
+import a64gen as G
 ROOT = G.ROOT
 D = ROOT + '/lean/Fv256/Arm64/RecipG/'
 def split_top(s, sep=' ∧ '):

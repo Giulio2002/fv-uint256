@@ -1,4 +1,4 @@
-import sys; sys.path.insert(0,'/srv/fv-uint256-wBm/tools')
+import sys; sys.path.insert(0,'/srv/fv-uint256-wB5/tools')
 import a64gen as G
 A,B=0xb8e08,0xb8e3c
 C="x88m56 / 2 ^ 32 % 2 ^ 32 = 2 ^ 31"
