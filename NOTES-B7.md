@@ -54,3 +54,10 @@ TODO: SfdTop (plus skip, zero-skip + decoderune, cmpstring, call fd_sum), Extrac
   UtilI.mask_keep, i = first non-'0' byte or last index); branches CMP $78; cmpstring call (contract) then fd_sum call (hpw) at 0xb8a70/0xb8a98; error returns load from ErrBig256Range (0x1b5bc0-ish) and io.EOF via fd.
   Result must match decParse (startPos/plusEnd/zerosFrom in SpecI); fromDecimal's FdPost gives fromDec b n p; TopPost wants decParse.
 - Then Extracted-level correctness + Witness (lib_summary / codeIn_of_sub, cfg from the extraction), discharge hpw from pw_sum, ONE verify on 77fb30cc.
+HEAVY_PRIORITY=0 for janus verify (noted)
+
+## Update 5: SfdTop start
+- arm64 maxStr (78-digit rodata string of 2^256-1) = 0xf490b (ADRP at 0xb8a34: page 0xb8000 + 0x3c000, + 2315).
+- Arm64/SfdTopPro.lean: probe of the entry up to ta = 0xb89f0 (after plus skip) for nS = 0 runs; needs LITERAL pc (0xb89b0 / 0xb89f0, not segAddr abbrevs), g+24 <= 2^48 and `Nat.mod_eq_of_lt` for g+16, sp%16.
+  The nS != 0 case (byte load, '+' compare, plus skip) is the next step; then zero loop at 0xb8aa8 with decoderune (call at 0xb8adc), cmp 78 / cmpstring (0xb8a40) / fromDecimal calls (0xb8a70, 0xb8a98), error returns.
+- HEAVY_PRIORITY=0 for the final janus verify (coordinator request).
