@@ -67,7 +67,7 @@ def emit(name, cuts):
     if not allnew: pdef = pdef.replace('∃ _u, ', '')
     st, _ = G.seg_stmt(int(cuts[0], 16), int(cuts[-1], 16), '%s s %s' % (L, ' '.join(invars)))
     st = st.replace('theorem g_%x_%x' % (A, Z), 'theorem c_%x_%x' % (A, Z))
-    out = HDR_IMPORTS(units) + '\nopen Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec\n\nnamespace Fv256.Arm64.R4Seg\nset_option linter.unusedSimpArgs false\nset_option linter.unusedVariables false\n\n' + pdef + '\n'
+    out = HDR_IMPORTS(units) + '\nopen Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec\nopen Fv256.Arm64.ReduceSpec\n\nnamespace Fv256.Arm64.R4Seg\nset_option linter.unusedSimpArgs false\nset_option linter.unusedVariables false\n\n' + pdef + '\n'
     out += 'set_option maxHeartbeats 64000000 in\nset_option maxRecDepth 200000 in\n' + st
     prev = dict(S='S', hpc='hpc', hR='hR', hM='hM', hL='hL', args=invars, hx=['hX%d' % j for j in range(len(pre_extra))])
     lines = []

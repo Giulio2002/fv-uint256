@@ -167,9 +167,11 @@ theorem g_114_120 (s S : State) (hpc : S.pc = BitVec.ofNat 64 (r4Entry + 0x114))
     · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Bool.toNat_true, Bool.toNat_false, hE_x114r0, hE_x114r1, hE_x114r2, hE_x114r3, hE_x114r4, hE_x114r5, hE_x114r6, hE_x114r7, hE_x114r8, hE_x114r9, hE_x114r10, hE_x114r11, hE_x114r12, hE_x114r13, hE_x114r14, hE_x114r15, hE_x114r16, hE_x114r17, hE_x114r19, hE_x114r20, hE_x114r21, hE_x114r22, hE_x114r23, hE_x114r24, hE_x114r25, hE_x114r26, hE_x114m8, hE_x114m16, hE_x114m24, hE_x114m32, hE_x114m40, hE_x114m48, hE_x114m56, hE_x114m64, hE_x114m72, hE_x114m80, hE_x114m88, hE_x114m96, hE_x114m104, hE_x114m112, hE_x114m120, hE_x114m128, hE_x114m136, hE_x114m144, hin1_0, hin1_1, hin1_2, hin1_3, hin1_4, hin1_5, hin1_6, hin1_7, hin2_0, hin2_1, hin2_2, hin2_3, hin3_0, hin3_1, hin3_2, hin3_3, hin3_4]
   · rfl
   · rfl
-  · refine ⟨hR.1, ?_, ?_⟩
+  · refine ⟨hR.1, ?_, ?_, ?_, ?_⟩
     · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)
-    · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)
+    · first | exact hR.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.1)
+    · first | exact hR.2.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2.1)
+    · first | exact hR.2.2.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2.2)
   · dsimp only
     repeat (refine R4Mem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)
     exact hM

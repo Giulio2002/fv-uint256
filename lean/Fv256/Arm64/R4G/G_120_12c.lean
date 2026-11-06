@@ -166,9 +166,11 @@ theorem g_120_12c (s S : State) (hpc : S.pc = BitVec.ofNat 64 (r4Entry + 0x120))
   · rfl
   · rfl
   · rfl
-  · refine ⟨hR.1, ?_, ?_⟩
+  · refine ⟨hR.1, ?_, ?_, ?_, ?_⟩
     · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)
-    · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)
+    · first | exact hR.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.1)
+    · first | exact hR.2.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2.1)
+    · first | exact hR.2.2.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2.2)
   · dsimp only
     repeat (refine R4Mem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)
     exact hM

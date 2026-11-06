@@ -402,4 +402,27 @@ def L2f4 (S : State) (x2f4r1 x2f4r2 x2f4r3 x2f4r4 x2f4r5 x2f4r6 x2f4r7 x2f4r8 x2
   (S.regs 9).toNat = x2f4r9 ∧
   (S.regs 12).toNat = x2f4r12
 
+def L310 (S : State) (x310r1 x310r2 x310r3 x310r4 x310r5 x310r6 x310r7 x310r8 x310r9 x310r10 x310r11 x310r12 x310r13 x310r14 x310r15 : Nat) : Prop :=
+  (S.regs 1).toNat = x310r1 ∧
+  (S.regs 2).toNat = x310r2 ∧
+  (S.regs 3).toNat = x310r3 ∧
+  (S.regs 4).toNat = x310r4 ∧
+  (S.regs 5).toNat = x310r5 ∧
+  (S.regs 6).toNat = x310r6 ∧
+  (S.regs 7).toNat = x310r7 ∧
+  (S.regs 8).toNat = x310r8 ∧
+  (S.regs 9).toNat = x310r9 ∧
+  (S.regs 10).toNat = x310r10 ∧
+  (S.regs 11).toNat = x310r11 ∧
+  (S.regs 12).toNat = x310r12 ∧
+  (S.regs 13).toNat = x310r13 ∧
+  (S.regs 14).toNat = x310r14 ∧
+  (S.regs 15).toNat = x310r15
+
+def L314 (S : State) (x314r3 x314r4 x314r6 x314r7 : Nat) : Prop :=
+  (S.regs 3).toNat = x314r3 ∧
+  (S.regs 4).toNat = x314r4 ∧
+  (S.regs 6).toNat = x314r6 ∧
+  (S.regs 7).toNat = x314r7
+
 end Fv256.Arm64.R4Seg
