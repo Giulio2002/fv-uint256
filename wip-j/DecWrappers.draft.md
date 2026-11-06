@@ -20,3 +20,11 @@ Source: uint256 master 48f3f44 decimal.go / conversion.go. Spec base: Fv256.I.de
  => needs Exp, MulOverflow, GtUint64 summaries (all verified on at least arm64/amd64 per COVERAGE) + strings.IndexByte (assembly/IndexByteString: needs a library contract or proof) + type switch on iface (type descriptor pointers in rodata: TD of string / []byte).
  Order of work: FromDecimal -> UnmarshalText (needs hex) -> UnmarshalJSON -> MustFromDecimal -> Scan (heaviest).
 ## Hypotheses to take: hsfd : Summary (Extracted.program.link impl) sfdEntry SfdTopPre SfdTopPost and hif hnew hmg hmv hwb1 hwb2 as in SfdPw.pw_sum.
+
+## Findings 2026-11-06 late (amd64 code shape, SfdTopSpec 0e29fd7)
+- SfdTopSpec: structure SfdCfg (all binary addresses as fields), TopPre/TopPost/SfdSummary C P entry R R2 T b L lo hi z pS nS; window lo+4800 <= RSP.
+- UnmarshalText (72 instrs): len>=2 && b[0]=='0' && b[1] in {x,X} -> runtime.slicebytetostring (SBTS runtime contract, allocates via mallocgc => heap model R/R2/b/L like SetFromDecimal's) then (*Int).fromHex; else slicebytetostring then SetFromDecimal. Needs: SBTS contract (pin 655a23fa has slicebytetostringSpec with staticuint64s addr), fromHex library summary (FV-C hex family / SetFromHex), SfdSummary.
+- UnmarshalJSON (52): unquoted -> same as text's decimal branch; quoted -> tail call/jump UnmarshalText on input[1:len-1].
+- FromDecimal (44) / MustFromDecimal (45): newobject(Int) + SetFromDecimal (+ gopanic for Must).
+- Scan (95): type switch + scanScientificFromString (IndexByte, Exp, MulOverflow, GtUint64).
+- All of them share the heap/runtime-model plumbing of SetFromDecimal (R, R2, T, b, L, hif hnew hmg hmv hwb1 hwb2): the wrappers' Pre should be TopPre-like for the callee plus the wrapper's own stack window; start with UnmarshalJSON/UnmarshalText once FV-I3's top proof (extCfg) closes, since every wrapper needs `extCfg` to instantiate SfdSummary on Extracted.
