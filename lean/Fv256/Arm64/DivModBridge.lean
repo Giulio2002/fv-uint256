@@ -51,9 +51,12 @@ theorem reaches_lift {lib P : Program} (hc : CodeIn lib P) (impl : List Segment)
   | stub _ _ _ => exact hq.elim
 
 theorem retAddr_lib {lib P : Program} {impl : List Segment} {ret : Nat}
-    (hsegs : ∀ seg ∈ lib.segments, seg ∈ P.segments) (hstubs : ∀ st ∈ lib.stubs, st ∈ P.stubs)
+    (hsegs : ∀ seg ∈ lib.segments, seg ∈ P.segments) (hstubs : ∀ st ∈ lib.stubs, ∃ st' ∈ P.stubs, st'.addr = st.addr)
     (h : RetAddr (P.link impl) ret) : RetAddr lib ret :=
   ⟨h.aligned, h.user, fun seg hs => h.notCode seg (by simp only [Program.link, List.mem_append]; exact Or.inl (hsegs seg hs)),
-    fun st hs => h.notStub st (by simpa using hstubs st hs)⟩
+    fun st hs => by
+      obtain ⟨st', hst', hadr⟩ := hstubs st hs
+      have := h.notStub st' (by simpa using hst')
+      rw [← hadr]; exact this⟩
 
 end Fv256.Arm64.DivModBridge

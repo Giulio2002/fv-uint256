@@ -26,7 +26,7 @@ set_option maxRecDepth 200000 in
 theorem hsegsDM : ∀ seg ∈ Fv256.Arm64.DivModProg.program.segments, seg ∈ Extracted.program.segments := by decide
 
 set_option maxRecDepth 200000 in
-theorem hstubsDM : ∀ st ∈ Fv256.Arm64.DivModProg.program.stubs, st ∈ Extracted.program.stubs := by decide
+theorem hstubsDM : ∀ st ∈ Fv256.Arm64.DivModProg.program.stubs, ∃ st' ∈ Extracted.program.stubs, st'.addr = st.addr := by decide
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
