@@ -119,4 +119,33 @@ theorem top_ge (x0 x1 x2 x3 n : Nat) (hx0 : x0 < 2 ^ 64) (hx1 : x1 < 2 ^ 64) (hx
   have hv0' := hv0
   omega
 
+set_option maxRecDepth 100000 in
+theorem word_or (a b n : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) (h1 : 1 ≤ n) (h2 : n ≤ 63) :
+    (b * 2 ^ n % 2 ^ 64 ||| (BitVec.ofNat 64 a >>> ((18446744073709551616 - n - 18446744073709551552) % 64)).toNat) =
+      b * 2 ^ n % 2 ^ 64 + a / 2 ^ (64 - n) := by
+  have e1 : 18446744073709551616 - n - 18446744073709551552 = 64 - n := by
+    rw [Nat.sub_right_comm]
+  have e : (18446744073709551616 - n - 18446744073709551552) % 64 = 64 - n := by rw [e1]; exact Nat.mod_eq_of_lt (by omega)
+  rw [e, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, Nat.mod_eq_of_lt ha]
+  have hp : 2 ^ 64 = 2 ^ n * 2 ^ (64 - n) := by rw [← Nat.pow_add, show n + (64 - n) = 64 by omega]
+  have hp' : 2 ^ 64 = 2 ^ (64 - n) * 2 ^ n := by rw [Nat.mul_comm]; exact hp
+  have hq : a / 2 ^ (64 - n) < 2 ^ n := by
+    rw [Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)]; rw [← hp]; exact ha
+  have hm : b * 2 ^ n % 2 ^ 64 = (b % 2 ^ (64 - n)) * 2 ^ n := by
+    rw [hp']; exact Nat.mul_mod_mul_right (2 ^ n) b (2 ^ (64 - n))
+  rw [hm, Nat.or_comm, Util.or_hi _ _ n hq, Nat.add_comm]
+set_option maxRecDepth 100000 in
+theorem word_lt (a b n : Nat) (ha : a < 2 ^ 64) (h2 : n ≤ 63) :
+    b * 2 ^ n % 2 ^ 64 + a / 2 ^ (64 - n) < 2 ^ 64 := by
+  have hp : 2 ^ 64 = 2 ^ n * 2 ^ (64 - n) := by rw [← Nat.pow_add, show n + (64 - n) = 64 by omega]
+  have hp' : 2 ^ 64 = 2 ^ (64 - n) * 2 ^ n := by rw [Nat.mul_comm]; exact hp
+  have hq : a / 2 ^ (64 - n) < 2 ^ n := by
+    rw [Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)]; rw [← hp]; exact ha
+  have hm : b * 2 ^ n % 2 ^ 64 = (b % 2 ^ (64 - n)) * 2 ^ n := by
+    rw [hp']; exact Nat.mul_mod_mul_right (2 ^ n) b (2 ^ (64 - n))
+  rw [hm]
+  have h1 : b % 2 ^ (64 - n) + 1 ≤ 2 ^ (64 - n) := Nat.mod_lt _ (Nat.two_pow_pos _)
+  have h3 : (b % 2 ^ (64 - n) + 1) * 2 ^ n ≤ 2 ^ (64 - n) * 2 ^ n := Nat.mul_le_mul_right _ h1
+  rw [Nat.add_mul, ← hp'] at h3
+  omega
 end Fv256.Arm64.RecipNat
