@@ -80,6 +80,11 @@ set_option maxHeartbeats 4000000 in
 theorem model_gr : RtLiveContract linked grA 4096 R growsliceSpec growsliceLive := by
   janus_live_growslice (u8A, 1, 0) 1 0 1 16 8 hok_gr
 
+-- NOTE (2026-11-06): the arm64 result registers are x0 = ptr, x1 = len + 32, x2 = cap, x3 = x4 = 0 (nil error); the statement
+-- above was ported from amd64 and still says `s'.regs 3 = len + 32#64` / `(s'.regs 2)` for the cap -- fix to
+-- `s'.regs 1 = len + 32#64`, `(s'.regs 2).toNat` as cap, `s'.regs 0` as ptr when this skeleton is compiled.
+-- BLOCK 3: its continuation is the epilogue (pc entry + 0x154), whose BI cannot keep `lle : len + 8 <= len0 + 32`
+-- (len' = len0 + 32); use a relaxed final invariant (drop lle/lc-for-next) or an `Or` in `lle` for the last block.
 -- DESIGN FINDING (witness drafting): the statement above (and the amd64/arm64 block lemmas) assume
 -- `Outside u8T 256 R.rt` (used to read the element type's size/ptrdata through the frame, `hOutU` in blk0). The generic
 -- toy runtime `toyR tys ok` owns the type descriptors: `R.rt = [heap, bump, wbuf] ++ [(u8A, u8A + 16)]` (see `rt_eq` in
