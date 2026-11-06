@@ -33,8 +33,8 @@ theorem g_b47_b9f {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     and_intros
     · first | exact hE_xb47rcx | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_xb47rcx)
     · exact hB_xb47rcx
-    · first | with_reducible rfl | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; split <;> rfl) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; with_reducible rfl) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact (ofNat_mod64 _).symm) | (simp [setRegF]; done) | (simp [setRegF, BitVec.ofNat_toNat]; done) | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; rw [BitVec.ofNat_toNat, BitVec.setWidth_eq]; done) | (simp [setRegF]; bv_omega)
-    · first | exact Nat.mod_lt _ (by decide) | exact BitVec.isLt _ | (split <;> decide)
+    · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; split <;> rfl
+    · split <;> decide
     · first | exact hE_xb47rbx | (simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; exact hE_xb47rbx)
     · exact hB_xb47rbx
     · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_xb47m40

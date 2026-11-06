@@ -29,6 +29,17 @@ def load(A, B):
     else:
         eqs = [tuple(x) for x in eval(open(D + 'c_%x_%x.eqs' % (A, B)).read())]
     return dict(A=A, B=B, kind=kind, pname=pname, invars=invars, newvars=newvars, outargs=outargs, eqs=eqs, thm='%s_%x_%x' % (kind, A, B))
+def units_renamed(cuts):
+    cuts = [int(c, 16) for c in cuts]
+    units = [load(a, b) for a, b in zip(cuts, cuts[1:])]
+    for k in range(1, len(units)):
+        u = units[k]; actual = units[k - 1]['outargs']
+        mp = dict(zip(u['invars'], actual))
+        sub = lambda s: re.sub(r'\bx[0-9a-f]+[a-z0-9]+\b', lambda m: mp.get(m.group(0), m.group(0)), s)
+        u['eqs'] = [(n, sub(e)) for n, e in u['eqs']]
+        u['outargs'] = [mp.get(a, a) for a in u['outargs']]
+        u['invars'] = actual
+    return units
 def emit(name, cuts):
     cuts = [int(c, 16) for c in cuts]
     units = [load(a, b) for a, b in zip(cuts, cuts[1:])]
