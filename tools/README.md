@@ -11,3 +11,10 @@ Everything here only produces Lean source or runs checkers; every proof is still
 - Rules learned: never edit `Util.lean`/`Spec.lean` while a `janus verify` runs (stale-input error); write `(by omega)` in parentheses when more tactics follow on the line; `try tac` swallows following lines, write `(try tac)`.
 - No absolute paths: everything is relative to `FV_ROOT`; build outputs stay in `$FV_ROOT/build` (so each git worktree has its own).
 - Obsolete one-off generators were removed; `gen2/` holds the current ones.
+
+## AddMod / Exp goal-extraction pipeline (FV-F)
+- `mkex.py OUT IDX file.lean`: turn the IDX-th `case` of a `trace_state` dump (a janus64_run run with `all_goals trace_state; sorry`) into a standalone `example` (hyps filtered).
+- `mkabs.py` / `mkabsG.py`: same, but abstract the `readLE s.mem (v.toNat + k) 8` atoms into Nat variables `sv0..3` / `tv0..3` -> one Extracted-free lemma per goal shape (`AddModShapes.lean`, `AddModShapesG.lean`).
+- `genG1.py`, `emitG2.py`, `build_gen.py`: generate the per-goal bullets for AddModGen (no-overflow `gA_i` lemmas, overflow closers with `omega_s`).
+- `gen_exploop.py`: ExpLoop2/3/4 from ExpLoop1; `gen_expmain.py`: ExpMain loop-entry blocks.
+- Lessons: bullets per goal (no `first | ..` over big contexts); `with_reducible apply`; drop disjointness disjunctions before omega (`omega_s`, `omega_e`) or state them as `Apart`.

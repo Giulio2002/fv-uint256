@@ -1,6 +1,7 @@
 import Fv256.UtilB
 import Fv256.UdivremMath
 import Fv256.SpecF
+import Fv256.SpecB2
 
 namespace Fv256.F
 open Fv256.B
@@ -138,5 +139,75 @@ theorem shr1_w64 (w : Nat) (hw : w < 2 ^ 64) : (BitVec.ofNat 64 w >>> 1) = BitVe
   apply BitVec.eq_of_toNat_eq
   simp [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow]
   omega
+
+
+/-- three 16-byte zero stores at `p`, `p+16`, `p+24` clear five words -/
+theorem wv_zero5 (m : Janus.Arm64.Memory) (p q r : Nat) (h1 : q = p + 16) (h2 : r = p + 24) :
+    wv (((m.writeLE p 16 0).writeLE q 16 0).writeLE r 16 0) p 5 = 0 := by
+  subst h1 h2
+  have e : ∀ a, p ≤ a → a + 8 ≤ p + 40 → (a - p) % 8 = 0 → (((m.writeLE p 16 0).writeLE (p + 16) 16 0).writeLE (p + 24) 16 0).readLE a 8 = 0 := by
+    intro a h1 h2 h8
+    rcases (by omega : a + 8 ≤ p + 16 ∨ (p + 16 ≤ a ∧ a + 8 ≤ p + 24) ∨ (p + 24 ≤ a ∧ a + 8 ≤ p + 40)) with h | h | h
+    · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+        Janus.Arm64.Memory.readLE_writeLE_inside _ _ h1 h]
+      simp
+    · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega), Janus.Arm64.Memory.readLE_writeLE_inside _ _ h.1 (by omega)]
+      simp
+    · rw [Janus.Arm64.Memory.readLE_writeLE_inside _ _ h.1 h.2]
+      simp
+  simp only [wv, e p (by omega) (by omega) (by omega), e (p + 8) (by omega) (by omega) (by omega),
+    e (p + 8 + 8) (by omega) (by omega) (by omega), e (p + 8 + 8 + 8) (by omega) (by omega) (by omega),
+    e (p + 8 + 8 + 8 + 8) (by omega) (by omega) (by omega)]
+
+theorem wv_zero5' (m : Janus.Arm64.Memory) (p q r : Nat) (h1 : q = p + 16) (h2 : r = p + 24) :
+    wv (((m.writeLE p 16 (BitVec.toNat (0 : BitVec 128))).writeLE q 16 (BitVec.toNat (0 : BitVec 128))).writeLE r 16
+      (BitVec.toNat (0 : BitVec 128))) p 5 = 0 := by
+  have e : BitVec.toNat (0 : BitVec 128) = 0 := rfl
+  rw [e]
+  exact wv_zero5 m p q r h1 h2
+
+
+theorem add4_val (x0 x1 x2 x3 y0 y1 y2 y3 : Nat) (hx0 : x0 < 2 ^ 64) (hx1 : x1 < 2 ^ 64) (hx2 : x2 < 2 ^ 64) (hx3 : x3 < 2 ^ 64)
+    (hy0 : y0 < 2 ^ 64) (hy1 : y1 < 2 ^ 64) (hy2 : y2 < 2 ^ 64) (hy3 : y3 < 2 ^ 64) :
+    ((y0 + x0) % 18446744073709551616) + 18446744073709551616 * ((y1 + x1 + (decide (18446744073709551616 ≤ y0 + x0)).toNat) % 18446744073709551616) + 340282366920938463463374607431768211456 * ((y2 + x2 + (decide (18446744073709551616 ≤ y1 + x1 + (decide (18446744073709551616 ≤ y0 + x0)).toNat)).toNat) % 18446744073709551616) + 6277101735386680763835789423207666416102355444464034512896 * ((y3 + x3 + (decide (18446744073709551616 ≤ y2 + x2 + (decide (18446744073709551616 ≤ y1 + x1 + (decide (18446744073709551616 ≤ y0 + x0)).toNat)).toNat)).toNat) % 18446744073709551616) = ((x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) + (y0 + 18446744073709551616 * y1 + 340282366920938463463374607431768211456 * y2 + 6277101735386680763835789423207666416102355444464034512896 * y3)) % 2 ^ 256 := by
+  simp only [Nat.reducePow] at *
+  janus_carry
+
+theorem add4_flag (x0 x1 x2 x3 y0 y1 y2 y3 : Nat) (hx0 : x0 < 2 ^ 64) (hx1 : x1 < 2 ^ 64) (hx2 : x2 < 2 ^ 64) (hx3 : x3 < 2 ^ 64)
+    (hy0 : y0 < 2 ^ 64) (hy1 : y1 < 2 ^ 64) (hy2 : y2 < 2 ^ 64) (hy3 : y3 < 2 ^ 64) :
+    (decide (18446744073709551616 ≤ y3 + x3 + (decide (18446744073709551616 ≤ y2 + x2 + (decide (18446744073709551616 ≤ y1 + x1 + (decide (18446744073709551616 ≤ y0 + x0)).toNat)).toNat)).toNat)).toNat = ((x0 + 18446744073709551616 * x1 + 340282366920938463463374607431768211456 * x2 + 6277101735386680763835789423207666416102355444464034512896 * x3) + (y0 + 18446744073709551616 * y1 + 340282366920938463463374607431768211456 * y2 + 6277101735386680763835789423207666416102355444464034512896 * y3)) / 2 ^ 256 := by
+  simp only [Nat.reducePow] at *
+  janus_carry
+
+theorem noov_of (c : Prop) [Decidable c] (h : (if c then (1#64) else (0#64)).toNat = 0) : (decide c).toNat = 0 := by
+  by_cases hc : c
+  · simp [hc] at h
+  · simp [hc]
+
+theorem ov_of (c : Prop) [Decidable c] (h : ¬ (if c then (1#64) else (0#64)).toNat = 0) : (decide c).toNat = 1 := by
+  by_cases hc : c
+  · simp [hc]
+  · simp [hc] at h
+
+theorem close_mod (Z X Y M L : Nat) (hL : L = (X + Y) % 2 ^ 256) (hno : (X + Y) / 2 ^ 256 = 0)
+    (hz : Z = Fv256.B.modSpec L M) : Z = addmodSpec X Y M := by
+  have h1 : (X + Y) % 2 ^ 256 = X + Y := Nat.mod_eq_of_lt (by
+    rcases Nat.lt_or_ge (X + Y) (2 ^ 256) with h | h
+    · exact h
+    · have := Nat.div_pos h (by decide); omega)
+  rw [hz, hL, h1]
+  unfold Fv256.B.modSpec addmodSpec
+  rfl
+
+theorem dec_div (A : Nat) (h : A < 2 * 18446744073709551616) :
+    (decide (18446744073709551616 ≤ A)).toNat = A / 18446744073709551616 := by
+  by_cases hc : 18446744073709551616 ≤ A
+  · simp only [hc, decide_true, Bool.toNat_true]; omega
+  · simp only [hc, decide_false, Bool.toNat_false]; omega
+
+theorem mod_dec (S E M k : Nat) (h : S = E + k * M) (hE : E < M) : S % M = E := by
+  subst h
+  rw [Nat.add_comm, Nat.mul_comm, Nat.mul_add_mod]
+  exact Nat.mod_eq_of_lt hE
 
 end Fv256.F

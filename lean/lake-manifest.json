@@ -1,7 +1,7 @@
 {"version": "1.2.0",
  "packagesDir": ".lake/packages",
  "packages":
- [{"url": "https://github.com/Giulio2002/Janus",
+ [{"url": "/srv/janus",
    "type": "git",
    "subDir": null,
    "scope": "",

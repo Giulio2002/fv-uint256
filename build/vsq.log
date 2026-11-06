@@ -1,0 +1,15 @@
+Kept workspace: /srv/janus-ops/jcache-shared/v1/consumer/22911f2cdbd3defee197aa02/49f52ba96dc485425bca3499
+  Use: cd /srv/janus-ops/jcache-shared/v1/consumer/22911f2cdbd3defee197aa02/49f52ba96dc485425bca3499/root && lake env lean YourScratch.lean   (Extracted is /srv/janus-ops/jcache-shared/v1/consumer/22911f2cdbd3defee197aa02/49f52ba96dc485425bca3499/janus/.lake/build/lib/lean/Extracted.olean)
+  Untruncated goals: add -Dpp.deepTerms=true -Dpp.proofs=true -Dpp.maxSteps=1000000000 to lean
+  (diagnostics only: janus never reads it back, and `janus cache gc` may remove an unused one)
+Invalid: Lean rejected the proof module Fv256/Arm64/Sqrt.lean (or a module it imports).
+Lean errors (1):
+  lean/Fv256/Arm64/Sqrt.lean:1:0: error: object file 'lean/.lake/build/lib/lean/Fv256/Arm64/SqrtBig.olean' of module Fv256.Arm64.SqrtBig does not exist
+  Stage: proof checking
+  Next: Fix the proof. It must import Extracted and prove Fv256.Arm64.Sqrt.correctness. The complete, untruncated Lean output is in build/ex-arm64-Sqrt/diag/Fv256.Arm64.Sqrt.lean.lean-output.log.
+Details:
+lean/Fv256/Arm64/Sqrt.lean:1:0: error: object file 'lean/.lake/build/lib/lean/Fv256/Arm64/SqrtBig.olean' of module Fv256.Arm64.SqrtBig does not exist
+
+real	9m31.303s
+user	0m7.578s
+sys	0m2.452s

@@ -1,5 +1,9 @@
-scratch/
-*.o
 build/
-wip/
+jcache/
 NOTES.md
+stage/
+tools/__pycache__/
+wip/
+wip-d/logs/
+wip-d/*.out
+wip-d/*.time

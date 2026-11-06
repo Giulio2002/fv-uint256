@@ -1,0 +1,29 @@
+Fv256/Arm64/Sqrt.lean:55:8: error: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  s.regs 30
+in the target expression
+  SqrtSum.SqPre s
+
+case refine_1
+z x : BitVec 64
+ret : Nat
+hret : RetAddr Extracted.program ret
+s : State
+hsu : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s
+hg : GuardOK s 448
+hs : StackOK s 488 24
+hsp : 488 ≤ BitVec.toNat s.sp
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 488 ∨ BitVec.toNat s.sp + 24 ≤ BitVec.toNat (s.regs 28) + 16
+hz : s.mem.accessible z.toNat 32 true = true
+hz' : z.toNat + 32 ≤ 2 ^ 48
+hx : s.mem.accessible x.toNat 32 false = true
+hx' : x.toNat + 32 ≤ 2 ^ 48
+hdz : Disjoint z.toNat 32 (BitVec.toNat s.sp - 488) 512
+hdx : Disjoint x.toNat 32 (BitVec.toNat s.sp - 488) 512
+h30 : s.regs 30 = BitVec.ofNat 64 ret
+h0 : s.regs 0 = z
+h1 : s.regs 1 = x
+⊢ SqrtSum.SqPre s
+
+real	0m2.517s
+user	0m2.790s
+sys	0m0.348s

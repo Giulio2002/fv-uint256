@@ -16,6 +16,8 @@ GO="${GO:-$(command -v go || true)}"
 [ -n "$GO" ] && [ -x "$GO" ] || { echo "error: no Go toolchain found: set GO=/path/to/go or put go on PATH (Go >= 1.21; it downloads go1.26.0 itself)"; exit 2; }
 # the proofs depend on the pinned Janus revision through lake (lean/lakefile.toml): fetch it once
 if [ ! -d lean/.lake/packages/janus ]; then (cd lean && lake update janus) || { echo "lake update janus failed"; exit 2; }; fi
+# ToBig's proof imports the IntoBig modules re-targeted at ToBig's extraction (generated, not committed)
+[ -f lean/Fv256/Arm64/ToBig.lean ] && bash scripts/gen-tb-intobig.sh lean
 # per-function extraction flags (runtime contracts); see scripts/contract-flags.sh
 . "$root/scripts/contract-flags.sh"
 if [ -z "${SKIP_HARNESS:-}" ]; then
@@ -38,10 +40,12 @@ for row in "${rows[@]}"; do
     case "$st" in verified*|partial*) ;; *) continue;; esac
     out="build/ex-$isa-$fn"
     cflags="$(contract_flags "$fn")"
-    wt=(); if [ -n "${WITNESS:-}" ] && grep -q "theorem nonvacuous" "lean/Fv256/$dir/$fn.lean"; then wt=(--theorem "Fv256.$dir.$fn.Witness.nonvacuous"); fi
+    # proof module: Fn.lean, or FnMain.lean when the main theorem lives there (split proofs)
+    pf="$fn"; if ! grep -q "theorem correctness" "lean/Fv256/$dir/$fn.lean" 2>/dev/null && [ -f "lean/Fv256/$dir/${fn}Main.lean" ]; then pf="${fn}Main"; fi
+    wt=(); if [ -n "${WITNESS:-}" ] && grep -q "theorem nonvacuous" "lean/Fv256/$dir/$pf.lean"; then wt=(--theorem "Fv256.$dir.$pf.Witness.nonvacuous"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
-       timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$fn.lean" --proof-root lean \
-         --theorem "Fv256.$dir.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
+       timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
+         --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
     table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "$r")"$'\n'
   done
 done
