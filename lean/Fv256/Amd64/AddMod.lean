@@ -26,10 +26,10 @@ theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.AddModProg.program Ex
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 100000 in
-theorem hdata : Extracted.program.data = Fv256.AddModProg.program.data := by decide
+theorem hdata : Extracted.program.data = Fv256.AddModProg.program.data := rfl
 
 theorem hdl (m : Janus.Arm64.Memory) : Extracted.program.DataLoaded m ↔ Fv256.AddModProg.program.DataLoaded m := by
-  unfold Program.DataLoaded; rw [hdata]
+  unfold Amd64.Program.DataLoaded; rw [hdata]
 
 theorem hentry : Fv256.Amd64.AddModSum.addmodEntry = Extracted.entry := by decide
 

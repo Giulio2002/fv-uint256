@@ -36,7 +36,7 @@ def closer(i):
 {bh}  have hv := Fv256.F.add4_val {xs} {bs}
   have hf := Fv256.F.add4_flag {xs} {bs}
   simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-  have ho := Fv256.F.ov_of _ hbr
+  have ho := Fv256.F.ov_of _ (by assumption)
   rw [key]
   unfold Fv256.F.addmodSpec
   rw [if_neg (by omega_s)]

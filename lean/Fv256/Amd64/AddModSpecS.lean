@@ -14,7 +14,7 @@ namespace Fv256.Amd64.AddModSpecS
 
 abbrev AddPre (p : Janus.Amd64.Program) (s : State) : Prop :=
   (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
-  0x380 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x300 ∧ StackWritable s 0x348 0x28 ∧ p.DataLoaded s.mem ∧
+  0x380 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x300 ∧ StackWritable s 0x348 0x28 ∧ p.DataLoaded s.mem ∧ s.xmm 15 = 0 ∧
   Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧ Buffer s (s.regs 7) 32 false ∧
   ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0x348 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 0).toNat) ∧
   ((s.regs 3).toNat + 32 ≤ (s.regs 4).toNat - 0x348 ∨ (s.regs 4).toNat + 0x28 ≤ (s.regs 3).toNat) ∧

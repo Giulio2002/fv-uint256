@@ -41,7 +41,7 @@ set_option profiler true in
 set_option profiler.threshold 20000 in
 theorem gen :
     Summary Fv256.AddModProg.program addmodEntry (fun s => AddPre Fv256.AddModProg.program s ∧ ¬ AddCase s) AddPost := by
-  intro s hpc ⟨⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, hdata, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hdg, hdgz⟩, hcase⟩
+  intro s hpc ⟨⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, hdata, hx15, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hdg, hdgz⟩, hcase⟩
   unfold AddPost
   unfold AddCase at hcase
   generalize hz0 : s.regs 0 = z at *
@@ -95,7 +95,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s)
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s)
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -135,7 +135,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -174,7 +174,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -214,7 +214,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s)
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) 0 (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (by omega_s)
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -253,7 +253,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -294,7 +294,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -333,7 +333,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -372,7 +372,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -413,7 +413,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -452,7 +452,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -493,7 +493,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -532,7 +532,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -571,7 +571,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -612,7 +612,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -651,7 +651,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -690,7 +690,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (z.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (z.toNat)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (z.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -731,7 +731,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -770,7 +770,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
@@ -809,7 +809,7 @@ theorem gen :
     have hv := Fv256.F.add4_val (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     have hf := Fv256.F.add4_flag (Janus.Arm64.Memory.readLE s.mem (x.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (x.toNat + 24) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 8) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 16) 8) (Janus.Arm64.Memory.readLE s.mem (y.toNat + 24) 8) (Fv256.Util.readLE8_lt s.mem (x.toNat)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (x.toNat + 24)) (Fv256.Util.readLE8_lt s.mem (y.toNat)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 8)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 16)) (Fv256.Util.readLE8_lt s.mem (y.toNat + 24))
     simp only [Nat.mul_zero, Nat.zero_add, Nat.add_zero, Nat.reducePow] at hv hf
-    have ho := Fv256.F.ov_of _ hbr
+    have ho := Fv256.F.ov_of _ (by assumption)
     rw [key]
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega_s)]
