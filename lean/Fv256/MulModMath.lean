@@ -93,17 +93,21 @@ def reduceR (x m q : Nat) : Nat :=
   let r0 := (a + 2 ^ 320 - b) % 2 ^ 320
   if a < b then r0 + m else r0
 
-theorem reduceR_spec (x m q : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (hm2 : m < 2 ^ 256)
-    (hq1 : q * m ≤ x) (hq2 : x < (q + 4) * m) :
+/-- if the quotient estimate `q` is at most `k - 1` too small (`k ≤ 2^63`), the 320-bit remainder (plus one `m` after a borrow)
+is congruent to `x` modulo `m` and still below `2^320` (so the final `while r ≥ m: r -= m` loop yields `x mod m`). -/
+theorem reduceR_spec (x m q k : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (hm2 : m < 2 ^ 256) (hk : k ≤ 2 ^ 63)
+    (hq1 : q * m ≤ x) (hq2 : x < (q + k) * m) :
     reduceR x m q < 2 ^ 320 ∧ reduceR x m q % m = x % m := by
   have hm0 : 0 < m := by omega
-  have hd : x - q * m < 4 * m := by
-    have : (q + 4) * m = q * m + 4 * m := by rw [Nat.add_mul]
+  have hd : x - q * m < k * m := by
+    have : (q + k) * m = q * m + k * m := by rw [Nat.add_mul]
     omega
-  have h256 : 4 * m < 2 ^ 258 := by
-    have : 2 ^ 258 = 4 * 2 ^ 256 := by rw [show (258:Nat) = 2 + 256 by rfl, Nat.pow_add]
+  have hkm : k * m + m ≤ 2 ^ 320 - 1 := by
+    have h1 : k * m ≤ 2 ^ 63 * m := Nat.mul_le_mul_right m hk
+    have h2 : 2 ^ 63 * m ≤ 2 ^ 63 * 2 ^ 256 := Nat.mul_le_mul_left _ (Nat.le_of_lt hm2)
+    have h3 : 2 ^ 63 * 2 ^ 256 = 2 ^ 319 := by rw [← Nat.pow_add]
+    have h4 : 2 ^ 319 + 2 ^ 256 + 1 ≤ 2 ^ 320 := by decide
     omega
-  have h320 : 2 ^ 258 + 2 ^ 256 < 2 ^ 320 := by decide
   obtain ⟨d, hdd⟩ : ∃ d, d = x - q * m := ⟨_, rfl⟩
   have hxd : x = q * m + d := by omega
   have hdlt : d + m < 2 ^ 320 := by omega
@@ -119,5 +123,20 @@ theorem reduceR_spec (x m q : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (hm2
   · rw [if_neg hab, e1]
     refine ⟨by omega, ?_⟩
     rw [hxd, Nat.mul_comm q m, Nat.mul_add_mod]
+
+/-- truncating the low partial products of the product `P` to `T ≤ P < T + N` loses at most one unit of `⌊P / N⌋` -/
+theorem trunc_est (P T N : Nat) (hN : 0 < N) (h1 : T ≤ P) (h2 : P < T + N) :
+    T / N ≤ P / N ∧ P / N ≤ T / N + 1 := by
+  have a1 : N * (T / N) + T % N = T := Nat.div_add_mod T N
+  have a2 : N * (P / N) + P % N = P := Nat.div_add_mod P N
+  have b1 := Nat.mod_lt T hN
+  have b2 := Nat.mod_lt P hN
+  constructor
+  · exact Nat.div_le_div_right h1
+  · refine Nat.le_of_not_lt (fun hc => ?_)
+    have hc' : T / N + 2 ≤ P / N := by omega
+    have : N * (T / N + 2) ≤ N * (P / N) := Nat.mul_le_mul_left N hc'
+    rw [Nat.mul_add] at this
+    omega
 
 end Fv256.F
