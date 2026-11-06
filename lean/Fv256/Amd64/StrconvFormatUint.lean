@@ -25,8 +25,8 @@ theorem tabs_frame_out {M M' : Memory} (h : TabsOK M) {rs : List (Nat × Nat)} (
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady)
-    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady)
+    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H (slicebytetostringSpec st)) :
     Summary (Fv256.DecProg.program.link impl) fu
       (fun s => s.regs 3 = 10#64 ∧ (s.regs 0).toNat < 2 ^ 64 ∧ StackGuardOK s 0 ∧ StackWritable s (0x58 + 4096) 8 ∧
         (s.regs 4).toNat % 8 = 0 ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧ TabsOK s.mem ∧
@@ -143,7 +143,7 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
           (18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat))) 0 32 := fun h => h.elim
       janus64_run [hmask, hmask2] calls [hc]
       rename_i _ w9 w8 _ _ _ _ _ w2 _ _ hleft hright
-      obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
+      obtain ⟨⟨hr1, hr2, hr3, hr4⟩, -⟩ := hright
       have eL : 18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat)) = decLen (s.regs 0).toNat := by omega
       have eA : (s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48 = (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) := by omega
       rw [eL, eA] at hr1 hr4

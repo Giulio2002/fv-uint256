@@ -9,10 +9,10 @@ open Fv256.E
 
 namespace Fv256.Arm64.Dec
 
-theorem dec_summary_E {E : Janus.Program} (hE : Fv256.Arm64.LinkEq.LibIn Fv256.Arm64.DecProg.program E)
+theorem dec_summary_E (st : Nat) {E : Janus.Program} (hE : Fv256.Arm64.LinkEq.LibIn Fv256.Arm64.DecProg.program E)
     (hss : E.contractAddr "runtime.slicebytetostring" = ssAddrL)
     (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract (E.link impl) (E.contractAddr "runtime.slicebytetostring") rt 4096 H slicebytetostringSpec) :
+    (hc : RtContract (E.link impl) (E.contractAddr "runtime.slicebytetostring") rt 4096 H (slicebytetostringSpec st)) :
     Summary (E.link impl) decE
       (fun s => s.regs 0 = z ∧ GuardOK s 688 ∧ StackOK s 4608 8 ∧ E.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4608) (4608 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
@@ -31,7 +31,7 @@ theorem dec_summary_E {E : Janus.Program} (hE : Fv256.Arm64.LinkEq.LibIn Fv256.A
   have hP := hE.progEq impl
   rw [hss] at hc
   have hc' := Fv256.Arm64.LinkEq.Summary.of_progEq hP.symm hc
-  have hsum := Fv256.Arm64.LinkEq.Summary.of_progEq hP (dec_summary _ rt H z hc')
+  have hsum := Fv256.Arm64.LinkEq.Summary.of_progEq hP (dec_summary st _ rt H z hc')
   intro s hpc ⟨h0, h1, h2, h3, h4⟩
   exact hsum s hpc ⟨h0, h1, h2, Fv256.Arm64.LinkEq.DataLoaded.of_subset hE.data h3, h4⟩
 

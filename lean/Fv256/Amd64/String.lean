@@ -14,7 +14,7 @@ namespace Fv256.Amd64.String
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
+    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => StackGuardOK s (0x378 + 24) ∧ StackWritable s 4592 8 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4592) (4592 + 8) rt ∧ Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧
@@ -64,7 +64,7 @@ def implAt : List Amd64.Segment := [{ name := "model", base := ssAddr, bytes := 
 def linked : Amd64.Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
 theorem linked_eq : Extracted.program.link implAt = linked := rfl
 
-theorem model : RtContract64 (Extracted.program.link implAt) ssAddr rtW 4096 H0 slicebytetostringSpec := by
+theorem model : RtContract64 (Extracted.program.link implAt) ssAddr rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») := by
   rw [linked_eq]
   rintro s hpc ⟨⟨hra, hal, hsb, hsa, hacc⟩, -, -, -, hH⟩
   have ha := ready_of rfl hH
@@ -72,7 +72,7 @@ theorem model : RtContract64 (Extracted.program.link implAt) ssAddr rtW 4096 H0 
   janus64_run
   apply rtPost_const <;> (try rfl) <;> (try simp [retAddrOf]) <;> (try simp [setRegF])
   simp only [slicebytetostringSpec] at ha ⊢
-  simp [ha, Spec.strBytes]
+  simp [ha, Spec.strBytes, StrAt]
 
 def ret : Nat := 0x200000
 def sp0 : Nat := 0x100000
@@ -132,7 +132,7 @@ theorem pre : StackGuardOK s0 (0x378 + 24) ∧ StackWritable s0 4592 8 ∧ Extra
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
-    RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec ∧
+    RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s (0x378 + 24) ∧ StackWritable s 4592 8 ∧ Extracted.program.DataLoaded s.mem ∧

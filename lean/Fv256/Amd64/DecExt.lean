@@ -21,7 +21,7 @@ theorem hLib : Fv256.LinkEq.LibIn Fv256.DecProg.program Extracted.program :=
   ⟨by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩
 
 theorem dec_summary_ext (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
+    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Summary (Extracted.program.link impl) decE
       (fun s => s.regs 0 = z ∧ StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4568) (4568 + 8) rt ∧ Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧
@@ -38,6 +38,6 @@ theorem dec_summary_ext (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H 
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
         s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])) :=
-  dec_summary_E hLib (by decide) impl rt H z hc
+  dec_summary_E Extracted.dataAddr.«runtime.staticuint64s» hLib (by decide) impl rt H z hc
 
 end Fv256.Amd64.Dec

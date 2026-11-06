@@ -47,8 +47,8 @@ theorem zeroStr_read {M : Memory} (hd : Fv256.DecProg.program.DataLoaded M) :
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem dec_summary (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H (slicebytetostringSpec st)) :
     Summary (Fv256.DecProg.program.link impl) decE
       (fun s => s.regs 0 = z ∧ StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Fv256.DecProg.program.DataLoaded s.mem ∧
         Outside ((s.regs 4).toNat - 4568) (4568 + 8) rt ∧ Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧
@@ -156,7 +156,7 @@ theorem dec_summary (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     have hX5 : (s.regs 4).toNat - 376 + 86 + (98 - decLen v) + decLen v ≤ 281474976710656 := by omega
     janus64_run [hdE, q2, q13, q4, q5, q14, hdlm, hX9] calls [hc]
     rename_i w9 w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright
-    obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
+    obtain ⟨⟨hr1, hr2, hr3, hr4⟩, -⟩ := hright
     have hdig : Spec.strBytes S2.mem ((s.regs 4).toNat - 376 + 86 + (98 - decLen v)) (decLen v) = decBytes v :=
       strBytes_dec _ _ _ (fun k hk => by
         have := qdig k hk
@@ -205,7 +205,7 @@ theorem dec_summary (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         omega
       have hl0 : s.mem.readLE z.toNat 8 = v := by have := hvl.1; omega
       have hv64 : v < 2 ^ 64 := by omega
-      have hfu := formatUint_summary impl rt H hc
+      have hfu := formatUint_summary st impl rt H hc
       have hdl20 := decLen_le_20 v hv64
       have hdl1 := decLen_pos v
       have hHf : 100 ≤ v → H [0, (s.regs 4).toNat - 384 - 32 + (24 - decLen v), decLen v] (s.regs 14).toNat

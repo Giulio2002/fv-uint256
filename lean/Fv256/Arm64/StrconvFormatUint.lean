@@ -42,8 +42,8 @@ theorem tabs_frame_out {M M' : Janus.Arm64.Memory} (h : TabsOK M) {rs : List (Na
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 /-- Summary of `internal/strconv.FormatUint(u, 10)` (arm64): the result string holds the decimal digits of `u`. -/
-theorem formatUint_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
-    (hc : RtContract (Fv256.Arm64.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+theorem formatUint_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
+    (hc : RtContract (Fv256.Arm64.DecProg.program.link impl) ssAddrL rt 4096 H (slicebytetostringSpec st)) :
     Summary (Fv256.Arm64.DecProg.program.link impl) fu
       (fun s => s.regs 1 = 10#64 ∧ GuardOK s 96 ∧
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4192 ∨ s.sp.toNat ≤ (s.regs 28).toNat + 16) ∧ s.sp.toNat % 16 = 0 ∧ 4192 ≤ s.sp.toNat ∧ s.sp.toNat < 2 ^ 48 ∧
@@ -185,7 +185,7 @@ theorem formatUint_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : R
         rw [e1, e2]; exact hH2
       janus_run [hmask, hmask2] calls [hc]
       rename_i p l _ _ _ _ w2 _ _ hleft hright _
-      obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
+      obtain ⟨⟨hr1, hr2, hr3, hr4⟩, -⟩ := hright
       have eL : 18446744073709551616 - (24 - decLen (s.regs 0).toNat) - 18446744073709551592 = decLen (s.regs 0).toNat := by omega
       have eA : 24 - decLen (s.regs 0).toNat + (s.sp.toNat - 32) = s.sp.toNat - 32 + (24 - decLen (s.regs 0).toNat) := by omega
       rw [eL, eA] at hr1 hr4
