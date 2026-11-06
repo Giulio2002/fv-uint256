@@ -6,6 +6,7 @@ import Fv256.UtilI
 import Fv256.SumC64
 import Fv256.Amd64.SfdEnv
 import Fv256.Amd64.SfdTePre
+import Fv256.Amd64.SfdTeLem
 
 /-!
 # `strconv.toError(fn, s, base, bitSize, err)` for `err == ErrSyntax` (amd64), as a callee of `strconv.ParseUint`
@@ -222,6 +223,8 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
           simp only [Apart, hesn] at hA
           have hA2 := (by with_reducible assumption : Apart strconvErrSyntax 16 _ 48)
           simp only [Apart, hesn] at hA2
+          have hA3 := (‹ApartAll _ 48 L ∧ Apart _ 48 _ _›).2
+          simp only [Apart] at hA3
         case c5 => te_walk
         case c6 => te_walk
         case c7 => te_walk
@@ -231,16 +234,17 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
         case c12 => te_inv
         case c11 =>
           intro k hk
-          have hCop := (‹Mem.Copied _ _ _ sp.toNat sl.toNat›)
-          have e : ∀ k, k < sl.toNat → _ := fun k hk => congrArg BitVec.toNat (hCop k hk)
-          simp only [← Janus.Arm64.Memory.readLE_one] at e
-          te_walk
-          rw [e k hk]
-          rcases hspR with ho | hi
-          · te_walk
-          · te_walk
+          try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
+          refine te_copy (hM := rfl) (hApt := hA3) (hk := hk) (hsl := hQsl) ?hLF ?d1 ?d2 ?d3 ?hCop ?hsrc
+          case hLF => with_reducible assumption
+          case d1 => te_omega
+          case d2 => te_omega
+          case d3 => te_omega
+          case hCop => with_reducible assumption
+          case hsrc => exact te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj)
         all_goals sorry
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
+      trace_state
       all_goals sorry
     all_goals sorry
   all_goals (exfalso; exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption))

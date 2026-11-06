@@ -159,6 +159,7 @@ macro "te_atom" : tactic => `(tactic| first
 macro "te_disch" : tactic => `(tactic| first
   | with_reducible assumption
   | trivial
+  | exact True.intro
   | (exact inRanges_last ⟨by te_omega, by te_omega⟩)
   | (exact inRanges_pen ⟨by te_omega, by te_omega⟩)
   | (simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
@@ -194,7 +195,10 @@ elab "te_walk" : tactic => withMainContext do
     if d.isImplementationDetail then continue
     if d.userName == `hF then continue
     let ty ← instantiateMVars d.type
-    if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
+    if ty.isAppOf ``Janus.LiveFrame && (ty.getArg! 3).isAppOf ``List.nil then
+      let h ← Term.exprToSyntax d.toExpr
+      rules := rules.push (← `(Janus.LiveFrame.readLE_nil $h))
+    else if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
       let h ← Term.exprToSyntax d.toExpr
       rules := rules.push (← `(($h).readLE))
   evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]))
