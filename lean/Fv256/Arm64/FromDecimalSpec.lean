@@ -160,7 +160,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
     intro a n h1 h2
     exact hF.readLE a n (by rw [outside_append]; exact ⟨h1, h2⟩)
   have hMod' := hMod
-  obtain ⟨m1, md8, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11⟩ := hMod'
+  obtain ⟨m1, md8, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12⟩ := hMod'
   have hzP : Outside zv.toNat 32 R2.priv := outside_of_in hz _ hInit.2.2.2.2 m4
   have hzS : ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(zv.toNat, zv.toNat + 32)] := by
     intro r hr
@@ -173,7 +173,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
   unfold TopPre
   refine ⟨h30a, h30b, hr0, hr1, hr2, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · -- Mod
-    refine ⟨m1, md8, m2, m3, m4, ?_, m6, m7, m8, m9, m10, m11⟩
+    refine ⟨m1, md8, m2, m3, m4, ?_, m6, m7, m8, m9, m10, m11, m12⟩
     intro r hr
     rcases List.mem_append.1 hr with h | h
     · exact m5 r h

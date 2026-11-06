@@ -70,12 +70,21 @@ def Env (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi
 /-- the state-independent runtime-model facts.  `R2.depth` is the interface model's stack allowance: the bytes below `SP`
 that the `runtime.ifaceeq` contract (reached through `strconv.toError`'s error-interface comparison) may use.  `8 ≤ R2.depth`
 is not new: it is the model's own well-formedness condition in Janus (`Janus/Contracts/Iface.lean`, line 84, the contract's
-call precondition: the callee window excludes the caller's saved-FP slot `[SP-8, SP)`), and the witness model satisfies it. -/
+call precondition: the callee window excludes the caller's saved-FP slot `[SP-8, SP)`), and the witness model satisfies it.
+
+The descriptor `T` of the `internal/strconv.Error` type is a type of the interface model (`R2.IsType T`), so by `R2.Laws.type_desc` it
+lies INSIDE `R2.priv`: its range `(T, T+48)` is therefore excluded from the "outside `R2.priv`" requirement (requiring it made
+`Mod` and `Env` contradictory, see `Fv256.Arm64.SfdTopSpec.mod_contra_old` in `SfdWitReg`).  Its three descriptor facts
+(regular memory, not a direct interface, size 8: the Go runtime's type descriptors are static, read-only data) are a law of
+the model instead, `hT`: they hold in every memory in which the model's environment `R2.Env` holds, so they survive any call
+that preserves `R2.Env`. -/
 def Mod (R : RtInv) (R2 : IfaceModel) (T : Nat) (L : List (Nat × Nat)) : Prop :=
   R2.Laws ∧ 8 ≤ R2.depth ∧ R2.depth ≤ 4096 ∧ R2.IsType T ∧ (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧ (∀ r ∈ R.rt, 0 < r.1) ∧
-  (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R2.priv) ∧
-  R.ok C.newobject [C.numErrType] ∧ R.ok C.wb1 [1] ∧ R.ok C.wb2 [2]
+  (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges C T, r ≠ (T, T + 48) → Outside r.1 (r.2 - r.1) R2.priv) ∧
+  R.ok C.newobject [C.numErrType] ∧ R.ok C.wb1 [1] ∧ R.ok C.wb2 [2] ∧
+  (∀ (m : Janus.Arm64.Memory) (g : BitVec 64), R2.Env m g →
+    isRegularMemory m T = true ∧ isDirectIface m T = false ∧ tySize m T = 8)
 
 /-- the facts about a 1..19-byte chunk `(sp, sl)` that `strconv.ParseUint` may copy for its error value -/
 def ChunkOK (R : RtInv) (R2 : IfaceModel) (L : List (Nat × Nat)) (b : Nat) (sp sl : BitVec 64) (lo hi : Nat)
