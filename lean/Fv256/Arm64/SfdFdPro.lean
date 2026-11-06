@@ -14,7 +14,6 @@ def FdInv (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
   S.regs 0 = z ∧ S.regs 1 = pS ∧ S.regs 3 = BitVec.ofNat 64 i ∧ S.regs 2 = nS - BitVec.ofNat 64 (19 * i) ∧
   (19 * i < nS.toNat → S.regs 4 = nS - BitVec.ofNat 64 (19 * i)) ∧
   S.sp = s0.sp - 160#64 ∧ S.regs 29 = s0.sp - 168#64 ∧ S.regs 28 = s0.regs 28 ∧ S.regs 18 = s0.regs 18 ∧
-  S.regs 30 = s0.regs 30 ∧
   MemFrame s0.mem S.mem [(lo, hi), (z.toNat, z.toNat + 32)] ∧
   S.mem.readLE (s0.sp.toNat - 160) 8 = (s0.regs 30).toNat ∧ S.mem.readLE (s0.sp.toNat - 168) 8 = (s0.regs 29).toNat ∧
   S.mem.readLE (s0.sp.toNat + 8) 8 = z.toNat ∧ S.mem.readLE (s0.sp.toNat + 16) 8 = pS.toNat ∧
@@ -49,7 +48,7 @@ theorem fd_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
     unfold FdInv
     have hsp16 : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
       simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
-    refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, ?r30, ?mf, ?m1, ?m2, ?m3, ?m4, ?tab, ?val, ?env, ?fb, ?ad⟩
+    refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, ?mf, ?m1, ?m2, ?m3, ?m4, ?tab, ?val, ?env, ?fb, ?ad⟩
     case r0 => simp [setReg_apply, h0]
     case r1 => simp [setReg_apply, h1]
     case r3 => simp [setReg_apply]
@@ -59,7 +58,6 @@ theorem fd_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
     case r29 => simp [setReg_apply]
     case r28 => simp [setReg_apply]
     case r18 => simp [setReg_apply]
-    case r30 => simp [setReg_apply]
     case mf =>
       repeat' first
         | exact MemFrame.refl _ _

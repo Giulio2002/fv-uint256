@@ -34,7 +34,7 @@ theorem fd_to_pw (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat)
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 pw) S
       (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) (pS + (nS - BitVec.ofNat 64 (19 * i + 19))) 19#64 S1) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
-  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, r30, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
+  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
   have hS2 : (S.regs 2).toNat = nS.toNat - 19 * i := by
     rw [r2]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := nS.isLt; omega
   have hS4 : (S.regs 4).toNat = nS.toNat - 19 * i := by
@@ -98,7 +98,7 @@ theorem fd_to_pw_small (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 pw) S
       (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) pS (nS - BitVec.ofNat 64 (19 * i)) S1) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
-  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, r30, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
+  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
   have hS2 : (S.regs 2).toNat = nS.toNat - 19 * i := by
     rw [r2]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := nS.isLt; omega
   have hS4 : (S.regs 4).toNat = nS.toNat - 19 * i := by
