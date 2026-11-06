@@ -21,3 +21,6 @@ Do experiments only on scratch copies (build/lscr.sh, 300 s cap); never edit the
 - The prefix has 8 paths (BitLen-style BSR chain on 4 limbs, each guarded by `test rdx,rdx`). Branch conditions have the form `(sshiftRight (if z=0 then -1 else ... BitVec.ofNat 64 (63 - clzNat 64 z)) +1 + ...) .toNat = 0`; infeasible ones need `Fv256.SqrtHead`/`Util.clz_bl`-style facts (see amd64 BitLen.lean and SqrtHead.cl_ne_zero for the pattern).
 - Port plan: FV-C's wip/ArmHex.lean.wip has hexbase/hexstep/hexloop (arm64); HexLemmas.lean has st16*, iter_vals, dig_limb. Statement shape: amd64 String.lean (fv/we) is the template (RtContract64 + slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s», rt, H on string ptr sp-112+38+(64-n), len n+2; witness with toy slicebytetostring `constCode64 0 0 0`).
 - Then: Witness.nonvacuous, ONE verify of both theorems, COVERAGE row, report.
+
+## Hex amd64: VERIFIED 2026-11-06 18:01 (correctness + Witness.nonvacuous in one run, 5m01, pin 655a23fa)
+Hex.lean complete (hexstep/hexbase/hexloop, nibble BitVec lemmas, witness with 3-byte-copy toy slicebytetostring). hH is conditional on the actual digit count. build/lihm.sh = fast main iteration (hexstep/hexbase stubbed).
