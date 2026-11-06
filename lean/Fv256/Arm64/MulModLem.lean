@@ -88,6 +88,11 @@ theorem tail_udiv (M1 M : Memory) (p a a1 a2 a3 b1 b2 b3 X Y D : Nat) (hD : D �
   rw [← hw]
   exact hrem
 
+theorem ge192' (a b c d : Nat) (h : d ≠ 0) :
+    2 ^ 192 ≤ a + 2 ^ 64 * b + 2 ^ 128 * c + 2 ^ 192 * d := by
+  have : 1 ≤ d := Nat.pos_of_ne_zero h
+  omega
+
 theorem nz4 (a b c d : Nat) (h : d ≠ 0) :
     a + 18446744073709551616 * b + 340282366920938463463374607431768211456 * c +
       6277101735386680763835789423207666416102355444464034512896 * d ≠ 0 := by omega
