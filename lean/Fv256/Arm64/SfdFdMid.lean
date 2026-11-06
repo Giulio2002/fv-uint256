@@ -16,12 +16,13 @@ theorem fd_ret_to_mid (impl : List Segment) (s' : State) (sp0 r : Nat) (RA : Nat
     (hr : s'.mem.readLE (s'.sp.toNat + 48) 8 = r) (hsp64 : s'.sp.toNat + 48 < 2 ^ 64) (hal : s'.sp.toNat % 16 = 0) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 mid) s'
       (fun S2 => S2.pc = BitVec.ofNat 64 mid ∧ S2.mem = s'.mem ∧ S2.sp = s'.sp ∧ S2.regs 0 = s'.regs 0 ∧ S2.regs 1 = s'.regs 1 ∧
-        S2.regs 4 = BitVec.ofNat 64 r ∧ S2.regs 28 = s'.regs 28 ∧ S2.regs 29 = s'.regs 29 ∧ S2.regs 18 = s'.regs 18) := by
+        S2.regs 4 = BitVec.ofNat 64 r ∧ S2.regs 28 = s'.regs 28 ∧ S2.regs 29 = s'.regs 29 ∧ S2.regs 18 = s'.regs 18 ∧
+        S2.flags = (addSub (BitVec.ofNat 64 r) 19#64 true).snd) := by
   rcases hRA with rfl | rfl
   all_goals
     janus_run [hacc, hr, Nat.mod_eq_of_lt hsp64, hal] until [mid]
     refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [mid, fd]) ?_
-    refine ⟨by first | rfl | simp [mid, fd], rfl, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp [setReg_apply]
+    refine ⟨by first | rfl | simp [mid, fd], rfl, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> first | rfl | simp [setReg_apply]
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
