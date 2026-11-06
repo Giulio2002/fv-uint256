@@ -31,15 +31,13 @@ theorem div64_goal (x y : Nat) (hx : x < 2 ^ 64) (hy : y ≠ 0) : x / y % 184467
   exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) (by simpa using hx))
 
 theorem mod64_goal (x y : Nat) (hx : x < 2 ^ 64) (hy : y ≠ 0) :
-    (18446744073709551616 - x / y * y % 18446744073709551616 + x) % 18446744073709551616 + 18446744073709551616 * 0 +
-      340282366920938463463374607431768211456 * 0 + 6277101735386680763835789423207666416102355444464034512896 * 0 =
+    (18446744073709551616 - x / y * y % 18446744073709551616 + x) % 18446744073709551616 =
     Fv256.B.modSpec x y := by
   rw [Fv256.B.modSpec_of_ne _ _ hy]
   have h3 : x / y * y ≤ x := Nat.div_mul_le_self _ _
   have h4 := Nat.mod_add_div x y
   have hx' : x < 18446744073709551616 := by simpa using hx
   rw [Nat.mod_eq_of_lt (by omega : x / y * y < 18446744073709551616)]
-  simp only [Nat.mul_zero, Nat.add_zero]
   have := Nat.mul_comm y (x / y)
   omega
 
@@ -199,14 +197,60 @@ theorem partB (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : N
     Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod,
     Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff,
     Fv256.B.bv128_zero_toNat, Nat.zero_div, Fv256.B.ne_zero_of_limbs] until [dm + 0x130] calls [hU]
-  all_goals (try simp only [Apart] at hdz0 hdx0 hdy0 hdm0 hzm0 hdz' hdx' hdy' hdm' hdg)
+  all_goals (try simp only [Apart] at hzm0)
   all_goals (try simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *)
   all_goals (try simp only [hnb, Fv256.B.xor_eq_zero_nat] at *)
+  case h =>
+    rename_i a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11
+    simp (config := { decide := true }) only [setReg_apply, ↓reduceIte] at a0 a1 a2 a3 a4 a5 a6 a8 a9
+    have hsp0 : st.sp.toNat = s.sp.toNat - 160 := hsp
+    obtain ⟨MM, hMM⟩ : ∃ MM, MM = ((((((((st.mem.writeLE (st.sp.toNat + 144) 8 m').writeLE (st.sp.toNat + 112) 8 0).writeLE
+        (st.sp.toNat + 120) 8 0).writeLE (st.sp.toNat + 128) 8 0).writeLE (st.sp.toNat + 136) 8 0).writeLE
+        (st.sp.toNat + 80) 8 0).writeLE (st.sp.toNat + 88) 8 0).writeLE (st.sp.toNat + 96) 8 0).writeLE (st.sp.toNat + 104) 8 0 := ⟨_, rfl⟩
+    have hMMf : MemFrame st.mem MM [(st.sp.toNat + 80, st.sp.toNat + 152)] := by
+      rw [hMM]; janus_frame
+    have hpcS : s'.pc = BitVec.ofNat 64 (dm + 0x130) := by
+      simp only [dm, reduceSegAddr, Nat.reduceAdd]; exact a0
+    have hsp2 : s'.sp = st.sp := a2
+    have hspb' : st.sp.toNat + 200 ≤ 2 ^ 48 := hspb
+    have e112 : (st.sp + 112#64).toNat = st.sp.toNat + 112 := by
+      simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
+    have e80 : (st.sp + 80#64).toNat = st.sp.toNat + 80 := by
+      simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
+    rw [e112] at a8
+    rw [e80] at a9
+    simp (config := { decide := true }) only [setReg_apply, ↓reduceIte, e112, e80] at a10
+    rw [← hMM] at a10 a8 a9
+    have hMM144 : MM.readLE (st.sp.toNat + 144) 8 = m' := by
+      rw [hMM]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+      exact Nat.mod_eq_of_lt (by omega)
+    obtain ⟨gf0, gf, g0, g1, g2, g3, g4, g5⟩ := Fv256.Arm64.DivMGlue.glue rt s.sp.toNat z.toNat x.toNat y.toNat m' ret (s.regs 29).toNat
+      s.mem st.mem MM s'.mem hb hxo0 hyo0 (by unfold Apart at hdx0; omega) (by unfold Apart at hdy0; omega) hfr (by rw [hsp0] at hMMf; exact hMMf) (by rw [hsp0] at hMM144; exact hMM144)
+      (by rw [hsp0] at a10; exact a10) (by rw [hsp0] at hretslot; exact hretslot) (by rw [hsp0] at hbp; exact hbp) (by rw [hsp0] at hz8; exact hz8)
+    have hyne : s.mem.readLE y.toNat 32 ≠ 0 := by rw [Util.readLE_32]; omega
+    have hS : s'.sp.toNat = s.sp.toNat - 160 := by rw [hsp2]; exact hsp0
+    rw [g4, g5] at a8
+    rw [g4, g5] at a9
+    have hq : Fv256.B.wv s'.mem (s'.sp.toNat + 112) 4 = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
+      rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a8, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
+      show _ = Fv256.B.divSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
+      rw [Fv256.B.divSpec_of_ne _ _ hyne]
+    have hr : Fv256.B.wv s'.mem (s'.sp.toNat + 80) 4 = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
+      rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a9, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
+      show _ = Fv256.B.modSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
+      rw [Fv256.B.modSpec_of_ne _ _ hyne]
+    have hC := partC rt z.toNat m' ret _ _ hret s s' hal hb ha (by unfold Apart at hdz0; omega) (by unfold Apart at hdm0; omega) hzm0 hza hma hpcS hS (by rw [a3]; exact h18) (by rw [a4]; exact h28)
+      gf0 hw hzb hmb (by rw [hS]; exact g0) (by rw [hS]; exact g1) (by rw [hS]; exact g2) (by rw [hS]; exact g3) hq hr
+    refine Fv256.H.reaches_mono hC ?_
+    intro o ho
+    cases o with
+    | returned S => 
+      obtain ⟨c1, c2, c3, c4, c5, c6⟩ := ho
+      exact ⟨c1, by rw [c2]; simp, _, c3, rfl, c4, c5, c6⟩
+    | stub _ _ _ => exact ho.elim
   all_goals (first
-    | (refine ⟨?_, m', rfl, rfl, ?_, ?_, ?_⟩)
-    | skip)
-  all_goals (first
-    | (apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; have := s.sp.isLt; omega; done)
+    | (refine ⟨?spgoal, m', rfl, rfl, ?_, ?_, ?_⟩
+       case spgoal => (apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; have := s.sp.isLt; omega))
     | skip)
   all_goals (first | janus_frame | skip)
   all_goals (
@@ -221,17 +265,17 @@ theorem partB (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : N
          (first
            | omega
            | (exfalso; omega)
-           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
-           | exact (Nat.div_eq_of_lt (by omega)).symm
-           | exact Fv256.B.div_congr _ _ _ (by omega)))
+           | with_reducible exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
+           | with_reducible exact (Nat.div_eq_of_lt (by omega)).symm
+           | with_reducible exact Fv256.B.div_congr _ _ _ (by omega)))
     | (rw [Fv256.B.modSpec]
        split <;>
          (first
            | omega
            | (exfalso; omega)
-           | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
-           | exact (Nat.mod_eq_of_lt (by omega)).symm
-           | exact Fv256.B.mod_congr _ _ _ (by omega)))
+           | with_reducible exact Fv256.B.zero_eq_mod_self _ _ (by omega)
+           | with_reducible exact (Nat.mod_eq_of_lt (by omega)).symm
+           | with_reducible exact Fv256.B.mod_congr _ _ _ (by omega)))
     | (exfalso; omega)
     | (have e1 : s.mem.readLE (y.toNat + 8) 8 = 0 := by omega
        have e2 : s.mem.readLE (y.toNat + 16) 8 = 0 := by omega
@@ -239,56 +283,8 @@ theorem partB (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : N
        rw [e1, e2, e3]
        simp only [Nat.mul_zero, Nat.add_zero]
        first
-         | exact div64_goal _ _ hx0 (by omega)
-         | exact mod64_goal _ _ hx0 (by omega))
+         | with_reducible exact div64_goal _ _ hx0 (by omega)
+         | with_reducible exact mod64_goal _ _ hx0 (by omega))
     | skip)
-  rename_i a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11
-  simp (config := { decide := true }) only [setReg_apply, ↓reduceIte] at a0 a1 a2 a3 a4 a5 a6 a8 a9
-  have hsp0 : st.sp.toNat = s.sp.toNat - 160 := hsp
-  obtain ⟨MM, hMM⟩ : ∃ MM, MM = ((((((((st.mem.writeLE (st.sp.toNat + 144) 8 m').writeLE (st.sp.toNat + 112) 8 0).writeLE
-      (st.sp.toNat + 120) 8 0).writeLE (st.sp.toNat + 128) 8 0).writeLE (st.sp.toNat + 136) 8 0).writeLE
-      (st.sp.toNat + 80) 8 0).writeLE (st.sp.toNat + 88) 8 0).writeLE (st.sp.toNat + 96) 8 0).writeLE (st.sp.toNat + 104) 8 0 := ⟨_, rfl⟩
-  have hMMf : MemFrame st.mem MM [(st.sp.toNat + 80, st.sp.toNat + 152)] := by
-    rw [hMM]; janus_frame
-  have hpcS : s'.pc = BitVec.ofNat 64 (dm + 0x130) := by
-    simp only [dm, reduceSegAddr, Nat.reduceAdd]; exact a0
-  have hsp2 : s'.sp = st.sp := a2
-  have hspb' : st.sp.toNat + 200 ≤ 2 ^ 48 := hspb
-  have e112 : (st.sp + 112#64).toNat = st.sp.toNat + 112 := by
-    simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
-  have e80 : (st.sp + 80#64).toNat = st.sp.toNat + 80 := by
-    simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
-  rw [e112] at a8
-  rw [e80] at a9
-  simp (config := { decide := true }) only [setReg_apply, ↓reduceIte, e112, e80] at a10
-  rw [← hMM] at a10 a8 a9
-  have hMM144 : MM.readLE (st.sp.toNat + 144) 8 = m' := by
-    rw [hMM]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
-    exact Nat.mod_eq_of_lt (by omega)
-  obtain ⟨gf0, gf, g0, g1, g2, g3, g4, g5⟩ := Fv256.Arm64.DivMGlue.glue rt s.sp.toNat z.toNat x.toNat y.toNat m' ret (s.regs 29).toNat
-    s.mem st.mem MM s'.mem hb hxo0 hyo0 hdx0 hdy0 hfr (by rw [hsp0] at hMMf; exact hMMf) (by rw [hsp0] at hMM144; exact hMM144)
-    (by rw [hsp0] at a10; exact a10) (by rw [hsp0] at hretslot; exact hretslot) (by rw [hsp0] at hbp; exact hbp) (by rw [hsp0] at hz8; exact hz8)
-  have hyne : s.mem.readLE y.toNat 32 ≠ 0 := by rw [Util.readLE_32]; omega
-  have hS : s'.sp.toNat = s.sp.toNat - 160 := by rw [hsp2]; exact hsp0
-  rw [g4, g5] at a8
-  rw [g4, g5] at a9
-  have hq : Fv256.B.wv s'.mem (s'.sp.toNat + 112) 4 = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
-    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a8, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
-    show _ = Fv256.B.divSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
-    rw [Fv256.B.divSpec_of_ne _ _ hyne]
-  have hr : Fv256.B.wv s'.mem (s'.sp.toNat + 80) 4 = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
-    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a9, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
-    show _ = Fv256.B.modSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
-    rw [Fv256.B.modSpec_of_ne _ _ hyne]
-  have hC := partC rt z.toNat m' ret _ _ hret s s' hal hb ha hdz0 hdm0 hzm0 hza hma hpcS hS (by rw [a3]; exact h18) (by rw [a4]; exact h28)
-    gf0 hw hzb hmb (by rw [hS]; exact g0) (by rw [hS]; exact g1) (by rw [hS]; exact g2) (by rw [hS]; exact g3) hq hr
-  refine Fv256.H.reaches_mono hC ?_
-  intro o ho
-  cases o with
-  | returned S => 
-    obtain ⟨c1, c2, c3, c4, c5, c6⟩ := ho
-    exact ⟨c1, by rw [c2]; simp, _, c3, rfl, c4, c5, c6⟩
-  | stub _ _ _ => exact ho.elim
-
 
 end Fv256.Arm64.DivModLib
