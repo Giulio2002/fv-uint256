@@ -25,10 +25,12 @@ abbrev P : Program := Fv256.Arm64.SfdProg.program
 def Mod (R : RtInv) (R2 : IfaceModel) (T : Nat) (L : List (Nat × Nat)) : Prop :=
   R2.Laws ∧ 8 ≤ R2.depth ∧ R2.depth ≤ 4096 ∧ R2.IsType T ∧ (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧ (∀ r ∈ R.rt, 0 < r.1) ∧
-  (∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) R2.priv) ∧
+  (∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges T, r ≠ (T, T + 48) → Outside r.1 (r.2 - r.1) R2.priv) ∧
   R.ok (P.contractAddr "runtime.newobject") [numErrType] ∧
   R.ok (P.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-  R.ok (P.contractAddr "runtime.gcWriteBarrier2") [2]
+  R.ok (P.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+  (∀ (m : Janus.Arm64.Memory) (g : BitVec 64), R2.Env m g →
+    isRegularMemory m T = true ∧ isDirectIface m T = false ∧ tySize m T = 8)
 
 /-- the facts about the string `(sp, sl)` being copied -/
 def ChunkOK (R : RtInv) (R2 : IfaceModel) (L : List (Nat × Nat)) (b : Nat) (sp sl : BitVec 64) (lo hi : Nat)
