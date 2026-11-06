@@ -23,6 +23,7 @@ def parse(dis):
         m=re.match(r'\s*([0-9a-f]+):\s+((?:[0-9a-f]{2} )+)\s*(.*)$',line.rstrip())
         if not m: continue
         addr=int(m.group(1),16); text=m.group(3).strip()
+        if not text: continue
         mn,_,ops=text.partition(' '); ops=ops.strip()
         rd=set(); wr=set(); mrd=set(); mwr=set()
         parts=[p.strip() for p in re.split(r',(?![^\[]*\])',ops)] if ops else []
@@ -72,7 +73,7 @@ def parse(dis):
             use(parts[0]); use(parts[1]); setd(parts[0])
         elif mn=='div':
             use(parts[0]); rd.update(['rax','rdx']); wr.update(['rax','rdx'])
-        elif mn in ('nop','push','pop','ret','call','jmp') or mn.startswith('j'):
+        elif mn in ('nop','xchg','data16','push','pop','ret','call','jmp') or mn.startswith('j'):
             pass
         else:
             raise Exception('unknown '+text)
