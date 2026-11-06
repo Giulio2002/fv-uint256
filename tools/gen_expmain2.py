@@ -45,14 +45,14 @@ def hand(j,k,c,ind):
 {sp}  simp only [hmin{s}] at {minat}
 {sp}  have hretS{s} : Arm64.Memory.readLE S{s}.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
 {sp}    rw [hfr{s}.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-{sp}  janus64_run [{runlist}] until [Extracted.entry + {hd}]
+{sp}  janus64_run [{runlist}] until [Fv256.Amd64.ExpSum.expEntry + {hd}]
 {sp}  refine Fv256.Amd64.{lmod}.{lname} s _ {NNs} (BitVec.toNat (s.regs 0)) ({EP}) {B8} hn0 (by omega_e) hnw hacc {t_next} {64*j} {Rj} {Bj} {Ej} _ (by omega_e) ?inv{j+1}_{k} ?hex{j+1}_{k}
 {sp}  · unfold Fv256.Amd64.{lmod}.{inv}
 """
     nconj={2:27,3:27,4:26}[j+1]
     out+=f"{sp}    refine ⟨{', '.join(['?_']*nconj)}⟩\n"
     b=[]
-    b.append(f"simp [setRegF, Fv256.Amd64.{lmod}.{head}, Extracted.entry]")
+    b.append(f"simp [setRegF, Fv256.Amd64.{lmod}.{head}, Fv256.Amd64.ExpSum.expEntry]")
     b.append("omega_e")
     b.append(f"exact hr{s}")
     b.append(f"exact hb{s}")
