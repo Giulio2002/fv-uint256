@@ -30,44 +30,47 @@ namespace Fv256.Arm64.Value
 
 abbrev cvAddr : Nat := Extracted.program.contractAddr "runtime.convTstring"
 
+/-- the readiness the live `slicebytetostring` contract gives `Dec`'s single call -/
+def HL (R : RtInv) : RtReady :=
+  liveReady R.rt (LiveCallRt R ssAddr 4096 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive)
+
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Segment) (R : RtInv) (rt : List (Nat × Nat)) (hrt : R.rt = rt) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»))
+theorem correctness (impl : List Segment) (R : RtInv) (z : BitVec 64)
+    (hc0 : RtLiveContract (Extracted.program.link impl) ssAddr 4096 R (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive)
     (hc2 : RtLiveContract (Extracted.program.link impl) cvAddr 4096 R convTstringSpec convTstringLive) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => GuardOK s (4096 + 32) ∧ Outside ((s.regs 28).toNat + 16) 8 R.rt ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧
-        Outside (s.sp.toNat - 4640) (4640 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧ Outside 960826 256 rt ∧
+        Outside (s.sp.toNat - 4640) (4640 + 8) R.rt ∧ Outside 989280 256 R.rt ∧ Outside 1002589 256 R.rt ∧ Outside 960826 256 R.rt ∧
         Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
         (2 ^ 64 ≤ val256 s.mem z.toNat →
-          H [0, s.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
-            (s.regs 28).toNat (s.sp.toNat - 32 - 384) (rtView rt s.mem)) ∧
+          HL R [0, s.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 32 - 384) (rtView R.rt s.mem)) ∧
         (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
-          H [0, s.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
-            (s.regs 28).toNat (s.sp.toNat - 32 - 384 - 96) (rtView rt s.mem)) ∧
+          HL R [0, s.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 32 - 384 - 96) (rtView R.rt s.mem)) ∧
         (∀ (M : Janus.Arm64.Memory) (p l : Nat),
-          MemFrame s.mem M (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
+          MemFrame s.mem M (R.rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
           (val256 s.mem z.toNat < 100 → MemFrame s.mem M [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
           StrOut M p l (decBytes (val256 s.mem z.toNat)) →
-          DecAt rt 989280 1002589 960826 p l →
+          DecAt R.rt 989280 1002589 960826 p l →
           ∃ (L : List (Nat × Nat)) (b : Nat),
             LiveAt R cvAddr [p, l] L b (convTstringLive.cost [p, l] M) (s.regs 28).toNat M
               [(s.sp.toNat - 32 - 4096, s.sp.toNat - 32 - 8), (s.sp.toNat - 32 + 8, s.sp.toNat - 32 + 8 + 8 * 2)] ∧
-            (InRanges p l rt → InRanges p l L)))
+            (InRanges p l R.rt → InRanges p l L)))
       (fun s s' => s'.regs 0 = Extracted.dataAddr.«type:string#f88732b8» ∧
-        (∃ p l, BoxWords' rt s'.mem (s'.regs 1).toNat [p, l] ∧ StrOut s'.mem p l (decBytes (val256 s.mem z.toNat))) ∧
+        (∃ p l, BoxWords' R.rt s'.mem (s'.regs 1).toNat [p, l] ∧ StrOut s'.mem p l (decBytes (val256 s.mem z.toNat))) ∧
         s'.regs 2 = 0 ∧ s'.regs 3 = 0 ∧
-        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)])) := by
+        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)])) := by
   rintro ret hret s hs ⟨hg, hgo, hst, hd, hout, hrt1, hrt2, hrt3, ⟨hza, hzn⟩, hzd, hgd, hH, hH1, hLive⟩
-  subst hrt
   janus_intro hs
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, h4640, hsp2, hwa⟩ := hst
   simp only [val256, Fv256.Util.readLE_32] at hH hH1 ⊢
   have hdE : decE = 754624 := by unfold decE; decide
   have hcE : decE + 0x5000 < 2 ^ 47 := by decide
-  janus_run [hdE] until [754556] calls [dec_summary_ext impl R.rt H z hc]
+  janus_run [hdE] until [754556] calls [dec_summary_ext impl R.rt (HL R) z (hc0.ready rfl)]
   grab_last_const Janus.MemFrame as hFRimp
   have hFR : MemFrame ((s.mem.writeLE (BitVec.toNat s.sp - 32) 8 ret).writeLE (BitVec.toNat s.sp - 40) 8 (BitVec.toNat (s.regs 29))) s'.mem
       (R.rt ++ [(BitVec.toNat s.sp - 32 - 4608, BitVec.toNat s.sp - 32 - 8)]) := by assumption
