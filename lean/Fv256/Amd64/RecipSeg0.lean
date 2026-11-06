@@ -28,15 +28,34 @@ def RecPre (s : State) : Prop :=
 /-- `r0`: the 32-bit first approximation of `2^63 / yh` (`yh` the top 32 bits of the normalised top word) -/
 def r0f (y3 : Nat) : Nat := if y3 / 2 ^ 32 = 2 ^ 31 then 2 ^ 32 - 1 else 2 ^ 63 / (y3 / 2 ^ 32)
 
-/-- the state at `recEntry + 0xe7` (both `yh = 2^31` and not merge here): `RAX = r0`, `RSI = y3`, the normalised copy of `m` in the local `y`,
-the spilled `bsr` index, the frame -/
+/-- registers that stay fixed through the body: `RSP` after the prologue, `RBP`, `R14`, `X15` -/
+def RecRegs (s S : State) : Prop :=
+  S.regs 4 = s.regs 4 - 0x238#64 ∧ S.regs 5 = s.regs 4 - 8#64 ∧ S.regs 14 = s.regs 14 ∧ S.xmm 15 = 0
+
+/-- memory facts that stay true through the body (all later stores go to other scratch slots): the top word `y3` of the normalised copy
+`y` of `m` (local at `sp-544`), the spilled `bsr` index at `sp-16`, `y = m << clz`, the frame -/
+def RecMem (s : State) (M : Memory) (y3 : Nat) : Prop :=
+  y3 = M.readLE ((s.regs 4).toNat - 520) 8 ∧
+  M.readLE ((s.regs 4).toNat - 16) 8 = 63 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8) ∧
+  M.readLE ((s.regs 4).toNat - 544) 32 =
+    Fv256.Spec.lsh (s.mem.readLE (s.regs 0).toNat 32) (Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8)) ∧
+  MemFrame s.mem M [((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)]
+
+/-- a store of `k` bytes at `a`, inside the frame and apart from `y` and the spilled index, keeps `RecMem` -/
+theorem RecMem.write {s : State} {M : Memory} {y3 : Nat} (h : RecMem s M y3) (a k v : Nat) (hsp : 576 ≤ (s.regs 4).toNat)
+    (h1 : (s.regs 4).toNat - 576 ≤ a) (h2 : a + k ≤ (s.regs 4).toNat + 48)
+    (hy : a + k ≤ (s.regs 4).toNat - 544 ∨ (s.regs 4).toNat - 512 ≤ a)
+    (hp : a + k ≤ (s.regs 4).toNat - 16 ∨ (s.regs 4).toNat - 8 ≤ a) : RecMem s (M.writeLE a k v) y3 := by
+  obtain ⟨h3, h4, h5, h6⟩ := h
+  refine ⟨?_, ?_, ?_, h6.writeLE v (r := ((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)) (by simp) h1 h2⟩
+  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h3
+  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h4
+  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h5
+
+/-- the state at `recEntry + 0xe7` (both `yh = 2^31` and not merge here): `RAX = r0`, `RSI = y3` -/
 def RecQ0 (s S' : State) : Prop := ∃ y3 : Nat,
   S'.regs 0 = BitVec.ofNat 64 (r0f y3) ∧ S'.regs 6 = BitVec.ofNat 64 y3 ∧
-  y3 = S'.mem.readLE ((s.regs 4).toNat - 520) 8 ∧ 2 ^ 63 ≤ y3 ∧ y3 < 2 ^ 64 ∧
-  S'.regs 4 = s.regs 4 - 0x238#64 ∧ S'.regs 5 = s.regs 4 - 8#64 ∧ S'.regs 14 = s.regs 14 ∧ S'.xmm 15 = 0 ∧
-  S'.mem.readLE ((s.regs 4).toNat - 16) 8 = 63 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8) ∧
-  valueAt S' (s.regs 4 - 544#64) 32 = Fv256.Spec.lsh (valueAt s (s.regs 0) 32) (Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8)) ∧
-  MemFrame s.mem S'.mem [((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)]
+  RecRegs s S' ∧ RecMem s S'.mem y3 ∧ 2 ^ 63 ≤ y3 ∧ y3 < 2 ^ 64
 
 set_option maxRecDepth 100000 in
 theorem hcLsh : Janus.Contracts.EqHashModel.CodeIn64 Fv256.LshProg.program Fv256.RecipProg.program :=
@@ -72,14 +91,12 @@ theorem seg0 (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : RecPre
     calls [hS := Fv256.CodeIn.lib_summary hcLsh (Fv256.Amd64.LshNorm.lsh_norm_summary (s.regs 4 - 0x220#64) (s.regs 0))]
   all_goals (
     have hfr := (show MemFrame _ s'.mem [((s.regs 4).toNat - 544, (s.regs 4).toNat - 544 + 32)] by janus_assumption)
-    unfold RecQ0
-    refine ⟨s'.mem.readLE ((s.regs 4).toNat - 520) 8, ?_, ?_, rfl, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    unfold RecQ0 RecRegs RecMem
+    refine ⟨s'.mem.readLE ((s.regs 4).toNat - 520) 8, ?_, ?_, ⟨?_, ?_, ?_, ?_⟩, ⟨rfl, ?_, ?_, ?_⟩, ?_, ?_⟩
     · first
         | (unfold r0f; rw [if_pos (by omega)]; simp [setRegF])
         | (unfold r0f; rw [if_neg (by omega)]; simp [setRegF])
     · simp [setRegF]
-    · omega
-    · omega
     · dsimp only at *; simp [setRegF] at *; bv_omega
     · dsimp only at *; simp [setRegF] at *; bv_omega
     · dsimp only at *; simp [setRegF] at *; bv_omega
@@ -103,6 +120,8 @@ theorem seg0 (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : RecPre
           | refine MemFrame.writeLE ?_ _ (r := ((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)) (by simp) (by dsimp only; omega) (by dsimp only; omega)
       · intro a n hx
         simp only [Outside, and_true] at hx ⊢
-        omega)
+        omega
+    · omega
+    · omega)
 
 end Fv256.Amd64.RecipSeg
