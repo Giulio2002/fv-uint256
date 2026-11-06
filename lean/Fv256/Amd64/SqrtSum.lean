@@ -15,18 +15,18 @@ namespace Fv256.Amd64.Sqrt
 /-- precondition of the `Sqrt` summary (receiver `RAX`, operand `RBX`; return address at `[RSP]`) -/
 abbrev SPre (s : State) : Prop :=
   (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
-  0x280 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x200 ∧ StackWritable s 0x1f0 8 ∧ s.xmm 15 = 0 ∧
+  0x280 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x200 ∧ StackWritable s 0x1f0 0x18 ∧ s.xmm 15 = 0 ∧
   Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧
-  ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0x1f0 ∨ (s.regs 4).toNat + 8 ≤ (s.regs 0).toNat) ∧
-  ((s.regs 3).toNat + 32 ≤ (s.regs 4).toNat - 0x1f0 ∨ (s.regs 4).toNat + 8 ≤ (s.regs 3).toNat) ∧
+  ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0x1f0 ∨ (s.regs 4).toNat + 0x18 ≤ (s.regs 0).toNat) ∧
+  ((s.regs 3).toNat + 32 ≤ (s.regs 4).toNat - 0x1f0 ∨ (s.regs 4).toNat + 0x18 ≤ (s.regs 3).toNat) ∧
   (s.regs 0 = s.regs 3 ∨ (s.regs 0).toNat + 32 ≤ (s.regs 3).toNat ∨ (s.regs 3).toNat + 32 ≤ (s.regs 0).toNat) ∧
-  ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0x1f0 ∨ (s.regs 4).toNat + 8 ≤ (s.regs 14).toNat + 16)
+  ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0x1f0 ∨ (s.regs 4).toNat + 0x18 ≤ (s.regs 14).toNat + 16)
 
 abbrev SPost (s s' : State) : Prop :=
   s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
   s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
   Fv256.F.IsSqrt (s.mem.readLE (s.regs 3).toNat 32) (s'.mem.readLE (s.regs 0).toNat 32) ∧
-  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x1f0, (s.regs 4).toNat + 8)]
+  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x1f0, (s.regs 4).toNat + 0x18)]
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 200000 in
