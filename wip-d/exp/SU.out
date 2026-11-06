@@ -1,0 +1,23 @@
+Fv256/Amd64/SqrtSum.lean:71:15: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/SqrtSum.lean:99:15: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/SqrtSum.lean:53:12: warning: This simp argument is unused:
+  setRegF
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtSum.lean:80:12: warning: This simp argument is unused:
+  setRegF
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtSum.lean:123:14: warning: This simp argument is unused:
+  setRegF
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [hx15]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
