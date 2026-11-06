@@ -29,3 +29,9 @@ Build: lean/ lakefile pinned to /srv/janus-fvA-pin655 @655a23fa; build with ../b
 - FdInv (arm64 loop-head invariant at head = fd+0x9c) defined there; fd_pro: entry (nS != 0) -> head with FdInv 0 (janus_run until [head] + 20-way refine; ~55 s).
 - Tricks: abbrev constants (mulTab) must be restated as numeric literals for omega/janus_run (have hmA : 1795392+40 <= lo ∨ ... := hmA0).
 - NEXT: nS = 0 (EOF) exit lemma; round (i<5, 19*i<nS): spills, ParseUint call via PwSum (ReachesRet.call), error exit (0xb8d18), i=0 SetUint64 store, i>0 Mul call (mul_sum: tmp at sp'+72, W = mult[i] at sp'+104 spill) + 4-limb ADDS/ADCS into z, then loop increment+chop (0xb8bd8..0xb8d14) back to head with FdInv (i+1); exits 0xb8d2c/0xb8d40 (return nil when rem<=0 or i>=5).
+
+## Update 2: fd_eof (Arm64/SfdFdEof.lean) and fd_to_pw (Arm64/SfdFdRnd.lean) DONE, sorry-free
+- fd_eof: nS = 0 exit -> FdPost (eof disjunct).
+- fd_to_pw: from FdInv i (i<5, 19i<nS, rem>19) run to the ParseUint call, PwPre discharged (window lo'=s.sp-4440, hi'=s.sp-112, Env.frame0+Env.shrink, ChunkOK.mono_win).
+- Interface: PwSum fits; FV-I4 added `s'.mem.readLE (s.sp-8) 8 = s.mem.readLE (s.sp-8) 8 ∧ s'.mem.readLE s.sp 8 = ...` to PwPost (preserves saved FP/LR of the caller). Rebase SfdPw when FV-I4 sends the hash.
+- NEXT: rem<=19 variant of fd_to_pw (second call site returns at 0xb8c5c; same pw), ReachesRet.call pw (hpw lo' hi' p len), error exit (0xb8d18, TeObj.congr_src), MID = fd+0x114 state, then i=0 store / Mul call+add / increment+chop to head (i+1), exits, fd_loop induction, fd_sum.
