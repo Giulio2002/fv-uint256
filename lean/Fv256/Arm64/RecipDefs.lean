@@ -25,7 +25,7 @@ def RecPre (s : State) : Prop :=
 
 /-- registers that stay fixed through the body (`s` = the entry state) -/
 def RecRegs (s S : State) : Prop :=
-  S.sp = s.sp - 272#64 ∧ S.regs 29 = s.sp - 280#64 ∧ S.regs 28 = s.regs 28
+  S.sp = s.sp - 272#64 ∧ S.regs 29 = s.sp - 280#64 ∧ S.regs 28 = s.regs 28 ∧ S.regs 18 = s.regs 18
 
 /-- memory facts that stay true through the body: the saved `x29`/`x30` and the frame -/
 def RecMem (s : State) (M : Memory) : Prop :=
