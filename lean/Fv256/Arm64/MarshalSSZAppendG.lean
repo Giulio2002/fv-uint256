@@ -14,8 +14,8 @@ abbrev ga : Nat := Extracted.program.contractAddr "runtime.growslice"
 
 /-- The invariant at the start of a block: the slice `(P, l, C)` (so `l + 8` is what the next append needs), the
 frame of the function, the memory facts, the runtime's invariant for the live set `L` and the budget `b`. -/
-structure BI (R : RtInv) (s S : State) (z : BitVec 64) (ret dp len0 cap0 : Nat) (len pp cc : BitVec 64) (b : Nat)
-    (L : List (Nat × Nat)) (m : Nat) : Prop where
+structure BI (R : RtInv) (s S : State) (z : BitVec 64) (ret dp len0 cap0 b0 : Nat) (L0 : List (Nat × Nat)) (len pp cc : BitVec 64)
+    (b : Nat) (L : List (Nat × Nat)) (m : Nat) : Prop where
   sp : S.sp = s.sp - 128#64
   r0 : S.regs 0 = z
   r1 : S.regs 1 = pp
@@ -29,13 +29,15 @@ structure BI (R : RtInv) (s S : State) (z : BitVec 64) (ret dp len0 cap0 : Nat) 
   rd3 : S.mem.readLE (s.sp.toNat + 8) 8 = z.toNat
   hw : S.mem.accessible (s.sp.toNat - 4232) (4232 + 40) true = true
   frame : MemFrame s.mem S.mem (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp, dp + cap0)])
+  noGrow : len0 + 32 ≤ cap0 → pp.toNat = dp ∧ cc.toNat = cap0 ∧ b = b0 ∧ L = L0 ∧
+    MemFrame s.mem S.mem [(dp + len0, dp + len.toNat), (s.sp.toNat - 4232, s.sp.toNat + 40)]
   zsame : ∀ i, i < 4 → S.mem.readLE (z.toNat + 8 * i) 8 = s.mem.readLE (z.toNat + 8 * i) 8
   inv : R.inv b L (s.regs 28).toNat (view R.rt L S.mem)
   hLs : ∀ r ∈ L, Outside r.1 (r.2 - r.1) [(s.sp.toNat - 4232, s.sp.toNat + 40)]
   hzL : InRanges z.toNat 32 L ∨ Outside z.toNat 32 R.rt
   zpd : Apart z.toNat 32 pp.toNat cc.toNat
   lge : len0 ≤ len.toNat
-  lle : len.toNat + 8 ≤ len0 + 32
+  lle : len.toNat ≤ len0 + 32
   lc : len.toNat ≤ cc.toNat
   Cb : cc.toNat < 2 ^ 44
   Pb : pp.toNat + cc.toNat ≤ 2 ^ 48
@@ -54,7 +56,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     (hret : RetAddr (Extracted.program.link impl) ret)
     (hg : RtLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.growslice") 4096 R growsliceSpec growsliceLive)
-    (s S : State) (z : BitVec 64) (dp len0 cap0 b : Nat) (len pp cc : BitVec 64) (L : List (Nat × Nat))
+    (s S : State) (z : BitVec 64) (dp len0 cap0 b b0 : Nat) (len pp cc : BitVec 64) (L L0 : List (Nat × Nat))
     (Q : Outcome → Prop)
     (hal : s.sp.toNat % 16 = 0) (hb' : 4232 ≤ s.sp.toNat) (ha : s.sp.toNat + 40 ≤ 2 ^ 48)
     (hg1 : (s.regs 28).toNat + 24 ≤ 2 ^ 48) (hg2 : s.mem.accessible ((s.regs 28).toNat + 16) 8 false = true)
@@ -67,15 +69,15 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     (hdt : Apart u8T 16 (s.sp.toNat - 4232) 4272)
     (hgd : Apart ((s.regs 28).toNat + 16) 8 dp cap0) (hdtd : Apart u8T 16 dp cap0)
     (hd : Extracted.program.DataLoaded s.mem) (hdesc : DescOK R u8T)
-    (hl0 : len.toNat = len0) (hk : len.toNat + 16 ≤ len0 + 32) (hl0b : len0 < 2 ^ 40)
+    (hl0 : len.toNat = len0) (hk : len.toNat + 8 ≤ len0 + 32) (hl0b : len0 < 2 ^ 40)
     (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x24))
-    (m : Nat) (hI : BI R s S z ret dp len0 cap0 len pp cc b L (m + 1))
+    (m : Nat) (hI : BI R s S z ret dp len0 cap0 b0 L0 len pp cc b L (m + 1))
     (hcont : ∀ (S' : State) (pp' cc' : BitVec 64) (b' : Nat) (L' : List (Nat × Nat)),
       S'.pc = BitVec.ofNat 64 (Extracted.entry + 0x70) →
-      BI R s S' z ret dp len0 cap0 (len + 8#64) pp' cc' b' L' m → b - Kc len0 ≤ b' →
+      BI R s S' z ret dp len0 cap0 b0 L0 (len + 8#64) pp' cc' b' L' m → b - Kc len0 ≤ b' →
       Reaches ((Extracted.program.link impl).withExit ret) S' Q) :
     Reaches ((Extracted.program.link impl).withExit ret) S Q := by
-  obtain ⟨hsp, h0, h1, h3, h5, h18, h28, h29, hrd1, hrd2, hrd3, hw, hfr, hzs, hinv, hLs, hzL, hzpd, hlge, hlle, hlc, hC, hPb,
+  obtain ⟨hsp, h0, h1, h3, h5, h18, h28, h29, hrd1, hrd2, hrd3, hw, hfr, hng, hzs, hinv, hLs, hzL, hzpd, hlge, hlle, hlc, hC, hPb,
     hdj, hroom, hgrow, hbud, hrdy, hwho, hpre, hmid⟩ := hI
   have hlen8 : (len + 8#64).toNat = len.toNat + 8 := by
     rw [BitVec.toNat_add]; simp; omega
@@ -93,7 +95,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     refine hcont _ pp cc b L (by first | rfl | decide) ?_ (by omega)
     have hacc8 : S.mem.accessible (pp.toNat + len.toNat) 8 true = true :=
       Memory.accessible_sub S.mem hacc (Or.inr rfl) (by omega) (by omega)
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · rfl
     · simp [setReg, h0]
     · simp [setReg, h1]
@@ -107,6 +109,17 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     · dsimp only; rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hap; omega)]; exact hrd3
     · dsimp only; rw [Memory.accessible_writeLE]; exact hw
     · exact hfr.writeLE_inRanges _ hin
+    · intro hng'
+      obtain ⟨h1', h2', h3', h4', h5'⟩ := hng hng'
+      refine ⟨h1', h2', h3', h4', ?_⟩
+      have h3w := h5'.mono (rs' := [(dp + len0, dp + len.toNat + 8), (s.sp.toNat - 4232, s.sp.toNat + 40)]) (by
+        intro a n ho
+        simp only [outside_cons, outside_nil, and_true] at ho ⊢
+        omega)
+      exact (h3w.writeLE_inRanges _ ⟨(dp + len0, dp + len.toNat + 8), by simp, by omega, by omega⟩).mono (by
+        intro a n ho
+        simp only [outside_cons, outside_nil, and_true] at ho ⊢
+        omega)
     · intro i hi; dsimp only
       rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzpd; omega)]; exact hzs i hi
     · dsimp only
@@ -217,7 +230,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
         unfold Apart; omega
     refine hcont _ r0 r2 (b - roundupsize (nextslicecap (len.toNat + 8) cc.toNat) true)
       (L ++ [(r0.toNat, r0.toNat + r2.toNat)]) (by first | rfl | decide) ?_ (by omega)
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
     · rfl
     · simp [setReg, hrd3]
     · simp [setReg]
@@ -248,6 +261,9 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
         obtain ⟨h1, h2, h3⟩ := h
         refine ⟨h1, ?_, ?_⟩ <;> omega⟩)
       exact hF2.writeLE_inRanges _ ⟨rr, List.mem_append_left _ hrr, by omega, by omega⟩
+    · intro hng'
+      obtain ⟨h1', h2', -⟩ := hng hng'
+      omega
     · intro i hi; dsimp only; rw [e1]
       rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hzp2; omega)]
       rcases hzL with ⟨r, hr, h1, h2⟩ | h
