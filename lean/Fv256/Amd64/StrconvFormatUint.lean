@@ -5,6 +5,7 @@ import Fv256.StrE
 import Fv256.Amd64.DecA
 import Fv256.Amd64.DecT
 import Fv256.Amd64.DecM
+import Fv256.DecAt
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Contracts
 open Fv256.E
@@ -25,8 +26,8 @@ theorem tabs_frame_out {M M' : Memory} (h : TabsOK M) {rs : List (Nat × Nat)} (
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady)
-    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady)
+    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H (slicebytetostringSpec st)) :
     Summary (Fv256.DecProg.program.link impl) fu
       (fun s => s.regs 3 = 10#64 ∧ (s.regs 0).toNat < 2 ^ 64 ∧ StackGuardOK s 0 ∧ StackWritable s (0x58 + 4096) 8 ∧
         (s.regs 4).toNat % 8 = 0 ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧ TabsOK s.mem ∧
@@ -37,7 +38,8 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (s.regs 0).toNat) ∧
         s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
         s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
-        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) ∧ TabsOK s'.mem) := by
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) ∧ TabsOK s'.mem ∧
+        DecAt rt 5163273 5176582 5134938 (s'.regs 0).toNat (s'.regs 3).toNat) := by
   intro s hpc ⟨hb10, hu, hg, hw, hal, hret, htab, hrt1, hrt2, hrt3, hH⟩
   have hc2 : fu + 0x300 < 2 ^ 47 := by decide
   obtain ⟨hwb, hwn, hwa⟩ := hw
@@ -59,11 +61,12 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
         rw [decBytes_lt _ h10]
         simp only [strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [← Janus.Arm64.Memory.readLE_one, Nat.add_zero, hd0]
-      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_⟩
+      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_, ?_⟩
       · rw [decBytes_lt _ h10]; rfl
       · exact accessible_sub htab.acc1 (Or.inl rfl) (by omega) (by omega)
       · exact (MemFrame.refl s.mem _).writeLE _ (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)
       · exact htab.writeLE (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) _
+      · simp only [DecAt]; right; left; constructor <;> simp [setRegF] <;> omega
     · have hl : decLen (s.regs 0).toNat = 2 := by
         rw [decLen_ge _ (by omega), decLen_lt _ (by omega)]
       janus64_run [hb10]
@@ -76,11 +79,12 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
           show 5176582 + (s.regs 0).toNat * 2 = 5176582 + 2 * (s.regs 0).toNat by omega, hsr.1, hsr.2]
         simp only [List.cons_append, List.nil_append, List.cons.injEq, and_true]
         try omega
-      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_⟩
+      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_, ?_⟩
       · rw [decBytes_ge _ (by omega), decBytes_lt _ (by omega)]; simp
       · exact accessible_sub htab.acc2 (Or.inl rfl) (by omega) (by omega)
       · exact (MemFrame.refl s.mem _).writeLE _ (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)
       · exact htab.writeLE (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) _
+      · simp only [DecAt]; right; right; left; constructor <;> simp [setRegF] <;> omega
   · have hge : 100 ≤ (s.regs 0).toNat := by omega
     have hdl20 := decLen_le_20 _ hu
     have hsp := (s.regs 4).isLt
@@ -143,7 +147,7 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
           (18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat))) 0 32 := fun h => h.elim
       janus64_run [hmask, hmask2] calls [hc]
       rename_i _ w9 w8 _ _ _ _ _ w2 _ _ hleft hright
-      obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
+      obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
       have eL : 18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat)) = decLen (s.regs 0).toNat := by omega
       have eA : (s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48 = (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) := by omega
       rw [eL, eA] at hr1 hr4
@@ -154,7 +158,7 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
           have e : (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) + decLen (s.regs 0).toNat - 1 - k = (s.regs 4).toNat - 32 + 23 - k := by omega
           rw [e]; exact this)
       have hap := htab.apart hwa
-      refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_⟩
+      refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_, ?_⟩
       · rw [hr1, hdig]
       · rw [hr4]; exact hdig
       · have hfs' : MemFrame s.mem sA.mem (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) :=
@@ -175,4 +179,16 @@ theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × 
           refine ⟨hrt2, ?_, ?_, trivial⟩ <;> omega
         · simp only [outside_append, outside_cons]
           refine ⟨hrt3, ?_, ?_, trivial⟩ <;> omega
+      · simp only [DecAt]; left
+        simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
+        have hlen : BitVec.toNat w8 = decLen (s.regs 0).toNat := by
+          first | exact hr1 | (rw [hr1]; simp [Spec.strBytes]) | (simp [hr1, Spec.strBytes])
+        have h3 : 3 ≤ decLen (s.regs 0).toNat := by
+          rw [decLen_ge _ (by omega), decLen_ge _ (by omega)]
+          have := decLen_pos ((s.regs 0).toNat / 10 / 10); omega
+        rcases hat with h | h | h | h
+        · omega
+        · omega
+        · omega
+        · exact h.2.2
 end Fv256.Amd64.Dec

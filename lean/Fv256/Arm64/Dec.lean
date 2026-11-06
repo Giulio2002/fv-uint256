@@ -17,7 +17,7 @@ theorem decE_entry : decE = Extracted.entry := by unfold decE; decide
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
+    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => GuardOK s 688 ∧ StackOK s 4608 8 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4608) (4608 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
@@ -40,7 +40,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       exact ⟨hs.args 0 (by simp), h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, by rw [hrl]; exact hret.user,
         by rw [hrl]; exact hret.aligned⟩
     · intro ret s s' hret hs hp hq
-      exact ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2.mono (fun a n h => by
+      exact ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2.1.mono (fun a n h => by
         simp only [outside_append, outside_cons] at h ⊢
         exact ⟨h.1, by omega, trivial⟩)⟩
 
@@ -52,14 +52,14 @@ def implAt : List Segment := [{ name := "model", base := ssAddr, words := constC
 def linked : Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
 theorem linked_eq : Extracted.program.link implAt = linked := rfl
 
-theorem model : RtContract (Extracted.program.link implAt) ssAddr rtW 4096 H0 slicebytetostringSpec := by
+theorem model : RtContract (Extracted.program.link implAt) ssAddr rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») := by
   rw [linked_eq]
   rintro s hpc ⟨⟨h30a, h30b, -⟩, -, -, -, hH⟩
   have ha := ready_of rfl hH
   simp only [Ready, H0, arg, List.getD_eq_getElem?_getD, slicebytetostringSpec] at ha
   janus_run
   apply rtPost_const <;> (try rfl) <;> (try simp [setReg])
-  simp [ha, strBytes]
+  simp [ha, strBytes, StrAt]
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -117,7 +117,7 @@ theorem pre : GuardOK s0 688 ∧ StackOK s0 4608 8 ∧ Extracted.program.DataLoa
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
-    RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec ∧
+    RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (GuardOK s 688 ∧ StackOK s 4608 8 ∧ Extracted.program.DataLoaded s.mem ∧

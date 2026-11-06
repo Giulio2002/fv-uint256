@@ -10,6 +10,7 @@ import Fv256.Arm64.DecInit
 import Fv256.Arm64.DecIter
 import Fv256.Arm64.DecLoop
 import Fv256.Arm64.StrconvFormatUint
+import Fv256.DecAt
 
 open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
 open Fv256.E
@@ -79,8 +80,8 @@ theorem ensures_of_summary {p : Janus.Program} {entry : Nat} {args : List W64}
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract (Fv256.Arm64.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+    (hc : RtContract (Fv256.Arm64.DecProg.program.link impl) ssAddrL rt 4096 H (slicebytetostringSpec st)) :
     Summary (Fv256.Arm64.DecProg.program.link impl) decE
       (fun s => s.regs 0 = z ∧ GuardOK s 688 ∧ StackOK s 4608 8 ∧ Fv256.Arm64.DecProg.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4608) (4608 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
@@ -95,7 +96,8 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
         (s.regs 30).toNat < 2 ^ 48 ∧ (s.regs 30).toNat % 4 = 0)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
         s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
-        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])) := by
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) ∧
+        DecAt rt 989280 1002589 960826 (s'.regs 0).toNat (s'.regs 1).toNat) := by
   intro s hpc0 ⟨hz0r, hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1, hr30, hr30a⟩
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, h4608, hsp2, hwa⟩ := hst
@@ -176,7 +178,7 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
     have hR30 : S.mem.readLE (s.sp.toNat - 384) 8 = (s.regs 30).toNat := hsv2
     janus_run [hdE, q9, q11, hdlm, hR30] calls [hc]
     rename_i w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright hbrx
-    obtain ⟨hr1, hr2, hr3, hr4⟩ := hright
+    obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
     have hdig : strBytes S2.mem (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) = decBytes v :=
       strBytes_dec _ _ _ (fun k hk => by
         have := qdig k hk
@@ -200,7 +202,15 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
           simp only [outside_append, outside_cons] at h ⊢
           obtain ⟨h1, h2, -⟩ := h
           exact ⟨h1, by omega, by omega, trivial⟩)
-      exact h1.trans (h2.trans h3 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+      refine ⟨h1.trans (h2.trans h3 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_⟩
+      simp only [DecAt]; left
+      simp only [slicebytetostringSpec, argWords, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
+      have h3' : 2 ≤ decLen v := by
+        rw [decLen_ge _ (by omega), decLen_ge _ (by omega)]
+        have := decLen_pos (v / 10 / 10); omega
+      have hlen : BitVec.toNat w7 = decLen v := by
+        rw [hr1]; first | simp [Spec.strBytes] | simp [strBytes]
+      rcases hat with h | h | h | h <;> first | exact h.2.2 | (exfalso; omega)
   · by_cases hz0 : v = 0
     · have hl0 : s.mem.readLE z.toNat 8 = 0 := by rw [hvl.1] at hz0; omega
       have hl1' : s.mem.readLE (z.toNat + 8) 8 = 0 := by rw [hvl.1] at hz0; omega
@@ -210,19 +220,20 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       have hdj := dl_disjoint hd zeroDat_mem hwa
       rw [zeroDat_base, zeroDat_len] at hdj
       janus_run [hdE, hrip.pc, hl0, hl1', hl2', hl3', Nat.or_eq_zero_iff]
-      refine ⟨⟨by rw [hz0]; simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_⟩
+      refine ⟨⟨by rw [hz0]; simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_, ?_⟩
       · simp only [hz0, decBytes_lt 0 (by omega), strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [Nat.add_zero, ← Janus.Arm64.Memory.readLE_one, hzs.1]
       · refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])
           (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
           (MemFrame.of_writeLE _ _ (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
         intro a n h; exact ⟨h, h⟩
+      · simp only [DecAt]; right; right; right; constructor <;> simp [setReg] <;> omega
     · have hlow : s.mem.readLE (z.toNat + 8) 8 = 0 ∧ s.mem.readLE (z.toNat + 16) 8 = 0 ∧ s.mem.readLE (z.toNat + 24) 8 = 0 := by
         have := hvl.1
         omega
       have hl0 : s.mem.readLE z.toNat 8 = v := by have := hvl.1; omega
       have hv64 : v < 2 ^ 64 := by omega
-      have hfu := formatUint_summary impl rt H hc
+      have hfu := formatUint_summary st impl rt H hc
       have hdl20 := decLen_le_20 v hv64
       have hdl1 := decLen_pos v
       have hHf : 100 ≤ v → H [0, s.sp.toNat - 384 - 32 + (24 - decLen v), decLen v] (s.regs 28).toNat
@@ -234,7 +245,7 @@ theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       have hzv : val256 s.mem z.toNat = v := hvd
       janus_run [hdE, hrip.pc, hlow.1, hlow.2.1, hlow.2.2, hl0, Nat.or_eq_zero_iff] calls [hfu]
       rename_i hqtab hqs hqf hbrx
-      refine ⟨hqs, ?_⟩
+      refine ⟨hqs, ?_, ‹DecAt _ _ _ _ _ _›⟩
       have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
             (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) := by
           refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])
