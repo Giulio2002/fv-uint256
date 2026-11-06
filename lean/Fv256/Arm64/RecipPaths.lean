@@ -88,7 +88,5 @@ theorem g_epi (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x77c)) (h
   have hS := RecRegs.sp_toNat ⟨hr1, hr2, hr3, hr4⟩ hsb
   have hsp : S.sp.toNat = s.sp.toNat - 272 := by omega
   janus_run [hm29, hm30, hsp]
-  all_goals trace_state
-  all_goals sorry
 
 end Fv256.Arm64.RecipSeg
