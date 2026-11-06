@@ -64,7 +64,8 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   have hdE : decE = 754624 := by unfold decE; decide
   have hcE : decE + 0x5000 < 2 ^ 47 := by decide
   janus_run [hdE] until [752508] calls [dec_summary_ext impl rt H z hc]
-  grab_last_const Janus.MemFrame as hFR
+  have hFR : MemFrame ((s.mem.writeLE (BitVec.toNat s.sp - 80) 8 ret).writeLE (BitVec.toNat s.sp - 88) 8 (BitVec.toNat (s.regs 29))) s'.mem
+      (rt ++ [(BitVec.toNat s.sp - 80 - 4608, BitVec.toNat s.sp - 80 - 8)]) := by assumption
   grab_last_const Fv256.E.DecAt as hDA
   grab_last_const Janus.Spec.strBytes as hSO
   obtain ⟨hl1, hl2, hl3, hl4⟩ := hSO
