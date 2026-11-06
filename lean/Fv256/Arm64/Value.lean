@@ -48,6 +48,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (rt : List (Nat × Nat)) (
             (s.regs 28).toNat (s.sp.toNat - 32 - 384 - 96) (rtView rt s.mem)) ∧
         (∀ (M : Janus.Arm64.Memory) (p l : Nat),
           MemFrame s.mem M (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
+          (val256 s.mem z.toNat < 100 → MemFrame s.mem M [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
           StrOut M p l (decBytes (val256 s.mem z.toNat)) →
           DecAt rt 989280 1002589 960826 p l →
           ∃ (L : List (Nat × Nat)) (b : Nat),
@@ -67,7 +68,9 @@ theorem correctness (impl : List Segment) (R : RtInv) (rt : List (Nat × Nat)) (
   have hdE : decE = 754624 := by unfold decE; decide
   have hcE : decE + 0x5000 < 2 ^ 47 := by decide
   janus_run [hdE] until [754556] calls [dec_summary_ext impl R.rt H z hc]
-  grab_last_const Janus.MemFrame as hFR
+  grab_last_const Janus.MemFrame as hFRimp
+  have hFR : MemFrame ((s.mem.writeLE (BitVec.toNat s.sp - 32) 8 ret).writeLE (BitVec.toNat s.sp - 40) 8 (BitVec.toNat (s.regs 29))) s'.mem
+      (R.rt ++ [(BitVec.toNat s.sp - 32 - 4608, BitVec.toNat s.sp - 32 - 8)]) := by assumption
   grab_last_const Fv256.E.DecAt as hDA
   grab_last_const Janus.Spec.strBytes as hSO
   obtain ⟨hl1, hl2, hl3, hl4⟩ := hSO
@@ -86,7 +89,19 @@ theorem correctness (impl : List Segment) (R : RtInv) (rt : List (Nat × Nat)) (
   have hSO' : StrOut s'.mem (BitVec.toNat (s'.regs 0)) (BitVec.toNat (s'.regs 1)) (decBytes (val256 s.mem z.toNat)) := by
     simp only [val256, Fv256.Util.readLE_32, Nat.reducePow] at hl1 hl4 ⊢
     exact ⟨hl1, hl2, fun h => by rw [hMF.accessible]; exact hl3 h, hl4⟩
-  obtain ⟨L, b, hLA, hLs⟩ := hLive s'.mem _ _ hMF hSO' hDA
+  have hMFs : val256 s.mem z.toNat < 100 → MemFrame s.mem s'.mem [(BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)] := by
+    intro hlt
+    have h1 : MemFrame s.mem ((s.mem.writeLE (BitVec.toNat s.sp - 32) 8 ret).writeLE (BitVec.toNat s.sp - 40) 8 (BitVec.toNat (s.regs 29)))
+        [(BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)] := by
+      refine MemFrame.trans (rs := [(BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)])
+        (MemFrame.of_writeLE s.mem _ (r := (BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)) (List.mem_singleton_self _) (by omega) (by omega))
+        (MemFrame.of_writeLE _ _ (rs := [(BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)]) (r := (BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)) (List.mem_singleton_self _) (by omega) (by omega)) ?_
+      intro a n h; exact ⟨h, h⟩
+    have h2 := MemFrame.mono (rs' := [(BitVec.toNat s.sp - 4640, BitVec.toNat s.sp + 8)]) (hFRimp (by simpa [val256, Fv256.Util.readLE_32] using hlt)) (fun a n h => by
+      simp only [outside_cons, outside_nil, Outside, and_true] at h ⊢
+      omega)
+    exact h1.trans h2 fun a n h => ⟨h, h⟩
+  obtain ⟨L, b, hLA, hLs⟩ := hLive s'.mem _ _ hMF hMFs hSO' hDA
   obtain ⟨hok, hinv, hcost, hsep1, hsep2⟩ := hLA
   have hguard : s'.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 = s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 := by
     refine MemFrame.readLE hMF _ _ ?_
