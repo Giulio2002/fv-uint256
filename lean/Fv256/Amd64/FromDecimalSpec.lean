@@ -50,6 +50,13 @@ def PreC (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo h
   (Outside pS.toNat nS.toNat R.rt ∨ InRanges pS.toNat nS.toNat L) ∧ (∀ r ∈ R2.priv, r.1 ≤ r.2) ∧
   ChunkAll C R R2 L (b - blockSize 32 true) pS.toNat nS.toNat lo hi s.mem
 
+theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : lo + 4848 ≤ sp) (hhi : sp + 24 ≤ hi)
+    (h : Outside a n (rt ++ [(lo, hi)])) :
+    Outside a n [(lo, hi)] ∧ Outside a n (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
+  simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+  obtain ⟨h1, h2⟩ := h
+  exact ⟨h2, h1, by omega, by omega⟩
+
 theorem chunkOK_mono {R : RtInv} {R2 : IfaceModel} {L L' : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64} {lo hi : Nat}
     {m m' : Janus.Arm64.Memory} (h : ChunkOK C R R2 L b sp sl lo hi m) (hL : ∀ r ∈ L, r ∈ L')
     (hacc : m'.accessible sp.toNat sl.toNat false = true) : ChunkOK C R R2 L' b sp sl lo hi m' := by
