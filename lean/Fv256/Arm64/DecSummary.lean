@@ -98,7 +98,8 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
         s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) ∧
-        DecAt rt 989280 1002589 960826 (s'.regs 0).toNat (s'.regs 1).toNat) := by
+        DecAt rt 989280 1002589 960826 (s'.regs 0).toNat (s'.regs 1).toNat ∧
+        (val256 s.mem z.toNat < 100 → MemFrame s.mem s'.mem [(s.sp.toNat - 4608, s.sp.toNat - 8)])) := by
   intro s hpc0 ⟨hz0r, hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1, hr30, hr30a⟩
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, h4608, hsp2, hwa⟩ := hst
@@ -204,7 +205,7 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
           simp only [outside_append, outside_cons] at h ⊢
           obtain ⟨h1, h2, -⟩ := h
           exact ⟨h1, by omega, by omega, trivial⟩)
-      refine ⟨h1.trans (h2.trans h3 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_⟩
+      refine ⟨h1.trans (h2.trans h3 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_, fun h => absurd h (by omega)⟩
       simp only [DecAt]; left
       simp only [slicebytetostringSpec, argWords, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
       have h3' : 2 ≤ decLen v := by
@@ -222,7 +223,7 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
       have hdj := dl_disjoint hd zeroDat_mem hwa
       rw [zeroDat_base, zeroDat_len] at hdj
       janus_run [hdE, hrip.pc, hl0, hl1', hl2', hl3', Nat.or_eq_zero_iff]
-      refine ⟨⟨by rw [hz0]; simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_, ?_⟩
+      refine ⟨⟨by rw [hz0]; simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_, ?_, fun _ => ?_⟩
       · simp only [hz0, decBytes_lt 0 (by omega), strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [Nat.add_zero, ← Janus.Arm64.Memory.readLE_one, hzs.1]
       · refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])
@@ -230,6 +231,10 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
           (MemFrame.of_writeLE _ _ (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
         intro a n h; exact ⟨h, h⟩
       · simp only [DecAt]; right; right; right; constructor <;> simp [setReg] <;> omega
+      · refine MemFrame.trans (rs := [(s.sp.toNat - 4608, s.sp.toNat - 8)])
+          (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_singleton_self _) (by omega) (by omega))
+          (MemFrame.of_writeLE _ _ (rs := [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_singleton_self _) (by omega) (by omega)) ?_
+        intro a n h; exact ⟨h, h⟩
     · have hlow : s.mem.readLE (z.toNat + 8) 8 = 0 ∧ s.mem.readLE (z.toNat + 16) 8 = 0 ∧ s.mem.readLE (z.toNat + 24) 8 = 0 := by
         have := hvl.1
         omega
@@ -247,20 +252,31 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
       have hzv : val256 s.mem z.toNat = v := hvd
       janus_run [hdE, hrip.pc, hlow.1, hlow.2.1, hlow.2.2, hl0, Nat.or_eq_zero_iff] calls [hfu]
       clear hfu
+      grab_last_const Janus.MemFrame as hqimp
       grab_const Fv256.E.DecAt as hqd
       grab_const Fv256.E.decBytes as hqs
       grab_const Janus.MemFrame as hqf
-      refine ⟨hqs, ?_, hqd⟩
-      have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
-            (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) := by
-          refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])
-            (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
-            (MemFrame.of_writeLE _ _ (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
+      refine ⟨hqs, ?_, hqd, fun hlt => ?_⟩
+      · have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
+              (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) := by
+            refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])
+              (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
+              (MemFrame.of_writeLE _ _ (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
+            intro a n h; exact ⟨h, h⟩
+        have h2 := MemFrame.mono (rs' := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) hqf (fun a n h => by
+          simp only [outside_append, outside_cons] at h ⊢
+          obtain ⟨h1, h2, -⟩ := h
+          exact ⟨h1, by omega, trivial⟩)
+        exact h1.trans h2 fun a n h => ⟨h, h⟩
+      · have h1w : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
+            [(s.sp.toNat - 4608, s.sp.toNat - 8)] := by
+          refine MemFrame.trans (rs := [(s.sp.toNat - 4608, s.sp.toNat - 8)])
+            (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_singleton_self _) (by omega) (by omega))
+            (MemFrame.of_writeLE _ _ (rs := [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (r := (s.sp.toNat - 4608, s.sp.toNat - 8)) (List.mem_singleton_self _) (by omega) (by omega)) ?_
           intro a n h; exact ⟨h, h⟩
-      have h2 := MemFrame.mono (rs' := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) hqf (fun a n h => by
-        simp only [outside_append, outside_cons] at h ⊢
-        obtain ⟨h1, h2, -⟩ := h
-        exact ⟨h1, by omega, trivial⟩)
-      exact h1.trans h2 fun a n h => ⟨h, h⟩
+        have h2w := MemFrame.mono (rs' := [(s.sp.toNat - 4608, s.sp.toNat - 8)]) (hqimp hlt) (fun a n h => by
+          simp only [outside_cons, outside_nil, Outside, and_true] at h ⊢
+          omega)
+        exact h1w.trans h2w fun a n h => ⟨h, h⟩
 
 end Fv256.Arm64.Dec

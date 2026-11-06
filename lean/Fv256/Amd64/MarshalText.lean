@@ -66,7 +66,8 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   obtain ⟨hwb, hwn, hwa⟩ := hw
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hg3 hg1 hg2 hwb hwn hwa hal hout hzd hgd
   janus64_run [hdE] until [4928640] calls [dec_summary_ext impl rt H z hc]
-  grab_last_const Janus.MemFrame as hFR
+  have hFR : MemFrame ((Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE ((s.regs 4).toNat - 40) 8 4928627) s'.mem
+      (rt ++ [((s.regs 4).toNat - 40 - 4568, (s.regs 4).toNat - 40 + 8)]) := by assumption
   grab_last_const Fv256.E.DecAt as hDA
   grab_last_const Janus.Spec.strBytes as hSO
   obtain ⟨hl1, hl2, hl3, hl4⟩ := hSO

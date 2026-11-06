@@ -67,7 +67,8 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
         s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) ∧
-        DecAt rt 5163273 5176582 5134938 (s'.regs 0).toNat (s'.regs 3).toNat) := by
+        DecAt rt 5163273 5176582 5134938 (s'.regs 0).toNat (s'.regs 3).toNat ∧
+        (valueAt s z 32 < 100 → MemFrame s.mem s'.mem [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])) := by
   intro s hpc0 ⟨hz0r, hg, hw, hd, hout, hrt1, hrt2, hal, ⟨hzn, hza⟩, hzd, hgd, hH, hH1, hxx, hdf0, hret47⟩
   have hg_ : StackGuardOK s 0xf8 := ⟨hg.noWrap, hg.readable, by have := hg.below; omega⟩
   have hw_ : StackWritable s 0x318 0x8 := ⟨by have := hw.1; omega, by have := hw.2.1; omega,
@@ -188,7 +189,7 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
           simp only [outside_append, outside_cons] at h ⊢
           obtain ⟨h1, h2, -⟩ := h
           exact ⟨h1, by omega, by omega, trivial⟩)
-      refine ⟨h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_⟩
+      refine ⟨h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_, fun h => absurd h (by simp only [valueAt]; omega)⟩
       simp only [DecAt]; left
       simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
       have hlen := hr1
@@ -212,11 +213,12 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
       rw [zeroDat_base, zeroDat_len] at hdj
       janus64_run [hdE, hrip.rip, hl0, hl1', hl2', hl3']
       rw [hzv]
-      refine ⟨⟨by simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_, ?_⟩
+      refine ⟨⟨by simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_, ?_, fun _ => ?_⟩
       · simp only [decBytes_lt 0 (by omega), Spec.strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [Nat.add_zero, ← Janus.Arm64.Memory.readLE_one, hzs.1]
       · exact MemFrame.of_writeLE s.mem _ (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)
       · simp only [DecAt]; right; right; right; constructor <;> simp [setRegF] <;> omega
+      · exact MemFrame.of_writeLE s.mem _ (List.mem_singleton_self _) (by omega) (by omega)
     · have hlow : s.mem.readLE (z.toNat + 8) 8 = 0 ∧ s.mem.readLE (z.toNat + 16) 8 = 0 ∧ s.mem.readLE (z.toNat + 24) 8 = 0 := by
         have := hvl.1
         omega
@@ -240,22 +242,34 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
         omega
       janus64_run [hdE, hrip.rip, hlow.1, hlow.2.1, hlow.2.2, hl0, hnzv] calls [hfu]
       clear hfu
+      grab_last_const Janus.MemFrame as hqimp
       grab_const Fv256.E.DecAt as hqd
       grab_const Fv256.E.decBytes as hqs
       grab_const Janus.MemFrame as hqf
       rw [hzv]
       obtain ⟨q1, q2, q3, q4⟩ := hqs
-      refine ⟨⟨q1, q2, q3, q4⟩, ?_, hqd⟩
-      have h1 : MemFrame s.mem (((Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE
-          ((s.regs 4).toNat - 384) 8 4931476)) (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) := by
-        refine MemFrame.trans (rs := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])
-          (MemFrame.of_writeLE s.mem _ (r := ((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
-          (MemFrame.of_writeLE _ _ (rs := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) (r := ((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
-        intro a n h; exact ⟨h, h⟩
-      have h2 := MemFrame.mono (rs' := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) hqf (fun a n h => by
-        simp only [outside_append, outside_cons] at h ⊢
-        obtain ⟨h1, h2, -⟩ := h
-        exact ⟨h1, by omega, trivial⟩)
-      exact h1.trans h2 fun a n h => ⟨h, h⟩
+      refine ⟨⟨q1, q2, q3, q4⟩, ?_, hqd, fun hlt => ?_⟩
+      · have h1 : MemFrame s.mem (((Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE
+            ((s.regs 4).toNat - 384) 8 4931476)) (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) := by
+          refine MemFrame.trans (rs := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])
+            (MemFrame.of_writeLE s.mem _ (r := ((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
+            (MemFrame.of_writeLE _ _ (rs := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) (r := ((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
+          intro a n h; exact ⟨h, h⟩
+        have h2 := MemFrame.mono (rs' := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) hqf (fun a n h => by
+          simp only [outside_append, outside_cons] at h ⊢
+          obtain ⟨h1, h2, -⟩ := h
+          exact ⟨h1, by omega, trivial⟩)
+        exact h1.trans h2 fun a n h => ⟨h, h⟩
+      · have h1w : MemFrame s.mem (((Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE
+            ((s.regs 4).toNat - 384) 8 4931476)) [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)] := by
+          refine MemFrame.trans (rs := [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])
+            (MemFrame.of_writeLE s.mem _ (r := ((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)) (List.mem_singleton_self _) (by omega) (by omega))
+            (MemFrame.of_writeLE _ _ (rs := [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) (r := ((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)) (List.mem_singleton_self _) (by omega) (by omega)) ?_
+          intro a n h; exact ⟨h, h⟩
+        have hv100 : v < 100 := by simpa [valueAt, hvd] using hlt
+        have h2w := MemFrame.mono (rs' := [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) (hqimp (by simpa using hv100)) (fun a n h => by
+          simp only [outside_cons, outside_nil, Outside, and_true] at h ⊢
+          omega)
+        exact h1w.trans h2w fun a n h => ⟨h, h⟩
 
 end Fv256.Amd64.Dec
