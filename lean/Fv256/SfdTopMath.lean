@@ -165,4 +165,15 @@ theorem dec_of_fd (b bs' : Nat → Nat) (n q len : Nat) (hq : q ≤ n) (hlen : l
   congr 1
   exact Fv256.I.fromDec_congr _ _ (n - q) 0 (fun k hk => (hb k (by omega)).symm)
 
+theorem lexGt_congr2 (x x' y y' : Nat → Nat) (n : Nat) (hx : ∀ k, k < n → x k = x' k) (hy : ∀ k, k < n → y k = y' k) :
+    lexGt x y n ↔ lexGt x' y' n := by
+  unfold lexGt
+  constructor
+  · rintro ⟨k, hk, h3, h4⟩
+    exact ⟨k, hk, fun j hj => (hx j (by omega)).symm.trans ((h3 j hj).trans (hy j (by omega))),
+      (hy k hk) ▸ (hx k hk) ▸ h4⟩
+  · rintro ⟨k, hk, h3, h4⟩
+    exact ⟨k, hk, fun j hj => (hx j (by omega)).trans ((h3 j hj).trans (hy j (by omega)).symm),
+      (hy k hk).symm ▸ (hx k hk).symm ▸ h4⟩
+
 end Fv256.TopMath
