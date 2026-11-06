@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -17,7 +17,7 @@ set_option maxHeartbeats 8000000 in
 /-- The `JNE` of the loop when the quotient is zero: falls through to `decX`. -/
 theorem dec_br_exit (S : State) (hpc : S.rip = BitVec.ofNat 64 decBr) (pf sf : Option Bool)
     (hfl : S.flags = { cf := some false, pf := pf, af := none, zf := some true, sf := sf, ovf := some false }) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decX) S
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 decX) S
       (fun S' => S'.regs = S.regs ∧ S'.mem = S.mem ∧ S'.xmm = S.xmm ∧ S'.df = S.df) := by
   have hc : decE + 0x5000 < 2 ^ 47 := by decide
   janus64_run until [decX]
@@ -30,7 +30,7 @@ theorem dec_br_loop (S : State) (hpc : S.rip = BitVec.ofNat 64 decBr) (pf sf : O
     (hfl : S.flags = { cf := some false, pf := pf, af := none, zf := some false, sf := sf, ovf := some false })
     (e0 : S.regs 0 = BitVec.ofNat 64 (b + 67)) (e1 : S.regs 1 = 19#64) (e11 : S.regs 11 = BitVec.ofNat 64 pos)
     (e4 : S.regs 4 = BitVec.ofNat 64 b) (hb : b + 0x180 ≤ 2 ^ 48) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decH) S
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 decH) S
       (fun S' => S'.regs 0 = BitVec.ofNat 64 (pos - 19) ∧ S'.regs 2 = BitVec.ofNat 64 (b + 67) ∧
         S'.regs 7 = BitVec.ofNat 64 (b + 280) ∧ S'.regs 9 = BitVec.ofNat 64 (b + 312) ∧
         (∀ k, k ∉ [0, 2, 7, 9, 11, 12] → S'.regs k = S.regs k) ∧ S'.mem = S.mem ∧ S'.xmm = S.xmm ∧ S'.df = S.df) := by
@@ -65,7 +65,7 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
       Fv256.B.wv s.mem (b + 280) 4 = y → Fv256.B.wv s.mem (b + 312) 4 = 10 ^ 19 →
       (∀ k, k < 19 * t → s.mem.readLE (b + 86 + 97 - k) 1 = 48 + z / 10 ^ k % 10) →
       (∀ k, 19 * t ≤ k → k < 98 → s.mem.readLE (b + 86 + 97 - k) 1 = 48) → TabsOK s.mem →
-      ReachesRet Extracted.program (BitVec.ofNat 64 decX) s
+      ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 decX) s
         (fun S' => S'.regs 2 = BitVec.ofNat 64 (b + 86 + (98 - decLen z)) ∧ S'.regs 13 = BitVec.ofNat 64 (decLen z) ∧
           S'.regs 4 = BitVec.ofNat 64 b ∧ S'.regs 5 = BitVec.ofNat 64 (b + 368) ∧ S'.regs 14 = BitVec.ofNat 64 g ∧
           S'.xmm 15 = 0 ∧ S'.df = false ∧ MemFrame M0 S'.mem [(b - 0x1a0, b + 368)] ∧

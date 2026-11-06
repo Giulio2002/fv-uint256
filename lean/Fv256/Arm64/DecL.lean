@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -17,7 +17,7 @@ set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 200000 in
 /-- Summary of `internal/strconv.formatBase10(a []byte, u uint64) int` (arm64): `a[len-decLen u:]` holds the decimal digits of `u`. -/
 theorem fb10_summary :
-    Summary Extracted.program fb
+    Summary Fv256.Arm64.DecProg.program fb
       (fun s => GuardOK s 0 ∧ s.sp.toNat % 16 = 0 ∧ 24 ≤ s.sp.toNat ∧ s.sp.toNat + 16 + 8 < 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 24) 40 true = true ∧
         (s.regs 0).toNat + (s.regs 1).toNat ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat (s.regs 1).toNat true = true ∧

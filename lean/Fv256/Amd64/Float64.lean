@@ -4,6 +4,10 @@ import Fv256.Util
 import Fv256.SpecB
 import Fv256.UtilB
 import Fv256.UtilD
+import Fv256.Amd64.Float64J0
+import Fv256.Amd64.Float64J1
+import Fv256.Amd64.Float64J2
+import Fv256.Amd64.Float64J3
 
 /-!
 # `(*uint256.Int).Float64() float64` (amd64)
@@ -27,8 +31,15 @@ theorem correctness (x : BitVec 64) :
       (fun s => StackGuardOK s 0 ∧ StackWritable s 80 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧ GoMXCSR s)
       (fun s s' => (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsNearest (valueAt s x 32) ∧
-        Util.OnlyWrites2 s.mem s'.mem ((s.regs regSP).toNat - 80) 88 ((s.regs regSP).toNat - 80) 88) := by
-  sorry
+        MemFrame s.mem s'.mem [((s.regs regSP).toNat - 80, (s.regs regSP).toNat + 8)]) := by
+  intro ret hret s hs hpre
+  by_cases h3 : s.mem.readLE (x.toNat + 24) 8 = 0
+  · by_cases h2 : s.mem.readLE (x.toNat + 16) 8 = 0
+    · by_cases h1 : s.mem.readLE (x.toNat + 8) 8 = 0
+      · exact lem0 x ret hret s hs ⟨hpre, h3, h2, h1⟩
+      · exact lem1 x ret hret s hs ⟨hpre, h2, h3, h1⟩
+    · exact lem2 x ret hret s hs ⟨hpre, h3, h2⟩
+  · exact lem3 x ret hret s hs ⟨hpre, h3⟩
 
 namespace Witness
 
@@ -61,7 +72,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsNearest (valueAt s0 x 32) ∧
-      Util.OnlyWrites2 s0.mem s'.mem ((s0.regs regSP).toNat - 80) 88 ((s0.regs regSP).toNat - 80) 88 :=
+      MemFrame s0.mem s'.mem [((s0.regs regSP).toNat - 80, (s0.regs regSP).toNat + 8)] :=
   correctness x ret hret s0 setup hpre
 
 end Witness

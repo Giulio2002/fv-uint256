@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -17,7 +17,7 @@ theorem tail_ret (s : State) (pcv bp ret : Nat) (hpc : pcv = fb + 0x1cc ∨ pcv 
     (hacc : s.mem.accessible (s.sp.toNat - 8) 16 false = true)
     (m0 : s.mem.readLE (s.sp.toNat - 8) 8 = bp) (m1 : s.mem.readLE s.sp.toNat 8 = ret)
     (hl : s.regs 30 = BitVec.ofNat 64 ret) (hret : ret < 2 ^ 48) (hret4 : ret % 4 = 0) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 ret) s (fun S' =>
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 ret) s (fun S' =>
       S'.regs 0 = s.regs 1 ∧ S'.sp = s.sp + 16#64 ∧ S'.regs 29 = BitVec.ofNat 64 bp ∧
       (∀ k, k ∉ [0, 29, 30] → S'.regs k = s.regs k) ∧ S'.mem = s.mem) := by
   have hc : fb + 0x300 < 2 ^ 47 := by decide

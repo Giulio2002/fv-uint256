@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -14,7 +14,7 @@ theorem fin_step (s0 : State) (ptr len lo i : Nat) (R : Nat → W64) (fl : Flags
     (hp : ptr + len ≤ 2 ^ 48) (hacc : M.accessible ptr len true = true)
     (e0 : R 0 = BitVec.ofNat 64 ptr) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e2 : R 2 = BitVec.ofNat 64 lo) (hd : TabsOK M) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x109))
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (fb + 0x109))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x109), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x109), flags := fl', mem := M' } ∧

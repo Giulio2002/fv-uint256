@@ -4,3 +4,6 @@ wip-d/*.time
 jcache/
 stage/
 build/
+wip/
+NOTES.md
+tools/__pycache__/

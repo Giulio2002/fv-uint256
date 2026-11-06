@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -18,7 +18,7 @@ open Fv256.E
 namespace Fv256.Amd64.Dec
 
 set_option maxRecDepth 100000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Fv256.DecProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 /-- The branch of `Dec`'s loop after the copy: `JNE` at `0x2e3`. -/
@@ -41,7 +41,7 @@ theorem dec_iter (s : State) (b pos y : Nat) (M : Memory) (hpc : s.rip = BitVec.
     (hg2 : M.accessible ((s.regs 14).toNat + 16) 8 false = true)
     (hgd : (s.regs 14).toNat + 16 + 8 ≤ b - 0x1a0 ∨ b + 0x180 ≤ (s.regs 14).toNat + 16)
     (hym : Fv256.B.wv M (b + 280) 4 = y) (hdm : Fv256.B.wv M (b + 312) 4 = 10 ^ 19) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decBr)
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 decBr)
       s
       (fun S' => S'.regs 0 = BitVec.ofNat 64 (b + 67) ∧ S'.regs 1 = 19#64 ∧
         S'.regs 2 = BitVec.ofNat 64 (b + (pos - decLen (y % 10 ^ 19)) + 86) ∧ S'.regs 4 = BitVec.ofNat 64 b ∧
