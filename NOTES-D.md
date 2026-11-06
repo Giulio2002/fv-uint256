@@ -32,3 +32,19 @@
 5. IMulMod / IMulModWithReciprocal both ISAs once FV-F publishes the MulMod summary statements (wrappers `z.MulMod(z,x,m)` /
    `z.MulModWithReciprocal(z,x,m,mu)`).
 6. When FV-A integrates GrabTac: make SqrtTac import it and delete the duplicate tactics (SqrtTac, IAddModCore, ISqrt import SqrtTac).
+
+## PrettyDec handover from FV-E (branch fv/we, /srv/fv-uint256-we; received after the notes above)
+State: spec/math only, no machine-code proof started.
+- Spec: `lean/Fv256/PrettyMath.lean` (proved, no sorry): `pad3`, `prettyBytes sep n`, `prettyBytes_lt/_ge`, `pcell sep v p`, `plen v`,
+  `prettyBytes_length`, `pcell_add4`, `prettyBytes_getD`. `SpecTxt.lean` has `prettyBytes_zero` (= [48], the Go early return "0").
+- Go code (decimal.go PrettyDec): IsZero early return "0"; else loop: udivrem by 10^19 into quot/rem, `strconv.AppendUint(buf[:0], rem.Uint64(), 10)`,
+  copy buf backwards into out inserting `sep` every 3 digits (comma counter persists across the 19-digit chunks), final `string(out[pos-len...])` via slicebytetostring.
+- Extractions `build/ex-{amd64,arm64}-PrettyDec` on fv/we are on the OLD pin: re-extract with
+  `janus extract build/harness-<isa> '...(*Int).PrettyDec' DIR --contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic`.
+- Reusable: `Fv256/DecProg.lean`, `Fv256/Arm64/DecProg.lean` (library programs for Dec/FormatUint/AppendUint/formatBase10/formatBits + udivrem ChainProg). PrettyDec's data
+  layout differs (.rodata + 0x2aa5a/0x31909/0x34c81/0x363b0, NOT 0x34b4a/0x34d06), so DecProg's data does not fit: use `tools/gen_libprog.py --base ChainProg` with its own `--fn`/`--data` list.
+  `Fv256/LinkEq.lean` (ProgEq/LibIn) transfers a library summary + runtime contract to the extraction. `Fv256/GrabTac.lean` has content-based lookup.
+  amd64 `fb10_summary` / `append_summary` (DecL / StrconvAppend) summarize formatBase10 / AppendUint if the program contains those segments (same addresses as in Dec's lib).
+- Runtime facts: `slicebytetostringSpec` needs the staticuint64s address and its post has `StrAt`; `Fv256/DecAt.lean` shows how the result location is stated.
+  Witness: stock Janus toys handle only zero-length args; `Fv256/ToyRuntime64.lean` has an unproved looping slicebytetostring (sbtsCopyCode), proved 2-byte straight-line
+  sbts2/stb2 (Amd64/MarshalText.lean Witness), nothing for PrettyDec yet. Reference verify times: Dec 16-17 min, String 16-20 min once the shared cache is warm.
