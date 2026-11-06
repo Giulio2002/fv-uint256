@@ -1,5 +1,6 @@
 import Fv256.SpecI
 import Fv256.UtilI
+import Fv256.DecCongr
 
 /-! Pure lemmas for the top level of `SetFromDecimal` (arm64): the branch-free `s[1:]` pointer mask, etc. -/
 
@@ -156,5 +157,12 @@ theorem decParse_big (b : Nat → Nat) (n : Nat) (h : 78 < n - startPos b n) : d
   simp [h1, h2]
 
 theorem startPos_spec' (b : Nat → Nat) (n : Nat) : startPos b n ≤ n := (startPos_spec b n).2.2.1
+
+theorem dec_of_fd (b bs' : Nat → Nat) (n q len : Nat) (hq : q ≤ n) (hlen : len = n - q)
+    (hb : ∀ j, j < len → bs' j = b (q + j)) (hdp : decParse b n = fromDec b n q) :
+    decParse b n = shiftRes q (fromDec bs' len 0) := by
+  rw [hdp, fromDec_shift b n q hq, hlen]
+  congr 1
+  exact Fv256.I.fromDec_congr _ _ (n - q) 0 (fun k hk => (hb k (by omega)).symm)
 
 end Fv256.TopMath
