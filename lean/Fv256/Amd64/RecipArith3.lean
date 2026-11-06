@@ -1,5 +1,6 @@
 import Fv256.Amd64.RecipG.C_1f3_43c
 import Fv256.Amd64.RecipArith2
+import Fv256.Amd64.RecipArith3s
 
 open Janus Janus.Amd64
 
@@ -35,9 +36,7 @@ theorem sum3 (s : State) (y3 : Nat) (x1f3rax x1f3rcx x1f3rsi x1f3rdi x1f3r8 x1f3
   have bmb0 : x1f3mb0 < 2 ^ 64 := by rw [hmb]; exact ha
   have hB : x43crbx + 2 ^ 64 * x43cr8 + 2 ^ 128 * x43crdx =
       2 * (((x1f3mb0 + 2 ^ 64 * x273mb8) * 2 ^ 192 + 2 ^ 320 - (x3f0r13 + 2 ^ 64 * x3f0r15 + 2 ^ 128 * x3f0rax + 2 ^ 192 * x3f0rdx + 2 ^ 256 * x3f0rdi)) % 2 ^ 320 / 2 ^ 128) % 2 ^ 192 := by
-    simp (disch := omega) only [pos_toNat] at h_x43crdx h_x43crbx h_x43cr8
-    subst h_x43crdx h_x43crbx h_x43cr8
-    janus_carry
+    exact sbb3 x3f0rax x3f0rdx x3f0rdi x3f0r13 x3f0r15 x1f3mb0 x273mb8 x43crdx x43crbx x43cr8 bax bdx bdi b13 b15 bmb0 bmb8 h_x43crdx h_x43crbx h_x43cr8
   rw [hV, hmb, h_x273mb8, Nat.mod_eq_of_lt hb] at hB
   refine ⟨_, _, _, _, _, _, hLz, ?_, ?_, ?_, hB⟩
   · rw [h_x43cma0, h_x43crbx]
