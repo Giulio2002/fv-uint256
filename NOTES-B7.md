@@ -83,3 +83,23 @@ NEXT: (1) zero-skip loop head 0xb8aa8 (CMP R2,R3; ldrb; cmpw #127; bgt -> decode
  (4) Extracted level: Arm64/SetFromDecimal.lean like Arm64/Reciprocal.lean (Summary.of_codeIn + codeIn_of_sub for SfdProg.program, cfg from extraction: maxStr=0xf490b, ioEOF=0x1b5c10, errBig=?, mulTab=0x1b6540 etc. from `go tool objdump` / extraction data), Witness.nonvacuous (EqHashModel witness, RtInv/IfaceModel instances: see how FV-I4's pw witness plans), hpw from FV-I4's pw_sum + six contracts.
  (5) ONE verify: HEAVY_PRIORITY=0 heavy-run, janus 77fb30cc (+ fv_carry_simp_v1 only matters for amd64), --theorem ...correctness --theorem ...Witness.nonvacuous.
 LESSONS: never omega in big contexts or inside inline .trans/.mono (give explicit `have` types); structure Outside facts with `exact ⟨..⟩`; use literal pcs; numeric abbrev constants must be re-stated as literals for omega/janus_run; `case` names for refine goals; fresh `have`s after refine apply only to the first goal.
+
+# HANDOVER 2 (FV-B8 -> next worker): top level DONE, remaining = Extracted level + Witness + hpw + verify
+State: branch fv/wb7, worktree /srv/fv-uint256-wB7, HEAD = `git log -1` (SfdTopSpec doc commit after d3ac4b2).
+DONE (all sorry-free, each file < 40 s with `lake env lean`): Fv256/SfdTopMath.lean, Fv256/DecCongr.lean (copy of wJ's), Arm64/SfdTopA.lean (cfg, TopSt, top_pro),
+ SfdTopB.lean (PostA/TopMid/LoopInv/..., b0/b1/b2, loop ls/hop/lb/lend/ld1/ld2/tail, top_loop, top_to_mid), SfdTopC.lean (fdpre_of, call_post, top_c1/c2/c3a, top_epi,
+ top_fin, top_err, top_range, cmp_after, cmp_val, top_c3_gt, top_c3_le), SfdTopD.lean: 
+ `Fv256.Arm64.SfdTop.sfd_sum (impl R R2 T b L lo hi z pS nS) (hpw : ∀ lo' hi' p len, SfdPw.PwSum impl R R2 T b L lo' hi' p len)
+   (hcmp : CmpstringContract (SfdProg.program.link impl) 0x11cc0 16) : SfdSummary cfg (SfdProg.program.link impl) 0xb89b0 R R2 T b L lo hi z pS nS`
+ axioms: propext, Classical.choice, Quot.sound only. `cfg` (SfdTopA) holds the binary addresses (maxStr 0xf490b, errBig 0x1b5b60, ioEOF 0x1b5c10, mulTab 0x1b6540, numErrType 0xdc840,
+ numErrItab 0xf6940, errItab 0xf6920, synConst 0xf5940, strconvErrSyntax 0x1b5eb0, wbFlag 0x1e34c0, fnStr 0xeb483, contract addrs via SfdProg.program.contractAddr).
+Spec changes vs 2e2ff749: only TopSpec.Mod gained `8 ≤ R2.depth` (documented; Janus Iface.lean:84). fd window trick: fromDecimal is called with window [lo, s.sp-48) so caller's FP/LR words survive.
+Decoderune: SfdDecode.DecPost narrowed to [(sp-24,sp-8),(sp+8,sp+16)] (callee never touches the caller FP slot; matches arm64 calleeStack convention).
+Build: `HEAVY_PRIORITY=0 /srv/janus-ops/bin/heavy-run -- ../build_lb.sh Fv256.Arm64.SfdTopD`; fast iteration: `cd lean; lake env lean Fv256/Arm64/SfdTopX.lean` (needs olean of imports -> lake build once).
+Janus pin for the lake build is still 655a23fa (lakefile); the final verify must use /srv/janus-fvA-pin77f/bin/janus (77fb30cc) — repin lakefile (`lake update janus`) first or rely on Lake-free verify.
+
+REMAINING (not started):
+1. Extracted level (Arm64/SetFromDecimal.lean, `namespace Fv256.Arm64.SetFromDecimal`): extract `build/harness-arm64` 'github.com/holiman/uint256.(*Int).SetFromDecimal' with `--contract` for runtime.cmpstring (+ the existing contract set used by FV-I4's extraction: mallocgc, memmove, newobject, gcWriteBarrier1/2, ifaceeq); build Extracted.program; show SfdProg.program's segments embed (codeIn_of_sub / lib_summary, template Arm64/CodeIn.lean, ModSum.lean, DivModLib.lean) and transfer sfd_sum; `correctness : Ensures Extracted.program Extracted.entry [z,pS,nS,…] pre post` with pre = TopPre cfg … (cfg instantiated from Extracted.dataAddr/contractAddr; prove equal to `cfg` by decide/rfl), post = TopPost; runtime hyps: the six contracts of pw_sum + hcmp + whatever Iface contract pw_sum needs.
+2. hpw: from FV-I4's `SfdPw.pw_sum impl R R2 T b L lo hi p len hif hnew hmg hmv hwb1 hwb2` (still `sorry` in my tree; coordinate with a6fa3045cf5aa5e10 / branch fv/wi4; rebase SfdPw when sorry-free). `fun _ _ _ _ => pw_sum ...`.
+3. Witness (`SetFromDecimal.Witness.nonvacuous`): a concrete model for R (toyR, see Arm64/IntoBig.lean Witness: newobjectSeg/wbSeg/LiveSat), R2 (IfaceModel witness for ifaceeq; see Janus Contracts IfaceSat), CmpstringSat for hcmp, and a concrete State satisfying TopPre cfg (memory from Extracted.data: errItab/T descriptors for StaticOK, multipliers table + 10^(19k) objects for MultOK, ioEOF/errBig/maxStr rodata, ChunkAll contracts for every chunk, z, string). Biggest remaining piece; FV-I4's pw witness needs the same Mod/Env/StaticOK parts -> share.
+4. ONE janus verify: HEAVY_PRIORITY=0, /srv/janus-fvA-pin77f/bin/janus, --theorem …correctness --theorem …Witness.nonvacuous, no --keep-workspace.
