@@ -63,6 +63,15 @@ theorem clz_norm : ∀ (n x : Nat), x < 2 ^ n → x ≠ 0 →
         omega
 
 
+theorem clz_le (x : Nat) (hx : x < 2 ^ 64) (h0 : x ≠ 0) : Janus.Arm64.clzNat 64 x ≤ 63 := by
+  obtain ⟨_, h2⟩ := clz_norm 64 x hx h0
+  by_cases hh : Janus.Arm64.clzNat 64 x ≤ 63
+  · exact hh
+  · exfalso
+    have : 2 ^ 64 ≤ 2 ^ (Janus.Arm64.clzNat 64 x) := Nat.pow_le_pow_right (by omega) (by omega)
+    have : 2 ^ (Janus.Arm64.clzNat 64 x) ≤ x * 2 ^ (Janus.Arm64.clzNat 64 x) := Nat.le_mul_of_pos_left _ (by omega)
+    omega
+
 theorem top_ge (x0 x1 x2 x3 n : Nat) (hx0 : x0 < 2 ^ 64) (hx1 : x1 < 2 ^ 64) (hx2 : x2 < 2 ^ 64) (hx3 : x3 < 2 ^ 64)
     (h0 : x3 ≠ 0) (hn : n = Janus.Arm64.clzNat 64 x3) (v0 v1 v2 v3 : Nat) (hv0 : v0 < 2 ^ 64) (hv1 : v1 < 2 ^ 64)
     (hv2 : v2 < 2 ^ 64) (hv3 : v3 < 2 ^ 64)
@@ -123,14 +132,27 @@ theorem lsh_norm_summary (z x : BitVec 64) :
       (fun s s' => s'.regs 0 = z ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
         s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
         valueAt s' z 32 = Spec.lsh (valueAt s x 32) (s.regs 1).toNat ∧
-        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32)] ∧ 2 ^ 63 ≤ s'.mem.readLE (z.toNat + 24) 8) := by
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32)] ∧ 2 ^ 63 ≤ s'.mem.readLE (z.toNat + 24) 8 ∧
+        2 ^ 63 / (s'.mem.readLE (z.toNat + 24) 8 / 2 ^ 32) < 2 ^ 64 ∧ s'.mem.readLE (z.toNat + 24) 8 / 2 ^ 32 < 2 ^ 32) := by
   intro s hpc ⟨h0, h3, h15, hra, hzb, hxb, hds, hzx, hn, hx3⟩
   obtain ⟨k, s', hk, hpc', hq⟩ := lsh_summary z x s hpc ⟨h0, h3, h15, hra, hzb, hxb, hds, hzx⟩
   refine ⟨k, s', hk, hpc', hq.1, hq.2.1, hq.2.2.1, hq.2.2.2.1, hq.2.2.2.2.1, hq.2.2.2.2.2.1, hq.2.2.2.2.2.2.1,
     hq.2.2.2.2.2.2.2.1, hq.2.2.2.2.2.2.2.2, ?_⟩
   have hv := hq.2.2.2.2.2.2.2.1
   simp only [valueAt, Util.readLE_32] at hv
-  exact top_ge _ _ _ _ _ (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) hx3 hn
-    _ _ _ _ (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) hv
+  have htop : 2 ^ 63 ≤ s'.mem.readLE (z.toNat + 24) 8 :=
+    top_ge _ _ _ _ _ (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) hx3 hn
+      _ _ _ _ (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) hv
+  refine ⟨htop, ?_, ?_⟩
+  rotate_left
+  · have := Util.readLE8_lt s'.mem (z.toNat + 24)
+    omega
+  have h1 : 2 ^ 31 ≤ s'.mem.readLE (z.toNat + 24) 8 / 2 ^ 32 := by
+    apply (Nat.le_div_iff_mul_le (Nat.two_pow_pos 32)).2
+    omega
+  have h2 : 2 ^ 63 / (s'.mem.readLE (z.toNat + 24) 8 / 2 ^ 32) ≤ 2 ^ 63 / 2 ^ 31 :=
+    Nat.div_le_div_left h1 (Nat.two_pow_pos 31)
+  have h3 : 2 ^ 63 / 2 ^ 31 = 2 ^ 32 := by decide
+  omega
 
 end Fv256.Amd64.LshNorm

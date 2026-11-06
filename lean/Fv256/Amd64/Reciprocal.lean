@@ -51,7 +51,13 @@ theorem correctness (m : BitVec 64) :
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
   simp only [regSP] at hacc hlow hnw hdm hsp
   simp only [valueAt]
-  janus64_run [Util.readLE_32] until [Extracted.entry + 0x1f3] calls [hS := Fv256.CodeIn.lib_summary hcLsh (Fv256.Amd64.LshNorm.lsh_norm_summary (s.regs 4 - 0x220#64) m)]
+  have hclz : s.mem.readLE (m.toNat + 24) 8 ≠ 0 → Janus.Arm64.clzNat 64 (s.mem.readLE (m.toNat + 24) 8) ≤ 63 :=
+    fun h => Fv256.Amd64.LshNorm.clz_le _ (Util.readLE8_lt _ _) h
+  have hzeq : (s.regs 4 - 0x220#64).toNat = (s.regs 4).toNat - 544 := by
+    simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
+    omega
+  have hz24 : (s.regs 4).toNat - 544 + 24 = (s.regs 4).toNat - 520 := by omega
+  janus64_run [Util.readLE_32, hzeq, hz24, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, BitVec.le_def, BitVec.lt_def, BitVec.toNat_setWidth, BitVec.toNat_sub, BitVec.toNat_eq, Nat.shiftRight_eq_div_pow, Util.readLE8_mod] until [Extracted.entry + 0x1f3] calls [hS := Fv256.CodeIn.lib_summary hcLsh (Fv256.Amd64.LshNorm.lsh_norm_summary (s.regs 4 - 0x220#64) m)]
   all_goals (trace_state; sorry)
 
 end Fv256.Amd64.Reciprocal
