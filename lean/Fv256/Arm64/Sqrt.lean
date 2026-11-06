@@ -52,6 +52,7 @@ theorem correctness (z x : BitVec 64) :
       have := hsu.lr; exact this
     have h0 : s.regs 0 = z := by have := hsu.args 0 (by simp); simpa using this
     have h1 : s.regs 1 = x := by have := hsu.args 1 (by simp); simpa using this
+    unfold Fv256.Arm64.SqrtSum.SqPre
     rw [h30, h0, h1]
     have ha := hret.aligned
     have hu := hret.user
