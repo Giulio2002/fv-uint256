@@ -62,4 +62,18 @@ structure BI (R : RtInv) (ga u8 : Nat) (s S : State) (z : BitVec 64) (ret dp len
   pre : ∀ i, i < len0 → S.mem.bytes (pp.toNat + i) = s.mem.bytes (dp + i)
   mid : S.mem.readLE (pp.toNat + len0) (len.toNat - len0) = s.mem.readLE z.toNat (len.toNat - len0)
 
+/-- The postcondition of `MarshalSSZAppend` (amd64): the result slice is `(RAX, RBX = len0 + 32, RCX)`, nil error
+(`RDI = RSI = 0`), the new bytes are the little-endian encoding of `*z`, the old prefix is kept, and the memory/runtime
+facts of the no-growth / growth cases. -/
+def AppendPost (R : RtInv) (s s' : State) (z : BitVec 64) (dp len0 cap0 b0 : Nat) (L0 : List (Nat × Nat)) : Prop :=
+  (s'.regs 3).toNat = len0 + 32 ∧ s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧ len0 + 32 ≤ (s'.regs 1).toNat ∧
+  s'.mem.readLE ((s'.regs 0).toNat + len0) 32 = val256 s.mem z.toNat ∧
+  (∀ i, i < len0 → s'.mem.bytes ((s'.regs 0).toNat + i) = s.mem.bytes (dp + i)) ∧
+  (len0 + 32 ≤ cap0 → (s'.regs 0).toNat = dp ∧ (s'.regs 1).toNat = cap0 ∧
+    R.inv b0 L0 (s.regs 14).toNat (view R.rt L0 s'.mem) ∧
+    MemFrame s.mem s'.mem [(dp + len0, dp + len0 + 32), ((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24)]) ∧
+  (cap0 < len0 + 32 → InRanges (s'.regs 0).toNat (s'.regs 1).toNat R.rt ∧
+    (∃ b' L', R.inv b' L' (s.regs 14).toNat (view R.rt L' s'.mem) ∧ InRanges (s'.regs 0).toNat (s'.regs 1).toNat L') ∧
+    MemFrame s.mem s'.mem (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]))
+
 end Fv256.Amd64.Msa
