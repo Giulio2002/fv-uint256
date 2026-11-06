@@ -33,3 +33,7 @@ z = F.mulmodSpec x y m (0 if m = 0, else x*y mod m); MulModWithReciprocal under 
 - Final files: arm64 MulModWithReciprocal.lean (correctness + Witness, r4_summary instantiated; janus verify running: logs/v_arm_mmr.sh), arm64 IMulModWithReciprocal.lean (same); amd64 MulMod / MulModWithReciprocal / IMulMod / IMulModWithReciprocal .lean written with the placeholder `Fv256.Amd64.ReduceSpec.R4Summary_PLACEHOLDER` to be replaced by FV-F's reduce4 theorem (+ import).
   arm64 MulMod / IMulMod finals still need FV-B5's recip_summary (Fv256.Arm64.MulModDefs.recipU_of recip_summary) and an arm64 IMulModCore wrapper (done) + final file (TODO, generate like IMulModWithReciprocal.lean).
 - Pitfalls found: `with_reducible rfl` (never plain rfl) in `first`; close df/mxcsr-style goals with Fv256.FieldTac `close_eq_hyp`; hypotheses of the form `s'.df = {..}.df`.
+
+## 2026-11-06 evening
+- arm64 MulMod, IMulMod, MulModWithReciprocal, IMulModWithReciprocal all verified on 655a23fa (ONE run each, merged to fv/master). Re-verify on 77fb30cc: logs/v77.sh (results logs/v77.done, v77_<F>.log).
+- Decimal wrappers: waiting for FV-I3's Extracted-free SfdTopSpec (draft in /srv/fv-uint256-wi SfdFd.lean FdPre/FdPost; top-level shape: ok v / eof / range (z unchanged) / syntax NumError via TeObj; z=RAX, ptr=RBX, len=RCX; error iface RAX/RBX; hypotheses hif hnew hmg hmv hwb1 hwb2). Not started because it names Extracted.dataAddr constants (io.EOF, ErrBig256Range, numErrItab); FV-I3 to decide library program + LinkEq.
