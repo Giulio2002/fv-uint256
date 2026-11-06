@@ -1,4 +1,0 @@
-#!/bin/bash
-export PATH=$PATH:/usr/local/go/bin JANUS_CACHE_DIR=/srv/fv-uint256-wh/jcache LEAN_NUM_THREADS=8 JANUS_JOBS=2
-cd /srv/fv-uint256-wh
-timeout 9000 memcap -m 40G /srv/janus-wh-pin/bin/janus verify build/ex-arm64-DivMod --proof lean/Fv256/Arm64/DivModMain.lean --proof-root lean --theorem Fv256.Arm64.DivModMain.correctness --theorem Fv256.Arm64.DivModMain.Witness.nonvacuous --full-errors --keep-workspace

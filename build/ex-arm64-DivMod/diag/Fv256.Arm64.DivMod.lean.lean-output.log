@@ -1,5 +1,0 @@
-lean/Fv256/Arm64/DivMod.lean:29:99: error: failed to synthesize
-  Decidable (∀ (st : Stub), st ∈ DivModProg.program.stubs → st ∈ Extracted.program.stubs)
-
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
-lean/Fv256/Arm64/DivMod.lean:277:28: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
