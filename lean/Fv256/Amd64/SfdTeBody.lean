@@ -175,7 +175,8 @@ macro "te_body" : tactic => `(tactic| (
     have hNT2' : s.mem.readLE 5077160 8 ≠ 0 := by simpa using hNT2
     have hNT2b : (s.mem.readLE 5077160 8 == 0) = false := by simp [hNT2']
     have herr : Extracted.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
-    janus64_run [hgm2, hNT2b, herr] until [te + 0xce] calls [hmv, hnew.pos]
+    janus64_run [hgm2, hNT2b, herr] until [Extracted.program.contractAddr "runtime.newobject"] calls [hmv]
+    janus64_run [hgm2, hNT2b, herr] until [te + 0xce] calls [hnew.pos]
     janus64_run [hgm2, hNT2b, herr] calls [hnew.pos, hwb1, hwb2]
     all_goals
       first

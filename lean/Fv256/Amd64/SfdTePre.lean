@@ -225,7 +225,7 @@ elab "te_grab" : tactic => withMainContext do
   for d in ← getLCtx do
     if d.isImplementationDetail then continue
     let ty ← instantiateMVars d.type
-    if ty.isAppOf ``Janus.MemFrame && ty.getAppNumArgs == 3 && (← isDefEq (targ ty 1) m2e) && !(found.any (·.1 == `hMF)) then
+    if ty.isAppOf ``Janus.MemFrame && ty.getAppNumArgs == 3 && ((targ ty 1) == m2e) && !(found.any (·.1 == `hMF)) then
       found := found.push (`hMF, d.fvarId)
     else if ty.isAppOf ``Janus.InRanges && (targ ty 1).isAppOf ``Janus.Contracts.blockSize then
       found := found.push (`hInR, d.fvarId)

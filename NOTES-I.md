@@ -44,3 +44,11 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
   multipliers copy @0x60(SP); per iteration pw_sum (ParseUint) then (i>0) Mul(base,base,mult_i) + inline 4-limb add; z_i = decSum b lo_i (n-lo_i),
   step = decSum_split; no-overflow from FdPre's last conjunct. Then SetFromDecimal top (prefix '+', zero-skip loop with decoderune (rune >= 128 so
   never '0'), len compare, runtime.cmpstring contract (CmpstringContract64) against twoPow256Sub1, call fromDecimal).
+
+## FV-I2 update (14:30): speed fix
+* ROOT CAUSE of the 10-min toError prefix: `te_grab` used `isDefEq` on memory terms (355 s). Now syntactic `==` -> `lake build Fv256.Amd64.SfdPw` (TeSum0 || TeSum1, X, Pw) = 632 s wall under load ~40 (was 1414 s); TeSum1 compiles at maxHeartbeats 16M.
+  Profile recipe that found it: `set_option profiler true in set_option profiler.threshold 4000 in` on a scratch copy cut right after the suspected stage (`all_goals sorry`).
+* Remaining per-stage costs (under load): run3 (memmove+newobject) was NOT slow itself; obj cases c5-c10 ~50 s each (the `hM := rfl` unification against the State record); the all_goals prelude (assumption searches) was 424 s before switching to `with_reducible assumption`.
+* build/bld.sh OUT MODULE... runs `lake build` of the dev workspace under heavy-run.
+* FV-J (a3d85265d747eebd7) agreed the SetFromDecimal summary shape (ok / eof / range with z unchanged / syntax via TeObj); SfdTopSpec (Extracted-free Pre/Post) must be created when the top-level statement is final; dataAddr parametrisation of the library summary is an OPEN question for main/FV-A.
+* TODO order: (1) optionally cut obj cases c5-c10 further (use `show` instead of rfl); (2) fd chunk loop; (3) SetFromDecimal top; (4) witness; (5) first verify; (6) arm64 (nothing started).

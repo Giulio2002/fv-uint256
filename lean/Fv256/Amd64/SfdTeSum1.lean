@@ -4,7 +4,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdToError
 
-set_option maxHeartbeats 64000000 in
+set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 20000 in
 theorem te_sum1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Laws)
     (T b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64)
