@@ -7,6 +7,13 @@ namespace Fv256.Arm64.SfdFd
 
 abbrev pw : Nat := Fv256.Arm64.SfdPw.pw
 
+/-- what the round head leaves behind besides `PwPre`: the spill slots and the preserved registers -/
+def PwCtx (s S : State) (i : Nat) (nS : BitVec 64) (RA : Nat) (S1 : State) : Prop :=
+  S1.mem = (((S.mem.writeLE (s.sp.toNat - 104) 8 i).writeLE (s.sp.toNat - 56) 8
+      (S.mem.readLE (s.sp.toNat - 48 + i * 8) 8)).writeLE (s.sp.toNat - 96) 8 (nS.toNat - 19 * i)).writeLE
+      (s.sp.toNat - 112) 8 (18446744073709551616 - 19 * i + nS.toNat) ∧
+  S1.sp = S.sp ∧ S1.regs 29 = S.regs 29 ∧ S1.regs 28 = S.regs 28 ∧ S1.regs 18 = S.regs 18 ∧ S1.regs 30 = BitVec.ofNat 64 RA
+
 theorem ChunkOK.mono_win {R : RtInv} {R2 : IfaceModel} {L : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64}
     {lo hi lo' hi' : Nat} {m m' : Janus.Arm64.Memory} {ws : List (Nat × Nat)}
     (h : ChunkOK R R2 L b sp sl lo hi m) (hf : MemFrame m m' ws) (h1 : lo ≤ lo') (h2 : hi' ≤ hi) :
@@ -32,7 +39,7 @@ theorem fd_to_pw (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat)
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (hbig : 19 < nS.toNat - 19 * i) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 pw) S
-      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) (pS + (nS - BitVec.ofNat 64 (19 * i + 19))) 19#64 S1) := by
+      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) (pS + (nS - BitVec.ofNat 64 (19 * i + 19))) 19#64 S1 ∧ PwCtx s S i nS 756796 S1) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
   obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
   have hS2 : (S.regs 2).toNat = nS.toNat - 19 * i := by
@@ -48,6 +55,8 @@ theorem fd_to_pw (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat)
   janus_run [hacc, hS2, hS3, hS4, hspS, r0, r1] until [pw]
   all_goals (
     refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [pw]) ?_
+    refine ⟨?pwpre, ?ctx⟩
+    case ctx => unfold PwCtx; refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> first | rfl | simp [setReg_apply, rsp]
     unfold PwPre
     have hn19 : (19#64 : BitVec 64).toNat = 19 := rfl
     have hspn : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
@@ -96,7 +105,7 @@ theorem fd_to_pw_small (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (hsmall : nS.toNat - 19 * i ≤ 19) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 pw) S
-      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) pS (nS - BitVec.ofNat 64 (19 * i)) S1) := by
+      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) pS (nS - BitVec.ofNat 64 (19 * i)) S1 ∧ PwCtx s S i nS 756828 S1) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
   obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
   have hS2 : (S.regs 2).toNat = nS.toNat - 19 * i := by
@@ -112,6 +121,8 @@ theorem fd_to_pw_small (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
   janus_run [hacc, hS2, hS3, hS4, hspS, r0, r1] until [pw]
   all_goals (
     refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [pw]) ?_
+    refine ⟨?pwpre, ?ctx⟩
+    case ctx => unfold PwCtx; refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> first | rfl | simp [setReg_apply, rsp]
     unfold PwPre
     have hn19 : (19#64 : BitVec 64).toNat = 19 := rfl
     have hspn : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
