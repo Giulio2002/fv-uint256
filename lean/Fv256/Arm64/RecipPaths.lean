@@ -75,4 +75,20 @@ theorem path_pow2 (s : State) (hpc : s.pc = BitVec.ofNat 64 recEntry) (hpre : Re
       have hq : 18446744073709551615 / 2 ^ (63 - c) < 2 ^ 64 := Nat.lt_of_le_of_lt (Nat.div_le_self _ _) (by decide)
       rw [Nat.mod_eq_of_lt hq])
 
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- epilogue: `ldp x29,x30; add sp; ret` -/
+theorem g_epi (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x77c)) (hpre : RecPre s)
+    (hR : RecRegs s S) (hM : RecMem s S.mem) :
+    ReachesRet Fv256.Arm64.RecipProg.program (s.regs 30) S (fun S' =>
+      S'.sp = s.sp ∧ S'.regs 18 = s.regs 18 ∧ S'.regs 28 = s.regs 28 ∧ S'.regs 29 = s.regs 29 ∧ S'.regs 30 = s.regs 30 ∧ S'.mem = S.mem) := by
+  obtain ⟨h1, h2, ⟨hg1, hg2, hg3⟩, ⟨hsa, hsb, hsc, hsd⟩, hgw, hm1, hm2, hmd⟩ := hpre
+  obtain ⟨hr1, hr2, hr3, hr4⟩ := hR
+  obtain ⟨hm29, hm30, hfr⟩ := hM
+  have hS := RecRegs.sp_toNat ⟨hr1, hr2, hr3, hr4⟩ hsb
+  have hsp : S.sp.toNat = s.sp.toNat - 272 := by omega
+  janus_run [hm29, hm30, hsp]
+  all_goals trace_state
+  all_goals sorry
+
 end Fv256.Arm64.RecipSeg
