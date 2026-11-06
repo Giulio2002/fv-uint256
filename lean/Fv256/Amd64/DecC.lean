@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecA
@@ -40,7 +40,7 @@ set_option maxHeartbeats 8000000 in
 theorem chunk_pre (s0 : State) (u : Nat) (R : Nat → W64) (fl : Flags) (M : Memory)
     (hu : u < 2 ^ 64) (hu29 : 2 ^ 29 ≤ u)
     (e7 : R 7 = BitVec.ofNat 64 u) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x60))
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (fb + 0x60))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x17), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x60), flags := fl', mem := M } ∧

@@ -63,9 +63,10 @@ theorem slowTail (impl : List Amd64.Segment) (R : RtInv) (b b1 : Nat) (z bp : Bi
     all_goals (try rw [← Spec.val256_limbs s.mem z.toNat])
     all_goals (unfold Hidden at hfacts)
     all_goals (obtain ⟨hbP, hword, hnorm, hzero⟩ := hfacts)
-    all_goals first
+    · first
       | (set_option maxHeartbeats 300000 in exact ⟨tail0_bigout (sp := (s.regs 4).toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero,
           tail0_frame hfr2⟩)
+    · first
       | (set_option maxHeartbeats 600000 in exact ⟨tail1_bigout (sp := (s.regs 4).toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero hbpo hbpd hb'
             (unpush1 (show MemFrame _ _ _ by janus_assumption) (by omega)) (live_unpush (show LiveFrame _ _ _ _ by janus_assumption) (by intro r hr; simp at hr; subst hr; simp; omega)) ⟨(A', A' + 32), by simp, Nat.le_refl _, Nat.le_refl _⟩ (show InRanges (BitVec.toNat _) 16 R.rt by janus_assumption)
             (read_wbp (show MemFrame _ _ _ by janus_assumption) hPo16 (by omega) (by omega)) (read_wbp (show MemFrame _ _ _ by janus_assumption) hPo24 (by omega) (by omega)) (Or.symm (show Apart (BitVec.toNat _) 16 A' 32 by janus_assumption)) (show Apart P 32 (BitVec.toNat _) 16 by janus_assumption),
@@ -79,9 +80,10 @@ theorem slowTail (impl : List Amd64.Segment) (R : RtInv) (b b1 : Nat) (z bp : Bi
     all_goals (try rw [← Spec.val256_limbs s.mem z.toNat])
     all_goals (unfold Hidden at hfacts)
     all_goals (obtain ⟨hbP, hword, hnorm, hzero⟩ := hfacts)
-    all_goals first
+    · first
       | (set_option maxHeartbeats 300000 in exact ⟨tail0_bigout (sp := (s.regs 4).toNat) hfr2 h_rdP hPa hP48 hAacc hA48 hbP hAP hlen hword hnorm hzero,
           tail0_frame hfr2⟩)
+    · first
       | (obtain ⟨hAw, hPw⟩ : Apart (BitVec.toNat _) 16 A' 32 ∧ Apart P 32 (BitVec.toNat _) 16 :=
            ⟨((show Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32 by janus_assumption)).2,
             Or.symm ((show Apart (BitVec.toNat _) 16 P 32 ∧ Apart (BitVec.toNat _) 16 A' 32 by janus_assumption)).1⟩

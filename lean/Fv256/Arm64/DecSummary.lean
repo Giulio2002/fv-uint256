@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
@@ -18,11 +18,11 @@ namespace Fv256.Arm64.Dec
 
 /-- A `ReachesRet` of the extracted program is a prefix of a run of the linked program with exit `ret`. -/
 theorem reaches_of_reachesRet64 {impl : List Segment} {ret : Nat}
-    (hret : RetAddr (Extracted.program.link impl) ret) {s : State} {t : W64}
+    (hret : RetAddr (Fv256.Arm64.DecProg.program.link impl) ret) {s : State} {t : W64}
     {Q : State → Prop} {R : Outcome → Prop}
-    (h : ReachesRet Extracted.program t s Q)
-    (h2 : ∀ s', s'.pc = t → Q s' → Reaches ((Extracted.program.link impl).withExit ret) s' R) :
-    Reaches ((Extracted.program.link impl).withExit ret) s R := by
+    (h : ReachesRet Fv256.Arm64.DecProg.program t s Q)
+    (h2 : ∀ s', s'.pc = t → Q s' → Reaches ((Fv256.Arm64.DecProg.program.link impl).withExit ret) s' R) :
+    Reaches ((Fv256.Arm64.DecProg.program.link impl).withExit ret) s R := by
   obtain ⟨k, s', hst, hr, hq⟩ := h
   exact Reaches.of_steps (Janus.Program.Steps.withExit (steps_link64 impl hst) hret.fetch_none) (h2 s' hr hq)
 
@@ -32,18 +32,18 @@ set_option maxRecDepth 100000 in
 theorem AtEntry.pc {s : State} (h : AtEntry s) : s.pc = BitVec.ofNat 64 decE := by unfold AtEntry at h; exact h
 
 set_option maxRecDepth 100000 in
-theorem decE_seg : decE = segAddr Extracted.program "github.com/holiman/uint256.(*Int).Dec" := rfl
+theorem decE_seg : decE = segAddr Fv256.Arm64.DecProg.program "github.com/holiman/uint256.(*Int).Dec" := rfl
 
-abbrev zeroDat : Janus.DataSegment := Extracted.data[1]
+abbrev zeroDat : Janus.DataSegment := Fv256.Arm64.DecProg.data[0]
 set_option maxRecDepth 100000 in
 theorem zeroDat_base : zeroDat.base = 960826 := by decide
 set_option maxRecDepth 100000 in
 theorem zeroDat_len : zeroDat.bytes.length = 256 := by decide
-theorem zeroDat_mem : zeroDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
+theorem zeroDat_mem : zeroDat ∈ Fv256.Arm64.DecProg.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
 set_option maxRecDepth 100000 in
 theorem zeroDat_b0 : zeroDat.bytes[0]! = 48 := by decide +kernel
 
-theorem zeroStr_read {M : Memory} (hd : Extracted.program.DataLoaded M) :
+theorem zeroStr_read {M : Memory} (hd : Fv256.Arm64.DecProg.program.DataLoaded M) :
     M.readLE 960826 1 = 48 ∧ M.accessible 960826 1 false = true := by
   have b0 := dl_byte hd zeroDat_mem 0 (by rw [zeroDat_len]; omega)
   rw [zeroDat_base] at b0
@@ -80,9 +80,9 @@ theorem ensures_of_summary {p : Janus.Program} {entry : Nat} {args : List W64}
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem dec_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
-    Summary (Extracted.program.link impl) decE
-      (fun s => s.regs 0 = z ∧ GuardOK s 688 ∧ StackOK s 4608 8 ∧ Extracted.program.DataLoaded s.mem ∧
+    (hc : RtContract (Fv256.Arm64.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+    Summary (Fv256.Arm64.DecProg.program.link impl) decE
+      (fun s => s.regs 0 = z ∧ GuardOK s 688 ∧ StackOK s 4608 8 ∧ Fv256.Arm64.DecProg.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4608) (4608 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
         Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧

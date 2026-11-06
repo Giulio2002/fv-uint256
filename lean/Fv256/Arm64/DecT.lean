@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 
@@ -32,18 +32,18 @@ theorem dl_disjoint {p : Janus.Program} {m : Janus.Arm64.Memory} (h : p.DataLoad
   · omega
   · omega
 
-abbrev smallsDat : Janus.DataSegment := Extracted.data[4]
+abbrev smallsDat : Janus.DataSegment := Fv256.Arm64.DecProg.data[3]
 
 set_option maxRecDepth 100000 in
 theorem smalls_base : smallsDat.base = 1002589 := by decide
 set_option maxRecDepth 100000 in
 theorem smalls_len : smallsDat.bytes.length = 256 := by decide
-theorem smalls_mem : smallsDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
+theorem smalls_mem : smallsDat ∈ Fv256.Arm64.DecProg.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
 
 theorem smalls_tab : ∀ d, d < 100 → smallsDat.bytes[2*d]! = 48 + d / 10 ∧ smallsDat.bytes[2*d+1]! = 48 + d % 10 := by
   decide +kernel
 
-theorem smalls_read_loaded {M : Janus.Arm64.Memory} (hd : Extracted.program.DataLoaded M) (d : Nat) (hd100 : d < 100) :
+theorem smalls_read_loaded {M : Janus.Arm64.Memory} (hd : Fv256.Arm64.DecProg.program.DataLoaded M) (d : Nat) (hd100 : d < 100) :
     M.readLE (1002589 + 2 * d) 1 = 48 + d / 10 ∧ M.readLE (1002589 + 2 * d + 1) 1 = 48 + d % 10 := by
   have h := smalls_tab d hd100
   have b0 := dl_byte hd smalls_mem (2 * d) (by rw [smalls_len]; omega)
@@ -55,18 +55,18 @@ theorem smalls_read_loaded {M : Janus.Arm64.Memory} (hd : Extracted.program.Data
   · rw [b1, ← h.2]; exact (getElem!_pos smallsDat.bytes (2*d+1) (by rw [smalls_len]; omega)).symm
 
 
-abbrev digitsDat : Janus.DataSegment := Extracted.data[2]
+abbrev digitsDat : Janus.DataSegment := Fv256.Arm64.DecProg.data[1]
 
 set_option maxRecDepth 100000 in
 theorem digits_base : digitsDat.base = 989280 := by decide
 set_option maxRecDepth 100000 in
 theorem digits_len : digitsDat.bytes.length = 256 := by decide
-theorem digits_mem : digitsDat ∈ Extracted.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
+theorem digits_mem : digitsDat ∈ Fv256.Arm64.DecProg.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
 
 theorem digits_tab : ∀ d, d < 10 → digitsDat.bytes[d]! = 48 + d := by
   decide +kernel
 
-theorem digits_read_loaded {M : Janus.Arm64.Memory} (hd : Extracted.program.DataLoaded M) (d : Nat) (hd10 : d < 10) :
+theorem digits_read_loaded {M : Janus.Arm64.Memory} (hd : Fv256.Arm64.DecProg.program.DataLoaded M) (d : Nat) (hd10 : d < 10) :
     M.readLE (989280 + d) 1 = 48 + d := by
   have b0 := dl_byte hd digits_mem d (by rw [digits_len]; omega)
   rw [digits_base] at b0
@@ -102,7 +102,7 @@ theorem TabsOK.intro {M : Janus.Arm64.Memory} (h1 : M.accessible 989280 256 fals
     (h5 : ∀ a n, M.accessible a n true = true → (a + n ≤ 989280 ∨ 989280 + 256 ≤ a) ∧ (a + n ≤ 1002589 ∨ 1002589 + 256 ≤ a)) : TabsOK M := by
   unfold TabsOK; exact ⟨h1, h2, h3, h4, h5⟩
 
-theorem TabsOK.of_loaded {M : Janus.Arm64.Memory} (hd : Extracted.program.DataLoaded M) : TabsOK M := by
+theorem TabsOK.of_loaded {M : Janus.Arm64.Memory} (hd : Fv256.Arm64.DecProg.program.DataLoaded M) : TabsOK M := by
   refine TabsOK.intro ?_ ?_ (fun d h => digits_read_loaded hd d h) (fun d h => smalls_read_loaded hd d h) ?_
   · have := dl_acc hd digits_mem
     rwa [digits_base, digits_len] at this

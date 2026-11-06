@@ -1,0 +1,1408 @@
+case hq
+x : BitVec 64
+ret : Nat
+hret : RetAddr Extracted.program ret
+s : State
+hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s
+hg : StackGuardOK s 0
+hlow : 80 ≤ BitVec.toNat (s.regs 4)
+hnw : BitVec.toNat (s.regs 4) + 8 ≤ 2 ^ 48
+hacc : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 80) (80 + 8) true = true
+hxw : x.toNat + 32 ≤ 2 ^ 48
+hx : Arm64.Memory.accessible s.mem x.toNat 32 false = true
+hds : x.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 80 ∨ BitVec.toNat (s.regs 4) + 8 ≤ x.toNat
+hm : GoMXCSR s
+hxj : Arm64.Memory.readLE s.mem (x.toNat + 24) 8 ≠ 0
+h_rip : s.rip = 4921856#64
+h_ret : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 4)) 8 = ret
+h_x15 : s.xmm 15 = 0
+h_df : s.df = false
+h_a0 : s.regs 0 = x
+hgl :
+  load s.mem (BitVec.toNat (s.regs 14) + 16) 8 = Except.ok (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8)
+hgb : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + 0 < BitVec.toNat (s.regs 4)
+hnw2 : BitVec.toNat (s.regs 14) + 16 + 8 ≤ 2 ^ 48
+hgr : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+hbr✝¹ :
+  ¬(BitVec.toNat (s.regs 4) < Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 ∨
+      (18446744073709551616 - Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + BitVec.toNat (s.regs 4)) %
+          18446744073709551616 =
+        0)
+s' : State
+a✝ :
+  s'.rip =
+    retAddrOf
+      {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                          (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)))
+                        2
+                        (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) + 193#64))
+                      3 x)
+                    4 (s.regs 4 - 80#64))
+                  5 (s.regs 4 - 8#64))
+                6 (s.regs 4 - 40#64))
+              7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+            8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+        rip := 4954112#64,
+        flags :=
+          {
+            cf :=
+              some
+                !decide
+                    (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+            pf :=
+              some
+                (parity
+                  (18446744073709551616 -
+                    (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+            af :=
+              some
+                (auxCarry (0#64)
+                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                  (0#64 -
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+            zf :=
+              some
+                (decide
+                  (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                    0)),
+            sf :=
+              some
+                (0#64 -
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)).msb,
+            ovf :=
+              some
+                !decide
+                    ((0#64 -
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                            64#64)).toInt =
+                      0 -
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64).toInt -
+                        0) },
+        xmm := s.xmm,
+        mem :=
+          ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) - 48) 8
+                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                    (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+            (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }
+hS :
+  s'.regs 0 = s.regs 4 - 40#64 ∧
+    s'.regs 4 =
+        {
+                regs :=
+                  setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                  (0#64 -
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64)))
+                                2
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                  193#64))
+                              3 x)
+                            4 (s.regs 4 - 80#64))
+                          5 (s.regs 4 - 8#64))
+                        6 (s.regs 4 - 40#64))
+                      7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                    8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                rip := 4954112#64,
+                flags :=
+                  {
+                    cf :=
+                      some
+                        !decide
+                            (18446744073709551552 +
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                              0),
+                    pf :=
+                      some
+                        (parity
+                          (18446744073709551616 -
+                            (18446744073709551552 +
+                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                    af :=
+                      some
+                        (auxCarry (0#64)
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                          (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64))),
+                    zf :=
+                      some
+                        (decide
+                          (18446744073709551616 -
+                              (18446744073709551552 +
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                            0)),
+                    sf :=
+                      some
+                        (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)).msb,
+                    ovf :=
+                      some
+                        !decide
+                            ((0#64 -
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                    64#64)).toInt =
+                              0 -
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64).toInt -
+                                0) },
+                xmm := s.xmm,
+                mem :=
+                  ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                                (BitVec.toNat (s.regs 4) - 48) 8
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                            (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                        (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                    (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+            4 +
+          8 ∧
+      s'.regs 5 =
+          {
+                regs :=
+                  setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                  (0#64 -
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64)))
+                                2
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                  193#64))
+                              3 x)
+                            4 (s.regs 4 - 80#64))
+                          5 (s.regs 4 - 8#64))
+                        6 (s.regs 4 - 40#64))
+                      7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                    8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                rip := 4954112#64,
+                flags :=
+                  {
+                    cf :=
+                      some
+                        !decide
+                            (18446744073709551552 +
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                              0),
+                    pf :=
+                      some
+                        (parity
+                          (18446744073709551616 -
+                            (18446744073709551552 +
+                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                    af :=
+                      some
+                        (auxCarry (0#64)
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                          (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64))),
+                    zf :=
+                      some
+                        (decide
+                          (18446744073709551616 -
+                              (18446744073709551552 +
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                            0)),
+                    sf :=
+                      some
+                        (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)).msb,
+                    ovf :=
+                      some
+                        !decide
+                            ((0#64 -
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                    64#64)).toInt =
+                              0 -
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64).toInt -
+                                0) },
+                xmm := s.xmm,
+                mem :=
+                  ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                                (BitVec.toNat (s.regs 4) - 48) 8
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                            (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                        (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                    (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+            5 ∧
+        s'.regs 14 =
+            {
+                  regs :=
+                    setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF
+                                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                    (0#64 -
+                                      (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                        64#64)))
+                                  2
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                    193#64))
+                                3 x)
+                              4 (s.regs 4 - 80#64))
+                            5 (s.regs 4 - 8#64))
+                          6 (s.regs 4 - 40#64))
+                        7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                      8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                  rip := 4954112#64,
+                  flags :=
+                    {
+                      cf :=
+                        some
+                          !decide
+                              (18446744073709551552 +
+                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                0),
+                      pf :=
+                        some
+                          (parity
+                            (18446744073709551616 -
+                              (18446744073709551552 +
+                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                      af :=
+                        some
+                          (auxCarry (0#64)
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)
+                            (0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64))),
+                      zf :=
+                        some
+                          (decide
+                            (18446744073709551616 -
+                                (18446744073709551552 +
+                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                              0)),
+                      sf :=
+                        some
+                          (0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)).msb,
+                      ovf :=
+                        some
+                          !decide
+                              ((0#64 -
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64)).toInt =
+                                0 -
+                                    (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                        64#64).toInt -
+                                  0) },
+                  xmm := s.xmm,
+                  mem :=
+                    ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                                  (BitVec.toNat (s.regs 4) - 48) 8
+                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                              (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                          (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                      (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                  ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                  zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+              14 ∧
+          s'.xmm 15 =
+              {
+                    regs :=
+                      setRegF
+                        (setRegF
+                          (setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF
+                                  (setRegF
+                                    (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                      (0#64 -
+                                        (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                          64#64)))
+                                    2
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                      193#64))
+                                  3 x)
+                                4 (s.regs 4 - 80#64))
+                              5 (s.regs 4 - 8#64))
+                            6 (s.regs 4 - 40#64))
+                          7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                        8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                    rip := 4954112#64,
+                    flags :=
+                      {
+                        cf :=
+                          some
+                            !decide
+                                (18446744073709551552 +
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                  0),
+                        pf :=
+                          some
+                            (parity
+                              (18446744073709551616 -
+                                (18446744073709551552 +
+                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                        af :=
+                          some
+                            (auxCarry (0#64)
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)
+                              (0#64 -
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64))),
+                        zf :=
+                          some
+                            (decide
+                              (18446744073709551616 -
+                                  (18446744073709551552 +
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                                0)),
+                        sf :=
+                          some
+                            (0#64 -
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64)).msb,
+                        ovf :=
+                          some
+                            !decide
+                                ((0#64 -
+                                      (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                        64#64)).toInt =
+                                  0 -
+                                      (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                          64#64).toInt -
+                                    0) },
+                    xmm := s.xmm,
+                    mem :=
+                      ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                                    (BitVec.toNat (s.regs 4) - 48) 8
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                                (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                            (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                        (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                    ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                    zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.xmm
+                15 ∧
+            s'.df =
+                {
+                    regs :=
+                      setRegF
+                        (setRegF
+                          (setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF
+                                  (setRegF
+                                    (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                      (0#64 -
+                                        (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                          64#64)))
+                                    2
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                      193#64))
+                                  3 x)
+                                4 (s.regs 4 - 80#64))
+                              5 (s.regs 4 - 8#64))
+                            6 (s.regs 4 - 40#64))
+                          7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                        8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                    rip := 4954112#64,
+                    flags :=
+                      {
+                        cf :=
+                          some
+                            !decide
+                                (18446744073709551552 +
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                  0),
+                        pf :=
+                          some
+                            (parity
+                              (18446744073709551616 -
+                                (18446744073709551552 +
+                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                        af :=
+                          some
+                            (auxCarry (0#64)
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)
+                              (0#64 -
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64))),
+                        zf :=
+                          some
+                            (decide
+                              (18446744073709551616 -
+                                  (18446744073709551552 +
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                                0)),
+                        sf :=
+                          some
+                            (0#64 -
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64)).msb,
+                        ovf :=
+                          some
+                            !decide
+                                ((0#64 -
+                                      (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                        64#64)).toInt =
+                                  0 -
+                                      (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                          64#64).toInt -
+                                    0) },
+                    xmm := s.xmm,
+                    mem :=
+                      ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                                    (BitVec.toNat (s.regs 4) - 48) 8
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                                (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                            (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                        (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                    ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                    zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.df ∧
+              s'.mxcsr =
+                  {
+                      regs :=
+                        setRegF
+                          (setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF
+                                  (setRegF
+                                    (setRegF
+                                      (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                        (0#64 -
+                                          (BitVec.ofNat 64
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                            64#64)))
+                                      2
+                                      (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                        193#64))
+                                    3 x)
+                                  4 (s.regs 4 - 80#64))
+                                5 (s.regs 4 - 8#64))
+                              6 (s.regs 4 - 40#64))
+                            7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                          8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                      rip := 4954112#64,
+                      flags :=
+                        {
+                          cf :=
+                            some
+                              !decide
+                                  (18446744073709551552 +
+                                      (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                    0),
+                          pf :=
+                            some
+                              (parity
+                                (18446744073709551616 -
+                                  (18446744073709551552 +
+                                    (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                          af :=
+                            some
+                              (auxCarry (0#64)
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64)
+                                (0#64 -
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                    64#64))),
+                          zf :=
+                            some
+                              (decide
+                                (18446744073709551616 -
+                                    (18446744073709551552 +
+                                      (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                                  0)),
+                          sf :=
+                            some
+                              (0#64 -
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                    64#64)).msb,
+                          ovf :=
+                            some
+                              !decide
+                                  ((0#64 -
+                                        (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                          64#64)).toInt =
+                                    0 -
+                                        (BitVec.ofNat 64
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                            64#64).toInt -
+                                      0) },
+                      xmm := s.xmm,
+                      mem :=
+                        ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8
+                                          (BitVec.toNat (s.regs 5))).writeLE
+                                      (BitVec.toNat (s.regs 4) - 48) 8
+                                      (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                                  (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                              (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                          (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                      ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                      zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.mxcsr ∧
+                valueAt s' (s.regs 4 - 40#64) 32 =
+                    Spec.lsh
+                      (valueAt
+                        {
+                          regs :=
+                            setRegF
+                              (setRegF
+                                (setRegF
+                                  (setRegF
+                                    (setRegF
+                                      (setRegF
+                                        (setRegF
+                                          (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                            (0#64 -
+                                              (BitVec.ofNat 64
+                                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                                64#64)))
+                                          2
+                                          (BitVec.ofNat 64
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                            193#64))
+                                        3 x)
+                                      4 (s.regs 4 - 80#64))
+                                    5 (s.regs 4 - 8#64))
+                                  6 (s.regs 4 - 40#64))
+                                7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                              8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                          rip := 4954112#64,
+                          flags :=
+                            {
+                              cf :=
+                                some
+                                  !decide
+                                      (18446744073709551552 +
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                        0),
+                              pf :=
+                                some
+                                  (parity
+                                    (18446744073709551616 -
+                                      (18446744073709551552 +
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                              af :=
+                                some
+                                  (auxCarry (0#64)
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64)
+                                    (0#64 -
+                                      (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                        64#64))),
+                              zf :=
+                                some
+                                  (decide
+                                    (18446744073709551616 -
+                                        (18446744073709551552 +
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                                      0)),
+                              sf :=
+                                some
+                                  (0#64 -
+                                      (BitVec.ofNat 64
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                        64#64)).msb,
+                              ovf :=
+                                some
+                                  !decide
+                                      ((0#64 -
+                                            (BitVec.ofNat 64
+                                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                              64#64)).toInt =
+                                        0 -
+                                            (BitVec.ofNat 64
+                                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                                64#64).toInt -
+                                          0) },
+                          xmm := s.xmm,
+                          mem :=
+                            ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8
+                                              (BitVec.toNat (s.regs 5))).writeLE
+                                          (BitVec.toNat (s.regs 4) - 48) 8
+                                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) +
+                                            193)).writeLE
+                                      (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                                  (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                              (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                          zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }
+                        x 32)
+                      (BitVec.toNat
+                        ({
+                              regs :=
+                                setRegF
+                                  (setRegF
+                                    (setRegF
+                                      (setRegF
+                                        (setRegF
+                                          (setRegF
+                                            (setRegF
+                                              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                                (0#64 -
+                                                  (BitVec.ofNat 64
+                                                      (63 -
+                                                        Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                                    64#64)))
+                                              2
+                                              (BitVec.ofNat 64
+                                                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                                193#64))
+                                            3 x)
+                                          4 (s.regs 4 - 80#64))
+                                        5 (s.regs 4 - 8#64))
+                                      6 (s.regs 4 - 40#64))
+                                    7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                                  8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                              rip := 4954112#64,
+                              flags :=
+                                {
+                                  cf :=
+                                    some
+                                      !decide
+                                          (18446744073709551552 +
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                            0),
+                                  pf :=
+                                    some
+                                      (parity
+                                        (18446744073709551616 -
+                                          (18446744073709551552 +
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                                  af :=
+                                    some
+                                      (auxCarry (0#64)
+                                        (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                          64#64)
+                                        (0#64 -
+                                          (BitVec.ofNat 64
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                            64#64))),
+                                  zf :=
+                                    some
+                                      (decide
+                                        (18446744073709551616 -
+                                            (18446744073709551552 +
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                                          0)),
+                                  sf :=
+                                    some
+                                      (0#64 -
+                                          (BitVec.ofNat 64
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                            64#64)).msb,
+                                  ovf :=
+                                    some
+                                      !decide
+                                          ((0#64 -
+                                                (BitVec.ofNat 64
+                                                    (63 -
+                                                      Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                                  64#64)).toInt =
+                                            0 -
+                                                (BitVec.ofNat 64
+                                                      (63 -
+                                                        Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                                    64#64).toInt -
+                                              0) },
+                              xmm := s.xmm,
+                              mem :=
+                                ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8
+                                                  (BitVec.toNat (s.regs 5))).writeLE
+                                              (BitVec.toNat (s.regs 4) - 48) 8
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) +
+                                                193)).writeLE
+                                          (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                                      (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                                  (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                              ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                              zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+                          1)) ∧
+                  MemFrame
+                    {
+                        regs :=
+                          setRegF
+                            (setRegF
+                              (setRegF
+                                (setRegF
+                                  (setRegF
+                                    (setRegF
+                                      (setRegF
+                                        (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                                          (0#64 -
+                                            (BitVec.ofNat 64
+                                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                              64#64)))
+                                        2
+                                        (BitVec.ofNat 64
+                                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                                          193#64))
+                                      3 x)
+                                    4 (s.regs 4 - 80#64))
+                                  5 (s.regs 4 - 8#64))
+                                6 (s.regs 4 - 40#64))
+                              7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                            8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+                        rip := 4954112#64,
+                        flags :=
+                          {
+                            cf :=
+                              some
+                                !decide
+                                    (18446744073709551552 +
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                                      0),
+                            pf :=
+                              some
+                                (parity
+                                  (18446744073709551616 -
+                                    (18446744073709551552 +
+                                      (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                            af :=
+                              some
+                                (auxCarry (0#64)
+                                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                    64#64)
+                                  (0#64 -
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64))),
+                            zf :=
+                              some
+                                (decide
+                                  (18446744073709551616 -
+                                      (18446744073709551552 +
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                                    0)),
+                            sf :=
+                              some
+                                (0#64 -
+                                    (BitVec.ofNat 64
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                      64#64)).msb,
+                            ovf :=
+                              some
+                                !decide
+                                    ((0#64 -
+                                          (BitVec.ofNat 64
+                                              (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                            64#64)).toInt =
+                                      0 -
+                                          (BitVec.ofNat 64
+                                                (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                              64#64).toInt -
+                                        0) },
+                        xmm := s.xmm,
+                        mem :=
+                          ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8
+                                            (BitVec.toNat (s.regs 5))).writeLE
+                                        (BitVec.toNat (s.regs 4) - 48) 8
+                                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) +
+                                          193)).writeLE
+                                    (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                                (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                            (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+                        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw,
+                        zmmHi := s.zmmHi, kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.mem
+                    s'.mem [(BitVec.toNat (s.regs 4 - 40#64), BitVec.toNat (s.regs 4 - 40#64) + 32)]
+left✝⁷ : s'.regs 0 = s.regs 4 - 40#64
+left✝⁶ :
+  s'.regs 4 =
+    {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF
+                            (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                              (0#64 -
+                                (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64)))
+                            2
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                              193#64))
+                          3 x)
+                        4 (s.regs 4 - 80#64))
+                      5 (s.regs 4 - 8#64))
+                    6 (s.regs 4 - 40#64))
+                  7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+                8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+            rip := 4954112#64,
+            flags :=
+              {
+                cf :=
+                  some
+                    !decide
+                        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) =
+                          0),
+                pf :=
+                  some
+                    (parity
+                      (18446744073709551616 -
+                        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+                af :=
+                  some
+                    (auxCarry (0#64)
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                      (0#64 -
+                        (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+                zf :=
+                  some
+                    (decide
+                      (18446744073709551616 -
+                          (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                        0)),
+                sf :=
+                  some
+                    (0#64 -
+                        (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                          64#64)).msb,
+                ovf :=
+                  some
+                    !decide
+                        ((0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)).toInt =
+                          0 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                  64#64).toInt -
+                            0) },
+            xmm := s.xmm,
+            mem :=
+              ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                            (BitVec.toNat (s.regs 4) - 48) 8
+                            (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                        (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                    (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+                (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+        4 +
+      8
+left✝⁵ :
+  s'.regs 5 =
+    {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                            (0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)))
+                          2
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                            193#64))
+                        3 x)
+                      4 (s.regs 4 - 80#64))
+                    5 (s.regs 4 - 8#64))
+                  6 (s.regs 4 - 40#64))
+                7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+              8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+          rip := 4954112#64,
+          flags :=
+            {
+              cf :=
+                some
+                  !decide
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+              pf :=
+                some
+                  (parity
+                    (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+              af :=
+                some
+                  (auxCarry (0#64)
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                    (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+              zf :=
+                some
+                  (decide
+                    (18446744073709551616 -
+                        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                      0)),
+              sf :=
+                some
+                  (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                        64#64)).msb,
+              ovf :=
+                some
+                  !decide
+                      ((0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)).toInt =
+                        0 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64).toInt -
+                          0) },
+          xmm := s.xmm,
+          mem :=
+            ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                          (BitVec.toNat (s.regs 4) - 48) 8
+                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                      (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                  (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+              (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+      5
+left✝⁴ :
+  s'.regs 14 =
+    {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                            (0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)))
+                          2
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                            193#64))
+                        3 x)
+                      4 (s.regs 4 - 80#64))
+                    5 (s.regs 4 - 8#64))
+                  6 (s.regs 4 - 40#64))
+                7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+              8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+          rip := 4954112#64,
+          flags :=
+            {
+              cf :=
+                some
+                  !decide
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+              pf :=
+                some
+                  (parity
+                    (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+              af :=
+                some
+                  (auxCarry (0#64)
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                    (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+              zf :=
+                some
+                  (decide
+                    (18446744073709551616 -
+                        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                      0)),
+              sf :=
+                some
+                  (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                        64#64)).msb,
+              ovf :=
+                some
+                  !decide
+                      ((0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)).toInt =
+                        0 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64).toInt -
+                          0) },
+          xmm := s.xmm,
+          mem :=
+            ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                          (BitVec.toNat (s.regs 4) - 48) 8
+                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                      (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                  (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+              (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.regs
+      14
+left✝³ :
+  s'.xmm 15 =
+    {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                            (0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)))
+                          2
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                            193#64))
+                        3 x)
+                      4 (s.regs 4 - 80#64))
+                    5 (s.regs 4 - 8#64))
+                  6 (s.regs 4 - 40#64))
+                7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+              8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+          rip := 4954112#64,
+          flags :=
+            {
+              cf :=
+                some
+                  !decide
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+              pf :=
+                some
+                  (parity
+                    (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+              af :=
+                some
+                  (auxCarry (0#64)
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                    (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+              zf :=
+                some
+                  (decide
+                    (18446744073709551616 -
+                        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                      0)),
+              sf :=
+                some
+                  (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                        64#64)).msb,
+              ovf :=
+                some
+                  !decide
+                      ((0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)).toInt =
+                        0 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64).toInt -
+                          0) },
+          xmm := s.xmm,
+          mem :=
+            ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                          (BitVec.toNat (s.regs 4) - 48) 8
+                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                      (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                  (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+              (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.xmm
+      15
+left✝² :
+  s'.df =
+    {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                          (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)))
+                        2
+                        (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) + 193#64))
+                      3 x)
+                    4 (s.regs 4 - 80#64))
+                  5 (s.regs 4 - 8#64))
+                6 (s.regs 4 - 40#64))
+              7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+            8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+        rip := 4954112#64,
+        flags :=
+          {
+            cf :=
+              some
+                !decide
+                    (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+            pf :=
+              some
+                (parity
+                  (18446744073709551616 -
+                    (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+            af :=
+              some
+                (auxCarry (0#64)
+                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                  (0#64 -
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+            zf :=
+              some
+                (decide
+                  (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                    0)),
+            sf :=
+              some
+                (0#64 -
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)).msb,
+            ovf :=
+              some
+                !decide
+                    ((0#64 -
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                            64#64)).toInt =
+                      0 -
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64).toInt -
+                        0) },
+        xmm := s.xmm,
+        mem :=
+          ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) - 48) 8
+                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                    (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+            (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.df
+left✝¹ :
+  s'.mxcsr =
+    {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                          (0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)))
+                        2
+                        (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) + 193#64))
+                      3 x)
+                    4 (s.regs 4 - 80#64))
+                  5 (s.regs 4 - 8#64))
+                6 (s.regs 4 - 40#64))
+              7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+            8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+        rip := 4954112#64,
+        flags :=
+          {
+            cf :=
+              some
+                !decide
+                    (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+            pf :=
+              some
+                (parity
+                  (18446744073709551616 -
+                    (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+            af :=
+              some
+                (auxCarry (0#64)
+                  (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                  (0#64 -
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+            zf :=
+              some
+                (decide
+                  (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                    0)),
+            sf :=
+              some
+                (0#64 -
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)).msb,
+            ovf :=
+              some
+                !decide
+                    ((0#64 -
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                            64#64)).toInt =
+                      0 -
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64).toInt -
+                        0) },
+        xmm := s.xmm,
+        mem :=
+          ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) - 48) 8
+                        (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                    (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+            (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }.mxcsr
+left✝ :
+  valueAt s' (s.regs 4 - 40#64) 32 =
+    Spec.lsh
+      (valueAt
+        {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF
+                  (setRegF
+                    (setRegF
+                      (setRegF
+                        (setRegF
+                          (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 1
+                            (0#64 -
+                              (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64)))
+                          2
+                          (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) +
+                            193#64))
+                        3 x)
+                      4 (s.regs 4 - 80#64))
+                    5 (s.regs 4 - 8#64))
+                  6 (s.regs 4 - 40#64))
+                7 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 16) 8)))
+              8 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)),
+          rip := 4954112#64,
+          flags :=
+            {
+              cf :=
+                some
+                  !decide
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) = 0),
+              pf :=
+                some
+                  (parity
+                    (18446744073709551616 -
+                      (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))),
+              af :=
+                some
+                  (auxCarry (0#64)
+                    (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64)
+                    (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) - 64#64))),
+              zf :=
+                some
+                  (decide
+                    (18446744073709551616 -
+                        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))) =
+                      0)),
+              sf :=
+                some
+                  (0#64 -
+                      (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                        64#64)).msb,
+              ovf :=
+                some
+                  !decide
+                      ((0#64 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                              64#64)).toInt =
+                        0 -
+                            (BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8)) -
+                                64#64).toInt -
+                          0) },
+          xmm := s.xmm,
+          mem :=
+            ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                          (BitVec.toNat (s.regs 4) - 48) 8
+                          (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+                      (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+                  (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+              (BitVec.toNat (s.regs 4) - 80) 8 4922103,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }
+        x 32)
+      (18446744073709551616 -
+        (18446744073709551552 + (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8))))
+right✝ :
+  MemFrame
+    (((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                  (BitVec.toNat (s.regs 4) - 48) 8
+                  (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193)).writeLE
+              (BitVec.toNat (s.regs 4) - 40) 16 0).writeLE
+          (BitVec.toNat (s.regs 4) - 24) 16 0).writeLE
+      (BitVec.toNat (s.regs 4) - 80) 8 4922103)
+    s'.mem [(BitVec.toNat (s.regs 4) - 40, BitVec.toNat (s.regs 4) - 40 + 32)]
+hbr✝ : Arm64.Memory.readLE s'.mem (BitVec.toNat (s.regs 4) - 16) 8 % 2048 = 0
+hbr :
+  (BitVec.setWidth 32 (BitVec.ofNat 64 (Arm64.Memory.readLE s'.mem (BitVec.toNat (s.regs 4) - 16) 8))).getLsbD 11 =
+    false
+⊢ ((if (BitVec.ofNat 64 (Arm64.Memory.readLE s'.mem (BitVec.toNat (s.regs 4) - 16) 8) >>> 64).toNat = 0 then
+                BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193) + 1022#64
+              else
+                BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (x.toNat + 24) 8) + 193) + 1023#64) <<<
+              52 |||
+            if (BitVec.ofNat 64 (Arm64.Memory.readLE s'.mem (BitVec.toNat (s.regs 4) - 16) 8) >>> 64).toNat = 0 then
+              BitVec.ofNat 64 (Arm64.Memory.readLE s'.mem (BitVec.toNat (s.regs 4) - 16) 8) >>> 12
+            else 0#64).toNat %
+        340282366920938463463374607431768211456 =
+      B.float64BitsNearest
+        (Arm64.Memory.readLE s.mem x.toNat 8 + 18446744073709551616 * Arm64.Memory.readLE s.mem (x.toNat + 8) 8 +
+            340282366920938463463374607431768211456 * Arm64.Memory.readLE s.mem (x.toNat + 16) 8 +
+          6277101735386680763835789423207666416102355444464034512896 * Arm64.Memory.readLE s.mem (x.toNat + 24) 8) ∧
+    Util.OnlyWrites2 s.mem s'.mem (BitVec.toNat (s.regs 4) - 80) 88 (BitVec.toNat (s.regs 4) - 80) 88

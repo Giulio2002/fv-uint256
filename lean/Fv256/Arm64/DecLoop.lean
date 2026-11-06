@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -18,7 +18,7 @@ def decX : Nat := decE + 0x200
 set_option maxHeartbeats 8000000 in
 /-- The `CBNZ` of the loop when the quotient is zero: falls through to `decX`. -/
 theorem dec_br_exit (S : State) (hpc : S.pc = BitVec.ofNat 64 decBr) (hz : S.regs 10 = 0#64) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decX) S
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 decX) S
       (fun S' => S'.regs = S.regs ∧ S'.mem = S.mem ∧ S'.sp = S.sp) := by
   have hc : decE + 0x5000 < 2 ^ 47 := by decide
   janus_run [hz] until [decX]
@@ -30,7 +30,7 @@ theorem dec_br_loop (S : State) (hpc : S.pc = BitVec.ofNat 64 decBr) (pos b : Na
     (hpos : 19 ≤ pos) (hpos2 : pos ≤ 98) (hz : S.regs 10 ≠ 0#64)
     (e0 : S.regs 0 = BitVec.ofNat 64 (b + 75)) (e2 : S.regs 2 = 19#64) (e8 : S.regs 8 = BitVec.ofNat 64 pos)
     (esp : S.sp = BitVec.ofNat 64 b) (hb : b + 384 ≤ 2 ^ 48) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 decH) S
+    ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 decH) S
       (fun S' => S'.regs 0 = BitVec.ofNat 64 (pos - 19) ∧ S'.regs 1 = 19#64 ∧ S'.regs 8 = BitVec.ofNat 64 (b + 75) ∧
         S'.regs 3 = BitVec.ofNat 64 (b + 288) ∧ S'.regs 6 = BitVec.ofNat 64 (b + 320) ∧
         (∀ k, k ∉ [0, 1, 3, 6, 8, 9] → S'.regs k = S.regs k) ∧ S'.mem = S.mem ∧ S'.sp = S.sp) := by
@@ -68,7 +68,7 @@ theorem dec_loop (b z g : Nat) (M0 : Memory) (hz0 : 2 ^ 64 ≤ z) (hz1 : z < 2 ^
       Fv256.B.wv s.mem (b + 288) 4 = y → Fv256.B.wv s.mem (b + 320) 4 = 10 ^ 19 →
       (∀ k, k < 19 * t → s.mem.readLE (b + 94 + 97 - k) 1 = 48 + z / 10 ^ k % 10) →
       (∀ k, 19 * t ≤ k → k < 98 → s.mem.readLE (b + 94 + 97 - k) 1 = 48) → TabsOK s.mem →
-      ReachesRet Extracted.program (BitVec.ofNat 64 decX) s
+      ReachesRet Fv256.Arm64.DecProg.program (BitVec.ofNat 64 decX) s
         (fun S' => S'.regs 9 = BitVec.ofNat 64 (b + 94 + (98 - decLen z)) ∧ S'.regs 11 = BitVec.ofNat 64 (decLen z) ∧
           S'.sp = BitVec.ofNat 64 b ∧ S'.regs 28 = BitVec.ofNat 64 g ∧ S'.regs 29 = s.regs 29 ∧ S'.regs 18 = s.regs 18 ∧
           MemFrame M0 S'.mem [(b - 344, b - 8), (b + 8, b + 376)] ∧

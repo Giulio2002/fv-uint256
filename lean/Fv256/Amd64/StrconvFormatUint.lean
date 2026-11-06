@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.StrE
@@ -11,8 +11,8 @@ open Fv256.E
 
 namespace Fv256.Amd64.Dec
 
-abbrev fu : Nat := segAddr Extracted.program "internal/strconv.FormatUint"
-abbrev ssAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"
+abbrev fu : Nat := segAddr Fv256.DecProg.program "internal/strconv.FormatUint"
+abbrev ssAddrL : Nat := Fv256.DecProg.program.contractAddr "runtime.slicebytetostring"
 
 theorem tabs_frame_out {M M' : Memory} (h : TabsOK M) {rs : List (Nat × Nat)} (hf : MemFrame M M' rs)
     (h1 : Outside 5163273 256 rs) (h2 : Outside 5176582 256 rs) : TabsOK M' := by
@@ -26,8 +26,8 @@ theorem tabs_frame_out {M M' : Memory} (h : TabsOK M) {rs : List (Nat × Nat)} (
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem formatUint_summary (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady)
-    (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
-    Summary (Extracted.program.link impl) fu
+    (hc : RtContract64 (Fv256.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+    Summary (Fv256.DecProg.program.link impl) fu
       (fun s => s.regs 3 = 10#64 ∧ (s.regs 0).toNat < 2 ^ 64 ∧ StackGuardOK s 0 ∧ StackWritable s (0x58 + 4096) 8 ∧
         (s.regs 4).toNat % 8 = 0 ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧ TabsOK s.mem ∧
         Outside ((s.regs 4).toNat - 0x58 - 4096) (4096 + 0x58 + 8) rt ∧

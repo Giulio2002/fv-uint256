@@ -8,3 +8,14 @@
 - `udivrem` lemmas depend on the exact stack layout (sf = sp0 - 0xf0): a change of any frame constant means recompiling Udivrem{B..K}; tightening the caller window from 0x50 to 0x48 was one sed + full recompile (about 40 min).
 - MemFrame (Janus) is used in wrapper postconditions instead of Util.OnlyWrites2 because callee summaries give MemFrame and `janus_frame` proves it.
 - DivMod amd64 (2026-11-02): DivModB.partB compiled to 4 residual goals (rem/div words from callee memory); the fix attempt (rewrite -72/-64/-56 to -80+k, close with `rw [modSpec, if_neg (by omega)]; assumption`) hit the 32M heartbeat limit (omega with many hypotheses in each closer; need small arithmetic lemma instead: y!=0 from the hbr facts proven once, then modSpec_of_ne / divSpec_of_ne). Paused: heavy-job queue (flock /srv/janus-ops/heavy.lock after mainval DONE).
+
+## Reciprocal handoff (FV-B, 2026-11-06)
+Done (commit 545355e `RecipMath.lean`, standalone, no sorry): signed Newton step with perturbation window (`step_bound`), stage chain `stage1/2/3/4` (defect bounds 2^260/2^266/2^260, final `2^574 - y - 2^200 <= r4*y <= 2^574 + 2^200`), `adjust` (final decrement gives r4' in [E-1,E], E = 2^574/y), `mu_window` (RecipWeak for every s <= 63, RecipOK for s <= 62; needs m not a power of two). Spec decision: `Fv256.F.RecipWeak/RecipOK` in RecipSpec.lean (FV-F), F-F1b recorded in COVERAGE-B.
+Oracle: `tools/recip_model.py` = exact Python transcription of the Go code (200k differential tests vs (2^512-1)//m, 0 mismatches).
+Closed forms (y = m<<s, y3 = y>>192, hi a b = a*b>>64):
+- r0 = (yh = y3>>32 == 2^31) ? 2^32-1 : 2^63/yh; t1 = (r0*r0*y3)>>64 (r0^2 < 2^64); R0 = r0*2^32; r1 = 2*(R0 - t1) [no wrap unless y3 = 2^63, then r1 = 2^64-1]; stage1 window: T1 = 2*t1 (+1 special), |2^319*T1 - R0^2*y| <= 8*2^319, |2^319 - R0*y| <= 2^288.
+- e = a2h*y3 + (hi(a2l*y2) + a2l*y3 + a2h*y2)>>64 with a2 = r1^2; t2 = (r1*2^64 - e) mod 2^128; r2 = 2*t2 (special: all-ones if r2 would be 0 and y3<<1 == 0); T2 = 2e within 8 of R1^2 y/2^383 scale (R1 = r1*2^64).
+- x = r2^2 exactly; q = sum_{i+j>=3} x_i y_j 2^(64(i+j-3)) + sum_{i+j=2} floor(x_i y_j / 2^64); t3 = r2*2^64 - ceil(q/2^128); r3 = 2*t3 mod 2^192 (stage3 window c = 8).
+- S = r3^2 exact (6 words w0..w5); x = sum_{i+j>=3} w_i y_j 2^(64(i+j-3)); r4pre = r3*2^128 - ceil(x/2^128); D = sum_{i+j<=2} w_i y_j 2^(64(i+j)) (< 2^258), x*2^192 = r3^2*y - D (stage4 input).
+- final: if r4pre*y > 2^574 then r4pre-1; then s<=62: mu = r4'>>(62-s), s=63: mu = 2*r4'; power of two m: mu[0..3] = all ones, mu[4] = all ones >> (p&63).
+Still to do: (1) per-stage window lemmas T-vs-closed-form (stage1 incl. yh==2^31 no-wrap case via omega, stage2/3 floors), (2) power-of-two branch = RecipOK, (3) amd64/arm64 machine proofs (Reciprocal calls Lsh: needs a Lsh library summary; result mu is written to the caller's result slot; amd64 frame 0x230, arm64: see build/ex-*-Recip), RecipProg libraries, witness.

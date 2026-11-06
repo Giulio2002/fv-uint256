@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.Amd64.DecT
@@ -29,7 +29,7 @@ theorem div100 (X : BitVec 64) (h : X.toNat < 2^32) :
   have : X.toNat / 100 < 2^32 := by omega
   rw [Nat.mod_eq_of_lt (by omega : X.toNat / 100 < 2^64)]
 
-abbrev fb : Nat := segAddr Extracted.program "internal/strconv.formatBase10"
+abbrev fb : Nat := segAddr Fv256.DecProg.program "internal/strconv.formatBase10"
 
 def Written (M : Memory) (ptr i0 lo c : Nat) : Prop :=
   ∀ k, k < c → M.readLE (ptr + i0 - 1 - k) 1 = 48 + lo / 10 ^ k % 10
@@ -41,7 +41,7 @@ theorem inner_step (s0 : State) (ptr len x i j : Nat) (R : Nat → W64) (fl : Fl
     (e0 : R 0 = BitVec.ofNat 64 j) (e3 : R 3 = BitVec.ofNat 64 i) (e1 : R 1 = BitVec.ofNat 64 len)
     (e7 : R 7 = BitVec.ofNat 64 ptr) (e6 : R 6 = BitVec.ofNat 64 x)
     (hd : TabsOK M) :
-    ReachesRet Extracted.program (BitVec.ofNat 64 (fb + 0x60))
+    ReachesRet Fv256.DecProg.program (BitVec.ofNat 64 (fb + 0x60))
       { s0 with regs := R, rip := BitVec.ofNat 64 (fb + 0x60), flags := fl, mem := M }
       (fun S' => ∃ (R' : Nat → W64) (fl' : Flags) (M' : Memory),
         S' = { s0 with regs := R', rip := BitVec.ofNat 64 (fb + 0x60), flags := fl', mem := M' } ∧
