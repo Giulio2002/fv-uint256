@@ -47,12 +47,12 @@ for n in invars: out += '    (hx_%s : %s = %s %% 18446744073709551616)\n' % (n, 
 for n, e in alleqs: out += '    (h_%s : %s = %s)\n' % (n, n, e)
 act_r9 = at4[n4.index('x4acr9')]
 M_n = [at4[n4.index('x4acm60')], at4[n4.index('x4acm68')], at4[n4.index('x4acr12')], at4[n4.index('x4acrdi')]]
-Mn = ' + '.join(v if i == 0 else '%d * %s' % (1 << (64 * i), v) for i, v in enumerate(M_n))
-C4 = ' + '.join(at4[n4.index(r)] if i == 0 else '%d * %s' % (1 << (64 * i), at4[n4.index(r)]) for i, r in enumerate(['x4acrcx', 'x4acrdx', 'x4acrbx', 'x4acrsi', 'x4acr8']))
-dsum = ' + '.join(d[0:1] + ['%d * %s' % (1 << (64 * i), d[i]) for i in range(1, 5)])
-out += '    (hd : %s = (%s + (if %s = 0 then 0 else %s)) %% %d)\n' % (dsum, C4, act_r9, Mn, 1 << 320)
-Xv = ' + '.join(['X0'] + ['%d * X%d' % (1 << (64 * i), i) for i in range(1, 8)])
-Mv = ' + '.join(['M0'] + ['%d * M%d' % (1 << (64 * i), i) for i in range(1, 4)])
+Mn = ' + '.join(v if i == 0 else '2 ^ %d * %s' % (64 * i, v) for i, v in enumerate(M_n))
+C4 = ' + '.join(at4[n4.index(r)] if i == 0 else '2 ^ %d * %s' % (64 * i, at4[n4.index(r)]) for i, r in enumerate(['x4acrcx', 'x4acrdx', 'x4acrbx', 'x4acrsi', 'x4acr8']))
+dsum = ' + '.join(d[0:1] + ['2 ^ %d * %s' % (64 * i, d[i]) for i in range(1, 5)])
+out += '    (hd : %s = (%s + (if %s = 0 then 0 else %s)) %% 2 ^ 320)\n' % (dsum, C4, act_r9, Mn)
+Xv = ' + '.join(['X0'] + ['2 ^ %d * X%d' % (64 * i, i) for i in range(1, 8)])
+Mv = ' + '.join(['M0'] + ['2 ^ %d * M%d' % (64 * i, i) for i in range(1, 4)])
 out += '    : %s = %s ∧ (%s) %% (%s) = (%s) %% (%s) := by\n' % (Mn, Mv, dsum, Mn, Xv, Mn)
 
 # ---------------- proof
