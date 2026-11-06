@@ -24,3 +24,5 @@ Do experiments only on scratch copies (build/lscr.sh, 300 s cap); never edit the
 
 ## Hex amd64: VERIFIED 2026-11-06 18:01 (correctness + Witness.nonvacuous in one run, 5m01, pin 655a23fa)
 Hex.lean complete (hexstep/hexbase/hexloop, nibble BitVec lemmas, witness with 3-byte-copy toy slicebytetostring). hH is conditional on the actual digit count. build/lihm.sh = fast main iteration (hexstep/hexbase stubbed).
+
+## Hex arm64: VERIFIED 2026-11-06 (correctness + Witness.nonvacuous, one run, 6m47, pin 655a23fa). Extraction build/ex-arm64-Hex from build/harness-arm64 (v1.3.3 master). Scripts build/vhexr.sh, lihr.sh, lihrm.sh. Nibble ASR forms: N{0..3}Eq/H{0..3}Eq/SIEq decide-lemmas.
