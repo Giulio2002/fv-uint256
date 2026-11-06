@@ -9,6 +9,7 @@ import Fv256.RecipSpec
 import Fv256.CodeIn
 import Fv256.LshProg
 import Fv256.Amd64.LshSum
+import Fv256.Amd64.LshNorm
 
 /-!
 # `uint256.Reciprocal(m *Int) (mu [5]uint64)` (amd64)
@@ -50,7 +51,7 @@ theorem correctness (m : BitVec 64) :
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
   simp only [regSP] at hacc hlow hnw hdm hsp
   simp only [valueAt]
-  janus64_run [Util.readLE_32] calls [hS := Fv256.CodeIn.lib_summary hcLsh (Fv256.Amd64.LshSum.lsh_summary (s.regs 4 - 0x220#64) m)]
+  janus64_run [Util.readLE_32] until [Extracted.entry + 0x1f3] calls [hS := Fv256.CodeIn.lib_summary hcLsh (Fv256.Amd64.LshNorm.lsh_norm_summary (s.regs 4 - 0x220#64) m)]
   all_goals (trace_state; sorry)
 
 end Fv256.Amd64.Reciprocal
