@@ -4,6 +4,7 @@ import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
 import Fv256.StrE
+import Fv256.GrabTac
 import Fv256.Arm64.DecExt
 
 open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
@@ -37,7 +38,8 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   have hdE : decE = 754624 := by unfold decE; decide
   have hcE : decE + 0x5000 < 2 ^ 47 := by decide
   janus_run [hdE] calls [dec_summary_ext impl rt H z hc]
-  rename_i ha hsp hr29 hr28 hr18 hdat hstr hfrm
+  grab_const Fv256.E.decBytes as hstr
+  grab_const Janus.MemFrame as hfrm
   have hr4 := s.sp.isLt
   have hu : (s.regs 29).toNat < 2 ^ 64 := (s.regs 29).isLt
   have hfr1 : MemFrame ((s.mem.writeLE (s.sp.toNat - 32) 8 ret).writeLE (s.sp.toNat - 40) 8 (s.regs 29).toNat) s'.mem
