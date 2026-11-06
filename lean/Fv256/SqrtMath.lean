@@ -79,4 +79,60 @@ theorem inv_init (x n : Nat) (h : x < 2 ^ n) : x < (2 ^ ((n + 1) / 2) + 1) * (2 
     Nat.mul_le_mul (by omega) (by omega)
   omega
 
+/-- under the invariant the quotient is at most `z + 2` -/
+theorem quot_le (x z : Nat) (hz : 0 < z) (h : x < (z + 1) * (z + 1)) : x / z ≤ z + 2 := by
+  have h1 := Nat.div_add_mod x z
+  have h2 := Nat.mod_lt x hz
+  -- x = z * q + r, r < z; suppose q ≥ z + 3, then x ≥ z * (z + 3) ≥ (z+1)*(z+1)
+  rcases Nat.lt_or_ge (z + 2) (x / z) with hc | hc
+  · have h3 : z * (z + 3) ≤ z * (x / z) := Nat.mul_le_mul_left z (by omega)
+    have e1 : (z + 1) * (z + 1) = z * z + 2 * z + 1 := by
+      simp only [Nat.add_mul, Nat.mul_add, Nat.one_mul, Nat.mul_one]; omega
+    have e2 : z * (z + 3) = z * z + 3 * z := by simp only [Nat.mul_add]; omega
+    omega
+  · exact hc
+
+/-- the addition `z + x / z` inside a step is at most `2 z + 2`, so it fits any width exceeding `2 z + 2` -/
+theorem sum_le (x z : Nat) (hz : 0 < z) (h : x < (z + 1) * (z + 1)) : z + x / z ≤ 2 * z + 2 := by
+  have := quot_le x z hz h
+  omega
+
+/-- 256-bit path: with `2^64 ≤ x < 2^256` the starting value is `≤ 2^128`, and the addition never reaches `2^256` -/
+theorem no_overflow_256 (x z : Nat) (hz : 0 < z) (hzle : z ≤ 2 ^ 128) (h : x < (z + 1) * (z + 1)) :
+    z + x / z < 2 ^ 256 := by
+  have := sum_le x z hz h
+  have : 2 * 2 ^ 128 + 2 < 2 ^ 256 := by decide
+  omega
+
+/-- uint64 path: the addition `z1 + x0 / z1` never reaches `2^64` when `z1 ≤ 2^32` -/
+theorem no_overflow_64 (x z : Nat) (hz : 0 < z) (hzle : z ≤ 2 ^ 32) (h : x < (z + 1) * (z + 1)) :
+    z + x / z < 2 ^ 64 := by
+  have := sum_le x z hz h
+  have : 2 * 2 ^ 32 + 2 < 2 ^ 64 := by decide
+  omega
+
+/-- the starting value for a number of bit length `n ≤ 256` is `≤ 2^128` (`n ≤ 64`: `≤ 2^32`) -/
+theorem init_le_256 (n : Nat) (h : n ≤ 256) : 2 ^ ((n + 1) / 2) ≤ 2 ^ 128 :=
+  Nat.pow_le_pow_right (by omega) (by omega)
+
+theorem init_le_64 (n : Nat) (h : n ≤ 64) : 2 ^ ((n + 1) / 2) ≤ 2 ^ 32 :=
+  Nat.pow_le_pow_right (by omega) (by omega)
+
+/-- the starting value is positive -/
+theorem init_pos (n : Nat) : 0 < 2 ^ ((n + 1) / 2) := Nat.two_pow_pos _
+
+/-- the loop: strong induction on `z` (the measure; each non-stopping step has `step x z < z`) -/
+theorem newton_ind {P : Nat → Prop} (x : Nat)
+    (hstop : ∀ z, 0 < z → x < (z + 1) * (z + 1) → z ≤ step x z → P z)
+    (hrec : ∀ z, 0 < z → x < (z + 1) * (z + 1) → step x z < z → 0 < step x z → P (step x z) → P z)
+    (hx : 0 < x) : ∀ z, 0 < z → x < (z + 1) * (z + 1) → P z := by
+  intro z
+  induction z using Nat.strongRecOn with
+  | _ z ih =>
+    intro hz hinv
+    rcases Nat.lt_or_ge (step x z) z with hlt | hge
+    · have hp := step_pos x z hz hx hinv
+      exact hrec z hz hinv hlt hp (ih _ hlt hp (inv_step x z hz hinv))
+    · exact hstop z hz hinv hge
+
 end Fv256.SqrtMath
