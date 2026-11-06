@@ -15,4 +15,20 @@ theorem loop_sub (c0 c1 c2 c3 c4 n0 n1 n2 n3 x310r10 x310r11 x310r13 x310r14 x31
   iterate 6 (all_goals (try split))
   all_goals omega
 
+theorem back_lt (R N n R' : Nat) (h : R < (n + 1) * N + N) (hs : R' + N = R) : R' < n * N + N := by
+  rw [Nat.add_mul, Nat.one_mul] at h
+  omega
+
+theorem zero_false (R N : Nat) (h : R < 0 * N + N) (hn : N ≤ R) : False := by omega
+
+theorem exit_nat (c0 c1 c2 c3 c4 N : Nat) (b0 : c0 < 2 ^ 64) (b1 : c1 < 2 ^ 64) (b2 : c2 < 2 ^ 64) (b3 : c3 < 2 ^ 64)
+    (hN : N < 2 ^ 256) (h : c0 + 2 ^ 64 * c1 + 2 ^ 128 * c2 + 2 ^ 192 * c3 + 2 ^ 256 * c4 < N) :
+    c4 = 0 ∧ (c0 + 2 ^ 64 * c1 + 2 ^ 128 * c2 + 2 ^ 192 * c3) % N = c0 + 2 ^ 64 * c1 + 2 ^ 128 * c2 + 2 ^ 192 * c3 := by
+  have h4 : c4 = 0 := by omega
+  subst h4
+  exact ⟨rfl, Nat.mod_eq_of_lt (by omega)⟩
+
+theorem bound_N (m0 m1 m2 m3 : Nat) (b0 : m0 < 2 ^ 64) (b1 : m1 < 2 ^ 64) (b2 : m2 < 2 ^ 64) (b3 : m3 < 2 ^ 64) :
+    m0 + 2 ^ 64 * m1 + 2 ^ 128 * m2 + 2 ^ 192 * m3 < 2 ^ 256 := by omega
+
 end Fv256.Arm64.R4Nat
