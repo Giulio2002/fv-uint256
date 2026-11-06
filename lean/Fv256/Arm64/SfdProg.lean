@@ -145,14 +145,12 @@ def stubs : List Stub := [
   { name := "runtime.morestack_noctxt.abi0", addr := 0x88540, kind := .morestack },
   { name := "runtime.panicBounds", addr := 0x8a710, kind := .panic },
   { name := "runtime.panicdivide", addr := 0x507a0, kind := .panic },
-  { name := "runtime.panicunsafestringlen", addr := 0x7f520, kind := .panic },
-  { name := "runtime.panicunsafestringnilptr", addr := 0x7f560, kind := .panic },
-  { name := "syscall", addr := 0x8b574, kind := .syscall } ]
+  { name := "runtime.panicunsafestringlen", addr := 0x7f520, kind := .panic } ]
 
 def data : List DataSegment := [
  ]
 
-def contracts : List (String × Nat) := [("runtime.cmpstring", 0x11cc0), ("runtime.ifaceeq", 0x1fbf0), ("runtime.mallocgc", 0x831b0), ("runtime.memmove", 0x8a920), ("runtime.newobject", 0x2a2a0), ("runtime.gcWriteBarrier2", 0x8a440), ("runtime.gcWriteBarrier1", 0x8a430), ("runtime.gcWriteBarrier3", 0x8a450), ("runtime.memclrNoHeapPointers", 0x8a770)]
+def contracts : List (String × Nat) := [("runtime.cmpstring", 0x11cc0), ("runtime.ifaceeq", 0x1fbf0), ("runtime.mallocgc", 0x831b0), ("runtime.memmove", 0x8a920), ("runtime.newobject", 0x2a2a0), ("runtime.gcWriteBarrier2", 0x8a440), ("runtime.gcWriteBarrier1", 0x8a430), ("runtime.gcWriteBarrier3", 0x8a450)]
 
 def program : Program := { segments := segments, stubs := stubs, exitAddr := 0, data := data, contracts := contracts }
 
