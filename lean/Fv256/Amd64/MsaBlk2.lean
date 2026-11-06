@@ -183,7 +183,7 @@ theorem blk2 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hin112 : InRanges ((s.regs 4).toNat - 112) 8 (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
       ⟨((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), by simp, by omega, by omega⟩
     have hsM : MemFrame s.mem M (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
-      MemFrame.trans ((hfrU.writeLE_inRanges (S.mem.readLE (z.toNat + 16) 8) hin16).writeLE_inRanges 4926831 hin112) hfr'
+      MemFrame.trans ((hfrU.writeLE_inRanges _ hin16).writeLE_inRanges _ hin112) hfr'
         (fun a n h => ⟨h, by
           simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
           obtain ⟨h1, h2, h3⟩ := h
@@ -193,11 +193,11 @@ theorem blk2 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hMr : ∀ a n, Outside a n R.rt →
         (a + n ≤ (s.regs 4).toNat - 112 - 4096 ∨ ((s.regs 4).toNat - 112 ≤ a ∧ a + n ≤ (s.regs 4).toNat - 112 + 8) ∨
           (s.regs 4).toNat - 112 + 8 + 40 ≤ a) →
-        M.readLE a n = ((S.mem.writeLE ((s.regs 4).toNat - 32) 8 (S.mem.readLE (z.toNat + 16) 8)).writeLE ((s.regs 4).toNat - 112) 8 4926831).readLE a n :=
+        M.readLE a n = ((S.mem.writeLE ((s.regs 4).toNat - 32) 8 (s.mem.readLE (z.toNat + 16) 8)).writeLE ((s.regs 4).toNat - 112) 8 4926831).readLE a n :=
       fun a n ho hh => hfr'.readLE a n (by
         simp only [outside_append, outside_cons, outside_nil, and_true]
         refine ⟨ho, ?_, ?_⟩ <;> omega)
-    have hM16 : M.readLE ((s.regs 4).toNat - 32) 8 = S.mem.readLE (z.toNat + 16) 8 := by
+    have hM16 : M.readLE ((s.regs 4).toNat - 32) 8 = s.mem.readLE (z.toNat + 16) 8 := by
       rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),
         Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
       exact Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _)
@@ -211,6 +211,16 @@ theorem blk2 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hMa70 : M.accessible ((s.regs 4).toNat + 8) 8 false = true := by
       rw [hsM.accessible, ← hfrU.accessible]
       exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hMa8 : M.accessible ((s.regs 4).toNat - 8) 8 false = true := by
+      rw [hsM.accessible, ← hfrU.accessible]
+      exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hMa0 : M.accessible (s.regs 4).toNat 8 false = true := by
+      rw [hsM.accessible, ← hfrU.accessible]
+      exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hM8 : M.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+      rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),
+        Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      exact h_rd2
     clear hfrU
     replace hfr' := show Hidden _ from hfr'
     replace hsM := show Hidden _ from hsM
@@ -313,7 +323,5 @@ theorem blk2 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
       rw [hlen8, h1, h2]
       exact mid_step M s.mem (r0.toNat + len0) (len.toNat - len0) z.toNat _ (hmid'.trans hmid)
         (by rw [Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _), show z.toNat + (len.toNat - len0) = z.toNat + 16 by omega])
-
-end Fv256.Amd64.Msa
 
 end Fv256.Amd64.Msa

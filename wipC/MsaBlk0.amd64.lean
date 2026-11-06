@@ -188,7 +188,7 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hin112 : InRanges ((s.regs 4).toNat - 112) 8 (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
       ⟨((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), by simp, by omega, by omega⟩
     have hsM : MemFrame s.mem M (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) :=
-      MemFrame.trans ((hfrU.writeLE_inRanges (S.mem.readLE z.toNat 8) hin16).writeLE_inRanges 4926695 hin112) hfr'
+      MemFrame.trans ((hfrU.writeLE_inRanges _ hin16).writeLE_inRanges _ hin112) hfr'
         (fun a n h => ⟨h, by
           simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
           obtain ⟨h1, h2, h3⟩ := h
@@ -216,6 +216,16 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hMa70 : M.accessible ((s.regs 4).toNat + 8) 8 false = true := by
       rw [hsM.accessible, ← hfrU.accessible]
       exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hMa8 : M.accessible ((s.regs 4).toNat - 8) 8 false = true := by
+      rw [hsM.accessible, ← hfrU.accessible]
+      exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hMa0 : M.accessible (s.regs 4).toNat 8 false = true := by
+      rw [hsM.accessible, ← hfrU.accessible]
+      exact Memory.accessible_sub S.mem hw (Or.inl rfl) (by omega) (by omega)
+    have hM8 : M.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+      rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),
+        Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+      exact h_rd2
     clear hfrU
     replace hfr' := show Hidden _ from hfr'
     replace hsM := show Hidden _ from hsM
