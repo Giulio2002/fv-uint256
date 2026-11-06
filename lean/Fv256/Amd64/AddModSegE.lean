@@ -44,7 +44,8 @@ theorem segE (S : State) (hpc : S.rip = BitVec.ofNat 64 (addmodEntry + 0x2de))
     (hz : Buffer S (S.regs 0) 32 true) (hm : Buffer S (S.regs 2) 32 false)
     (hmne : ¬ (S.mem.readLE (S.regs 2).toNat 8 = 0 ∧ S.mem.readLE ((S.regs 2).toNat + 8) 8 = 0 ∧ S.mem.readLE ((S.regs 2).toNat + 16) 8 = 0 ∧ S.mem.readLE ((S.regs 2).toNat + 24) 8 = 0))
     (hdz : (S.regs 0).toNat + 32 ≤ (S.regs 4).toNat - 0x158 ∨ (S.regs 4).toNat + 0x190 ≤ (S.regs 0).toNat)
-    (hdm : (S.regs 2).toNat + 32 ≤ (S.regs 4).toNat - 0x158 ∨ (S.regs 4).toNat + 0x190 ≤ (S.regs 2).toNat)
+    (hdm : (S.regs 2).toNat + 32 ≤ (S.regs 4).toNat - 0x158 ∨ (S.regs 4).toNat + 0x190 ≤ (S.regs 2).toNat ∨
+      ((S.regs 4).toNat + 0x140 ≤ (S.regs 2).toNat ∧ (S.regs 2).toNat + 32 ≤ (S.regs 4).toNat + 0x170))
     (hdg : ((S.regs 14).toNat + 24 ≤ (S.regs 4).toNat - 0x158 ∨ (S.regs 4).toNat + 0x190 ≤ (S.regs 14).toNat + 16)) :
     ReachesRet Fv256.AddModProg.program (BitVec.ofNat 64 (S.mem.readLE ((S.regs 4).toNat + 0x168) 8)) S
       (fun S' => S'.regs 0 = S.regs 0 ∧ S'.regs 4 = S.regs 4 + 0x170#64 ∧
