@@ -5,6 +5,7 @@ import Fv256.SpecI
 import Fv256.UtilI
 import Fv256.SumC64
 import Fv256.Amd64.SfdTopSpec
+import Fv256.Amd64.SfdEnvC
 
 /-!
 # `uint256.FromDecimal(decimal string) (*Int, error)` (amd64)   [DRAFT: conditional on the `SetFromDecimal` summary]
@@ -43,13 +44,15 @@ open Fv256.C in
 def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
   RetOK s ∧ s.regs 0 = pS ∧ s.regs 3 = nS ∧ Mod cfg R R2 T L ∧
   Env cfg R R2 T b L lo hi s ∧ lo + 4856 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 24 ≤ hi ∧
-  R.ok cfg.newobject [Extracted.dataAddr.«type:uint256.Int#33f34945»] ∧ blockSize 32 false ≤ b ∧
+  Extracted.program.DataLoaded s.mem ∧ R.ok cfg.newobject [Extracted.dataAddr.«type:uint256.Int#33f34945»] ∧ blockSize 32 true ≤ b ∧
   (∀ z : Nat, InRanges z 32 R.rt → MultOK cfg z lo hi s.mem) ∧
   s.mem.accessible cfg.ioEOF 16 false = true ∧ Outside cfg.ioEOF 16 [(lo, hi)] ∧
   s.mem.accessible cfg.errBig 16 false = true ∧ Outside cfg.errBig 16 [(lo, hi)] ∧
   Buffer s pS nS.toNat false ∧ (pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
-  ChunkAll cfg R R2 L (b - blockSize 32 false) pS.toNat nS.toNat lo hi s.mem
+  ChunkAll cfg R R2 L (b - blockSize 32 true) pS.toNat nS.toNat lo hi s.mem
 
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 16000000 in
 open Fv256.C in
 theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (pS nS : BitVec 64)
@@ -79,6 +82,16 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  sorry
+  obtain ⟨hRet, h0, h3, hMod, hEnv, hlo, hhi, hdl, hok, hbud, hMult, hE1, hE2, hB1, hB2, hBuf, hPS, hCh⟩ := hpre
+  have hEnv' := hEnv
+  obtain ⟨hr1, hr2, hr3, hr4, hr5, hr6, hr7, hr8, hr9, hr10, hr11, hr12, hr13, hr14, hr15, hr16, hr17, hr18⟩ := hEnv'
+  simp only [regSP, regG, stackguard0Offset, stackguard0] at *
+  janus64_data hdl [hr5]
+  janus_eval_nat h_pt : Extracted.dataAddr.«type:uint256.Int#33f34945»
+  janus64_run until [Extracted.entry + 0x34] calls [hnew.pos]
+  rename_i zv _ _ _ _ mN _ _ hLF hMF hApL hInR hLe hAcc h8 h16 hZB hApart hInv hApLo hApG
+  janus64_run calls [hsfd (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) zv pS nS]
+  all_goals (try trace_state)
+  all_goals sorry
 
 end Fv256.Amd64.FromDecimal
