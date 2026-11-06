@@ -21,3 +21,9 @@ Env: build/lc.sh, build/mkol.py are untracked helpers (LEAN_PATH = /srv/janus-op
 - Prove exact closed forms by `subst h_x..; janus_carry`. Never use independent (lo,hi) atoms of products when overflow-freedom is needed: use w,y atoms and lo := w*y%M, hi := w*y/M.
 - `(decide (0<z)).toNat` -> `pos_toNat` (RecipArith2). `decide (a<b)` with b<=1 -> `b - a` (hdl2 in RecipArith5d).
 - omega with `% 2^320` or many mod hypotheses in context times out: clear hypotheses, use per-word step lemmas (`wstep`).
+## Final state update (end of FV-B2 session)
+- PROVEN, committed (HEAD after 233bc34 + "sum5c"): sum2, sum3 (incl. sbb3 in RecipArith3s), sum4a, sum4p, sum4q, sbb4 (RecipArith4s, standalone), sum5p, sum5q, sum5c (compare: rdx = [2^574 < P], RecipArith5c, standalone, 3 s), sum5d (decrement, RecipArith5d, standalone).
+- Standalone lemmas (sbb4, sum5c, sum5d) still need to be instantiated against the chain post (use tools/gsum.py or the pattern in RecipArith3.lean: obtain, then `exact lemma <vars> <h_x…>`; clear/avoid omega with the big context, always call a standalone lemma).
+- Tail c49->d1b: the skeleton splits on `xc49rcx % 64 = 0` (x86 shift count masking). Generate TWO segment lemmas by adding the hypothesis `xc49rcx = 0` (case A) resp. `1 ≤ xc49rcx ∧ xc49rcx < 64` (case B) and passing `Nat.mod_eq_of_lt` / the hypothesis to the janus64_run simp list so the split disappears; gseg.py currently only parses the first goal.
+- The segment bed->c49 (doubling) depends on `(ofNat 64 xbedrcx).msb`: xbedrcx is the signed shift n = 62 - s in [-1, 62] (value (2^64-1) for n = -1); the doubled words are produced exactly when n = -1.
+- Remember: never `ps | grep` with a pattern matching your own command line followed by kill (it killed my shell twice).
