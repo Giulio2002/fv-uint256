@@ -7,3 +7,4 @@ build/
 wip/
 NOTES.md
 tools/__pycache__/
+build/ws-*.env
