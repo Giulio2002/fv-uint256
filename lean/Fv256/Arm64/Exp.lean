@@ -86,4 +86,59 @@ theorem correctness (z b e : BitVec 64) :
     rw [e0] at hf h0
     exact ⟨⟨hsp2, h28, h29, h18⟩, h0, hv, hf⟩
 
+namespace Witness
+
+open Janus.Contracts.EqHashModel
+
+def retW : Nat := 0x1000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x200000
+def zp : Nat := 0x30800
+def xp : Nat := 0x30900
+def dat : DataSegment := Extracted.data.head!
+def dlen : Nat := janus_eval% dat.bytes.length
+def dbase : Nat := janus_eval% dat.base
+
+def bytesW (a : Nat) : Byte :=
+  if dbase ≤ a ∧ a < dbase + dlen then BitVec.ofNat 8 (dat.bytes.getD (a - dbase) 0) else 0
+
+def zW : BitVec 64 := BitVec.ofNat 64 zp
+def xW : BitVec 64 := BitVec.ofNat 64 xp
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then zW else if i = 1 then xW else if i = 2 then xW
+      else if i = 28 then BitVec.ofNat 64 g0 else if i = 29 then BitVec.ofNat 64 sp0 - 8#64
+      else if i = 30 then BitVec.ofNat 64 retW else 0,
+    sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩,
+    mem := ⟨bytesW, [⟨sp0 - 168, 208, true⟩, ⟨g0, 0x100, false⟩, ⟨dbase, dlen, false⟩, ⟨zp, 32, true⟩, ⟨xp, 32, false⟩]⟩ }
+
+set_option maxRecDepth 200000 in
+theorem hretW : RetAddr Extracted.program retW := RetAddr.of_check (by decide)
+
+theorem setupW : CallSetup (Extracted.program.withExit retW) Extracted.entry [zW, xW, xW] s0 :=
+  ⟨rfl, rfl, by
+    intro r h
+    match r, h with
+    | 0, _ => rfl
+    | 1, _ => rfl
+    | 2, _ => rfl⟩
+
+set_option maxRecDepth 100000 in
+theorem dataLoadedW : Extracted.program.DataLoaded s0.mem := by
+  unfold Program.DataLoaded
+  decide
+
+set_option maxRecDepth 100000 in
+theorem hpreW : Pre zW xW xW s0 := by
+  refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, by decide, by decide,
+    ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, dataLoadedW⟩ <;>
+    (unfold Disjoint; decide)
+
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b e : BitVec 64), RetAddr Extracted.program ret ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b, e] s ∧ Pre z b e s :=
+  ⟨retW, s0, zW, xW, xW, hretW, setupW, hpreW⟩
+
+end Witness
+
 end Fv256.Arm64.Exp
