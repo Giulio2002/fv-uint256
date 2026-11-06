@@ -13,7 +13,7 @@ namespace Fv256.Arm64.R4Seg
 
 /-- registers that stay fixed through the body (`s` = the entry state) -/
 def R4Regs (s S : State) : Prop :=
-  S.sp = s.sp - 160#64 ∧ S.regs 29 = s.sp - 168#64 ∧ S.regs 28 = s.regs 28 ∧ S.regs 30 = s.regs 30
+  S.sp = s.sp - 160#64 ∧ S.regs 29 = s.sp - 168#64 ∧ S.regs 28 = s.regs 28 ∧ S.regs 30 = s.regs 30 ∧ S.regs 18 = s.regs 18
 
 /-- memory facts that stay true through the body: the spilled `x0` at `sp+8`, the saved `x29`, and the frame -/
 def R4Mem (s : State) (M : Memory) : Prop :=

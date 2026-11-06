@@ -30,7 +30,7 @@ abbrev R4Pre (s : State) : Prop :=
   Fv256.F.RecipWeak (s.mem.readLE (s.regs 2).toNat 32) (s.mem.readLE (s.regs 3).toNat 40)
 
 abbrev R4Post (s s' : State) : Prop :=
-  s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.sp - 8#64 ∧ s'.regs 30 = s.regs 30 ∧
+  s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.sp - 8#64 ∧ s'.regs 30 = s.regs 30 ∧
   s'.mem.readLE (s.regs 0).toNat 32 = s.mem.readLE (s.regs 1).toNat 64 % s.mem.readLE (s.regs 2).toNat 32 ∧
   MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 168, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 16)]
 

@@ -245,7 +245,7 @@ def emit_seg(A, B, norm_out):
     for l in leaves: out += '    · ' + l.replace('\n', '\n      ') + '\n'
     for n, W in eqs: out += '  · rfl\n'
     for e, ec in zip(ex, exc): out += '  · ' + EXTAC.get(ec, 'omega') + '\n'
-    out += '  · refine ⟨hR.1, ?_, ?_, ?_⟩\n    · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)\n    · first | exact hR.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.1)\n    · first | exact hR.2.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2)\n'
+    out += '  · refine ⟨hR.1, ?_, ?_, ?_, ?_⟩\n    · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)\n    · first | exact hR.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.1)\n    · first | exact hR.2.2.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2.1)\n    · first | exact hR.2.2.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2.2.2)\n'
     out += '  · dsimp only\n    repeat (refine R4Mem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)\n    exact hM\n'
     out += '  )\n\nend Fv256.Arm64.R4Seg\n'
     meta = dict(A=off(A), B=off(B), kind='g', invars=namesA, newvars=new_vars, outargs=args, eqs=eqs, extras=ex)

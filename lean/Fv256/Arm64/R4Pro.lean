@@ -24,6 +24,7 @@ theorem r4_pro (s : State) (hpc : s.pc = BitVec.ofNat 64 r4Entry) (hs : R4Pre s)
     · simp [setReg]
     · simp [setReg]
     · simp [setReg]
+    · simp [setReg]
   · unfold R4Mem
     and_intros
     · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
