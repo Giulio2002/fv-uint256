@@ -4,7 +4,7 @@ import sys
 k = int(sys.argv[1])
 t = sys.stdin.read()
 pcm = [0x20, 0x63, 0xa7, 0xeb][k]
-pcn = [0x63, 0xa7, 0xeb, 0][k]
+pcn = [0x63, 0xa7, 0xeb, 0x12f][k]
 pcr = [0x47, 0x8b, 0xcf, 0x113][k]
 ret = [4926695, 4926763, 4926831, 4926899][k]
 sp = 16 + 8 * k
@@ -22,8 +22,17 @@ t = t.replace('hz8 : S.mem.readLE (z.toNat + 0) 8 = s.mem.readLE (z.toNat + 0) 8
 t = t.replace('S.mem.readLE z.toNat 8', 'S.mem.readLE (z.toNat + %d) 8' % (8 * k))
 t = t.replace('Memory.readLE S.mem z.toNat 8', 'Memory.readLE S.mem (z.toNat + %d) 8' % (8 * k))
 
+if k >= 1:
+    # the engine rewrites the spilled limb with `hz8` (S.mem -> s.mem) in the call's memory chain
+    a = '((S.mem.writeLE ((s.regs 4).toNat - %d) 8 (S.mem.readLE (z.toNat + %d) 8)).writeLE' % (sp, 8 * k)
+    assert a in t, 'hMr chain'
+    t = t.replace(a, a.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'))
+    b = 'have hM16 : M.readLE ((s.regs 4).toNat - %d) 8 = S.mem.readLE (z.toNat + %d) 8' % (sp, 8 * k)
+    assert b in t, 'hM16'
+    t = t.replace(b, b.replace('= S.mem.readLE', '= s.mem.readLE'))
+
 HM1 = """      have hmid' : M.readLE (r0.toNat + len0) (len.toNat - len0) = S.mem.readLE (pp.toNat + len0) (len.toNat - len0) := by
-        apply Memory.readLE_congr; intro i hi
+        apply readLE_bytes_shift; intro i hi
         rw [show r0.toNat + len0 + i = r0.toNat + (len0 + i) by omega, hcopy (len0 + i) (by omega),
           Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega), Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega),
           show pp.toNat + (len0 + i) = pp.toNat + len0 + i by omega]
@@ -50,18 +59,6 @@ for X in ('pp', 'r0'):
     t = t.replace(old, new, 1)
 if k > 0:
     key = '    have hgC : ((S.mem.writeLE ((s.regs 4).toNat - %d) 8 (S.mem.readLE (z.toNat + %d) 8))' % (sp, 8 * k)
-    assert key in t
-    t = t.replace(key, key.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'), 1)
-# hide hl0 from the stepping tactics (it makes the growslice precondition goals very slow once len > len0)
-HL = 'len.toNat = len0 + %d' % (8 * k)
-t = t.replace("  have hlen8 :", "  have hl0H : Hidden (%s) := hl0\n  have hlen8 :" % HL, 1)
-lines = t.split('\n')
-out = []
-for ln in lines:
-    if ln.startswith('    janus64_data hd ['):
-        out.append('    clear hl0')
-    out.append(ln)
-    if ln.startswith('    janus64_run ') and 'until' in ln:
-        out.append('    have hl0 : %s := hl0H' % HL)
-t = '\n'.join(out)
+    if key in t:
+        t = t.replace(key, key.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'), 1)
 sys.stdout.write(t)
