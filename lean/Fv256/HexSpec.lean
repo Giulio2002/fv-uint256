@@ -18,9 +18,13 @@ namespace Fv256.Hex
 /-- the digit at nibble position `p` (counted from the most significant of 64) of `v` -/
 def dig (v p : Nat) : Nat := v / 16 ^ (63 - p) % 16
 
-/-- the postcondition of `Hex` for the value `v` (relative to the entry state `s`) -/
-def HexQ (rt : List (Nat × Nat)) (v : Nat) (s s' : State) : Prop :=
-  ∃ n, hexDigits v n ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (hexStrBytes v n)
+/-- the string at `[p, p+len)` of memory `m` is the hexadecimal rendering of `v` (ISA independent) -/
+def HexOut (v : Nat) (m : Memory) (p len : Nat) : Prop :=
+  ∃ n, hexDigits v n ∧ StrOut m p len (hexStrBytes v n)
+
+/-- the postcondition of `Hex` for the value `v` on arm64 (result string in `X0`, `X1`) -/
+def HexQ (_rt : List (Nat × Nat)) (v : Nat) (_s s' : State) : Prop :=
+  HexOut v s'.mem (s'.regs 0).toNat (s'.regs 1).toNat
 
 theorem fin_strout (w2 m0 : Memory) (w8 w7 : BitVec 64) (m1 : Memory) (p n : Nat) (bs : List Nat) (hl : bs.length = n)
     (hacc : ∀ a n, w2.accessible a n false = m0.accessible a n false)
