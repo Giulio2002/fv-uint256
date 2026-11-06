@@ -116,4 +116,175 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (L : List (Nat �
       Memory.bytes_writeLE_outside _ (by omega), Memory.bytes_writeLE_outside _ (by omega)]
   · simp
 
+
+namespace Witness
+
+set_option maxRecDepth 100000
+
+open Janus.Contracts.Toy Janus.Contracts.LiveSat Janus.Contracts.LiveStub
+
+instance (a n b k : Nat) : Decidable (Apart a n b k) := by unfold Apart; infer_instance
+
+/-- The witness is `MarshalSSZAppend(z, dp, len = 0, cap = 32)`: room for all four limbs, so no `growslice` request is made
+(the runtime serves none: `ok` is false) and the contract holds vacuously at the generic stub runtime. -/
+def u8A : Nat := janus_eval% u8T
+def grA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.growslice")
+def tys : Tys := [(u8A, 1, 0)]
+def implAt : List Segment := [growsliceSeg grA 0 16 8]
+def ok : Nat → List Nat → Prop := fun _ _ => False
+def R : RtInv := toyR tys ok
+def linked : Program := Extracted.program.link implAt
+
+theorem addr_gr : Extracted.program.contractAddr "runtime.growslice" = grA := by decide
+theorem ut_eq : u8T = u8A := by decide
+
+theorem hok_gr : ∀ args, ok grA args → ∃ p, args = [p, 1, 0, 1, (u8A, 1, 0).1] := fun _ h => h.elim
+
+set_option maxHeartbeats 4000000 in
+theorem model_gr : RtLiveContract linked grA 4096 R growsliceSpec growsliceLive := by
+  janus_live_growslice (u8A, 1, 0) 1 0 1 16 8 hok_gr
+
+def ret : Nat := 0x1000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x200000
+def zA : Nat := 0x300000
+def dpA : Nat := 0x310000
+
+def dataByte (a : Nat) : Option Byte :=
+  match Extracted.data.find? (fun d => decide (d.base ≤ a) && decide (a < d.base + d.bytes.length)) with
+  | some d => some (BitVec.ofNat 8 (d.bytes.getD (a - d.base) 0))
+  | none => none
+
+def bytes0 (a : Nat) : Byte :=
+  match dataByte a with
+  | some v => v
+  | none => if a = BUMP + 3 then 0x10 else 0
+
+def mem0 : Memory :=
+  ⟨bytes0, [⟨sp0 - 4232, 4272, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
+    ⟨zA, 32, false⟩, ⟨dpA, 32, true⟩] ++ Extracted.data.map fun d => ⟨d.base, d.bytes.length, false⟩⟩
+
+def zV : BitVec 64 := BitVec.ofNat 64 zA
+def dpV : BitVec 64 := BitVec.ofNat 64 dpA
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then zV else if i = 1 then dpV else if i = 3 then 32 else if i = 28 then BitVec.ofNat 64 g0
+      else if i = 30 then BitVec.ofNat 64 ret else 0,
+    sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩, mem := mem0 }
+
+theorem hret : RetAddr linked ret := RetAddr.of_check (by decide)
+
+theorem setup : CallSetup (linked.withExit ret) Extracted.entry [zV, dpV, 0, 32] s0 :=
+  ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | _ | _ | _ | r <;> simp [s0] at h ⊢ <;> omega⟩
+
+theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
+  unfold Program.DataLoaded
+  decide
+
+theorem dataByte_none (a : Nat) (ha : 0x500000 ≤ a) : dataByte a = none := by
+  unfold dataByte
+  have : Extracted.data.find? (fun d => decide (d.base ≤ a) && decide (a < d.base + d.bytes.length)) = none := by
+    rw [List.find?_eq_none]
+    intro d hd
+    have h2 : d.base + d.bytes.length < 0x500000 := by
+      have : ∀ d' ∈ Extracted.data, d'.base + d'.bytes.length < 0x500000 := by decide
+      exact this d hd
+    simp only [Bool.not_eq_true, Bool.and_eq_false_iff, decide_eq_false_iff_not]
+    right; omega
+  rw [this]
+
+theorem bytes0_bump : mem0.readLE BUMP 8 = HEAP := by decide
+
+theorem tysOK : TysOK tys := by decide
+
+open Janus.Contracts.PoolSat (toyInv_init_tys)
+
+theorem inv0 : R.inv 0x1000 [] (s0.regs 28).toNat (view R.rt [] s0.mem) := by
+  refine toyInv_init_tys tysOK (m := mem0) (g := (s0.regs 28).toNat) (by decide) bytes0_bump (fun i hi hi' => ?_) (by decide)
+    (by decide) (by decide) (by decide)
+  show bytes0 i = 0
+  simp only [bytes0, dataByte_none i (by simp only [HEAP] at hi; omega)]
+  rw [if_neg (by simp only [BUMP, HEAP] at *; omega)]
+
+theorem rt_eq : R.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] ++ [(u8A, u8A + 16)] := rfl
+
+/-- `DescOK` for the toy runtime: its invariant carries the descriptor words, and the live objects lie in the heap. -/
+theorem descOK : DescOK R u8A := by
+  right
+  intro b L g m hinv
+  obtain ⟨p, -, hH, -, -, hL, -, -, -, -, hT⟩ := hinv
+  have hmem : (u8A, 1, 0) ∈ tys := by simp [tys]
+  have hd := hT _ hmem
+  have hh := (tysOK.heap hmem)
+  have hOutL : Outside u8A 16 L := Toy.outside_of_forall fun r hr => Or.inl (by have := (hL r hr).1; simp only at hh ⊢; omega)
+  have hIn : InRanges u8A 16 R.rt := ⟨(u8A, u8A + 16), by simp [R, toyR, toyRt, tys], Nat.le_refl _, Nat.le_refl _⟩
+  refine ⟨?_, ?_⟩
+  · rw [← readLE_view (rt := R.rt) (L := L) (m := m) (hIn.sub (Nat.le_refl _) (by omega)) (Outside.of_sub hOutL (Nat.le_refl _) (by omega))]
+    exact hd.1
+  · rw [← readLE_view (rt := R.rt) (L := L) (m := m) (hIn.sub (by omega) (by omega)) (Outside.of_sub hOutL (by omega) (by omega))]
+    exact hd.2
+
+theorem descOK' : DescOK R u8T := by rw [ut_eq]; exact descOK
+
+
+theorem pre : GuardOK s0 4224 ∧ StackOK s0 4232 40 ∧ Extracted.program.DataLoaded s0.mem ∧ Ptr32 s0.mem zV false ∧
+        Disjoint zV.toNat 32 (s0.sp.toNat - 4232) 4272 ∧
+        Outside (s0.sp.toNat - 4232) 4272 R.rt ∧
+        Apart ((s0.regs 28).toNat + 16) 8 (s0.sp.toNat - 4232) 4272 ∧
+        Outside ((s0.regs 28).toNat + 16) 8 R.rt ∧
+        Apart ((s0.regs 28).toNat + 16) 8 dpV.toNat (32 : BitVec 64).toNat ∧
+        R.inv 0x1000 ([] : List (Nat × Nat)) (s0.regs 28).toNat (view R.rt ([] : List (Nat × Nat)) s0.mem) ∧
+        (∀ r ∈ ([] : List (Nat × Nat)), Outside r.1 (r.2 - r.1) [(s0.sp.toNat - 4232, s0.sp.toNat + 40)]) ∧
+        (InRanges zV.toNat 32 ([] : List (Nat × Nat)) ∨ Outside zV.toNat 32 R.rt) ∧
+        Apart zV.toNat 32 dpV.toNat (32 : BitVec 64).toNat ∧
+        (0 : BitVec 64).toNat ≤ (32 : BitVec 64).toNat ∧ (32 : BitVec 64).toNat < 2 ^ 40 ∧ dpV.toNat + (32 : BitVec 64).toNat ≤ 2 ^ 48 ∧
+        Apart dpV.toNat (32 : BitVec 64).toNat (s0.sp.toNat - 4232) 4272 ∧
+        Apart u8T 16 (s0.sp.toNat - 4232) 4272 ∧ Apart u8T 16 dpV.toNat (32 : BitVec 64).toNat ∧ DescOK R u8T ∧
+        ((0 : BitVec 64).toNat + 8 ≤ (32 : BitVec 64).toNat → s0.mem.accessible dpV.toNat (32 : BitVec 64).toNat true = true ∧
+          (InRanges dpV.toNat (32 : BitVec 64).toNat ([] : List (Nat × Nat)) ∨ Outside dpV.toNat (32 : BitVec 64).toNat R.rt)) ∧
+        ((32 : BitVec 64).toNat < (0 : BitVec 64).toNat + 8 → (0 < (0 : BitVec 64).toNat → s0.mem.accessible dpV.toNat (0 : BitVec 64).toNat false = true)) ∧
+        4 * Kc (0 : BitVec 64).toNat ≤ 0x1000 ∧ Ready R ga u8T 4 ((0 : BitVec 64).toNat + 8) (32 : BitVec 64).toNat := by
+  refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide, by decide⟩, dataLoaded, ⟨by decide, by decide⟩,
+    by unfold Disjoint; decide, ?_, by simp only [Apart]; decide, ?_, by simp only [Apart]; decide, inv0,
+    fun r hr => absurd hr (by simp), Or.inr ?_, by simp only [Apart]; decide, by decide, by decide, by decide,
+    by simp only [Apart]; decide, ?_, ?_, descOK', fun _ => ⟨by decide, Or.inr ?_⟩,
+    fun h => absurd h (by decide), by decide, ?_⟩
+  · rw [rt_eq]; simp only [outside_cons, outside_append, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_append, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_append, outside_nil, and_true]; decide
+  · rw [ut_eq]; simp only [Apart]; decide
+  · rw [ut_eq]; simp only [Apart]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_append, outside_nil, and_true]; decide
+  · simp [Fv256.Msa.Ready]
+
+/-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget, a live set and a call of
+`MarshalSSZAppend(z, dp, 0, 32)` satisfying the precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (z dp len cap : BitVec 64)
+    (ret : Nat) (s : State),
+    RtLiveContract (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.growslice") 4096 R growsliceSpec growsliceLive ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, dp, len, cap] s ∧
+    (GuardOK s 4224 ∧ StackOK s 4232 40 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem z false ∧
+        Disjoint z.toNat 32 (s.sp.toNat - 4232) 4272 ∧
+        Outside (s.sp.toNat - 4232) 4272 R.rt ∧
+        Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4232) 4272 ∧
+        Outside ((s.regs 28).toNat + 16) 8 R.rt ∧
+        Apart ((s.regs 28).toNat + 16) 8 dp.toNat cap.toNat ∧
+        R.inv b L (s.regs 28).toNat (view R.rt L s.mem) ∧
+        (∀ r ∈ L, Outside r.1 (r.2 - r.1) [(s.sp.toNat - 4232, s.sp.toNat + 40)]) ∧
+        (InRanges z.toNat 32 L ∨ Outside z.toNat 32 R.rt) ∧
+        Apart z.toNat 32 dp.toNat cap.toNat ∧
+        len.toNat ≤ cap.toNat ∧ cap.toNat < 2 ^ 40 ∧ dp.toNat + cap.toNat ≤ 2 ^ 48 ∧
+        Apart dp.toNat cap.toNat (s.sp.toNat - 4232) 4272 ∧
+        Apart u8T 16 (s.sp.toNat - 4232) 4272 ∧ Apart u8T 16 dp.toNat cap.toNat ∧ DescOK R u8T ∧
+        (len.toNat + 8 ≤ cap.toNat → s.mem.accessible dp.toNat cap.toNat true = true ∧
+          (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
+        (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
+        4 * Kc len.toNat ≤ b ∧ Ready R ga u8T 4 (len.toNat + 8) cap.toNat) :=
+  ⟨implAt, R, 0x1000, [], zV, dpV, 0, 32, ret, s0, by rw [addr_gr]; exact model_gr, hret, setup, pre⟩
+
+end Witness
+
 end Fv256.Arm64.MarshalSSZAppendMain
