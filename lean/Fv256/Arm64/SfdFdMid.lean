@@ -37,7 +37,5 @@ theorem fd_err_ret (impl : List Segment) (S2 : State) (x29 x30 : BitVec 64) (hpc
         S'.regs 28 = S2.regs 28 ∧ S'.regs 18 = S2.regs 18 ∧ S'.mem = S2.mem) := by
   have hx29' : S2.mem.readLE (S2.sp.toNat - 8) 8 = x29.toNat := hx29
   janus_run [hacc, hx29, hx30, hsp64, hsp8, hal, h1, h56, h4]
-  all_goals trace_state
-  all_goals sorry
 
 end Fv256.Arm64.SfdFd
