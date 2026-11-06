@@ -52,15 +52,17 @@ HDR = """import Fv256.Arm64.RecipLive
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.RecipSeg
+set_option linter.unusedSimpArgs false
+set_option linter.unusedVariables false
 """
-EXTRA = {0x88: ['2 ^ 63 ≤ x88m56']}   # extra facts about the live variables at a cut (carried by the previous segment)
+EXTRA = {0x88: ['2 ^ 63 ≤ x88m56'], 0xbc: ['xbcr0 % 2 ^ 32 = r0f xbcr3', '2 ^ 63 ≤ xbcr3']}   # extra facts about the live variables at a cut (carried by the previous segment)
 def seg_stmt(A, B, q):
     names = Ldef(A)[1]
     vs = '(%s : Nat) ' % ' '.join(names) if names else ''
     ex = ''.join('(hX%d : %s) ' % (k, e) for k, e in enumerate(EXTRA.get(off(A), [])))
-    return ('theorem g_%x_%x (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x%x)) (hs : RecPre s)\n'
-            '    (hR : RecRegs s S) (hM : RecMem s S.mem) %s(hL : L%x S %s) ' + ex + ':\n'
-            '    ReachesRet Fv256.Arm64.RecipProg.program (BitVec.ofNat 64 (recEntry + 0x%x)) S (%s) := by\n') % (
+    return (('theorem g_%x_%x (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x%x)) (hs : RecPre s)\n'
+            '    (hR : RecRegs s S) (hM : RecMem s S.mem) %s(hL : L%x S %s) ' + ex.replace('%', '%%') + ':\n'
+            '    ReachesRet Fv256.Arm64.RecipProg.program (BitVec.ofNat 64 (recEntry + 0x%x)) S (%s) := by\n')) % (
             off(A), off(B), off(A), vs, off(A), ' '.join(names), off(B), q), names
 def preamble(names_in):
     s = """  obtain ⟨h1, h2, ⟨hg1, hg2, hg3⟩, ⟨hsa, hsb, hsc, hsd⟩, hgw, hm1, hm2, hmd⟩ := hs
@@ -182,3 +184,93 @@ def parse_goal(g):
         d = int(mm.group(2)) * (-1 if mm.group(1) == '-' else 1)
         mem[d] = (n, v)
     return regs, mem
+
+# ---- final segment emission ------------------------------------------------------------------------
+def wrap_mod(e):
+    e = e.strip()
+    suf = ' % 18446744073709551616'
+    if e.endswith(suf):
+        pre = e[:-len(suf)].strip()
+        if re.fullmatch(r'[A-Za-z0-9_.]+', pre) or (pre.startswith('(') and grp(pre, 0)[1] == len(pre)): return e
+    return '(%s) %% 18446744073709551616' % e if re.search(r'[ ]', e) else '%s %% 18446744073709551616' % e
+def nat_witness(v):
+    """witness (Nat text) for a printed register value"""
+    pre = 'BitVec.ofNat 64 '
+    if v.startswith(pre):
+        rest = v[len(pre):]
+        txt, pos = take(rest)
+        if pos == len(rest): return wrap_mod(strip_par(txt)), 'nat'
+    return '(%s).toNat' % v, 'bv'
+OVR = {}   # (A_off, B_off) -> {('r',i) or ('m',d): (witness text, closer)}
+FACT_REG = ('first | exact bv_eq_ofNat _ | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact bv_eq_ofNat _) | '
+            '(simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact (ofNat_mod64 _).symm) | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; with_reducible rfl) | '
+            '(simp [setReg]; done) | (simp [setReg, BitVec.ofNat_toNat]; done)')
+FACT_MEM = ('first | with_reducible rfl | (dsimp only; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, '
+            'Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow, Nat.mod_mod]; done)')
+def emit_seg(A, B, trace_text):
+    goals = split_goals(trace_text)
+    parsed = [parse_goal(g) for g in goals]
+    regs, mem = parsed[0]
+    ovr = OVR.get((off(A), off(B)), {})
+    itsA = items(A); itsB = items(B)
+    namesA = Ldef(A)[1]
+    nameA = {it: n for it, n in zip(itsA, namesA)}
+    new_vars = []; wit = []; leaves = []; args = []; eqs = []
+    for it in itsB:
+        k, key = it
+        n = vname(B, k, key)
+        changed = (key in regs) if k == 'r' else (key in mem)
+        if it in ovr:
+            W, closer = ovr[it]
+            new_vars.append(n); wit.append(W); args.append(n); eqs.append((n, W))
+            leaves.append(closer); leaves.append('first | exact Nat.mod_lt _ (by decide) | omega')
+        elif changed:
+            if k == 'r':
+                W, kind = nat_witness(regs[key]); fact = FACT_REG
+            else:
+                nn, v = mem[key]; W = wrap_mod(v); kind = 'nat'; fact = FACT_MEM
+            new_vars.append(n); wit.append(W); args.append(n); eqs.append((n, W))
+            leaves.append(fact)
+            leaves.append('first | exact Nat.mod_lt _ (by decide) | exact BitVec.isLt _')
+        else:
+            old = nameA[it]; args.append(old)
+            if k == 'r':
+                leaves.append('first | exact hE_%s | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hE_%s)' % (old, old))
+            else:
+                leaves.append('first | exact hE_%s | (dsimp only; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hE_%s)' % (old, old))
+            leaves.append('exact hB_%s' % old)
+    eqtxt = ' ∧ '.join('%s = %s' % (n, W) for n, W in eqs)
+    ex = EXTRA.get(off(B), [])
+    extxt = ' ∧ '.join(ex)
+    parts = [x for x in [eqtxt, extxt] if x]
+    pre = ' ∧ '.join(parts) + ' ∧ ' if parts else ''
+    exb = ' '.join(new_vars) if new_vars else '_u'
+    post = "fun S' => ∃ %s, L%x S' %s ∧ %sRecRegs s S' ∧ RecMem s S'.mem" % (exb, off(B), ' '.join(args), pre)
+    if not new_vars: post = post.replace('∃ _u, ', '')
+    pdef = ("def P_%x_%x (s : State) %s(S' : State) : Prop :=\n  " % (off(A), off(B), ('(%s : Nat) ' % ' '.join(namesA)) if namesA else '')) + post[len("fun S' => "):] + '\n\n'
+    st, names = seg_stmt(A, B, 'P_%x_%x s %s' % (off(A), off(B), ' '.join(namesA)))
+    out = HDR + '\n' + pdef + 'set_option maxHeartbeats 64000000 in\nset_option maxRecDepth 200000 in\n' + st + preamble(names)
+    out += '  janus_run [%s] until [recEntry + 0x%x]\n' % (simp_list(names), off(B))
+    out += '  all_goals (\n  refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [recEntry, segAddr]) ?_\n  unfold P_%x_%x\n' % (off(A), off(B))
+    out += '  refine ⟨%s%s?_, %s?_, ?_⟩\n' % (', '.join(wit), ', ' if wit else '', ', '.join(['?_'] * len(eqs)) + (', ' if eqs else ''))
+    out += '  · unfold L%x\n    and_intros\n' % off(B)
+    for l in leaves: out += '    · ' + l.replace('\n', '\n      ') + '\n'
+    for n, W in eqs: out += '  · with_reducible rfl\n'
+    for e in ex: out += '  · omega\n'
+    out += '  · refine ⟨hR.1, ?_, ?_⟩\n    · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)\n    · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)\n'
+    out += '  · dsimp only\n    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)\n    exact hM\n'
+    out += '  )\n\nend Fv256.Arm64.RecipSeg\n'
+    return out
+def do_seg(A, B, skel=True):
+    if skel: do_skel(A, B)
+    t = open('%s/build/skel64/A64_%x_%x.out' % (ROOT, off(A), off(B))).read()
+    o = emit_seg(A, B, t)
+    p = '%s/lean/Fv256/Arm64/RecipG/G_%x_%x.lean' % (ROOT, off(A), off(B))
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    open(p, 'w').write(o)
+    return p
+if __name__ == '__main__' and sys.argv[1] == 'seg':
+    A, B = int(sys.argv[2], 16), int(sys.argv[3], 16)
+    p = do_seg(A, B, len(sys.argv) < 5)
+    out = subprocess.run('cd %s/lean && ../build/lc.sh %s' % (ROOT, p.replace(ROOT + '/lean/', '')), shell=True, capture_output=True, text=True).stdout
+    print(out[:int(os.environ.get('MAXOUT','6000'))] if out.strip() else 'OK ' + p)

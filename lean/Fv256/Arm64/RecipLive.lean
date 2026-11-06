@@ -17,6 +17,20 @@ def L88 (S : State) (x88m32 x88m40 x88m48 x88m56 x88m176 : Nat) : Prop :=
   S.mem.readLE (S.sp.toNat + 176) 8 = x88m176 ∧
   x88m176 < 2 ^ 64
 
+def Lbc (S : State) (xbcr0 xbcr3 xbcm32 xbcm40 xbcm48 xbcm176 : Nat) : Prop :=
+  S.regs 0 = BitVec.ofNat 64 xbcr0 ∧
+  xbcr0 < 2 ^ 64 ∧
+  S.regs 3 = BitVec.ofNat 64 xbcr3 ∧
+  xbcr3 < 2 ^ 64 ∧
+  S.mem.readLE (S.sp.toNat + 32) 8 = xbcm32 ∧
+  xbcm32 < 2 ^ 64 ∧
+  S.mem.readLE (S.sp.toNat + 40) 8 = xbcm40 ∧
+  xbcm40 < 2 ^ 64 ∧
+  S.mem.readLE (S.sp.toNat + 48) 8 = xbcm48 ∧
+  xbcm48 < 2 ^ 64 ∧
+  S.mem.readLE (S.sp.toNat + 176) 8 = xbcm176 ∧
+  xbcm176 < 2 ^ 64
+
 def L108 (S : State) (x108r0 x108r1 x108r2 x108r3 x108r4 x108r5 x108m176 x108m240 x108m248 x108m256 : Nat) : Prop :=
   S.regs 0 = BitVec.ofNat 64 x108r0 ∧
   x108r0 < 2 ^ 64 ∧

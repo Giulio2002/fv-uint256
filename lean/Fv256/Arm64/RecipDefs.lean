@@ -46,4 +46,10 @@ theorem RecRegs.sp_toNat {s S : State} (h : RecRegs s S) (hsp : 280 ≤ s.sp.toN
 theorem ofNat_mod64 (e : Nat) : BitVec.ofNat 64 (e % 18446744073709551616) = BitVec.ofNat 64 e := by
   apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_ofNat, Nat.mod_mod]
 
+/-- `r0`: the 32-bit first approximation of `2^63 / yh` (`yh` the top 32 bits of the normalised top word) -/
+def r0f (y3 : Nat) : Nat := if y3 / 2 ^ 32 = 2 ^ 31 then 2 ^ 32 - 1 else 2 ^ 63 / (y3 / 2 ^ 32)
+
+theorem bv_eq_ofNat (x : BitVec 64) : x = BitVec.ofNat 64 x.toNat := by
+  rw [BitVec.ofNat_toNat, BitVec.setWidth_eq]
+
 end Fv256.Arm64.RecipSeg
