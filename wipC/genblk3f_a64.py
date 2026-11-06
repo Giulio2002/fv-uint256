@@ -29,5 +29,6 @@ if probe:
     out = lines[:a] + tail1 + lines[b:c] + tail2 + lines[end:]
 else:
     body1 = open('/srv/fv-uint256-wC/wipC/b3f/branch1.txt').read().rstrip('\n').split('\n')
-    out = lines[:a] + body1 + lines[b:c] + ['    have hret48 := hret.user', '    have hret4 := hret.aligned', '    janus_run [hrd1]', '    sorry', ''] + lines[end:]
+    body2 = open('/srv/fv-uint256-wC/wipC/b3f/branch2.txt').read().rstrip('\n').split('\n')
+    out = lines[:a] + body1 + lines[b:c] + body2 + [''] + lines[end:]
 sys.stdout.write('\n'.join(out))
