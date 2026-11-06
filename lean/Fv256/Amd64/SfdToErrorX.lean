@@ -234,18 +234,11 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
         case c12 => te_inv
         case c11 =>
           intro k hk
-          try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
-          refine te_copy (hM := rfl) (hApt := hA3) (hk := hk) (hsl := hQsl) ?hLF ?d1 ?d2 ?d3 ?hCop ?hsrc
-          case hLF => with_reducible assumption
-          case d1 => te_omega
-          case d2 => te_omega
-          case d3 => te_omega
-          case hCop => with_reducible assumption
-          case hsrc => exact te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj)
-        all_goals sorry
+          exact te_copy (hM := rfl) (hLF := by with_reducible assumption) (hApt := hA3) (hk := hk) (hsl := hQsl)
+            (by te_omega) (by te_omega) (by te_omega) (by with_reducible assumption)
+            (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
-      trace_state
-      all_goals sorry
+    -- TODO(FV-I): the other 3 live branches (WB variants) OOM at 30G if run via all_goals in this declaration; split the tail into a lemma
     all_goals sorry
   all_goals (exfalso; exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption))
 
