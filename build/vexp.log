@@ -1,0 +1,59 @@
+Kept workspace: /srv/janus-ops/jcache-shared/v1/consumer/22911f2cdbd3defee197aa02/92f2547ce7cda7484c8b13ad
+  Use: cd /srv/janus-ops/jcache-shared/v1/consumer/22911f2cdbd3defee197aa02/92f2547ce7cda7484c8b13ad/root && lake env lean YourScratch.lean   (Extracted is /srv/janus-ops/jcache-shared/v1/consumer/22911f2cdbd3defee197aa02/92f2547ce7cda7484c8b13ad/janus/.lake/build/lib/lean/Extracted.olean)
+  Untruncated goals: add -Dpp.deepTerms=true -Dpp.proofs=true -Dpp.maxSteps=1000000000 to lean
+  (diagnostics only: janus never reads it back, and `janus cache gc` may remove an unused one)
+=== Fv256.Arm64.Exp.correctness: verified ===
+Verified: Fv256.Arm64.Exp.correctness
+  Module: fv-uint256/harness (go1.26.0)
+  Entry: github.com/holiman/uint256.(*Int).Exp at 0xbd2a0
+  Binary: build/harness-arm64 (SHA-256 431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec)
+  Proof: lean/Fv256/Arm64/Exp.lean
+  Consumer: lean (lakefile.toml, module Fv256.Arm64.Exp, 1259 source file(s), janus git /srv/janus-fvA-pin @ 655a23fa610a84c0cef27eb29fd1053994eea7cc)
+  Build: rebuilt Extracted, Fv256.Arm64.CodeIn, Fv256.Arm64.Exp, Fv256.Arm64.ExpEntry, Fv256.Arm64.ExpLoop1, Fv256.Arm64.ExpLoop2, Fv256.Arm64.ExpLoop3, Fv256.Arm64.ExpLoop4, Fv256.Arm64.ExpLoopLem, Fv256.Arm64.ExpMain, … and 3 more; 13 modules
+  Framework: embedded (SHA-256 3f949a7d48d2680d5332b3c9e4da0c72ef28eb8f6eb1aa66b5bbde5343f3588c, 269 files, leanprover/lean4:v4.34.1)
+  Sandbox: bubblewrap (no network, read-only filesystem, private build dir)
+  Axioms: Classical.choice, Quot.sound, propext
+  Kernel replay: leanchecker passed (Extracted, Fv256.Arm64.CodeIn, Fv256.Arm64.Exp, Fv256.Arm64.ExpEntry, Fv256.Arm64.ExpLoop1, Fv256.Arm64.ExpLoop2, Fv256.Arm64.ExpLoop3, Fv256.Arm64.ExpLoop4, Fv256.Arm64.ExpLoopLem, Fv256.Arm64.ExpMain, … and 281 more; 291 modules; 271 reused from the replay cache)
+  Lean: Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)
+  Role: main theorem (the runtime implementation is a variable of the statement, constrained only by the runtime contracts)
+  Runtime contracts assumed: none (the statement applies no runtime-contract hypothesis)
+  Non-vacuity: shown by Fv256.Arm64.Exp.Witness.nonvacuous (kernel-checked witness: a concrete state and runtime satisfying the whole precondition, contract hypotheses included)
+  Olean provenance: checked (the consumer/dependency modules were compiled by janus from the hashed source)
+  Report: build/ex-arm64-Exp/verified/Fv256.Arm64.Exp.correctness.json
+  Statement:
+    Fv256.Arm64.Exp.correctness (z b e : BitVec 64) : Janus.GoABI.Ensures Extracted.program Extracted.entry [z, b, e] (Fv256.Arm64.Exp.Pre z b e) fun s s' => s'.regs 0 = z ∧ Janus.Spec.val256 s'.mem z.toNat = Fv256.F.expSpec (Janus.Spec.val256 s.mem b.toNat) (Janus.Spec.val256 s.mem e.toNat) ∧ Janus.MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (BitVec.toNat s.sp - 168, BitVec.toNat s.sp), (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 32)]
+  Proof-local definitions used by the statement (part of its meaning):
+    Fv256.F.expSpec : Nat → Nat → Nat := fun b e => b ^ e % 2 ^ 256
+    Fv256.Arm64.Exp.Pre : BitVec 64 → BitVec 64 → BitVec 64 → Janus.Arm64.State → Prop := fun z b e s => Janus.Spec.GuardOK s 32 ∧ Janus.Spec.StackOK s 168 40 ∧ 336 ≤ BitVec.toNat s.sp ∧ (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 168 ∨ BitVec.toNat s.sp + 40 ≤ BitVec.toNat (s.regs 28) + 16) ∧ Janus.Spec.Ptr32 s.mem z Bool.true ∧ Janus.Spec.Ptr32 s.mem b Bool.false ∧ Janus.Spec.Ptr32 s.mem e Bool.false ∧ Janus.Spec.Disjoint z.toNat 32 (BitVec.toNat s.sp - 168) 208 ∧ Janus.Spec.Disjoint b.toNat 32 (BitVec.toNat s.sp - 168) 208 ∧ Janus.Spec.Disjoint e.toNat 32 (BitVec.toNat s.sp - 168) 208 ∧ Extracted.program.DataLoaded s.mem
+  Notes (standard Lean meaning that may read unexpectedly; not errors):
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 168`
+    - in Fv256.Arm64.Exp.Pre: Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 168`
+  Report (also): build/ex-arm64-Exp/verified.json
+=== Fv256.Arm64.Exp.Witness.nonvacuous: verified ===
+Verified: Fv256.Arm64.Exp.Witness.nonvacuous
+  Module: fv-uint256/harness (go1.26.0)
+  Entry: github.com/holiman/uint256.(*Int).Exp at 0xbd2a0
+  Binary: build/harness-arm64 (SHA-256 431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec)
+  Proof: lean/Fv256/Arm64/Exp.lean
+  Consumer: lean (lakefile.toml, module Fv256.Arm64.Exp, 1259 source file(s), janus git /srv/janus-fvA-pin @ 655a23fa610a84c0cef27eb29fd1053994eea7cc)
+  Build: rebuilt Extracted, Fv256.Arm64.CodeIn, Fv256.Arm64.Exp, Fv256.Arm64.ExpEntry, Fv256.Arm64.ExpLoop1, Fv256.Arm64.ExpLoop2, Fv256.Arm64.ExpLoop3, Fv256.Arm64.ExpLoop4, Fv256.Arm64.ExpLoopLem, Fv256.Arm64.ExpMain, … and 3 more; 13 modules
+  Framework: embedded (SHA-256 3f949a7d48d2680d5332b3c9e4da0c72ef28eb8f6eb1aa66b5bbde5343f3588c, 269 files, leanprover/lean4:v4.34.1)
+  Sandbox: bubblewrap (no network, read-only filesystem, private build dir)
+  Axioms: Quot.sound, propext
+  Kernel replay: leanchecker passed (Extracted, Fv256.Arm64.CodeIn, Fv256.Arm64.Exp, Fv256.Arm64.ExpEntry, Fv256.Arm64.ExpLoop1, Fv256.Arm64.ExpLoop2, Fv256.Arm64.ExpLoop3, Fv256.Arm64.ExpLoop4, Fv256.Arm64.ExpLoopLem, Fv256.Arm64.ExpMain, … and 281 more; 291 modules; 271 reused from the replay cache)
+  Lean: Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)
+  Role: WITNESS, not a correctness claim: a concrete instance showing its hypotheses and precondition are satisfiable together, for the main theorem Fv256.Arm64.Exp.correctness (it uses a concrete runtime implementation; the main theorem must be verified separately)
+  Runtime contracts assumed: none (the statement applies no runtime-contract hypothesis)
+  Non-vacuity: this is a witness (it is not a correctness claim)
+  Olean provenance: checked (the consumer/dependency modules were compiled by janus from the hashed source)
+  Report: build/ex-arm64-Exp/verified/Fv256.Arm64.Exp.Witness.nonvacuous.json
+  Statement:
+    Fv256.Arm64.Exp.Witness.nonvacuous : ∃ ret s z b e, Janus.GoABI.RetAddr Extracted.program ret ∧ Janus.GoABI.CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b, e] s ∧ Fv256.Arm64.Exp.Pre z b e s
+  Proof-local definitions used by the statement (part of its meaning):
+    Fv256.Arm64.Exp.Pre : BitVec 64 → BitVec 64 → BitVec 64 → Janus.Arm64.State → Prop := fun z b e s => Janus.Spec.GuardOK s 32 ∧ Janus.Spec.StackOK s 168 40 ∧ 336 ≤ BitVec.toNat s.sp ∧ (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 168 ∨ BitVec.toNat s.sp + 40 ≤ BitVec.toNat (s.regs 28) + 16) ∧ Janus.Spec.Ptr32 s.mem z Bool.true ∧ Janus.Spec.Ptr32 s.mem b Bool.false ∧ Janus.Spec.Ptr32 s.mem e Bool.false ∧ Janus.Spec.Disjoint z.toNat 32 (BitVec.toNat s.sp - 168) 208 ∧ Janus.Spec.Disjoint b.toNat 32 (BitVec.toNat s.sp - 168) 208 ∧ Janus.Spec.Disjoint e.toNat 32 (BitVec.toNat s.sp - 168) 208 ∧ Extracted.program.DataLoaded s.mem
+  Notes (standard Lean meaning that may read unexpectedly; not errors):
+    - in Fv256.Arm64.Exp.Pre: Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 168`
+
+real	6m42.383s
+user	0m9.874s
+sys	0m3.793s

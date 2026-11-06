@@ -1,0 +1,5 @@
+Terminated                 memcap -m 16G lake env lean -o /dev/null Fv256/Arm64/DivModLibProf.lean
+
+real	21m0.272s
+user	0m0.061s
+sys	0m0.026s

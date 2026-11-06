@@ -1,0 +1,933 @@
+case hq
+rt : List (Nat × Nat)
+z x y m : BitVec 64
+m' ret : Nat
+hret : RetAddr DivModProg.program ret
+s st : State
+hal : BitVec.toNat s.sp % 16 = 0
+hb : 4256 ≤ BitVec.toNat s.sp
+ha : BitVec.toNat s.sp + 40 ≤ 281474976710656
+hw : s.mem.accessible (BitVec.toNat s.sp - 4256) (4256 + 40) true = true
+hzb : s.mem.accessible z.toNat 32 true = true
+hza : z.toNat + 32 ≤ 281474976710656
+hxb : s.mem.accessible x.toNat 32 false = true
+hxa : x.toNat + 32 ≤ 281474976710656
+hyb : s.mem.accessible y.toNat 32 false = true
+hya : y.toNat + 32 ≤ 281474976710656
+hmb : s.mem.accessible m' 32 true = true
+hma : m' + 32 ≤ 281474976710656
+hzm : Apart z.toNat 32 m' 32
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 281474976710656
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 464 < BitVec.toNat s.sp
+hdg : Apart (BitVec.toNat (s.regs 28) + 16) 8 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hgo : Outside (BitVec.toNat (s.regs 28) + 16) 8 rt
+hm'r : InRanges m' 32 rt ∨ m' = m.toNat
+hsp : BitVec.toNat st.sp = BitVec.toNat s.sp - 160
+h0 : st.regs 0 = z
+h1 : st.regs 1 = x
+h2 : st.regs 2 = y
+h3 : st.regs 3 = BitVec.ofNat 64 m'
+h18 : st.regs 18 = s.regs 18
+h28 : st.regs 28 = s.regs 28
+h29 : st.regs 29 = s.sp - 168#64
+hfr : MemFrame s.mem st.mem (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+hretslot : st.mem.readLE (BitVec.toNat st.sp) 8 = ret
+hbp : st.mem.readLE (BitVec.toNat st.sp - 8) 8 = BitVec.toNat (s.regs 29)
+hz8 : st.mem.readLE (BitVec.toNat st.sp + 168) 8 = z.toNat
+hr30 : BitVec.toNat (s.regs 30) % 4 = 0
+hr30b : BitVec.toNat (s.regs 30) < 72057594037927936
+hlr : s.regs 30 = BitVec.ofNat 64 ret
+hU :
+  Summary DivModProg.program UdivremA.ku
+    (fun s =>
+      BitVec.toNat (s.regs 30) % 4 = 0 ∧
+        BitVec.toNat (s.regs 30) < 72057594037927936 ∧
+          GuardOK s 304 ∧
+            StackOK s 344 72 ∧
+              (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 344 ∨
+                  BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 28) + 16) ∧
+                BitVec.toNat (s.regs 1) = 4 ∧
+                  BitVec.toNat (s.regs 4) = 4 ∧
+                    BitVec.toNat (s.regs 0) + 8 * 4 ≤ 281474976710656 ∧
+                      s.mem.accessible (BitVec.toNat (s.regs 0)) (8 * 4) true = true ∧
+                        BitVec.toNat (s.regs 3) + 8 * 4 ≤ 281474976710656 ∧
+                          s.mem.accessible (BitVec.toNat (s.regs 3)) (8 * 4) false = true ∧
+                            BitVec.toNat (s.regs 6) + 32 ≤ 281474976710656 ∧
+                              s.mem.accessible (BitVec.toNat (s.regs 6)) 32 false = true ∧
+                                (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                    BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 0)) ∧
+                                  (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                      BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 3)) ∧
+                                    (BitVec.toNat (s.regs 6) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 6)) ∧
+                                      B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ≠ 0 ∧
+                                        B.wv s.mem (BitVec.toNat (s.regs 0)) 4 = 0 ∧
+                                          BitVec.toNat (s.regs 7) ≠ 0 ∧
+                                            BitVec.toNat (s.regs 7) + 32 ≤ 281474976710656 ∧
+                                              s.mem.accessible (BitVec.toNat (s.regs 7)) 32 true = true ∧
+                                                B.wv s.mem (BitVec.toNat (s.regs 7)) 4 = 0 ∧
+                                                  (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                      BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 0)) ∧
+                                                    (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                        BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 3)) ∧
+                                                      (BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 7)))
+    fun s s' =>
+    s'.pc = s.regs 30 ∧
+      s'.sp = s.sp ∧
+        s'.regs 18 = s.regs 18 ∧
+          s'.regs 28 = s.regs 28 ∧
+            s'.regs 29 = s.regs 29 ∧
+              s'.regs 30 = s.regs 30 ∧
+                (∀ (i : Nat),
+                    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+                      s'.regs i = s.regs i) ∧
+                  B.wv s'.mem (BitVec.toNat (s.regs 0)) 4 =
+                      B.wv s.mem (BitVec.toNat (s.regs 3)) 4 / B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                    B.wv s'.mem (BitVec.toNat (s.regs 7)) 4 =
+                        B.wv s.mem (BitVec.toNat (s.regs 3)) 4 % B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                      MemFrame s.mem s'.mem
+                        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 8 * 4),
+                          (BitVec.toNat (s.regs 7), BitVec.toNat (s.regs 7) + 32),
+                          (BitVec.toNat s.sp - 344, BitVec.toNat s.sp - 8),
+                          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 72)]
+hx0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+hx1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE y.toNat 8 < 18446744073709551616
+hy1 : s.mem.readLE (y.toNat + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (y.toNat + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (y.toNat + 24) 8 < 18446744073709551616
+h_lr : s.regs 30 = BitVec.ofNat 64 ret
+hxb' : st.mem.accessible x.toNat 32 false = true
+hyb' : st.mem.accessible y.toNat 32 false = true
+hzb' : st.mem.accessible z.toNat 32 true = true
+hmb' : st.mem.accessible m' 32 true = true
+hstk : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 true = true
+hstkr : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 false = true
+hacc8 : st.mem.accessible (BitVec.toNat st.sp - 8) 8 false = true
+hacc0 : st.mem.accessible (BitVec.toNat st.sp) 8 false = true
+hfo :
+  ∀ (a n : Nat),
+    Outside a n (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)]) → st.mem.readLE a n = s.mem.readLE a n
+rx0 : st.mem.readLE x.toNat 8 = s.mem.readLE x.toNat 8
+rx1 : st.mem.readLE (x.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8
+rx2 : st.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (x.toNat + 16) 8
+rx3 : st.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (x.toNat + 24) 8
+ry0 : st.mem.readLE y.toNat 8 = s.mem.readLE y.toNat 8
+ry1 : st.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (y.toNat + 8) 8
+ry2 : st.mem.readLE (y.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8
+ry3 : st.mem.readLE (y.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8
+hgv : st.mem.readLE (BitVec.toNat (st.regs 28) + 16) 8 = s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hpc : st.pc = 768340#64
+hret48 : ret < 281474976710656
+hspal : BitVec.toNat st.sp % 16 = 0
+hdz' : Apart z.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdx' : Apart x.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdy' : Apart y.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdm' : Apart m' 32 (BitVec.toNat st.sp - 4096) 4296
+hspb : BitVec.toNat st.sp + 200 ≤ 281474976710656
+hsp344 : 344 ≤ BitVec.toNat st.sp
+hdz0 : Apart z.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdm0 : Apart m' 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hzm0 : Apart z.toNat 32 m' 32
+hxo0 : Outside x.toNat 32 rt
+hyo0 : Outside y.toNat 32 rt
+hdx0 : Apart x.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdy0 : Apart y.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdg2 : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 344 ∨ BitVec.toNat st.sp + 56 ≤ BitVec.toNat (s.regs 28)
+hdg3 :
+  BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 4096 ∨ BitVec.toNat st.sp + 200 ≤ BitVec.toNat (s.regs 28) + 16
+hbr :
+  ((s.mem.readLE y.toNat 8 = 0 ∧ s.mem.readLE (y.toNat + 8) 8 = 0) ∧ s.mem.readLE (y.toNat + 16) 8 = 0) ∧
+    s.mem.readLE (y.toNat + 24) 8 = 0
+hnb : True
+⊢ st.sp + 160#64 = s.sp ∧
+    ∃ m'',
+      m' = m'' ∧
+        m'' = m' ∧
+          0 =
+              B.divSpec
+                (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+                    340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+                0 ∧
+            ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8 0).writeLE
+                                            (z.toNat + 8) 8 0).writeLE
+                                        (m' + 16) 8 0).writeLE
+                                    (m' + 24) 8 0).writeLE
+                                m' 8 0).writeLE
+                            (m' + 8) 8 0).readLE
+                        m'' 8 +
+                      18446744073709551616 *
+                        ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                  0).writeLE
+                                              (z.toNat + 8) 8 0).writeLE
+                                          (m' + 16) 8 0).writeLE
+                                      (m' + 24) 8 0).writeLE
+                                  m' 8 0).writeLE
+                              (m' + 8) 8 0).readLE
+                          (m'' + 8) 8 +
+                    340282366920938463463374607431768211456 *
+                      ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                0).writeLE
+                                            (z.toNat + 8) 8 0).writeLE
+                                        (m' + 16) 8 0).writeLE
+                                    (m' + 24) 8 0).writeLE
+                                m' 8 0).writeLE
+                            (m' + 8) 8 0).readLE
+                        (m'' + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 *
+                    ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8 0).writeLE
+                                          (z.toNat + 8) 8 0).writeLE
+                                      (m' + 16) 8 0).writeLE
+                                  (m' + 24) 8 0).writeLE
+                              m' 8 0).writeLE
+                          (m' + 8) 8 0).readLE
+                      (m'' + 24) 8 =
+                B.modSpec
+                  (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+                      340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+                    6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+                  0 ∧
+              MemFrame s.mem
+                ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8 0).writeLE
+                                  (z.toNat + 8) 8 0).writeLE
+                              (m' + 16) 8 0).writeLE
+                          (m' + 24) 8 0).writeLE
+                      m' 8 0).writeLE
+                  (m' + 8) 8 0)
+                (rt ++ [(z.toNat, z.toNat + 32), (m', m' + 32), (BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+case hq
+rt : List (Nat × Nat)
+z x y m : BitVec 64
+m' ret : Nat
+hret : RetAddr DivModProg.program ret
+s st : State
+hal : BitVec.toNat s.sp % 16 = 0
+hb : 4256 ≤ BitVec.toNat s.sp
+ha : BitVec.toNat s.sp + 40 ≤ 281474976710656
+hw : s.mem.accessible (BitVec.toNat s.sp - 4256) (4256 + 40) true = true
+hzb : s.mem.accessible z.toNat 32 true = true
+hza : z.toNat + 32 ≤ 281474976710656
+hxb : s.mem.accessible x.toNat 32 false = true
+hxa : x.toNat + 32 ≤ 281474976710656
+hyb : s.mem.accessible y.toNat 32 false = true
+hya : y.toNat + 32 ≤ 281474976710656
+hmb : s.mem.accessible m' 32 true = true
+hma : m' + 32 ≤ 281474976710656
+hzm : Apart z.toNat 32 m' 32
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 281474976710656
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 464 < BitVec.toNat s.sp
+hdg : Apart (BitVec.toNat (s.regs 28) + 16) 8 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hgo : Outside (BitVec.toNat (s.regs 28) + 16) 8 rt
+hm'r : InRanges m' 32 rt ∨ m' = m.toNat
+hsp : BitVec.toNat st.sp = BitVec.toNat s.sp - 160
+h0 : st.regs 0 = z
+h1 : st.regs 1 = x
+h2 : st.regs 2 = y
+h3 : st.regs 3 = BitVec.ofNat 64 m'
+h18 : st.regs 18 = s.regs 18
+h28 : st.regs 28 = s.regs 28
+h29 : st.regs 29 = s.sp - 168#64
+hfr : MemFrame s.mem st.mem (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+hretslot : st.mem.readLE (BitVec.toNat st.sp) 8 = ret
+hbp : st.mem.readLE (BitVec.toNat st.sp - 8) 8 = BitVec.toNat (s.regs 29)
+hz8 : st.mem.readLE (BitVec.toNat st.sp + 168) 8 = z.toNat
+hr30 : BitVec.toNat (s.regs 30) % 4 = 0
+hr30b : BitVec.toNat (s.regs 30) < 72057594037927936
+hlr : s.regs 30 = BitVec.ofNat 64 ret
+hU :
+  Summary DivModProg.program UdivremA.ku
+    (fun s =>
+      BitVec.toNat (s.regs 30) % 4 = 0 ∧
+        BitVec.toNat (s.regs 30) < 72057594037927936 ∧
+          GuardOK s 304 ∧
+            StackOK s 344 72 ∧
+              (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 344 ∨
+                  BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 28) + 16) ∧
+                BitVec.toNat (s.regs 1) = 4 ∧
+                  BitVec.toNat (s.regs 4) = 4 ∧
+                    BitVec.toNat (s.regs 0) + 8 * 4 ≤ 281474976710656 ∧
+                      s.mem.accessible (BitVec.toNat (s.regs 0)) (8 * 4) true = true ∧
+                        BitVec.toNat (s.regs 3) + 8 * 4 ≤ 281474976710656 ∧
+                          s.mem.accessible (BitVec.toNat (s.regs 3)) (8 * 4) false = true ∧
+                            BitVec.toNat (s.regs 6) + 32 ≤ 281474976710656 ∧
+                              s.mem.accessible (BitVec.toNat (s.regs 6)) 32 false = true ∧
+                                (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                    BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 0)) ∧
+                                  (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                      BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 3)) ∧
+                                    (BitVec.toNat (s.regs 6) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 6)) ∧
+                                      B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ≠ 0 ∧
+                                        B.wv s.mem (BitVec.toNat (s.regs 0)) 4 = 0 ∧
+                                          BitVec.toNat (s.regs 7) ≠ 0 ∧
+                                            BitVec.toNat (s.regs 7) + 32 ≤ 281474976710656 ∧
+                                              s.mem.accessible (BitVec.toNat (s.regs 7)) 32 true = true ∧
+                                                B.wv s.mem (BitVec.toNat (s.regs 7)) 4 = 0 ∧
+                                                  (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                      BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 0)) ∧
+                                                    (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                        BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 3)) ∧
+                                                      (BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 7)))
+    fun s s' =>
+    s'.pc = s.regs 30 ∧
+      s'.sp = s.sp ∧
+        s'.regs 18 = s.regs 18 ∧
+          s'.regs 28 = s.regs 28 ∧
+            s'.regs 29 = s.regs 29 ∧
+              s'.regs 30 = s.regs 30 ∧
+                (∀ (i : Nat),
+                    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+                      s'.regs i = s.regs i) ∧
+                  B.wv s'.mem (BitVec.toNat (s.regs 0)) 4 =
+                      B.wv s.mem (BitVec.toNat (s.regs 3)) 4 / B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                    B.wv s'.mem (BitVec.toNat (s.regs 7)) 4 =
+                        B.wv s.mem (BitVec.toNat (s.regs 3)) 4 % B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                      MemFrame s.mem s'.mem
+                        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 8 * 4),
+                          (BitVec.toNat (s.regs 7), BitVec.toNat (s.regs 7) + 32),
+                          (BitVec.toNat s.sp - 344, BitVec.toNat s.sp - 8),
+                          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 72)]
+hx0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+hx1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE y.toNat 8 < 18446744073709551616
+hy1 : s.mem.readLE (y.toNat + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (y.toNat + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (y.toNat + 24) 8 < 18446744073709551616
+h_lr : s.regs 30 = BitVec.ofNat 64 ret
+hxb' : st.mem.accessible x.toNat 32 false = true
+hyb' : st.mem.accessible y.toNat 32 false = true
+hzb' : st.mem.accessible z.toNat 32 true = true
+hmb' : st.mem.accessible m' 32 true = true
+hstk : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 true = true
+hstkr : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 false = true
+hacc8 : st.mem.accessible (BitVec.toNat st.sp - 8) 8 false = true
+hacc0 : st.mem.accessible (BitVec.toNat st.sp) 8 false = true
+hfo :
+  ∀ (a n : Nat),
+    Outside a n (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)]) → st.mem.readLE a n = s.mem.readLE a n
+rx0 : st.mem.readLE x.toNat 8 = s.mem.readLE x.toNat 8
+rx1 : st.mem.readLE (x.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8
+rx2 : st.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (x.toNat + 16) 8
+rx3 : st.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (x.toNat + 24) 8
+ry0 : st.mem.readLE y.toNat 8 = s.mem.readLE y.toNat 8
+ry1 : st.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (y.toNat + 8) 8
+ry2 : st.mem.readLE (y.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8
+ry3 : st.mem.readLE (y.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8
+hgv : st.mem.readLE (BitVec.toNat (st.regs 28) + 16) 8 = s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hpc : st.pc = 768340#64
+hret48 : ret < 281474976710656
+hspal : BitVec.toNat st.sp % 16 = 0
+hdz' : Apart z.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdx' : Apart x.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdy' : Apart y.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdm' : Apart m' 32 (BitVec.toNat st.sp - 4096) 4296
+hspb : BitVec.toNat st.sp + 200 ≤ 281474976710656
+hsp344 : 344 ≤ BitVec.toNat st.sp
+hdz0 : Apart z.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdm0 : Apart m' 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hzm0 : Apart z.toNat 32 m' 32
+hxo0 : Outside x.toNat 32 rt
+hyo0 : Outside y.toNat 32 rt
+hdx0 : Apart x.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdy0 : Apart y.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdg2 : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 344 ∨ BitVec.toNat st.sp + 56 ≤ BitVec.toNat (s.regs 28)
+hdg3 :
+  BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 4096 ∨ BitVec.toNat st.sp + 200 ≤ BitVec.toNat (s.regs 28) + 16
+hbr✝ :
+  ¬(((s.mem.readLE y.toNat 8 = 0 ∧ s.mem.readLE (y.toNat + 8) 8 = 0) ∧ s.mem.readLE (y.toNat + 16) 8 = 0) ∧
+      s.mem.readLE (y.toNat + 24) 8 = 0)
+hnb : True
+hbr :
+  s.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8 ∧
+    (s.mem.readLE y.toNat 8 = s.mem.readLE x.toNat 8 ∧ s.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8) ∧
+      s.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8
+⊢ st.sp + 160#64 = s.sp ∧
+    ∃ m'',
+      m' = m'' ∧
+        m'' = m' ∧
+          1 =
+              B.divSpec
+                (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+                    340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+                (s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+                    340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8) ∧
+            ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8 1).writeLE
+                                            (z.toNat + 8) 8 0).writeLE
+                                        (m' + 16) 8 0).writeLE
+                                    (m' + 24) 8 0).writeLE
+                                m' 8 0).writeLE
+                            (m' + 8) 8 0).readLE
+                        m'' 8 +
+                      18446744073709551616 *
+                        ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                  1).writeLE
+                                              (z.toNat + 8) 8 0).writeLE
+                                          (m' + 16) 8 0).writeLE
+                                      (m' + 24) 8 0).writeLE
+                                  m' 8 0).writeLE
+                              (m' + 8) 8 0).readLE
+                          (m'' + 8) 8 +
+                    340282366920938463463374607431768211456 *
+                      ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                1).writeLE
+                                            (z.toNat + 8) 8 0).writeLE
+                                        (m' + 16) 8 0).writeLE
+                                    (m' + 24) 8 0).writeLE
+                                m' 8 0).writeLE
+                            (m' + 8) 8 0).readLE
+                        (m'' + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 *
+                    ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8 1).writeLE
+                                          (z.toNat + 8) 8 0).writeLE
+                                      (m' + 16) 8 0).writeLE
+                                  (m' + 24) 8 0).writeLE
+                              m' 8 0).writeLE
+                          (m' + 8) 8 0).readLE
+                      (m'' + 24) 8 =
+                B.modSpec
+                  (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+                      340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+                    6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+                  (s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+                      340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+                    6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8) ∧
+              MemFrame s.mem
+                ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8 1).writeLE
+                                  (z.toNat + 8) 8 0).writeLE
+                              (m' + 16) 8 0).writeLE
+                          (m' + 24) 8 0).writeLE
+                      m' 8 0).writeLE
+                  (m' + 8) 8 0)
+                (rt ++ [(z.toNat, z.toNat + 32), (m', m' + 32), (BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+case hq
+rt : List (Nat × Nat)
+z x y m : BitVec 64
+m' ret : Nat
+hret : RetAddr DivModProg.program ret
+s st : State
+hal : BitVec.toNat s.sp % 16 = 0
+hb : 4256 ≤ BitVec.toNat s.sp
+ha : BitVec.toNat s.sp + 40 ≤ 281474976710656
+hw : s.mem.accessible (BitVec.toNat s.sp - 4256) (4256 + 40) true = true
+hzb : s.mem.accessible z.toNat 32 true = true
+hza : z.toNat + 32 ≤ 281474976710656
+hxb : s.mem.accessible x.toNat 32 false = true
+hxa : x.toNat + 32 ≤ 281474976710656
+hyb : s.mem.accessible y.toNat 32 false = true
+hya : y.toNat + 32 ≤ 281474976710656
+hmb : s.mem.accessible m' 32 true = true
+hma : m' + 32 ≤ 281474976710656
+hzm : Apart z.toNat 32 m' 32
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 281474976710656
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 464 < BitVec.toNat s.sp
+hdg : Apart (BitVec.toNat (s.regs 28) + 16) 8 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hgo : Outside (BitVec.toNat (s.regs 28) + 16) 8 rt
+hm'r : InRanges m' 32 rt ∨ m' = m.toNat
+hsp : BitVec.toNat st.sp = BitVec.toNat s.sp - 160
+h0 : st.regs 0 = z
+h1 : st.regs 1 = x
+h2 : st.regs 2 = y
+h3 : st.regs 3 = BitVec.ofNat 64 m'
+h18 : st.regs 18 = s.regs 18
+h28 : st.regs 28 = s.regs 28
+h29 : st.regs 29 = s.sp - 168#64
+hfr : MemFrame s.mem st.mem (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+hretslot : st.mem.readLE (BitVec.toNat st.sp) 8 = ret
+hbp : st.mem.readLE (BitVec.toNat st.sp - 8) 8 = BitVec.toNat (s.regs 29)
+hz8 : st.mem.readLE (BitVec.toNat st.sp + 168) 8 = z.toNat
+hr30 : BitVec.toNat (s.regs 30) % 4 = 0
+hr30b : BitVec.toNat (s.regs 30) < 72057594037927936
+hlr : s.regs 30 = BitVec.ofNat 64 ret
+hU :
+  Summary DivModProg.program UdivremA.ku
+    (fun s =>
+      BitVec.toNat (s.regs 30) % 4 = 0 ∧
+        BitVec.toNat (s.regs 30) < 72057594037927936 ∧
+          GuardOK s 304 ∧
+            StackOK s 344 72 ∧
+              (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 344 ∨
+                  BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 28) + 16) ∧
+                BitVec.toNat (s.regs 1) = 4 ∧
+                  BitVec.toNat (s.regs 4) = 4 ∧
+                    BitVec.toNat (s.regs 0) + 8 * 4 ≤ 281474976710656 ∧
+                      s.mem.accessible (BitVec.toNat (s.regs 0)) (8 * 4) true = true ∧
+                        BitVec.toNat (s.regs 3) + 8 * 4 ≤ 281474976710656 ∧
+                          s.mem.accessible (BitVec.toNat (s.regs 3)) (8 * 4) false = true ∧
+                            BitVec.toNat (s.regs 6) + 32 ≤ 281474976710656 ∧
+                              s.mem.accessible (BitVec.toNat (s.regs 6)) 32 false = true ∧
+                                (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                    BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 0)) ∧
+                                  (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                      BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 3)) ∧
+                                    (BitVec.toNat (s.regs 6) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 6)) ∧
+                                      B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ≠ 0 ∧
+                                        B.wv s.mem (BitVec.toNat (s.regs 0)) 4 = 0 ∧
+                                          BitVec.toNat (s.regs 7) ≠ 0 ∧
+                                            BitVec.toNat (s.regs 7) + 32 ≤ 281474976710656 ∧
+                                              s.mem.accessible (BitVec.toNat (s.regs 7)) 32 true = true ∧
+                                                B.wv s.mem (BitVec.toNat (s.regs 7)) 4 = 0 ∧
+                                                  (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                      BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 0)) ∧
+                                                    (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                        BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 3)) ∧
+                                                      (BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 7)))
+    fun s s' =>
+    s'.pc = s.regs 30 ∧
+      s'.sp = s.sp ∧
+        s'.regs 18 = s.regs 18 ∧
+          s'.regs 28 = s.regs 28 ∧
+            s'.regs 29 = s.regs 29 ∧
+              s'.regs 30 = s.regs 30 ∧
+                (∀ (i : Nat),
+                    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+                      s'.regs i = s.regs i) ∧
+                  B.wv s'.mem (BitVec.toNat (s.regs 0)) 4 =
+                      B.wv s.mem (BitVec.toNat (s.regs 3)) 4 / B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                    B.wv s'.mem (BitVec.toNat (s.regs 7)) 4 =
+                        B.wv s.mem (BitVec.toNat (s.regs 3)) 4 % B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                      MemFrame s.mem s'.mem
+                        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 8 * 4),
+                          (BitVec.toNat (s.regs 7), BitVec.toNat (s.regs 7) + 32),
+                          (BitVec.toNat s.sp - 344, BitVec.toNat s.sp - 8),
+                          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 72)]
+hx0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+hx1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE y.toNat 8 < 18446744073709551616
+hy1 : s.mem.readLE (y.toNat + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (y.toNat + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (y.toNat + 24) 8 < 18446744073709551616
+h_lr : s.regs 30 = BitVec.ofNat 64 ret
+hxb' : st.mem.accessible x.toNat 32 false = true
+hyb' : st.mem.accessible y.toNat 32 false = true
+hzb' : st.mem.accessible z.toNat 32 true = true
+hmb' : st.mem.accessible m' 32 true = true
+hstk : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 true = true
+hstkr : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 false = true
+hacc8 : st.mem.accessible (BitVec.toNat st.sp - 8) 8 false = true
+hacc0 : st.mem.accessible (BitVec.toNat st.sp) 8 false = true
+hfo :
+  ∀ (a n : Nat),
+    Outside a n (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)]) → st.mem.readLE a n = s.mem.readLE a n
+rx0 : st.mem.readLE x.toNat 8 = s.mem.readLE x.toNat 8
+rx1 : st.mem.readLE (x.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8
+rx2 : st.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (x.toNat + 16) 8
+rx3 : st.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (x.toNat + 24) 8
+ry0 : st.mem.readLE y.toNat 8 = s.mem.readLE y.toNat 8
+ry1 : st.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (y.toNat + 8) 8
+ry2 : st.mem.readLE (y.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8
+ry3 : st.mem.readLE (y.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8
+hgv : st.mem.readLE (BitVec.toNat (st.regs 28) + 16) 8 = s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hpc : st.pc = 768340#64
+hret48 : ret < 281474976710656
+hspal : BitVec.toNat st.sp % 16 = 0
+hdz' : Apart z.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdx' : Apart x.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdy' : Apart y.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdm' : Apart m' 32 (BitVec.toNat st.sp - 4096) 4296
+hspb : BitVec.toNat st.sp + 200 ≤ 281474976710656
+hsp344 : 344 ≤ BitVec.toNat st.sp
+hdz0 : Apart z.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdm0 : Apart m' 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hzm0 : Apart z.toNat 32 m' 32
+hxo0 : Outside x.toNat 32 rt
+hyo0 : Outside y.toNat 32 rt
+hdx0 : Apart x.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdy0 : Apart y.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdg2 : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 344 ∨ BitVec.toNat st.sp + 56 ≤ BitVec.toNat (s.regs 28)
+hdg3 :
+  BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 4096 ∨ BitVec.toNat st.sp + 200 ≤ BitVec.toNat (s.regs 28) + 16
+hbr✝³ :
+  ¬(((s.mem.readLE y.toNat 8 = 0 ∧ s.mem.readLE (y.toNat + 8) 8 = 0) ∧ s.mem.readLE (y.toNat + 16) 8 = 0) ∧
+      s.mem.readLE (y.toNat + 24) 8 = 0)
+hbr✝² : s.mem.readLE (x.toNat + 24) 8 = 0 ∧ s.mem.readLE (x.toNat + 16) 8 = 0 ∧ s.mem.readLE (x.toNat + 8) 8 = 0
+hbr✝¹ : ¬s.mem.readLE y.toNat 8 = 0
+hnb : True
+hbr✝ :
+  ¬(s.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8 ∧
+      (s.mem.readLE y.toNat 8 = s.mem.readLE x.toNat 8 ∧ s.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8) ∧
+        s.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8)
+hbr :
+  s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+        340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8 ≤
+    s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+        340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8
+⊢ st.sp + 160#64 = s.sp ∧
+    ∃ m'',
+      m' = m'' ∧
+        m'' = m' ∧
+          s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8 % 18446744073709551616 =
+              B.divSpec (s.mem.readLE x.toNat 8)
+                (s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+                    340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8) ∧
+            ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                (s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8)).writeLE
+                                            (z.toNat + 8) 8 0).writeLE
+                                        (m' + 16) 8 0).writeLE
+                                    (m' + 24) 8 0).writeLE
+                                m' 8
+                                (18446744073709551616 -
+                                    s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8 * s.mem.readLE y.toNat 8 %
+                                      18446744073709551616 +
+                                  s.mem.readLE x.toNat 8)).writeLE
+                            (m' + 8) 8 0).readLE
+                        m'' 8 +
+                      18446744073709551616 *
+                        ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                  (s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8)).writeLE
+                                              (z.toNat + 8) 8 0).writeLE
+                                          (m' + 16) 8 0).writeLE
+                                      (m' + 24) 8 0).writeLE
+                                  m' 8
+                                  (18446744073709551616 -
+                                      s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8 * s.mem.readLE y.toNat 8 %
+                                        18446744073709551616 +
+                                    s.mem.readLE x.toNat 8)).writeLE
+                              (m' + 8) 8 0).readLE
+                          (m'' + 8) 8 +
+                    340282366920938463463374607431768211456 *
+                      ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                                (s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8)).writeLE
+                                            (z.toNat + 8) 8 0).writeLE
+                                        (m' + 16) 8 0).writeLE
+                                    (m' + 24) 8 0).writeLE
+                                m' 8
+                                (18446744073709551616 -
+                                    s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8 * s.mem.readLE y.toNat 8 %
+                                      18446744073709551616 +
+                                  s.mem.readLE x.toNat 8)).writeLE
+                            (m' + 8) 8 0).readLE
+                        (m'' + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 *
+                    ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                              (s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8)).writeLE
+                                          (z.toNat + 8) 8 0).writeLE
+                                      (m' + 16) 8 0).writeLE
+                                  (m' + 24) 8 0).writeLE
+                              m' 8
+                              (18446744073709551616 -
+                                  s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8 * s.mem.readLE y.toNat 8 %
+                                    18446744073709551616 +
+                                s.mem.readLE x.toNat 8)).writeLE
+                          (m' + 8) 8 0).readLE
+                      (m'' + 24) 8 =
+                B.modSpec (s.mem.readLE x.toNat 8)
+                  (s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+                      340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+                    6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8) ∧
+              MemFrame s.mem
+                ((((((((st.mem.writeLE (z.toNat + 16) 8 0).writeLE (z.toNat + 24) 8 0).writeLE z.toNat 8
+                                      (s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8)).writeLE
+                                  (z.toNat + 8) 8 0).writeLE
+                              (m' + 16) 8 0).writeLE
+                          (m' + 24) 8 0).writeLE
+                      m' 8
+                      (18446744073709551616 -
+                          s.mem.readLE x.toNat 8 / s.mem.readLE y.toNat 8 * s.mem.readLE y.toNat 8 %
+                            18446744073709551616 +
+                        s.mem.readLE x.toNat 8)).writeLE
+                  (m' + 8) 8 0)
+                (rt ++ [(z.toNat, z.toNat + 32), (m', m' + 32), (BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+case hq
+rt : List (Nat × Nat)
+z x y m : BitVec 64
+m' ret : Nat
+hret : RetAddr DivModProg.program ret
+s st : State
+hal : BitVec.toNat s.sp % 16 = 0
+hb : 4256 ≤ BitVec.toNat s.sp
+ha : BitVec.toNat s.sp + 40 ≤ 281474976710656
+hw : s.mem.accessible (BitVec.toNat s.sp - 4256) (4256 + 40) true = true
+hzb : s.mem.accessible z.toNat 32 true = true
+hza : z.toNat + 32 ≤ 281474976710656
+hxb : s.mem.accessible x.toNat 32 false = true
+hxa : x.toNat + 32 ≤ 281474976710656
+hyb : s.mem.accessible y.toNat 32 false = true
+hya : y.toNat + 32 ≤ 281474976710656
+hmb : s.mem.accessible m' 32 true = true
+hma : m' + 32 ≤ 281474976710656
+hzm : Apart z.toNat 32 m' 32
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 281474976710656
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 464 < BitVec.toNat s.sp
+hdg : Apart (BitVec.toNat (s.regs 28) + 16) 8 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hgo : Outside (BitVec.toNat (s.regs 28) + 16) 8 rt
+hm'r : InRanges m' 32 rt ∨ m' = m.toNat
+hsp : BitVec.toNat st.sp = BitVec.toNat s.sp - 160
+h0 : st.regs 0 = z
+h1 : st.regs 1 = x
+h2 : st.regs 2 = y
+h3 : st.regs 3 = BitVec.ofNat 64 m'
+h18 : st.regs 18 = s.regs 18
+h28 : st.regs 28 = s.regs 28
+h29 : st.regs 29 = s.sp - 168#64
+hfr : MemFrame s.mem st.mem (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+hretslot : st.mem.readLE (BitVec.toNat st.sp) 8 = ret
+hbp : st.mem.readLE (BitVec.toNat st.sp - 8) 8 = BitVec.toNat (s.regs 29)
+hz8 : st.mem.readLE (BitVec.toNat st.sp + 168) 8 = z.toNat
+hr30 : BitVec.toNat (s.regs 30) % 4 = 0
+hr30b : BitVec.toNat (s.regs 30) < 72057594037927936
+hlr : s.regs 30 = BitVec.ofNat 64 ret
+hU :
+  Summary DivModProg.program UdivremA.ku
+    (fun s =>
+      BitVec.toNat (s.regs 30) % 4 = 0 ∧
+        BitVec.toNat (s.regs 30) < 72057594037927936 ∧
+          GuardOK s 304 ∧
+            StackOK s 344 72 ∧
+              (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 344 ∨
+                  BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 28) + 16) ∧
+                BitVec.toNat (s.regs 1) = 4 ∧
+                  BitVec.toNat (s.regs 4) = 4 ∧
+                    BitVec.toNat (s.regs 0) + 8 * 4 ≤ 281474976710656 ∧
+                      s.mem.accessible (BitVec.toNat (s.regs 0)) (8 * 4) true = true ∧
+                        BitVec.toNat (s.regs 3) + 8 * 4 ≤ 281474976710656 ∧
+                          s.mem.accessible (BitVec.toNat (s.regs 3)) (8 * 4) false = true ∧
+                            BitVec.toNat (s.regs 6) + 32 ≤ 281474976710656 ∧
+                              s.mem.accessible (BitVec.toNat (s.regs 6)) 32 false = true ∧
+                                (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                    BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 0)) ∧
+                                  (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat s.sp - 344 ∨
+                                      BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 3)) ∧
+                                    (BitVec.toNat (s.regs 6) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 6)) ∧
+                                      B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ≠ 0 ∧
+                                        B.wv s.mem (BitVec.toNat (s.regs 0)) 4 = 0 ∧
+                                          BitVec.toNat (s.regs 7) ≠ 0 ∧
+                                            BitVec.toNat (s.regs 7) + 32 ≤ 281474976710656 ∧
+                                              s.mem.accessible (BitVec.toNat (s.regs 7)) 32 true = true ∧
+                                                B.wv s.mem (BitVec.toNat (s.regs 7)) 4 = 0 ∧
+                                                  (BitVec.toNat (s.regs 0) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                      BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 0)) ∧
+                                                    (BitVec.toNat (s.regs 3) + 8 * 4 ≤ BitVec.toNat (s.regs 7) ∨
+                                                        BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat (s.regs 3)) ∧
+                                                      (BitVec.toNat (s.regs 7) + 32 ≤ BitVec.toNat s.sp - 344 ∨
+                                                        BitVec.toNat s.sp + 72 ≤ BitVec.toNat (s.regs 7)))
+    fun s s' =>
+    s'.pc = s.regs 30 ∧
+      s'.sp = s.sp ∧
+        s'.regs 18 = s.regs 18 ∧
+          s'.regs 28 = s.regs 28 ∧
+            s'.regs 29 = s.regs 29 ∧
+              s'.regs 30 = s.regs 30 ∧
+                (∀ (i : Nat),
+                    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+                      s'.regs i = s.regs i) ∧
+                  B.wv s'.mem (BitVec.toNat (s.regs 0)) 4 =
+                      B.wv s.mem (BitVec.toNat (s.regs 3)) 4 / B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                    B.wv s'.mem (BitVec.toNat (s.regs 7)) 4 =
+                        B.wv s.mem (BitVec.toNat (s.regs 3)) 4 % B.wv s.mem (BitVec.toNat (s.regs 6)) 4 ∧
+                      MemFrame s.mem s'.mem
+                        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 8 * 4),
+                          (BitVec.toNat (s.regs 7), BitVec.toNat (s.regs 7) + 32),
+                          (BitVec.toNat s.sp - 344, BitVec.toNat s.sp - 8),
+                          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 72)]
+hx0 : s.mem.readLE x.toNat 8 < 18446744073709551616
+hx1 : s.mem.readLE (x.toNat + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (x.toNat + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (x.toNat + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE y.toNat 8 < 18446744073709551616
+hy1 : s.mem.readLE (y.toNat + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (y.toNat + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (y.toNat + 24) 8 < 18446744073709551616
+h_lr : s.regs 30 = BitVec.ofNat 64 ret
+hxb' : st.mem.accessible x.toNat 32 false = true
+hyb' : st.mem.accessible y.toNat 32 false = true
+hzb' : st.mem.accessible z.toNat 32 true = true
+hmb' : st.mem.accessible m' 32 true = true
+hstk : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 true = true
+hstkr : st.mem.accessible (BitVec.toNat st.sp - 4096) 4296 false = true
+hacc8 : st.mem.accessible (BitVec.toNat st.sp - 8) 8 false = true
+hacc0 : st.mem.accessible (BitVec.toNat st.sp) 8 false = true
+hfo :
+  ∀ (a n : Nat),
+    Outside a n (rt ++ [(BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)]) → st.mem.readLE a n = s.mem.readLE a n
+rx0 : st.mem.readLE x.toNat 8 = s.mem.readLE x.toNat 8
+rx1 : st.mem.readLE (x.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8
+rx2 : st.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (x.toNat + 16) 8
+rx3 : st.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (x.toNat + 24) 8
+ry0 : st.mem.readLE y.toNat 8 = s.mem.readLE y.toNat 8
+ry1 : st.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (y.toNat + 8) 8
+ry2 : st.mem.readLE (y.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8
+ry3 : st.mem.readLE (y.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8
+hgv : st.mem.readLE (BitVec.toNat (st.regs 28) + 16) 8 = s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hpc : st.pc = 768340#64
+hret48 : ret < 281474976710656
+hspal : BitVec.toNat st.sp % 16 = 0
+hdz' : Apart z.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdx' : Apart x.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdy' : Apart y.toNat 32 (BitVec.toNat st.sp - 4096) 4296
+hdm' : Apart m' 32 (BitVec.toNat st.sp - 4096) 4296
+hspb : BitVec.toNat st.sp + 200 ≤ 281474976710656
+hsp344 : 344 ≤ BitVec.toNat st.sp
+hdz0 : Apart z.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdm0 : Apart m' 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hzm0 : Apart z.toNat 32 m' 32
+hxo0 : Outside x.toNat 32 rt
+hyo0 : Outside y.toNat 32 rt
+hdx0 : Apart x.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdy0 : Apart y.toNat 32 (BitVec.toNat s.sp - 4256) (4256 + 40)
+hdg2 : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 344 ∨ BitVec.toNat st.sp + 56 ≤ BitVec.toNat (s.regs 28)
+hdg3 :
+  BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat st.sp - 4096 ∨ BitVec.toNat st.sp + 200 ≤ BitVec.toNat (s.regs 28) + 16
+hbr✝¹ :
+  ¬(((s.mem.readLE y.toNat 8 = 0 ∧ s.mem.readLE (y.toNat + 8) 8 = 0) ∧ s.mem.readLE (y.toNat + 16) 8 = 0) ∧
+      s.mem.readLE (y.toNat + 24) 8 = 0)
+hnb : True
+hbr✝ :
+  ¬(s.mem.readLE (x.toNat + 24) 8 = s.mem.readLE (y.toNat + 24) 8 ∧
+      (s.mem.readLE y.toNat 8 = s.mem.readLE x.toNat 8 ∧ s.mem.readLE (y.toNat + 8) 8 = s.mem.readLE (x.toNat + 8) 8) ∧
+        s.mem.readLE (x.toNat + 16) 8 = s.mem.readLE (y.toNat + 16) 8)
+hbr :
+  ¬s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8 ≤
+      s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8
+⊢ st.sp + 160#64 = s.sp ∧
+    ∃ m'',
+      m' = m'' ∧
+        m'' = m' ∧
+          0 =
+              B.divSpec
+                (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+                    340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+                (s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+                    340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8) ∧
+            ((((((((st.mem.writeLE m' 8 (s.mem.readLE x.toNat 8)).writeLE (m' + 8) 8
+                                                    (s.mem.readLE (x.toNat + 8) 8)).writeLE
+                                                (m' + 16) 8 (s.mem.readLE (x.toNat + 16) 8)).writeLE
+                                            (m' + 24) 8 (s.mem.readLE (x.toNat + 24) 8)).writeLE
+                                        (z.toNat + 16) 8 0).writeLE
+                                    (z.toNat + 24) 8 0).writeLE
+                                z.toNat 8 0).writeLE
+                            (z.toNat + 8) 8 0).readLE
+                        m'' 8 +
+                      18446744073709551616 *
+                        ((((((((st.mem.writeLE m' 8 (s.mem.readLE x.toNat 8)).writeLE (m' + 8) 8
+                                                      (s.mem.readLE (x.toNat + 8) 8)).writeLE
+                                                  (m' + 16) 8 (s.mem.readLE (x.toNat + 16) 8)).writeLE
+                                              (m' + 24) 8 (s.mem.readLE (x.toNat + 24) 8)).writeLE
+                                          (z.toNat + 16) 8 0).writeLE
+                                      (z.toNat + 24) 8 0).writeLE
+                                  z.toNat 8 0).writeLE
+                              (z.toNat + 8) 8 0).readLE
+                          (m'' + 8) 8 +
+                    340282366920938463463374607431768211456 *
+                      ((((((((st.mem.writeLE m' 8 (s.mem.readLE x.toNat 8)).writeLE (m' + 8) 8
+                                                    (s.mem.readLE (x.toNat + 8) 8)).writeLE
+                                                (m' + 16) 8 (s.mem.readLE (x.toNat + 16) 8)).writeLE
+                                            (m' + 24) 8 (s.mem.readLE (x.toNat + 24) 8)).writeLE
+                                        (z.toNat + 16) 8 0).writeLE
+                                    (z.toNat + 24) 8 0).writeLE
+                                z.toNat 8 0).writeLE
+                            (z.toNat + 8) 8 0).readLE
+                        (m'' + 16) 8 +
+                  6277101735386680763835789423207666416102355444464034512896 *
+                    ((((((((st.mem.writeLE m' 8 (s.mem.readLE x.toNat 8)).writeLE (m' + 8) 8
+                                                  (s.mem.readLE (x.toNat + 8) 8)).writeLE
+                                              (m' + 16) 8 (s.mem.readLE (x.toNat + 16) 8)).writeLE
+                                          (m' + 24) 8 (s.mem.readLE (x.toNat + 24) 8)).writeLE
+                                      (z.toNat + 16) 8 0).writeLE
+                                  (z.toNat + 24) 8 0).writeLE
+                              z.toNat 8 0).writeLE
+                          (z.toNat + 8) 8 0).readLE
+                      (m'' + 24) 8 =
+                B.modSpec
+                  (s.mem.readLE x.toNat 8 + 18446744073709551616 * s.mem.readLE (x.toNat + 8) 8 +
+                      340282366920938463463374607431768211456 * s.mem.readLE (x.toNat + 16) 8 +
+                    6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (x.toNat + 24) 8)
+                  (s.mem.readLE y.toNat 8 + 18446744073709551616 * s.mem.readLE (y.toNat + 8) 8 +
+                      340282366920938463463374607431768211456 * s.mem.readLE (y.toNat + 16) 8 +
+                    6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (y.toNat + 24) 8) ∧
+              MemFrame s.mem
+                ((((((((st.mem.writeLE m' 8 (s.mem.readLE x.toNat 8)).writeLE (m' + 8) 8
+                                          (s.mem.readLE (x.toNat + 8) 8)).writeLE
+                                      (m' + 16) 8 (s.mem.readLE (x.toNat + 16) 8)).writeLE
+                                  (m' + 24) 8 (s.mem.readLE (x.toNat + 24) 8)).writeLE
+                              (z.toNat + 16) 8 0).writeLE
+                          (z.toNat + 24) 8 0).writeLE
+                      z.toNat 8 0).writeLE
+                  (z.toNat + 8) 8 0)
+                (rt ++ [(z.toNat, z.toNat + 32), (m', m' + 32), (BitVec.toNat s.sp - 4256, BitVec.toNat s.sp + 40)])
+Fv256/Arm64/DivModLibProfT.lean:104:8: warning: declaration uses `sorry`
+Fv256/Arm64/DivModLibProfT.lean:202:28: warning: This simp argument is unused:
+  Janus.Tactic.sub_flags_c
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProfT.lean:202:54: warning: This simp argument is unused:
+  BitVec.toNat_not
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProfT.lean:202:72: warning: This simp argument is unused:
+  BitVec.toNat_ofNat
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProfT.lean:202:92: warning: This simp argument is unused:
+  Util.readLE8_mod
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProfT.lean:202:125: warning: This simp argument is unused:
+  Nat.reduceMod
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod,
+    Nat.reducePow] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+	Command being timed: "memcap -m 60G lake env lean -o /dev/null Fv256/Arm64/DivModLibProfT.lean"
+	User time (seconds): 338.92
+	System time (seconds): 1.40
+	Percent of CPU this job got: 112%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:03.33
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 5613676
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 60
+	Minor (reclaiming a frame) page faults: 190731
+	Voluntary context switches: 4144
+	Involuntary context switches: 1639
+	Swaps: 0
+	File system inputs: 18848
+	File system outputs: 112
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

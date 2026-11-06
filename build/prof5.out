@@ -1,0 +1,166 @@
+tactic execution of Lean.Parser.Tactic.omega took 7.35s
+tactic execution of Lean.Parser.Tactic.omega took 6.19s
+simp took 177s
+tactic execution of Lean.Parser.Tactic.omega took 9.22s
+tactic execution of Lean.Parser.Tactic.omega took 8.15s
+tactic execution of Lean.Parser.Tactic.omega took 17.1s
+tactic execution of Lean.Parser.Tactic.omega took 17.1s
+tactic execution of Lean.Parser.Tactic.omega took 10.5s
+Fv256/Arm64/DivModLibProf.lean:108:5: warning: Variable name `hout` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hout
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivModLibProf.lean:113:65: warning: Variable name `hzo` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hzo
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivModLibProf.lean:123:5: warning: Variable name `hm'r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hm'r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivModLibProf.lean:126:67: warning: Variable name `h29` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h29
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivModLibProf.lean:131:5: warning: Variable name `hr30` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hr30
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivModLibProf.lean:131:40: warning: Variable name `hr30b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hr30b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivModLibProf.lean:203:28: warning: This simp argument is unused:
+  Janus.Tactic.sub_flags_c
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:203:54: warning: This simp argument is unused:
+  BitVec.toNat_not
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:203:72: warning: This simp argument is unused:
+  BitVec.toNat_ofNat
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:203:92: warning: This simp argument is unused:
+  Util.readLE8_mod
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:203:125: warning: This simp argument is unused:
+  Nat.reduceMod
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod,
+    Nat.reducePow] at *
+
+N.olean serialization took 6.93s
+ote: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:260:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero,
+    Nat.div_one, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left,
+    Fv256.B.modSpec_zero_right, Util.readLE8_mod]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:260:46: warning: This simp argument is unused:
+  Nat.zero_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside, Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_mod, Nat.reducePow,
+    Nat.sub_self, Nat.pow_zero, Nat.div_one, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right,
+    Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:261:6: warning: This simp argument is unused:
+  Fv256.B.divSpec_zero_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside, Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod,
+    Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left,
+    Fv256.B.modSpec_zero_right, Util.readLE8_mod]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivModLibProf.lean:261:61: warning: This simp argument is unused:
+  Fv256.B.modSpec_zero_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside, Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod,
+    Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one, Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right,
+    Fv256.B.modSpec_zero_right, Util.readLE8_mod]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+cumulative profiling times:
+	.olean serialization 6.93s
+	attribute application 0.097ms
+	compilation (IR) 0.388ms
+	compilation (LCNF base) 3.39ms
+	compilation (LCNF impure) 1.97ms
+	compilation (LCNF mono) 2.46ms
+	congr simp thm 439ms
+	elaboration 264ms
+	fix level params 9.27ms
+	instantiate metavars 68.6ms
+	interpretation 78.3ms
+	let-to-have transformation 0.231ms
+	linting 1.59s
+	module linting 0.00133ms
+	parsing 13.9ms
+	process pre-definitions 89.4ms
+	share common exprs 145ms
+	simp 183s
+	tactic execution 153s
+	type checking 29.4s
+	typeclass inference 3.89s
+	Command being timed: "memcap -m 60G lake env lean -o /dev/null Fv256/Arm64/DivModLibProf.lean"
+	User time (seconds): 380.70
+	System time (seconds): 1.86
+	Percent of CPU this job got: 110%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:46.64
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 10459264
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 277388
+	Voluntary context switches: 4060
+	Involuntary context switches: 689
+	Swaps: 0
+	File system inputs: 32
+	File system outputs: 16
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

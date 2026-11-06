@@ -1,0 +1,53 @@
+Fv256/Arm64/ExpMain.lean:34:33: warning: Variable name `hep` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hep
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:409:82: warning: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:411:5: warning: Variable name `hxb` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hxb
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:411:44: warning: Variable name `hdx` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hdx
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:412:5: warning: Variable name `hdz` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hdz
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:413:5: warning: Variable name `hyb` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hyb
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:413:44: warning: Variable name `hdy` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hdy
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/ExpMain.lean:460:32: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_of_disjoint
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+
+real	1m56.071s
+user	3m4.633s
+sys	0m1.337s

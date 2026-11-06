@@ -1,0 +1,77 @@
+{
+  "schema": 2,
+  "extractorVersion": "0.2.0",
+  "binary": "../harness-arm64",
+  "binarySha256": "431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec",
+  "goVersion": "go1.26.0",
+  "mainModule": "fv-uint256/harness",
+  "goos": "linux",
+  "goarch": "arm64",
+  "symbolSource": "symtab",
+  "symbol": "github.com/holiman/uint256.(*Int).Exp",
+  "address": "0xbd2a0",
+  "size": 688,
+  "maxFunctions": 64,
+  "functions": [
+    {
+      "name": "github.com/holiman/uint256.(*Int).Exp",
+      "address": "0xbd2a0",
+      "size": 688,
+      "words": 172
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).squared",
+      "address": "0xbae60",
+      "size": 144,
+      "words": 36
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).Mul",
+      "address": "0xbacb0",
+      "size": 176,
+      "words": 43
+    }
+  ],
+  "stubs": [
+    {
+      "name": "runtime.morestack_noctxt.abi0",
+      "address": "0x88540",
+      "kind": "morestack"
+    }
+  ],
+  "unresolvedBranches": [],
+  "data": [
+    {
+      "name": ".rodata+0x36860",
+      "address": "0xf6860",
+      "size": 32,
+      "section": ".rodata",
+      "sha256": "01d0fabd251fcbbe2b93b4b927b26ad2a1a99077152e45ded1e678afa45dbec5"
+    }
+  ],
+  "dataReferences": [
+    {
+      "from": "0xbd2c0",
+      "target": "0xf6860",
+      "kind": "adrp+add"
+    },
+    {
+      "from": "0xbd2c4",
+      "target": "0xf6860",
+      "kind": "adrp+ldst"
+    },
+    {
+      "from": "0xbd2cc",
+      "target": "0xf6870",
+      "kind": "adrp+add"
+    },
+    {
+      "from": "0xbd2d0",
+      "target": "0xf6870",
+      "kind": "adrp+ldst"
+    }
+  ],
+  "skippedData": [],
+  "extracted": "Extracted.lean",
+  "extractedSha256": "92f2547ce7cda7484c8b13ad3c0bcde634f8f7a5e579d58a1e6ee8127f21d4bf"
+}

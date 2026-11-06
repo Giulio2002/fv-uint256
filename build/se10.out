@@ -1,0 +1,41 @@
+Fv256/Arm64/SqrtEntry.lean:63:17: warning: This simp argument is unused:
+  headS
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [reduceSegAddr, Nat.reduceAdd]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/SqrtEntry.lean:63:24: warning: This simp argument is unused:
+  reduceSegAddr
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [headS, Nat.reduceAdd]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/SqrtEntry.lean:63:39: warning: This simp argument is unused:
+  Nat.reduceAdd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [headS, reduceSegAddr]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/SqrtEntry.lean:67:34: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_of_disjoint
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/SqrtEntry.lean:84:31: warning: This simp argument is unused:
+  Nat.zero_div
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.zero_mod, Nat.mul_zero, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/SqrtEntry.lean:252:27: error: No goals to be solved
+Fv256/Arm64/SqrtEntry.lean:254:27: error: No goals to be solved
+
+real	0m51.384s
+user	1m11.354s
+sys	0m0.615s

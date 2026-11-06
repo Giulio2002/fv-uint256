@@ -1,0 +1,171 @@
+{
+  "schema": 2,
+  "extractorVersion": "0.2.0",
+  "binary": "../harness-arm64",
+  "binarySha256": "431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec",
+  "goVersion": "go1.26.0",
+  "mainModule": "fv-uint256/harness",
+  "goos": "linux",
+  "goarch": "arm64",
+  "symbolSource": "symtab",
+  "symbol": "github.com/holiman/uint256.(*Int).DivMod",
+  "address": "0xbb8f0",
+  "size": 496,
+  "maxFunctions": 64,
+  "functions": [
+    {
+      "name": "github.com/holiman/uint256.(*Int).DivMod",
+      "address": "0xbb8f0",
+      "size": 496,
+      "words": 124
+    },
+    {
+      "name": "github.com/holiman/uint256.udivrem",
+      "address": "0xbb290",
+      "size": 816,
+      "words": 203
+    },
+    {
+      "name": "runtime.memmove",
+      "address": "0x8a920",
+      "size": 624,
+      "words": 154
+    },
+    {
+      "name": "github.com/holiman/uint256.udivremKnuth",
+      "address": "0xbb010",
+      "size": 640,
+      "words": 158
+    },
+    {
+      "name": "github.com/holiman/uint256.udivremBy1",
+      "address": "0xbaef0",
+      "size": 288,
+      "words": 71
+    },
+    {
+      "name": "math/bits.Div64",
+      "address": "0x8cae0",
+      "size": 368,
+      "words": 89
+    }
+  ],
+  "stubs": [
+    {
+      "name": "runtime.panicdivide",
+      "address": "0x507a0",
+      "kind": "panic"
+    },
+    {
+      "name": "runtime.morestack_noctxt.abi0",
+      "address": "0x88540",
+      "kind": "morestack"
+    },
+    {
+      "name": "runtime.panicBounds",
+      "address": "0x8a710",
+      "kind": "panic"
+    },
+    {
+      "name": "runtime.gopanic",
+      "address": "0x84400",
+      "kind": "panic"
+    }
+  ],
+  "contractPatterns": [
+    "runtime.newobject"
+  ],
+  "contracts": [
+    {
+      "name": "runtime.newobject",
+      "address": "0x2a2a0",
+      "pinned": true
+    }
+  ],
+  "unresolvedBranches": [],
+  "data": [
+    {
+      "name": ".rodata+0x10f20",
+      "address": "0xd0f20",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "2722a0f0aea4bc6b9f96f085bee807f8694292462f1fdc228f8570a5c87fcdda"
+    }
+  ],
+  "dataReferences": [
+    {
+      "from": "0xbb928",
+      "target": "0xd0f20",
+      "kind": "adrp+add"
+    },
+    {
+      "from": "0x8aa44",
+      "target": "0x1e320d",
+      "kind": "adrp+ldst"
+    },
+    {
+      "from": "0x8cbf0",
+      "target": "0x1b60b0",
+      "kind": "adrp+add"
+    },
+    {
+      "from": "0x8cbf4",
+      "target": "0x1b60b0",
+      "kind": "adrp+ldst"
+    },
+    {
+      "from": "0x8cc0c",
+      "target": "0x1b60a0",
+      "kind": "adrp+add"
+    },
+    {
+      "from": "0x8cc10",
+      "target": "0x1b60a0",
+      "kind": "adrp+ldst"
+    }
+  ],
+  "skippedData": [
+    {
+      "from": "0x8aa44",
+      "target": "0x1e320d",
+      "kind": "adrp+ldst",
+      "section": ".noptrbss",
+      "symbol": "runtime.arm64UseAlignedLoads",
+      "reason": "writable"
+    },
+    {
+      "from": "0x8cbf0",
+      "target": "0x1b60b0",
+      "kind": "adrp+add",
+      "section": ".data",
+      "symbol": "runtime.overflowError",
+      "reason": "writable"
+    },
+    {
+      "from": "0x8cbf4",
+      "target": "0x1b60b0",
+      "kind": "adrp+ldst",
+      "section": ".data",
+      "symbol": "runtime.overflowError",
+      "reason": "writable"
+    },
+    {
+      "from": "0x8cc0c",
+      "target": "0x1b60a0",
+      "kind": "adrp+add",
+      "section": ".data",
+      "symbol": "runtime.divideError",
+      "reason": "writable"
+    },
+    {
+      "from": "0x8cc10",
+      "target": "0x1b60a0",
+      "kind": "adrp+ldst",
+      "section": ".data",
+      "symbol": "runtime.divideError",
+      "reason": "writable"
+    }
+  ],
+  "extracted": "Extracted.lean",
+  "extractedSha256": "388da5f894765c61677f45790069f9b22de7d3a9188d49cc29d74dcc350cb6f2"
+}

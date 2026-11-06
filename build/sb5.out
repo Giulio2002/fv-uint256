@@ -1,0 +1,30 @@
+Fv256/Arm64/SqrtBig.lean:154:8: error: Type mismatch
+  hsumA
+has type
+  s'.mem.readLE (BitVec.toNat S.sp + 104) 8 + 2 ^ 64 * s'.mem.readLE (BitVec.toNat S.sp + 112) 8 +
+        2 ^ 128 * s'.mem.readLE (BitVec.toNat S.sp + 120) 8 +
+      2 ^ 192 * s'.mem.readLE (BitVec.toNat S.sp + 128) 8 =
+    (a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2 + 2 ^ 192 * a3 + (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3)) / 2
+but is expected to have type
+  s'.mem.readLE (BitVec.toNat S.sp + 104) 8 +
+      (2 ^ 64 * s'.mem.readLE (BitVec.toNat S.sp + 112) 8 +
+        (2 ^ 128 * s'.mem.readLE (BitVec.toNat S.sp + 120) 8 + 2 ^ 192 * s'.mem.readLE (BitVec.toNat S.sp + 128) 8)) =
+    (a0 + (2 ^ 64 * a1 + (2 ^ 128 * a2 + (2 ^ 192 * a3 + (b0 + (2 ^ 64 * b1 + (2 ^ 128 * b2 + 2 ^ 192 * b3))))))) / 2
+Fv256/Arm64/SqrtBig.lean:175:8: error: Type mismatch
+  h2
+has type
+  s'.mem.readLE (BitVec.toNat S.sp + 72) 8 +
+      (2 ^ 64 * s'.mem.readLE (BitVec.toNat S.sp + 80) 8 +
+        (2 ^ 128 * s'.mem.readLE (BitVec.toNat S.sp + 88) 8 + 2 ^ 192 * s'.mem.readLE (BitVec.toNat S.sp + 96) 8)) =
+    X /
+      ((a0 + (2 ^ 64 * a1 + (2 ^ 128 * a2 + (2 ^ 192 * a3 + (b0 + (2 ^ 64 * b1 + (2 ^ 128 * b2 + 2 ^ 192 * b3))))))) /
+        2)
+but is expected to have type
+  s'.mem.readLE (BitVec.toNat S.sp + 72) 8 + 2 ^ 64 * s'.mem.readLE (BitVec.toNat S.sp + 80) 8 +
+        2 ^ 128 * s'.mem.readLE (BitVec.toNat S.sp + 88) 8 +
+      2 ^ 192 * s'.mem.readLE (BitVec.toNat S.sp + 96) 8 =
+    X / ((a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2 + 2 ^ 192 * a3 + (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3)) / 2)
+
+real	13m2.640s
+user	13m22.010s
+sys	0m1.212s
