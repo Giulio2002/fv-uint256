@@ -69,16 +69,16 @@ theorem stage5 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry
   obtain ⟨xc49rcx, xc49rdx, xc49rbx, xc49rsi, xc49r9, xc49r11, xc49m78, xc49m80, xc49m88, xc49m90, hL5, g0, g1, g2, g3, g4, g5, g6, g7, g8, g9, hR5, hM5⟩ := hq5
   have hW : xbedrdi + 2 ^ 64 * xbedr8 + 2 ^ 128 * xbedr10 + 2 ^ 192 * xbedr12 + 2 ^ 256 * xbedr15 = (if 2 ^ 574 < (x801m60 + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40) * (x801m208 + 2 ^ 64 * x801m210 + 2 ^ 128 * x801m218 + 2 ^ 192 * y3) then ((x801m60 + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40) + 2 ^ 320 - 1) % 2 ^ 320 else (x801m60 + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40)) := by
     rw [hT, stage5T_eq] at hc2
-    exact r4step _ _ _ _ _ (by omega) hd hc2 rfl
+    refine r4step _ _ _ _ _ (by omega) ?_ hc2 rfl
+    rcases hd with h | ⟨h0, h1, h2, h3, h4, hcc, hw⟩
+    · exact Or.inl h
+    · exact Or.inr ⟨by omega, hcc, hw⟩
   have bd0 := (hL4.2.2.2.1)
   have bd1 := (hL4.2.2.2.2.2.1)
   have bd2 := (hL4.2.2.2.2.2.2.2.1)
   have bd3 := (hL4.2.2.2.2.2.2.2.2.2.1)
   have bd4 := (hL4.2.2.2.2.2.2.2.2.2.2.2)
   have bcx := (hL.2.1)
-  have hW : xbedrdi + 2 ^ 64 * xbedr8 + 2 ^ 128 * xbedr10 + 2 ^ 192 * xbedr12 + 2 ^ 256 * xbedr15 = (if 2 ^ 574 < (x801m60 + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40) * (x801m208 + 2 ^ 64 * x801m210 + 2 ^ 128 * x801m218 + 2 ^ 192 * y3) then ((x801m60 + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40) + 2 ^ 320 - 1) % 2 ^ 320 else (x801m60 + 2 ^ 64 * x801rbx + 2 ^ 128 * x801m50 + 2 ^ 192 * x801m48 + 2 ^ 256 * x801m40)) := by
-    rw [hT, stage5T_eq] at hc2
-    exact r4step _ _ _ _ _ (by omega) hd hc2 rfl
   have hdb := dbl5 x801rcx xbedrdi xbedr8 xbedr10 xbedr12 xbedr15 xc49rdx xc49rbx xc49rsi xc49r9 xc49r11 bcx bd0 bd1 bd2 bd3 bd4 g1 g2 g3 g4 g5
   rw [hW] at hdb
   refine ⟨xc49rcx, xc49rdx, xc49rbx, xc49rsi, xc49r9, xc49r11, xc49m78, xc49m80, xc49m88, xc49m90, hL5, rcx_dbl _ _ bcx g0, hdb, ?_, ?_, ?_, ?_, hR5, hM5⟩

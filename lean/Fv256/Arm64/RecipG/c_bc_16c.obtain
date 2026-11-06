@@ -1,2 +1,0 @@
-  unfold PC_bc_16c at h
-  obtain ⟨x108r0, x108r1, x108r2, x108r4, x108r5, x108m176, x108m240, x108m248, x108m256, x16cr0, x16cr7, x16cr10, hLz, h_x108r0, h_x108r1, h_x108r2, h_x108r4, h_x108r5, h_x108m176, h_x108m240, h_x108m248, h_x108m256, h_x16cr0, h_x16cr7, h_x16cr10, hRz, hMz⟩ := h

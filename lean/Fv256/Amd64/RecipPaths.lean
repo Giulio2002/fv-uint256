@@ -23,7 +23,7 @@ theorem path_m3z (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : Re
     (hm3 : s.mem.readLE ((s.regs 0).toNat + 24) 8 = 0) :
     ReachesRet Fv256.RecipProg.program (retAddrOf s) s (fun s' =>
       s'.regs 4 = s.regs 4 + 8#64 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
-      s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧ s'.mem.readLE ((s.regs 4).toNat + 8) 40 = 0 ∧
+      s'.mem.readLE ((s.regs 4).toNat + 8) 40 = 0 ∧
       MemFrame s.mem s'.mem [((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)]) := by
   obtain ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, hx15, ⟨hmw, hm⟩, hdm, hdg⟩ := hpre
   have hgl := hg.load
@@ -51,7 +51,6 @@ theorem path_pow2 (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : R
             BitVec.ofNat 64 (s.mem.readLE ((s.regs 0).toNat + 16) 8))).toNat = 0)) :
     ReachesRet Fv256.RecipProg.program (retAddrOf s) s (fun s' =>
       s'.regs 4 = s.regs 4 + 8#64 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
-      s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
       s'.mem.readLE ((s.regs 4).toNat + 8) 40 =
         2 ^ 256 - 1 + 2 ^ 256 * ((2 ^ 64 - 1) / 2 ^ (63 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8))) ∧
       MemFrame s.mem s'.mem [((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)]) := by

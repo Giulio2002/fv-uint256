@@ -67,7 +67,7 @@ theorem seg0 (s : State) (hpc : s.pc = BitVec.ofNat 64 recEntry) (hpre : RecPre 
     m3 * 2 ^ n % 2 ^ 64 + m2 / 2 ^ (64 - n), 255 - n, ?_, hlsh, rfl, hy3, ?_, ?_⟩
   · unfold L88
     have slot : ∀ d : Nat, ∀ a v : Nat, a = s.sp.toNat - 272 + d → s.sp.toNat - 280 ≤ a → True := fun _ _ _ _ _ => trivial
-    refine ⟨?_, lt0, ?_, lt1, ?_, lt2, ?_, lt3, ?_, by omega⟩
+    refine ⟨?_, ?_, ?_, ?_, ?_⟩
     · dsimp only; rw [hspe, show s.sp.toNat - 272 + 32 = s.sp.toNat - 240 by omega]
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
       first
