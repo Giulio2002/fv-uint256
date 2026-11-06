@@ -193,11 +193,11 @@ theorem blk1 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     have hMr : ∀ a n, Outside a n R.rt →
         (a + n ≤ (s.regs 4).toNat - 112 - 4096 ∨ ((s.regs 4).toNat - 112 ≤ a ∧ a + n ≤ (s.regs 4).toNat - 112 + 8) ∨
           (s.regs 4).toNat - 112 + 8 + 40 ≤ a) →
-        M.readLE a n = ((S.mem.writeLE ((s.regs 4).toNat - 24) 8 (S.mem.readLE (z.toNat + 8) 8)).writeLE ((s.regs 4).toNat - 112) 8 4926763).readLE a n :=
+        M.readLE a n = ((S.mem.writeLE ((s.regs 4).toNat - 24) 8 (s.mem.readLE (z.toNat + 8) 8)).writeLE ((s.regs 4).toNat - 112) 8 4926763).readLE a n :=
       fun a n ho hh => hfr'.readLE a n (by
         simp only [outside_append, outside_cons, outside_nil, and_true]
         refine ⟨ho, ?_, ?_⟩ <;> omega)
-    have hM16 : M.readLE ((s.regs 4).toNat - 24) 8 = S.mem.readLE (z.toNat + 8) 8 := by
+    have hM16 : M.readLE ((s.regs 4).toNat - 24) 8 = s.mem.readLE (z.toNat + 8) 8 := by
       rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),
         Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_self]
       exact Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _)

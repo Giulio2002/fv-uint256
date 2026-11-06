@@ -22,7 +22,7 @@ t = t.replace('hz8 : S.mem.readLE (z.toNat + 0) 8 = s.mem.readLE (z.toNat + 0) 8
 t = t.replace('S.mem.readLE z.toNat 8', 'S.mem.readLE (z.toNat + %d) 8' % (8 * k))
 t = t.replace('Memory.readLE S.mem z.toNat 8', 'Memory.readLE S.mem (z.toNat + %d) 8' % (8 * k))
 
-if k >= 2:
+if k >= 1:
     # the engine rewrites the spilled limb with `hz8` (S.mem -> s.mem) in the call's memory chain
     a = '((S.mem.writeLE ((s.regs 4).toNat - %d) 8 (S.mem.readLE (z.toNat + %d) 8)).writeLE' % (sp, 8 * k)
     assert a in t, 'hMr chain'
