@@ -52,7 +52,8 @@ OVR = {}         # (A_off, B_off) -> {item: (witness text, closer)}
 COMMON = ['Fv256.B.rot32_and', 'BitVec.toNat_setWidth', 'BitVec.toNat_eq', 'BitVec.toNat_ushiftRight', 'BitVec.toNat_ofNat', 'Nat.shiftRight_eq_div_pow',
           'BitVec.le_def', 'BitVec.lt_def', 'BitVec.toNat_sub', 'BitVec.toNat_add']
 NORM = ('Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, '
-        'BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false')
+        'BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, Fv256.Arm64.RecipBv.rot32_shl, Fv256.Arm64.RecipBv.rot32_hi, '
+        'Fv256.Arm64.RecipBv.toNat_ite, BitVec.toNat_shiftLeft, Nat.shiftLeft_eq')
 def seg_stmt(A, B, q):
     names = Ldef(A)[1]
     vs = '(%s : Nat) ' % ' '.join(names) if names else ''

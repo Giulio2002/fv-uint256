@@ -17,7 +17,7 @@ theorem sum1 (s S : State) (x88m32 x88m40 x88m48 x88m56 x88m176 : Nat)
   unfold PC_88_108 at h
   obtain ⟨xbcr0, x108r0, x108m176, hL, h_xbcr0, h_x108r0, h_x108m176, hx0, hx1, hR, hM⟩ := h
   refine ⟨x108r0, x108m176, hL, ?_, h_x108m176, hR, hM⟩
-  simp only [Fv256.Arm64.RecipBv.rot32_shl, Fv256.Arm64.RecipBv.rot32_hi, Fv256.Arm64.RecipBv.toNat_ite, BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat,
+  try simp only [Fv256.Arm64.RecipBv.rot32_shl, Fv256.Arm64.RecipBv.rot32_hi, Fv256.Arm64.RecipBv.toNat_ite, BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat,
     BitVec.toNat_shiftLeft, Nat.shiftLeft_eq, BitVec.toNat_setWidth, BitVec.toNat_mul, Janus.Tactic.umulh_toNat, Nat.reducePow] at h_x108r0
   obtain ⟨w0, w1, w2, w3⟩ := Fv256.Arm64.RecipBridge.yw_words x88m32 x88m40 x88m48 x88m56 b0 b1 b2 hb
   have hxb : xbcr0 < 2 ^ 64 := by
@@ -34,19 +34,20 @@ theorem sum1 (s S : State) (x88m32 x88m40 x88m48 x88m56 x88m176 : Nat)
   rw [h_x108r0]
   simp only [Nat.mod_eq_of_lt hxb, Nat.mod_eq_of_lt hb, Nat.shiftLeft_eq, hsh, Nat.reducePow, Nat.mod_mod, show 4294967296 = 2 ^ 32 from rfl] 
   have hr32 : xbcr0 % 4294967296 < 4294967296 := Nat.mod_lt _ (by decide)
-  have hrM : xbcr0 % 4294967296 % 18446744073709551616 = xbcr0 % 4294967296 := Nat.mod_eq_of_lt (by omega)
-  rw [hrM]
+  have hr32 : xbcr0 % 4294967296 < 4294967296 := Nat.mod_lt _ (by decide)
   have hT : xbcr0 % 4294967296 * (xbcr0 % 4294967296) % 18446744073709551616 * x88m56 / 18446744073709551616 < 18446744073709551616 := by
     apply Nat.div_lt_of_lt_mul
     have h1 : xbcr0 % 4294967296 * (xbcr0 % 4294967296) % 18446744073709551616 < 18446744073709551616 := Nat.mod_lt _ (by decide)
     have := Nat.mul_lt_mul'' h1 hb
     simpa [Nat.mul_comm] using this
   generalize xbcr0 % 4294967296 * (xbcr0 % 4294967296) % 18446744073709551616 * x88m56 / 18446744073709551616 = T at *
-  generalize xbcr0 % 4294967296 = r at *
+  generalize hrr : xbcr0 % 4294967296 = r at *
+  have key : ∀ X Y : Nat, X % 18446744073709551616 = Y % 18446744073709551616 → (X + X) % 18446744073709551616 = (Y + Y) % 18446744073709551616 := by intro X Y h; omega
+  have hA : (18446744073709551616 - T + xbcr0 * 4294967296) % 18446744073709551616 = (18446744073709551616 - T + r * 4294967296) % 18446744073709551616 := by
+    have : xbcr0 * 4294967296 = r * 4294967296 + 18446744073709551616 * (xbcr0 / 4294967296) := by omega
+    omega
   have e1 : (18446744073709551616 - T + r * 4294967296 + (18446744073709551616 - T + r * 4294967296)) % 18446744073709551616 =
       2 * ((r * 4294967296 + 18446744073709551616 - T) % 18446744073709551616) % 18446744073709551616 := by omega
-  have e2 : ((18446744073709551616 - T + r * 4294967296) % 18446744073709551616 + (18446744073709551616 - T + r * 4294967296) % 18446744073709551616) % 18446744073709551616 =
-      2 * ((r * 4294967296 + 18446744073709551616 - T) % 18446744073709551616) % 18446744073709551616 := by omega
-  rw [e1, e2, Nat.mul_comm x88m56 2]
+  rw [key _ _ hA, e1, Nat.mul_comm x88m56 2]
 
 end Fv256.Arm64.RecipSeg
