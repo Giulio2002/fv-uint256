@@ -60,4 +60,13 @@ def DescOK (R : RtInv) (u8 : Nat) : Prop :=
     (∀ b L g m, R.inv b L g (view R.rt L m) →
       m.accessible u8 16 false = true ∧ m.readLE u8 8 = 1 ∧ m.readLE (u8 + 8) 8 = 0)
 
+/-- arm64 twin of `grow_pre` (the callee window is `[sp - 128 - 4096, sp - 128 + 48)` and the block's frame is
+`[sp - 4232, sp + 40)`). -/
+theorem grow_pre_a64 (len cc pp sp : Nat) (hlc : len ≤ cc) (hPb : pp + cc ≤ 2 ^ 48)
+    (hdj : Apart pp cc (sp - 4232) 4272) (hb' : 4232 ≤ sp) :
+    len ≤ cc ∧ pp + len ≤ 281474976710656 ∧
+      (pp + len ≤ sp - 128 - 4096 ∨ sp - 128 - 8 ≤ pp) ∧ (pp + len ≤ sp - 128 + 8 ∨ sp - 128 + 8 + 40 ≤ pp) := by
+  unfold Apart at hdj
+  exact ⟨hlc, by omega, by omega, by omega⟩
+
 end Fv256.Msa
