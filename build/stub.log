@@ -1,0 +1,13 @@
+Kept workspace: /srv/fv-uint256-wh/jcache/v1/consumer/685b28db2a8d1e77407514ac/fc18322e508d5040114c0a19
+  Use: cd /srv/fv-uint256-wh/jcache/v1/consumer/685b28db2a8d1e77407514ac/fc18322e508d5040114c0a19/root && lake env lean YourScratch.lean   (Extracted is /srv/fv-uint256-wh/jcache/v1/consumer/685b28db2a8d1e77407514ac/fc18322e508d5040114c0a19/janus/.lake/build/lib/lean/Extracted.olean)
+  Untruncated goals: add -Dpp.deepTerms=true -Dpp.proofs=true -Dpp.maxSteps=1000000000 to lean
+  (diagnostics only: janus never reads it back, and `janus cache gc` may remove an unused one)
+Invalid: The audit rejected the proof: the statement does not mention Extracted.program or Extracted.entry, so it says nothing about the extracted code
+  Stage: statement identity
+  Next: State the theorem about Extracted.program or Extracted.entry.
+Details:
+janus-audit-4d5eb74f3bef5da48834c5cd: ERROR the statement does not mention Extracted.program or Extracted.entry, so it says nothing about the extracted code
+
+real	3m25.616s
+user	0m7.926s
+sys	0m2.261s

@@ -1,0 +1,2820 @@
+=== DivLemmas
+Fv256/Arm64/DivLemmas.lean:53:62: warning: This simp argument is unused:
+  Nat.zero_add
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWithCarry, BitVec.toNat_ofNat, Nat.reducePow]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivLemmas.lean:71:5: warning: Variable name `hz` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hz
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:102:5: warning: Variable name `hz` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hz
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:122:118: warning: Variable name `hx2` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hx2
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:123:5: warning: Variable name `hx3` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hx3
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:123:39: warning: Variable name `hy0` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hy0
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:123:73: warning: Variable name `hy1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hy1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:142:5: warning: Variable name `hz` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hz
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Arm64/DivLemmas.lean:153:5: warning: Variable name `hz` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hz
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+real	0m2.525s
+=== DivProg
+real	0m0.953s
+=== SDivProg
+real	0m0.951s
+=== DivSum
+Fv256/Arm64/DivSum.lean:57:107: warning: This simp argument is unused:
+  Nat.reduceMod
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow,
+    Fv256.Arm64.DivLemmas.chain_zero_iff _ _ _ _ _ _ _ _ hx0 hx1 hx2 hx3 hy0 hy1 hy2 hy3] at *
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivSum.lean:83:64: warning: This simp argument is unused:
+  Nat.reduceAdd
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, hsp1, hsp2, Nat.reduceEqDiff, reduceIte, Nat.reduceSub] at hf
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/DivSum.lean:83:79: warning: This simp argument is unused:
+  Nat.reduceSub
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, hsp1, hsp2, Nat.reduceEqDiff, reduceIte, Nat.reduceAdd] at hf
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+real	3m2.853s
+=== SDivSum
+case hq
+s : State
+hpc : s.pc = BitVec.ofNat 64 sdivEntry
+h30a : BitVec.toNat (s.regs 30) % 4 = 0
+h30b : BitVec.toNat (s.regs 30) < 2 ^ 56
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 2 ^ 48
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 592 < BitVec.toNat s.sp
+hsal : BitVec.toNat s.sp % 16 = 0
+hsb : 632 ≤ BitVec.toNat s.sp
+hsc : BitVec.toNat s.sp + 16 ≤ 2 ^ 48
+hsw : s.mem.accessible (BitVec.toNat s.sp - 632) (632 + 16) true = true
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16
+hzb : BitVec.toNat (s.regs 0) + 32 ≤ 2 ^ 48
+hza : s.mem.accessible (BitVec.toNat (s.regs 0)) 32 true = true
+hxb : BitVec.toNat (s.regs 1) + 32 ≤ 2 ^ 48
+hxa : s.mem.accessible (BitVec.toNat (s.regs 1)) 32 false = true
+hyb : BitVec.toNat (s.regs 2) + 32 ≤ 2 ^ 48
+hya : s.mem.accessible (BitVec.toNat (s.regs 2)) 32 false = true
+hdz : BitVec.toNat (s.regs 0) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 0)
+hdx : BitVec.toNat (s.regs 1) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 1)
+hdy : BitVec.toNat (s.regs 2) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 2)
+hx0 : s.mem.readLE (BitVec.toNat (s.regs 1)) 8 < 18446744073709551616
+hx1 : s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE (BitVec.toNat (s.regs 2)) 8 < 18446744073709551616
+hy1 : s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 18446744073709551616
+hbr✝² : ¬BitVec.toNat s.sp - 48 ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝¹ :
+  s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 = 0 ∧
+    s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 1)) 8 = 0
+hbr✝ : ¬72057594037927936 ≤ BitVec.toNat (s.regs 30)
+hbr : BitVec.toNat (s.regs 30) % 4 = 0
+⊢ (∀ (i : Nat),
+      ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+        (if i = 17 then s.sp - 48#64
+          else
+            if i = 16 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)
+            else if i = 5 then 0#64 else if i = 4 then 0#64 else if i = 3 then 0#64 else s.regs i) =
+          s.regs i) ∧
+    0 =
+        B.sdivSpec 0
+          (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 *
+              s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8) ∧
+      MemFrame s.mem
+        ((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat (s.regs 0) + 16) 8 0).writeLE
+                  (BitVec.toNat (s.regs 0) + 24) 8 0).writeLE
+              (BitVec.toNat (s.regs 0)) 8 0).writeLE
+          (BitVec.toNat (s.regs 0) + 8) 8 0)
+        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32), (BitVec.toNat s.sp - 632, BitVec.toNat s.sp - 8),
+          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+case hq
+s : State
+hpc : s.pc = BitVec.ofNat 64 sdivEntry
+h30a : BitVec.toNat (s.regs 30) % 4 = 0
+h30b : BitVec.toNat (s.regs 30) < 2 ^ 56
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 2 ^ 48
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 592 < BitVec.toNat s.sp
+hsal : BitVec.toNat s.sp % 16 = 0
+hsb : 632 ≤ BitVec.toNat s.sp
+hsc : BitVec.toNat s.sp + 16 ≤ 2 ^ 48
+hsw : s.mem.accessible (BitVec.toNat s.sp - 632) (632 + 16) true = true
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16
+hzb : BitVec.toNat (s.regs 0) + 32 ≤ 2 ^ 48
+hza : s.mem.accessible (BitVec.toNat (s.regs 0)) 32 true = true
+hxb : BitVec.toNat (s.regs 1) + 32 ≤ 2 ^ 48
+hxa : s.mem.accessible (BitVec.toNat (s.regs 1)) 32 false = true
+hyb : BitVec.toNat (s.regs 2) + 32 ≤ 2 ^ 48
+hya : s.mem.accessible (BitVec.toNat (s.regs 2)) 32 false = true
+hdz : BitVec.toNat (s.regs 0) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 0)
+hdx : BitVec.toNat (s.regs 1) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 1)
+hdy : BitVec.toNat (s.regs 2) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 2)
+hx0 : s.mem.readLE (BitVec.toNat (s.regs 1)) 8 < 18446744073709551616
+hx1 : s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE (BitVec.toNat (s.regs 2)) 8 < 18446744073709551616
+hy1 : s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 18446744073709551616
+hbr✝³ : ¬BitVec.toNat s.sp - 48 ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝² :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 1)) 8 = 0)
+hbr✝¹ :
+  s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 = 0 ∧
+    s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 2)) 8 = 0
+hbr✝ : ¬72057594037927936 ≤ BitVec.toNat (s.regs 30)
+hbr : BitVec.toNat (s.regs 30) % 4 = 0
+⊢ (∀ (i : Nat),
+      ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+        (if i = 17 then s.sp - 48#64
+          else
+            if i = 16 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)
+            else
+              if i = 6 then 0#64
+              else
+                if i = 5 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+                else if i = 4 then 0#64 else if i = 3 then 0#64 else s.regs i) =
+          s.regs i) ∧
+    0 =
+        B.sdivSpec
+          (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+          0 ∧
+      MemFrame s.mem
+        ((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                          (BitVec.toNat (s.regs 29))).writeLE
+                      (BitVec.toNat (s.regs 0) + 16) 8 0).writeLE
+                  (BitVec.toNat (s.regs 0) + 24) 8 0).writeLE
+              (BitVec.toNat (s.regs 0)) 8 0).writeLE
+          (BitVec.toNat (s.regs 0) + 8) 8 0)
+        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32), (BitVec.toNat s.sp - 632, BitVec.toNat s.sp - 8),
+          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+case hq
+s : State
+hpc : s.pc = BitVec.ofNat 64 sdivEntry
+h30a : BitVec.toNat (s.regs 30) % 4 = 0
+h30b : BitVec.toNat (s.regs 30) < 2 ^ 56
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 2 ^ 48
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 592 < BitVec.toNat s.sp
+hsal : BitVec.toNat s.sp % 16 = 0
+hsb : 632 ≤ BitVec.toNat s.sp
+hsc : BitVec.toNat s.sp + 16 ≤ 2 ^ 48
+hsw : s.mem.accessible (BitVec.toNat s.sp - 632) (632 + 16) true = true
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16
+hzb : BitVec.toNat (s.regs 0) + 32 ≤ 2 ^ 48
+hza : s.mem.accessible (BitVec.toNat (s.regs 0)) 32 true = true
+hxb : BitVec.toNat (s.regs 1) + 32 ≤ 2 ^ 48
+hxa : s.mem.accessible (BitVec.toNat (s.regs 1)) 32 false = true
+hyb : BitVec.toNat (s.regs 2) + 32 ≤ 2 ^ 48
+hya : s.mem.accessible (BitVec.toNat (s.regs 2)) 32 false = true
+hdz : BitVec.toNat (s.regs 0) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 0)
+hdx : BitVec.toNat (s.regs 1) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 1)
+hdy : BitVec.toNat (s.regs 2) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 2)
+hx0 : s.mem.readLE (BitVec.toNat (s.regs 1)) 8 < 18446744073709551616
+hx1 : s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE (BitVec.toNat (s.regs 2)) 8 < 18446744073709551616
+hy1 : s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 18446744073709551616
+hbr✝⁵ : ¬BitVec.toNat s.sp - 48 ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝⁴ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 1)) 8 = 0)
+hbr✝³ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 2)) 8 = 0)
+hbr✝² : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 9223372036854775808
+hbr✝¹ : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 9223372036854775808
+s' : State
+a✝ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      regLR
+left✝⁸ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝⁷ :
+  s'.sp =
+    {
+        regs :=
+          setReg
+            (setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                        (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                      5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                    6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                  16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                17 (s.sp - 48#64))
+              29 (s.sp - 184#64))
+            30 771644#64,
+        sp := s.sp - 176#64, pc := 767424#64,
+        flags :=
+          (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64) true).snd,
+        mem :=
+          ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                (BitVec.toNat (s.regs 29))).writeLE
+            (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+        dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+        exclPass := s.exclPass }.sp
+left✝⁶ :
+  s'.regs 0 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      0
+left✝⁵ :
+  s'.regs 18 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      18
+left✝⁴ :
+  s'.regs 28 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      28
+left✝³ :
+  s'.regs 29 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      29
+left✝² :
+  s'.regs 30 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg s.regs 3 9223372036854775808#64) 4
+                          (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)))
+                        5 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)))
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771644#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addSub (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)) (9223372036854775808#64)
+                true).snd,
+          mem :=
+            ((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                  (BitVec.toNat (s.regs 29))).writeLE
+              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)),
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝¹ :
+  ∀ (i : Nat),
+    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+      s'.regs i =
+        if i = 30 then 771644#64
+        else
+          if i = 29 then s.sp - 184#64
+          else
+            if i = 17 then s.sp - 48#64
+            else
+              if i = 16 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)
+              else
+                if i = 6 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)
+                else
+                  if i = 5 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+                  else
+                    if i = 4 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)
+                    else if i = 3 then 9223372036854775808#64 else s.regs i
+left✝ :
+  s'.mem.readLE (BitVec.toNat (s.regs 0)) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8 =
+    B.divSpec
+      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 + 18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+      (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 + 18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)
+right✝ :
+  MemFrame
+    (((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+          (BitVec.toNat (s.regs 29))).writeLE
+      (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0)))
+    s'.mem
+    [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32),
+      (BitVec.toNat s.sp - 176 - 456, BitVec.toNat s.sp - 176 - 8),
+      (BitVec.toNat s.sp - 176 + 8, BitVec.toNat s.sp - 176 + 16)]
+hbr✝ : ¬72057594037927936 ≤ BitVec.toNat (s.regs 30)
+hbr : BitVec.toNat (s.regs 30) % 4 = 0
+⊢ (∀ (i : Nat),
+      ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+        (if i = 30 then s.regs 30 else if i = 29 then s.regs 29 else if i = 0 then s.regs 0 else s'.regs i) =
+          s.regs i) ∧
+    s'.mem.readLE (BitVec.toNat (s.regs 0)) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8 +
+            340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8 +
+          6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8 =
+        B.sdivSpec
+          (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+          (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 *
+              s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8) ∧
+      MemFrame s.mem s'.mem
+        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32), (BitVec.toNat s.sp - 632, BitVec.toNat s.sp - 8),
+          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+case hq
+s : State
+hpc : s.pc = BitVec.ofNat 64 sdivEntry
+h30a : BitVec.toNat (s.regs 30) % 4 = 0
+h30b : BitVec.toNat (s.regs 30) < 2 ^ 56
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 2 ^ 48
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 592 < BitVec.toNat s.sp
+hsal : BitVec.toNat s.sp % 16 = 0
+hsb : 632 ≤ BitVec.toNat s.sp
+hsc : BitVec.toNat s.sp + 16 ≤ 2 ^ 48
+hsw : s.mem.accessible (BitVec.toNat s.sp - 632) (632 + 16) true = true
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16
+hzb : BitVec.toNat (s.regs 0) + 32 ≤ 2 ^ 48
+hza : s.mem.accessible (BitVec.toNat (s.regs 0)) 32 true = true
+hxb : BitVec.toNat (s.regs 1) + 32 ≤ 2 ^ 48
+hxa : s.mem.accessible (BitVec.toNat (s.regs 1)) 32 false = true
+hyb : BitVec.toNat (s.regs 2) + 32 ≤ 2 ^ 48
+hya : s.mem.accessible (BitVec.toNat (s.regs 2)) 32 false = true
+hdz : BitVec.toNat (s.regs 0) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 0)
+hdx : BitVec.toNat (s.regs 1) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 1)
+hdy : BitVec.toNat (s.regs 2) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 2)
+hx0 : s.mem.readLE (BitVec.toNat (s.regs 1)) 8 < 18446744073709551616
+hx1 : s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE (BitVec.toNat (s.regs 2)) 8 < 18446744073709551616
+hy1 : s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 18446744073709551616
+hbr✝⁵ : ¬BitVec.toNat s.sp - 48 ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝⁴ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 1)) 8 = 0)
+hbr✝³ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 2)) 8 = 0)
+hbr✝² : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 9223372036854775808
+hbr✝¹ : ¬s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 9223372036854775808
+s' : State
+a✝ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      regLR
+left✝⁸ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝⁷ :
+  s'.sp =
+    {
+        regs :=
+          setReg
+            (setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      5 0#64)
+                    6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                  16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                17 (s.sp - 48#64))
+              29 (s.sp - 184#64))
+            30 771568#64,
+        sp := s.sp - 176#64, pc := 767424#64,
+        flags :=
+          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                true).snd.c).snd.c).snd.c).snd,
+        mem :=
+          ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                            (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                        (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                    (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                (BitVec.toNat s.sp - 24) 8 0).writeLE
+                            (BitVec.toNat s.sp - 16) 8 0).writeLE
+                        (BitVec.toNat s.sp - 40) 8
+                        (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                    (BitVec.toNat s.sp - 32) 8
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                true).snd.c).fst.toNat).writeLE
+                (BitVec.toNat s.sp - 24) 8
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).fst.toNat).writeLE
+            (BitVec.toNat s.sp - 16) 8
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).snd.c).fst.toNat,
+        dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+        exclPass := s.exclPass }.sp
+left✝⁶ :
+  s'.regs 0 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      0
+left✝⁵ :
+  s'.regs 18 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      18
+left✝⁴ :
+  s'.regs 28 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      28
+left✝³ :
+  s'.regs 29 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      29
+left✝² :
+  s'.regs 30 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 2 (s.sp - 40#64)) 3 (s.sp - 40#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771568#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 40) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 32) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 24) 8 0).writeLE
+                              (BitVec.toNat s.sp - 16) 8 0).writeLE
+                          (BitVec.toNat s.sp - 40) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 32) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 24) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 16) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝¹ :
+  ∀ (i : Nat),
+    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+      s'.regs i =
+        if i = 30 then 771568#64
+        else
+          if i = 29 then s.sp - 184#64
+          else
+            if i = 17 then s.sp - 48#64
+            else
+              if i = 16 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)
+              else
+                if i = 6 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)
+                else
+                  if i = 5 then 0#64
+                  else
+                    if i = 4 then
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                            true).snd.c).snd.c).snd.c).fst
+                    else if i = 3 then s.sp - 40#64 else if i = 2 then s.sp - 40#64 else s.regs i
+left✝ :
+  s'.mem.readLE (BitVec.toNat (s.regs 0)) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8 =
+    B.divSpec
+      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 + 18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+      ((18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8) % 18446744073709551616 +
+            18446744073709551616 *
+              (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                  (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) %
+                18446744073709551616) +
+          340282366920938463463374607431768211456 *
+            (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+                  18446744073709551616) %
+              18446744073709551616) +
+        6277101735386680763835789423207666416102355444464034512896 *
+          (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)).toNat +
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+                  ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+                    18446744073709551616) /
+                18446744073709551616) %
+            18446744073709551616))
+right✝ :
+  MemFrame
+    (((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                                          (BitVec.toNat (s.regs 29))).writeLE
+                                      (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                  (BitVec.toNat s.sp - 40) 8 0).writeLE
+                              (BitVec.toNat s.sp - 32) 8 0).writeLE
+                          (BitVec.toNat s.sp - 24) 8 0).writeLE
+                      (BitVec.toNat s.sp - 16) 8 0).writeLE
+                  (BitVec.toNat s.sp - 40) 8 (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+              (BitVec.toNat s.sp - 32) 8
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat)).writeLE
+          (BitVec.toNat s.sp - 24) 8
+          ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+              18446744073709551616)).writeLE
+      (BitVec.toNat s.sp - 16) 8
+      ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)).toNat +
+        ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+              18446744073709551616) /
+          18446744073709551616))
+    s'.mem
+    [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32),
+      (BitVec.toNat s.sp - 176 - 456, BitVec.toNat s.sp - 176 - 8),
+      (BitVec.toNat s.sp - 176 + 8, BitVec.toNat s.sp - 176 + 16)]
+hbr✝ : ¬72057594037927936 ≤ BitVec.toNat (s.regs 30)
+hbr : BitVec.toNat (s.regs 30) % 4 = 0
+⊢ (∀ (i : Nat),
+      ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+        (if i = 30 then s.regs 30
+          else
+            if i = 29 then s.regs 29
+            else
+              if i = 4 then 0#64
+              else
+                if i = 3 then
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8))
+                                  (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8))
+                                        true).snd.c).snd.c).snd.c).fst
+                else if i = 0 then s.regs 0 else s'.regs i) =
+          s.regs i) ∧
+    (18446744073709551616 - s'.mem.readLE (BitVec.toNat (s.regs 0)) 8) % 18446744073709551616 +
+              18446744073709551616 *
+                (((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) %
+                  18446744073709551616) +
+            340282366920938463463374607431768211456 *
+              (((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                  ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                      (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) /
+                    18446744073709551616) %
+                18446744073709551616) +
+          6277101735386680763835789423207666416102355444464034512896 *
+            (((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                    ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                        (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8))
+                                true).snd.c.toNat) /
+                      18446744073709551616) /
+                  18446744073709551616) %
+              18446744073709551616) =
+        B.sdivSpec
+          (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+          (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 *
+              s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8) ∧
+      MemFrame s.mem
+        ((((s'.mem.writeLE (BitVec.toNat (s.regs 0)) 8
+                      (18446744073709551616 - s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)).writeLE
+                  (BitVec.toNat (s.regs 0) + 8) 8
+                  ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8))
+                            true).snd.c.toNat)).writeLE
+              (BitVec.toNat (s.regs 0) + 16) 8
+              ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) /
+                  18446744073709551616)).writeLE
+          (BitVec.toNat (s.regs 0) + 24) 8
+          ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) /
+                  18446744073709551616) /
+              18446744073709551616))
+        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32), (BitVec.toNat s.sp - 632, BitVec.toNat s.sp - 8),
+          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+case hq
+s : State
+hpc : s.pc = BitVec.ofNat 64 sdivEntry
+h30a : BitVec.toNat (s.regs 30) % 4 = 0
+h30b : BitVec.toNat (s.regs 30) < 2 ^ 56
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 2 ^ 48
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 592 < BitVec.toNat s.sp
+hsal : BitVec.toNat s.sp % 16 = 0
+hsb : 632 ≤ BitVec.toNat s.sp
+hsc : BitVec.toNat s.sp + 16 ≤ 2 ^ 48
+hsw : s.mem.accessible (BitVec.toNat s.sp - 632) (632 + 16) true = true
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16
+hzb : BitVec.toNat (s.regs 0) + 32 ≤ 2 ^ 48
+hza : s.mem.accessible (BitVec.toNat (s.regs 0)) 32 true = true
+hxb : BitVec.toNat (s.regs 1) + 32 ≤ 2 ^ 48
+hxa : s.mem.accessible (BitVec.toNat (s.regs 1)) 32 false = true
+hyb : BitVec.toNat (s.regs 2) + 32 ≤ 2 ^ 48
+hya : s.mem.accessible (BitVec.toNat (s.regs 2)) 32 false = true
+hdz : BitVec.toNat (s.regs 0) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 0)
+hdx : BitVec.toNat (s.regs 1) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 1)
+hdy : BitVec.toNat (s.regs 2) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 2)
+hx0 : s.mem.readLE (BitVec.toNat (s.regs 1)) 8 < 18446744073709551616
+hx1 : s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE (BitVec.toNat (s.regs 2)) 8 < 18446744073709551616
+hy1 : s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 18446744073709551616
+hbr✝⁵ : ¬BitVec.toNat s.sp - 48 ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝⁴ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 1)) 8 = 0)
+hbr✝³ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 2)) 8 = 0)
+hbr✝² : ¬s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 9223372036854775808
+hbr✝¹ : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 9223372036854775808
+s' : State
+a✝ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      regLR
+left✝⁸ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝⁷ :
+  s'.sp =
+    {
+        regs :=
+          setReg
+            (setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      5 0#64)
+                    6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                  16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                17 (s.sp - 48#64))
+              29 (s.sp - 184#64))
+            30 771412#64,
+        sp := s.sp - 176#64, pc := 767424#64,
+        flags :=
+          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                true).snd.c).snd.c).snd.c).snd,
+        mem :=
+          ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                            (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                        (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                    (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                (BitVec.toNat s.sp - 120) 8 0).writeLE
+                            (BitVec.toNat s.sp - 112) 8 0).writeLE
+                        (BitVec.toNat s.sp - 136) 8
+                        (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                    (BitVec.toNat s.sp - 128) 8
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                true).snd.c).fst.toNat).writeLE
+                (BitVec.toNat s.sp - 120) 8
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).fst.toNat).writeLE
+            (BitVec.toNat s.sp - 112) 8
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).snd.c).fst.toNat,
+        dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+        exclPass := s.exclPass }.sp
+left✝⁶ :
+  s'.regs 0 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      0
+left✝⁵ :
+  s'.regs 18 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      18
+left✝⁴ :
+  s'.regs 28 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      28
+left✝³ :
+  s'.regs 29 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      29
+left✝² :
+  s'.regs 30 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg s.regs 1 (s.sp - 136#64)) 3 (s.sp - 136#64)) 4
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                    (addWithCarry (0#64)
+                                          (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                true).snd.c).snd.c).snd.c).fst)
+                        5 0#64)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771412#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                  (BitVec.toNat s.sp - 184) 8 (BitVec.toNat (s.regs 29))).writeLE
+                                              (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                          (BitVec.toNat s.sp - 136) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 128) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 120) 8 0).writeLE
+                              (BitVec.toNat s.sp - 112) 8 0).writeLE
+                          (BitVec.toNat s.sp - 136) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                      (BitVec.toNat s.sp - 128) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 120) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 112) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝¹ :
+  ∀ (i : Nat),
+    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+      s'.regs i =
+        if i = 30 then 771412#64
+        else
+          if i = 29 then s.sp - 184#64
+          else
+            if i = 17 then s.sp - 48#64
+            else
+              if i = 16 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)
+              else
+                if i = 6 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)
+                else
+                  if i = 5 then 0#64
+                  else
+                    if i = 4 then
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                            true).snd.c).snd.c).snd.c).fst
+                    else if i = 3 then s.sp - 136#64 else if i = 1 then s.sp - 136#64 else s.regs i
+left✝ :
+  s'.mem.readLE (BitVec.toNat (s.regs 0)) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8 =
+    B.divSpec
+      ((18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8) % 18446744073709551616 +
+            18446744073709551616 *
+              (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                  (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) %
+                18446744073709551616) +
+          340282366920938463463374607431768211456 *
+            (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) /
+                  18446744073709551616) %
+              18446744073709551616) +
+        6277101735386680763835789423207666416102355444464034512896 *
+          (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)).toNat +
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+                  ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) /
+                    18446744073709551616) /
+                18446744073709551616) %
+            18446744073709551616))
+      (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 + 18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+          340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+        6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)
+right✝ :
+  MemFrame
+    (((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 184) 8
+                                          (BitVec.toNat (s.regs 29))).writeLE
+                                      (BitVec.toNat s.sp + 8) 8 (BitVec.toNat (s.regs 0))).writeLE
+                                  (BitVec.toNat s.sp - 136) 8 0).writeLE
+                              (BitVec.toNat s.sp - 128) 8 0).writeLE
+                          (BitVec.toNat s.sp - 120) 8 0).writeLE
+                      (BitVec.toNat s.sp - 112) 8 0).writeLE
+                  (BitVec.toNat s.sp - 136) 8 (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+              (BitVec.toNat s.sp - 128) 8
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat)).writeLE
+          (BitVec.toNat s.sp - 120) 8
+          ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) /
+              18446744073709551616)).writeLE
+      (BitVec.toNat s.sp - 112) 8
+      ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)).toNat +
+        ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) /
+              18446744073709551616) /
+          18446744073709551616))
+    s'.mem
+    [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32),
+      (BitVec.toNat s.sp - 176 - 456, BitVec.toNat s.sp - 176 - 8),
+      (BitVec.toNat s.sp - 176 + 8, BitVec.toNat s.sp - 176 + 16)]
+hbr✝ : ¬72057594037927936 ≤ BitVec.toNat (s.regs 30)
+hbr : BitVec.toNat (s.regs 30) % 4 = 0
+⊢ (∀ (i : Nat),
+      ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+        (if i = 30 then s.regs 30
+          else
+            if i = 29 then s.regs 29
+            else
+              if i = 4 then 0#64
+              else
+                if i = 3 then
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8))
+                                  (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8))
+                                        true).snd.c).snd.c).snd.c).fst
+                else if i = 0 then s.regs 0 else s'.regs i) =
+          s.regs i) ∧
+    (18446744073709551616 - s'.mem.readLE (BitVec.toNat (s.regs 0)) 8) % 18446744073709551616 +
+              18446744073709551616 *
+                (((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) %
+                  18446744073709551616) +
+            340282366920938463463374607431768211456 *
+              (((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                  ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                      (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) /
+                    18446744073709551616) %
+                18446744073709551616) +
+          6277101735386680763835789423207666416102355444464034512896 *
+            (((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                    ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                        (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8))
+                                true).snd.c.toNat) /
+                      18446744073709551616) /
+                  18446744073709551616) %
+              18446744073709551616) =
+        B.sdivSpec
+          (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+          (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 *
+              s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8) ∧
+      MemFrame s.mem
+        ((((s'.mem.writeLE (BitVec.toNat (s.regs 0)) 8
+                      (18446744073709551616 - s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)).writeLE
+                  (BitVec.toNat (s.regs 0) + 8) 8
+                  ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8))
+                            true).snd.c.toNat)).writeLE
+              (BitVec.toNat (s.regs 0) + 16) 8
+              ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) /
+                  18446744073709551616)).writeLE
+          (BitVec.toNat (s.regs 0) + 24) 8
+          ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s'.mem.readLE (BitVec.toNat (s.regs 0)) 8)) true).snd.c.toNat) /
+                  18446744073709551616) /
+              18446744073709551616))
+        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32), (BitVec.toNat s.sp - 632, BitVec.toNat s.sp - 8),
+          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+case hq
+s : State
+hpc : s.pc = BitVec.ofNat 64 sdivEntry
+h30a : BitVec.toNat (s.regs 30) % 4 = 0
+h30b : BitVec.toNat (s.regs 30) < 2 ^ 56
+hg1 : BitVec.toNat (s.regs 28) + 24 ≤ 2 ^ 48
+hg2 : s.mem.accessible (BitVec.toNat (s.regs 28) + 16) 8 false = true
+hg3 : s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8 + 592 < BitVec.toNat s.sp
+hsal : BitVec.toNat s.sp % 16 = 0
+hsb : 632 ≤ BitVec.toNat s.sp
+hsc : BitVec.toNat s.sp + 16 ≤ 2 ^ 48
+hsw : s.mem.accessible (BitVec.toNat s.sp - 632) (632 + 16) true = true
+hgw : BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16
+hzb : BitVec.toNat (s.regs 0) + 32 ≤ 2 ^ 48
+hza : s.mem.accessible (BitVec.toNat (s.regs 0)) 32 true = true
+hxb : BitVec.toNat (s.regs 1) + 32 ≤ 2 ^ 48
+hxa : s.mem.accessible (BitVec.toNat (s.regs 1)) 32 false = true
+hyb : BitVec.toNat (s.regs 2) + 32 ≤ 2 ^ 48
+hya : s.mem.accessible (BitVec.toNat (s.regs 2)) 32 false = true
+hdz : BitVec.toNat (s.regs 0) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 0)
+hdx : BitVec.toNat (s.regs 1) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 1)
+hdy : BitVec.toNat (s.regs 2) + 32 ≤ BitVec.toNat s.sp - 632 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 2)
+hx0 : s.mem.readLE (BitVec.toNat (s.regs 1)) 8 < 18446744073709551616
+hx1 : s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 < 18446744073709551616
+hx2 : s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 < 18446744073709551616
+hx3 : s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 18446744073709551616
+hy0 : s.mem.readLE (BitVec.toNat (s.regs 2)) 8 < 18446744073709551616
+hy1 : s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 < 18446744073709551616
+hy2 : s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 < 18446744073709551616
+hy3 : s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 18446744073709551616
+hbr✝⁵ : ¬BitVec.toNat s.sp - 48 ≤ s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8
+hbr✝⁴ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 1)) 8 = 0)
+hbr✝³ :
+  ¬(s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 = 0 ∧
+      s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 = 0 ∧
+        s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 = 0 ∧ s.mem.readLE (BitVec.toNat (s.regs 2)) 8 = 0)
+hbr✝² : ¬s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8 < 9223372036854775808
+hbr✝¹ : ¬s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8 < 9223372036854775808
+s' : State
+a✝ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      regLR
+left✝⁸ :
+  s'.pc =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝⁷ :
+  s'.sp =
+    {
+        regs :=
+          setReg
+            (setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                        (s.sp - 104#64))
+                      5
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                            true).snd.c).snd.c).snd.c).fst)
+                    6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                  16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                17 (s.sp - 48#64))
+              29 (s.sp - 184#64))
+            30 771320#64,
+        sp := s.sp - 176#64, pc := 767424#64,
+        flags :=
+          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                true).snd.c).snd.c).snd.c).snd,
+        mem :=
+          ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                (BitVec.toNat s.sp - 184) 8
+                                                                                (BitVec.toNat (s.regs 29))).writeLE
+                                                                            (BitVec.toNat s.sp + 8) 8
+                                                                            (BitVec.toNat (s.regs 0))).writeLE
+                                                                        (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                    (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                            (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                        (BitVec.toNat s.sp - 72) 8
+                                                        (18446744073709551616 -
+                                                          s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                    (BitVec.toNat s.sp - 64) 8
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                          (addSub (0#64)
+                                                                (BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                true).snd.c).fst.toNat).writeLE
+                                                (BitVec.toNat s.sp - 56) 8
+                                                (addWithCarry (0#64)
+                                                      (~~~BitVec.ofNat 64
+                                                          (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).snd.c).fst.toNat).writeLE
+                                            (BitVec.toNat s.sp - 48) 8
+                                            (addWithCarry (0#64)
+                                                  (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                        (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                    (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                (BitVec.toNat s.sp - 88) 8 0).writeLE
+                            (BitVec.toNat s.sp - 80) 8 0).writeLE
+                        (BitVec.toNat s.sp - 104) 8
+                        (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                    (BitVec.toNat s.sp - 96) 8
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                          (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                true).snd.c).fst.toNat).writeLE
+                (BitVec.toNat s.sp - 88) 8
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).fst.toNat).writeLE
+            (BitVec.toNat s.sp - 80) 8
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).snd.c).fst.toNat,
+        dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+        exclPass := s.exclPass }.sp
+left✝⁶ :
+  s'.regs 0 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      0
+left✝⁵ :
+  s'.regs 18 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      18
+left✝⁴ :
+  s'.regs 28 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      28
+left✝³ :
+  s'.regs 29 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      29
+left✝² :
+  s'.regs 30 =
+    {
+          regs :=
+            setReg
+              (setReg
+                (setReg
+                  (setReg
+                    (setReg
+                      (setReg
+                        (setReg (setReg (setReg (setReg s.regs 1 (s.sp - 72#64)) 2 (s.sp - 104#64)) 3 (s.sp - 72#64)) 4
+                          (s.sp - 104#64))
+                        5
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                                  (addWithCarry (0#64)
+                                        (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                        (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                              true).snd.c).snd.c).snd.c).fst)
+                      6 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)))
+                    16 (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+                  17 (s.sp - 48#64))
+                29 (s.sp - 184#64))
+              30 771320#64,
+          sp := s.sp - 176#64, pc := 767424#64,
+          flags :=
+            (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).snd.c).snd.c).snd,
+          mem :=
+            ((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                                  (BitVec.toNat s.sp - 184) 8
+                                                                                  (BitVec.toNat (s.regs 29))).writeLE
+                                                                              (BitVec.toNat s.sp + 8) 8
+                                                                              (BitVec.toNat (s.regs 0))).writeLE
+                                                                          (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                                      (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                                  (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 72) 8
+                                                          (18446744073709551616 -
+                                                            s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                                      (BitVec.toNat s.sp - 64) 8
+                                                      (addWithCarry (0#64)
+                                                            (~~~BitVec.ofNat 64
+                                                                (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                            (addSub (0#64)
+                                                                  (BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                  true).snd.c).fst.toNat).writeLE
+                                                  (BitVec.toNat s.sp - 56) 8
+                                                  (addWithCarry (0#64)
+                                                        (~~~BitVec.ofNat 64
+                                                            (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                        (addWithCarry (0#64)
+                                                              (~~~BitVec.ofNat 64
+                                                                  (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                              (addSub (0#64)
+                                                                    (BitVec.ofNat 64
+                                                                      (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                    true).snd.c).snd.c).fst.toNat).writeLE
+                                              (BitVec.toNat s.sp - 48) 8
+                                              (addWithCarry (0#64)
+                                                    (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))
+                                                    (addWithCarry (0#64)
+                                                          (~~~BitVec.ofNat 64
+                                                              (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8))
+                                                          (addWithCarry (0#64)
+                                                                (~~~BitVec.ofNat 64
+                                                                    (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8))
+                                                                (addSub (0#64)
+                                                                      (BitVec.ofNat 64
+                                                                        (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                                      true).snd.c).snd.c).snd.c).fst.toNat).writeLE
+                                          (BitVec.toNat s.sp - 104) 8 0).writeLE
+                                      (BitVec.toNat s.sp - 96) 8 0).writeLE
+                                  (BitVec.toNat s.sp - 88) 8 0).writeLE
+                              (BitVec.toNat s.sp - 80) 8 0).writeLE
+                          (BitVec.toNat s.sp - 104) 8
+                          (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+                      (BitVec.toNat s.sp - 96) 8
+                      (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                            (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                  true).snd.c).fst.toNat).writeLE
+                  (BitVec.toNat s.sp - 88) 8
+                  (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                              (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                    true).snd.c).snd.c).fst.toNat).writeLE
+              (BitVec.toNat s.sp - 80) 8
+              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                          (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                      true).snd.c).snd.c).snd.c).fst.toNat,
+          dczid := s.dczid, vregs := s.vregs, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      30
+left✝¹ :
+  ∀ (i : Nat),
+    ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+      s'.regs i =
+        if i = 30 then 771320#64
+        else
+          if i = 29 then s.sp - 184#64
+          else
+            if i = 17 then s.sp - 48#64
+            else
+              if i = 16 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)
+              else
+                if i = 6 then BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)
+                else
+                  if i = 5 then
+                    (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8))
+                        (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8))
+                              (addWithCarry (0#64) (~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8))
+                                    (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8))
+                                          true).snd.c).snd.c).snd.c).fst
+                  else
+                    if i = 4 then s.sp - 104#64
+                    else
+                      if i = 3 then s.sp - 72#64
+                      else if i = 2 then s.sp - 104#64 else if i = 1 then s.sp - 72#64 else s.regs i
+left✝ :
+  s'.mem.readLE (BitVec.toNat (s.regs 0)) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8 +
+        340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8 +
+      6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8 =
+    B.divSpec
+      ((18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 1)) 8) % 18446744073709551616 +
+            18446744073709551616 *
+              (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                  (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) %
+                18446744073709551616) +
+          340282366920938463463374607431768211456 *
+            (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) /
+                  18446744073709551616) %
+              18446744073709551616) +
+        6277101735386680763835789423207666416102355444464034512896 *
+          (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)).toNat +
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+                  ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8)) true).snd.c.toNat) /
+                    18446744073709551616) /
+                18446744073709551616) %
+            18446744073709551616))
+      ((18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8) % 18446744073709551616 +
+            18446744073709551616 *
+              (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                  (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) %
+                18446744073709551616) +
+          340282366920938463463374607431768211456 *
+            (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+                ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                    (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+                  18446744073709551616) %
+              18446744073709551616) +
+        6277101735386680763835789423207666416102355444464034512896 *
+          (((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)).toNat +
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+                  ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                      (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+                    18446744073709551616) /
+                18446744073709551616) %
+            18446744073709551616))
+right✝ :
+  MemFrame
+    (((((((((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 176) 8 (BitVec.toNat (s.regs 30))).writeLE
+                                                                          (BitVec.toNat s.sp - 184) 8
+                                                                          (BitVec.toNat (s.regs 29))).writeLE
+                                                                      (BitVec.toNat s.sp + 8) 8
+                                                                      (BitVec.toNat (s.regs 0))).writeLE
+                                                                  (BitVec.toNat s.sp - 72) 8 0).writeLE
+                                                              (BitVec.toNat s.sp - 64) 8 0).writeLE
+                                                          (BitVec.toNat s.sp - 56) 8 0).writeLE
+                                                      (BitVec.toNat s.sp - 48) 8 0).writeLE
+                                                  (BitVec.toNat s.sp - 72) 8
+                                                  (18446744073709551616 -
+                                                    s.mem.readLE (BitVec.toNat (s.regs 1)) 8)).writeLE
+                                              (BitVec.toNat s.sp - 64) 8
+                                              ((~~~BitVec.ofNat 64
+                                                      (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                                                (addSub (0#64)
+                                                        (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                        true).snd.c.toNat)).writeLE
+                                          (BitVec.toNat s.sp - 56) 8
+                                          ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+                                            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                                                (addSub (0#64)
+                                                        (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                        true).snd.c.toNat) /
+                                              18446744073709551616)).writeLE
+                                      (BitVec.toNat s.sp - 48) 8
+                                      ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)).toNat +
+                                        ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8)).toNat +
+                                            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8)).toNat +
+                                                (addSub (0#64)
+                                                        (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))
+                                                        true).snd.c.toNat) /
+                                              18446744073709551616) /
+                                          18446744073709551616)).writeLE
+                                  (BitVec.toNat s.sp - 104) 8 0).writeLE
+                              (BitVec.toNat s.sp - 96) 8 0).writeLE
+                          (BitVec.toNat s.sp - 88) 8 0).writeLE
+                      (BitVec.toNat s.sp - 80) 8 0).writeLE
+                  (BitVec.toNat s.sp - 104) 8 (18446744073709551616 - s.mem.readLE (BitVec.toNat (s.regs 2)) 8)).writeLE
+              (BitVec.toNat s.sp - 96) 8
+              ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat)).writeLE
+          (BitVec.toNat s.sp - 88) 8
+          ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+              18446744073709551616)).writeLE
+      (BitVec.toNat s.sp - 80) 8
+      ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8)).toNat +
+        ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8)).toNat +
+            ((~~~BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8)).toNat +
+                (addSub (0#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 2)) 8)) true).snd.c.toNat) /
+              18446744073709551616) /
+          18446744073709551616))
+    s'.mem
+    [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32),
+      (BitVec.toNat s.sp - 176 - 456, BitVec.toNat s.sp - 176 - 8),
+      (BitVec.toNat s.sp - 176 + 8, BitVec.toNat s.sp - 176 + 16)]
+hbr✝ : ¬72057594037927936 ≤ BitVec.toNat (s.regs 30)
+hbr : BitVec.toNat (s.regs 30) % 4 = 0
+⊢ (∀ (i : Nat),
+      ¬i ∈ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 27] →
+        (if i = 30 then s.regs 30 else if i = 29 then s.regs 29 else if i = 0 then s.regs 0 else s'.regs i) =
+          s.regs i) ∧
+    s'.mem.readLE (BitVec.toNat (s.regs 0)) 8 + 18446744073709551616 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 8) 8 +
+            340282366920938463463374607431768211456 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 16) 8 +
+          6277101735386680763835789423207666416102355444464034512896 * s'.mem.readLE (BitVec.toNat (s.regs 0) + 24) 8 =
+        B.sdivSpec
+          (s.mem.readLE (BitVec.toNat (s.regs 1)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 1) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 1) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 * s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8)
+          (s.mem.readLE (BitVec.toNat (s.regs 2)) 8 +
+                18446744073709551616 * s.mem.readLE (BitVec.toNat (s.regs 2) + 8) 8 +
+              340282366920938463463374607431768211456 * s.mem.readLE (BitVec.toNat (s.regs 2) + 16) 8 +
+            6277101735386680763835789423207666416102355444464034512896 *
+              s.mem.readLE (BitVec.toNat (s.regs 2) + 24) 8) ∧
+      MemFrame s.mem s'.mem
+        [(BitVec.toNat (s.regs 0), BitVec.toNat (s.regs 0) + 32), (BitVec.toNat s.sp - 632, BitVec.toNat s.sp - 8),
+          (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+Fv256/Arm64/SDivSum.lean:42:8: warning: declaration uses `sorry`
+real	1m27.813s

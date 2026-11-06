@@ -1,0 +1,9 @@
+  headS
+  reduceSegAddr
+  Nat.reduceAdd
+  Janus.Arm64.Memory.readLE_writeLE_of_disjoint
+  Nat.zero_div
+
+real	0m56.895s
+user	1m18.544s
+sys	0m0.733s

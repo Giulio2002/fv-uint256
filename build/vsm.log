@@ -1,0 +1,65 @@
+Kept workspace: /srv/janus-ops/jcache-shared/v1/consumer/e4904cff3f95bb22b15c0d63/f2b22c12013574def0dc3ec1
+  Use: cd /srv/janus-ops/jcache-shared/v1/consumer/e4904cff3f95bb22b15c0d63/f2b22c12013574def0dc3ec1/root && lake env lean YourScratch.lean   (Extracted is /srv/janus-ops/jcache-shared/v1/consumer/e4904cff3f95bb22b15c0d63/f2b22c12013574def0dc3ec1/janus/.lake/build/lib/lean/Extracted.olean)
+  Untruncated goals: add -Dpp.deepTerms=true -Dpp.proofs=true -Dpp.maxSteps=1000000000 to lean
+  (diagnostics only: janus never reads it back, and `janus cache gc` may remove an unused one)
+=== Fv256.Arm64.SMod.correctness: verified ===
+Verified: Fv256.Arm64.SMod.correctness
+  Module: fv-uint256/harness (go1.26.0)
+  Entry: github.com/holiman/uint256.(*Int).SMod at 0xbbae0
+  Binary: build/harness-arm64 (SHA-256 431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec)
+  Proof: lean/Fv256/Arm64/SMod.lean
+  Consumer: lean (lakefile.toml, module Fv256.Arm64.SMod, 1191 source file(s), janus git /srv/janus-wh-pin2 @ f8a20f36e1e1c93abfd3425481e96fd1c42a9d34)
+  Build: rebuilt Extracted, Fv256.Arm64.By1, Fv256.Arm64.By1Math, Fv256.Arm64.ChainProg, Fv256.Arm64.CodeIn, Fv256.Arm64.Div64, Fv256.Arm64.DivLemmas, Fv256.Arm64.KnuthAdd, Fv256.Arm64.KnuthDefs, Fv256.Arm64.KnuthEntry, … and 37 more; 47 modules
+  Framework: embedded (SHA-256 c20ddb75c8c6d50730b85dc3d7c3c464c8e3158e7b3eca540c3003ca5fdf4c44, 265 files, leanprover/lean4:v4.34.1)
+  Sandbox: bubblewrap (no network, read-only filesystem, private build dir)
+  Axioms: Classical.choice, Quot.sound, propext
+  Kernel replay: leanchecker passed (Extracted, Fv256.Arm64.By1, Fv256.Arm64.By1Math, Fv256.Arm64.ChainProg, Fv256.Arm64.CodeIn, Fv256.Arm64.Div64, Fv256.Arm64.DivLemmas, Fv256.Arm64.KnuthAdd, Fv256.Arm64.KnuthDefs, Fv256.Arm64.KnuthEntry, … and 298 more; 308 modules; 100 reused from the replay cache)
+  Lean: Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)
+  Role: main theorem (the runtime implementation is a variable of the statement, constrained only by the runtime contracts)
+  Runtime contracts assumed: none (the statement applies no runtime-contract hypothesis)
+  Non-vacuity: shown by Fv256.Arm64.SMod.Witness.nonvacuous (kernel-checked witness: a concrete state and runtime satisfying the whole precondition, contract hypotheses included)
+  Olean provenance: checked (the consumer/dependency modules were compiled by janus from the hashed source)
+  Report: build/ex-arm64-SMod/verified/Fv256.Arm64.SMod.correctness.json
+  Statement:
+    Fv256.Arm64.SMod.correctness (z x y : BitVec 64) : Janus.GoABI.Ensures Extracted.program Extracted.entry [z, x, y] (fun s => Janus.Spec.GuardOK s 560 ∧ Janus.Spec.StackOK s 600 16 ∧ (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 600 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16) ∧ Janus.Spec.Ptr32 s.mem z Bool.true ∧ Janus.Spec.Ptr32 s.mem x Bool.false ∧ Janus.Spec.Ptr32 s.mem y Bool.false ∧ Janus.Spec.Disjoint z.toNat 32 (BitVec.toNat s.sp - 600) 616 ∧ Janus.Spec.Disjoint x.toNat 32 (BitVec.toNat s.sp - 600) 616 ∧ Janus.Spec.Disjoint y.toNat 32 (BitVec.toNat s.sp - 600) 616) fun s s' => s'.regs 0 = z ∧ Janus.Spec.val256 s'.mem z.toNat = Fv256.B.smodSpec (Janus.Spec.val256 s.mem x.toNat) (Janus.Spec.val256 s.mem y.toNat) ∧ Janus.MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (BitVec.toNat s.sp - 600, BitVec.toNat s.sp - 8), (BitVec.toNat s.sp + 8, BitVec.toNat s.sp + 16)]
+  Proof-local definitions used by the statement (part of its meaning):
+    Fv256.Spec.W : Nat := 2 ^ 256
+    Fv256.B.smodSpec : Nat → Nat → Nat := fun x y => if 2 ^ 255 ≤ x then Fv256.Spec.neg (Fv256.B.modSpec (Fv256.Spec.abs x) (Fv256.Spec.abs y)) else Fv256.B.modSpec (Fv256.Spec.abs x) (Fv256.Spec.abs y)
+    Fv256.Spec.neg : Nat → Nat := fun x => (Fv256.Spec.W - x) % Fv256.Spec.W
+    Fv256.Spec.abs : Nat → Nat := fun x => if x < 2 ^ 255 then x else (Fv256.Spec.W - x) % Fv256.Spec.W
+    Fv256.B.modSpec : Nat → Nat → Nat := fun x y => if y = 0 then 0 else x % y
+  Notes (standard Lean meaning that may read unexpectedly; not errors):
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 600`
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 8`
+    - in Fv256.Spec.neg: division by zero is total at Nat (`a / 0 = 0`, `a % 0 = a`): `(Fv256.Spec.W - x) % Fv256.Spec.W`
+    - in Fv256.Spec.neg: Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `Fv256.Spec.W - x`
+    - in Fv256.Spec.abs: division by zero is total at Nat (`a / 0 = 0`, `a % 0 = a`): `(Fv256.Spec.W - x) % Fv256.Spec.W`
+    - in Fv256.Spec.abs: Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `Fv256.Spec.W - x`
+    - in Fv256.B.modSpec: division by zero is total at Nat (`a / 0 = 0`, `a % 0 = a`): `x % y`
+  Report (also): build/ex-arm64-SMod/verified.json
+=== Fv256.Arm64.SMod.Witness.nonvacuous: verified ===
+Verified: Fv256.Arm64.SMod.Witness.nonvacuous
+  Module: fv-uint256/harness (go1.26.0)
+  Entry: github.com/holiman/uint256.(*Int).SMod at 0xbbae0
+  Binary: build/harness-arm64 (SHA-256 431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec)
+  Proof: lean/Fv256/Arm64/SMod.lean
+  Consumer: lean (lakefile.toml, module Fv256.Arm64.SMod, 1191 source file(s), janus git /srv/janus-wh-pin2 @ f8a20f36e1e1c93abfd3425481e96fd1c42a9d34)
+  Build: rebuilt Extracted, Fv256.Arm64.By1, Fv256.Arm64.By1Math, Fv256.Arm64.ChainProg, Fv256.Arm64.CodeIn, Fv256.Arm64.Div64, Fv256.Arm64.DivLemmas, Fv256.Arm64.KnuthAdd, Fv256.Arm64.KnuthDefs, Fv256.Arm64.KnuthEntry, … and 37 more; 47 modules
+  Framework: embedded (SHA-256 c20ddb75c8c6d50730b85dc3d7c3c464c8e3158e7b3eca540c3003ca5fdf4c44, 265 files, leanprover/lean4:v4.34.1)
+  Sandbox: bubblewrap (no network, read-only filesystem, private build dir)
+  Axioms: Quot.sound, propext
+  Kernel replay: leanchecker passed (Extracted, Fv256.Arm64.By1, Fv256.Arm64.By1Math, Fv256.Arm64.ChainProg, Fv256.Arm64.CodeIn, Fv256.Arm64.Div64, Fv256.Arm64.DivLemmas, Fv256.Arm64.KnuthAdd, Fv256.Arm64.KnuthDefs, Fv256.Arm64.KnuthEntry, … and 298 more; 308 modules; 100 reused from the replay cache)
+  Lean: Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)
+  Role: WITNESS, not a correctness claim: a concrete instance showing its hypotheses and precondition are satisfiable together, for the main theorem Fv256.Arm64.SMod.correctness (it uses a concrete runtime implementation; the main theorem must be verified separately)
+  Runtime contracts assumed: none (the statement applies no runtime-contract hypothesis)
+  Non-vacuity: this is a witness (it is not a correctness claim)
+  Olean provenance: checked (the consumer/dependency modules were compiled by janus from the hashed source)
+  Report: build/ex-arm64-SMod/verified/Fv256.Arm64.SMod.Witness.nonvacuous.json
+  Statement:
+    Fv256.Arm64.SMod.Witness.nonvacuous : ∃ ret s z x y, Janus.GoABI.RetAddr Extracted.program ret ∧ Janus.GoABI.CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y] s ∧ Janus.Spec.GuardOK s 560 ∧ Janus.Spec.StackOK s 600 16 ∧ (BitVec.toNat (s.regs 28) + 24 ≤ BitVec.toNat s.sp - 600 ∨ BitVec.toNat s.sp + 16 ≤ BitVec.toNat (s.regs 28) + 16) ∧ Janus.Spec.Ptr32 s.mem z Bool.true ∧ Janus.Spec.Ptr32 s.mem x Bool.false ∧ Janus.Spec.Ptr32 s.mem y Bool.false ∧ Janus.Spec.Disjoint z.toNat 32 (BitVec.toNat s.sp - 600) 616 ∧ Janus.Spec.Disjoint x.toNat 32 (BitVec.toNat s.sp - 600) 616 ∧ Janus.Spec.Disjoint y.toNat 32 (BitVec.toNat s.sp - 600) 616
+  Notes (standard Lean meaning that may read unexpectedly; not errors):
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 600`
+
+real	40m10.349s
+user	0m10.771s
+sys	0m4.241s
