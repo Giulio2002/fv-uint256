@@ -45,6 +45,7 @@ abbrev PreS (s : State) : Prop :=
     (s.regs 0 = s.regs 2 ∨ (s.regs 0).toNat + 32 ≤ (s.regs 2).toNat ∨ (s.regs 2).toNat + 32 ≤ (s.regs 0).toNat) ∧
     ((s.regs 28).toNat + 24 ≤ (s.regs 0).toNat ∨ (s.regs 0).toNat + 32 ≤ (s.regs 28).toNat + 16)
 
+set_option janus.omega.log 2000 in
 set_option maxHeartbeats 640000000 in
 set_option maxRecDepth 200000 in
 theorem addmod_gena : Summary Extracted.program Extracted.entry (fun s => PreS s ∧ s.regs 3 = s.regs 0 ∧ ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
