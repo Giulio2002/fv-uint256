@@ -2,6 +2,7 @@ import Janus
 import Fv256.Spec
 import Fv256.SpecF
 import Fv256.Util
+import Fv256.Arm64.MulModLem
 
 /-!
 # Transfer of the `MulMod` / `MulModWithReciprocal` library summaries to `Ensures` statements (Extracted-free)
@@ -21,7 +22,8 @@ abbrev MrPre (s : State) : Prop :=
   Apart (s.regs 1).toNat 32 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
   Apart (s.regs 7).toNat 32 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
   Apart (s.regs 6).toNat 40 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
-  Fv256.F.MuOK (s.mem.readLE (s.regs 7).toNat 32) (s.mem.readLE (s.regs 6).toNat 40) ∧
+  (s.mem.readLE ((s.regs 7).toNat + 24) 8 ≠ 0 →
+    Fv256.F.RecipWeak (s.mem.readLE (s.regs 7).toNat 32) (s.mem.readLE (s.regs 6).toNat 40)) ∧
   Apart ((s.regs 14).toNat + 16) 8 ((s.regs 4).toNat - 0x2e8) 0x318
 
 abbrev MrPost (s s' : State) : Prop :=
@@ -61,7 +63,12 @@ theorem ensures_mr {p : Janus.Amd64.Program} {entry : Nat} (hsum : Summary p ent
   · unfold MrPre
     simp only [regSP, regG] at *
     rw [h0, h3, h1, h7, h6]
-    exact ⟨⟨hacc, by rw [hrs]; exact hret.user⟩, hsp, hg, hw, hs.zero, hz, hx, hy, hm, hu, hdz, hdx, hdy, hdm, hdu, by simpa only [valueAt] using hmu, hdg⟩
+    exact ⟨⟨hacc, by rw [hrs]; exact hret.user⟩, hsp, hg, hw, hs.zero, hz, hx, hy, hm, hu, hdz, hdx, hdy, hdm, hdu, by
+      intro hd
+      apply hmu
+      simp only [valueAt]
+      rw [Util.readLE_32]
+      exact Fv256.Arm64.MulModLem.ge192' _ _ _ _ hd, hdg⟩
   · intro s' ⟨e0, e4, e5, e14, e15, hv, hf⟩
     refine ⟨⟨?_, ?_, ?_, ?_⟩, ?_, ?_, ?_⟩
     · simp only [regSP]; rw [e4]
