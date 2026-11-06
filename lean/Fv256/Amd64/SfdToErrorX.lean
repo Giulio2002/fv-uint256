@@ -148,7 +148,7 @@ macro "te_body" : tactic => `(tactic| (
     simp only [Spec.Disjoint] at hgdis
     clear hres hpc' hpre0 hcmp hdesc hxacc hres' hfr' hinvS hSf hSreg hSacc hS4 hret0 hSra hra' hS0 henv' h1 h3
     janus64_run [hal1, hgm] until [Extracted.program.contractAddr "runtime.memmove"] calls [hmg.pos]
-    rename_i q j2 f2 x2 y2 m2 z2 k2 hLF hMF hApA hInR hQ48 hQacc hQa8 hQa16 hQz hQsl hAp hInv2 hAw hAn hAwb hAe
+    rename_i q j2 f2 x2 y2 m2 z2 k2 hLF hMF hApA hInR hQ48 hQacc hQa8 hQa16 hQz hQsl hAp hInv2 hAw hAn hAwb hAe hAx1 hAx2 hAx3 hAx4 hAx5 hAx6
     try clear hTS hregS hndS hszS
     have hrsp : (s.regs 4 - 96#64).toNat = (s.regs 4).toNat - 96 := hs496
     have hgm2 : m2.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 := by
@@ -193,9 +193,7 @@ macro "te_body" : tactic => `(tactic| (
       Lean.logInfo m!"D goals {(← Lean.Elab.Tactic.getGoals).length}"
     all_goals
       refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
-      case F =>
-        obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields (‹InRanges _ 48 R.rt›) (rs' := R.rt) (fun r hr => hr)
-        te_frame
+      case F => janus_frame
       case obj =>
         refine ⟨?c1, ?c2, ?c3, ?c4, ?c5, ?c6, ?c7, ?c8, ?c9, ?c10, ?c11, ?c12⟩
         case c1 => assumption
