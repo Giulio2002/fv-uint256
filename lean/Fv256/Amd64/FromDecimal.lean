@@ -7,6 +7,7 @@ import Fv256.SumC64
 import Fv256.Amd64.SfdTopSpec
 import Fv256.Amd64.SfdEnvC
 import Fv256.Amd64.FromDecimalSpec
+import Fv256.DecCongr
 
 /-!
 # `uint256.FromDecimal(decimal string) (*Int, error)` (amd64)   [DRAFT: conditional on the `SetFromDecimal` summary]
@@ -109,6 +110,18 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
     simp only [List.mem_cons, List.mem_nil_iff, or_false] at hr
     left
     rcases hr with rfl | rfl <;> exact Outside.of_sub hr9 (by omega) (by simp only; omega)
+  obtain ⟨hS_ret, hS_rbp, hS_z⟩ := Fv256.Amd64.FromDecimalSpec.s3_reads (v5 := (s.regs 5).toNat) (vn := nS.toNat)
+    (vp := pS.toNat) (zN := zv.toNat) (ra := 4932933) hlo hhi hr9 hMF
+  have hbytes : ∀ k, k < nS.toNat → bytesAt ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4932953) pS.toNat k
+      = bytesAt s.mem pS.toNat k := by
+    intro k hk
+    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -, -⟩ := hpreC
+    unfold bytesAt
+    have hk' : pS.toNat + k < pS.toNat + nS.toNat := by omega
+    refine Fv256.Amd64.FromDecimalSpec.str_read hlo hhi hM0 hMF hLF (by omega) ?_
+    rcases hPR with h | h
+    · exact Or.inl (Outside.of_sub h (by omega) (by omega))
+    · exact Or.inr (InRanges.sub h (by omega) (by omega))
   refine Reaches.call (Summary.withExit (hsfd (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) lo ((s.regs 4).toNat - 16) zv pS nS) hret) ?_ ?_ ?_
   · first | rfl | decide
   · refine Fv256.Amd64.FromDecimalSpec.toppre_of_call cfg hpreC (hi3 := (s.regs 4).toNat - 16) (by omega) (Nat.le_refl _) (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
@@ -116,6 +129,44 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     decide
   · intro s' hr hq
-    sorry
+    obtain ⟨hKept, hcases⟩ := hq
+    dsimp only at hcases
+    rw [Fv256.I.decParse_congr _ (bytesAt s.mem pS.toNat) nS.toNat hbytes] at hcases
+    obtain ⟨k1, k2, k3, k4, k5, k6, k7⟩ := hKept
+    rcases hcases with ⟨v, hv, c0, c3, cval, cEnv, cMF⟩ | ⟨hv, c0, c3, cval, cEnv, cMF⟩ | ⟨hv, c0, c3, cval, cEnv, cMF⟩ | ⟨lo', len', hv, q, t, c0, c3, cTe, cMF⟩
+    · have hoS : ∀ a n, a + n ≤ lo ∨ (s.regs 4).toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
+          Outside a n [(lo, (s.regs 4).toNat - 16), (zv.toNat, zv.toNat + 32)] := by
+        intro a n h1 h2
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨h1, h2⟩
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_ret]
+        exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_rbp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      have hs_z : s'.mem.readLE ((s.regs 4).toNat - 16) 8 = zv.toNat := by
+        rw [cMF.readLE _ _ (hoS _ _ (Or.inr (by omega)) (by unfold Apart at hApWin; omega)), hS_z]
+        exact Nat.mod_eq_of_lt (by have := zv.isLt; simpa using this)
+      janus64_run [hs_ret, hs_rbp, hs_z]
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_cons, outside_nil, and_true] at h3 ⊢
+        omega
+      refine ⟨fun v' hv' => ⟨zv.toNat, rfl, hInR, ?_⟩, ?_, ?_, ?_, hFr⟩
+      · have : v = v' := by
+          rw [hv] at hv'; cases hv'; rfl
+        rw [← this]; exact cval
+      · intro h; rw [hv] at h; cases h
+      · intro h; rw [hv] at h; cases h
+      · intro _ _ h; rw [hv] at h; cases h
+    all_goals sorry
+    all_goals sorry
 
 end Fv256.Amd64.FromDecimal

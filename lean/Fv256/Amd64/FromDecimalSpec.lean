@@ -57,6 +57,50 @@ theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : l
   obtain ⟨h1, h2⟩ := h
   exact ⟨h2, h1, by omega, by omega⟩
 
+/-- the reads of the spill slots of `FromDecimal`'s frame in the memory at the `SetFromDecimal` call -/
+theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp v5 vn vp zN ra : Nat}
+    (hlo : lo + 4848 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt9 : Outside lo (hi - lo) rt)
+    (hMF : MemFrame ((((m0.writeLE (sp - 8) 8 v5).writeLE (sp + 16) 8 vn).writeLE (sp + 8) 8 vp).writeLE (sp - 48) 8 ra) mN
+      (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)])) :
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE sp 8 = m0.readLE sp 8 ∧
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE (sp - 8) 8 = v5 % 2 ^ 64 ∧
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE (sp - 16) 8 = zN % 2 ^ 64 := by
+  have o1 : ∀ a n, lo ≤ a → a + n ≤ hi → (a + n ≤ sp - 48 - 4096 ∨ sp - 48 ≤ a) → (a + n ≤ sp - 48 + 8 ∨ sp - 48 + 8 + 8 ≤ a) →
+      Outside a n (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
+    intro a n h1 h2 h3 h4
+    rw [outside_append]
+    refine ⟨Outside.of_sub hrt9 h1 (by omega), ?_⟩
+    simp only [outside_cons, outside_nil, and_true]
+    exact ⟨h3, h4⟩
+  refine ⟨?_, ?_, ?_⟩
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [hMF.readLE sp 8 (o1 sp 8 (by omega) (by omega) (by omega) (by omega))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [hMF.readLE (sp - 8) 8 (o1 (sp - 8) 8 (by omega) (by omega) (by omega) (by omega))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+
+/-- a byte of the string is unchanged between the entry memory and the memory at the `SetFromDecimal` call -/
+theorem str_read {rt : List (Nat × Nat)} {L : List (Nat × Nat)} {m0 M0 mN : Janus.Arm64.Memory} {lo hi sp zN a : Nat}
+    (hlo : lo + 4848 ≤ sp) (hhi : sp + 24 ≤ hi)
+    (hM0 : MemFrame m0 M0 [(lo, hi)])
+    (hMF : MemFrame M0 mN (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)]))
+    (hLF : LiveFrame M0 mN L [])
+    (hwin : a + 1 ≤ lo ∨ hi ≤ a) (hs : Outside a 1 rt ∨ InRanges a 1 L) :
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE a 1 = m0.readLE a 1 := by
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  have h1 : M0.readLE a 1 = m0.readLE a 1 := hM0.readLE a 1 (by simp only [outside_cons, outside_nil, and_true]; exact hwin)
+  rcases hs with h | h
+  · rw [hMF.readLE a 1 (by
+      rw [outside_append]
+      refine ⟨h, ?_⟩
+      simp only [outside_cons, outside_nil, and_true]
+      omega)]
+    exact h1
+  · rw [hLF.readLE a 1 h (by simp)]
+    exact h1
+
 theorem chunkOK_mono {R : RtInv} {R2 : IfaceModel} {L L' : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64} {lo hi hi3 : Nat}
     {m m' : Janus.Arm64.Memory} (h : ChunkOK C R R2 L b sp sl lo hi m) (hL : ∀ r ∈ L, r ∈ L') (hh : hi3 ≤ hi)
     (hacc : m'.accessible sp.toNat sl.toNat false = true) : ChunkOK C R R2 L' b sp sl lo hi3 m' := by
