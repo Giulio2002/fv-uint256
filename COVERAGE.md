@@ -126,7 +126,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Uint64` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64.lean |
 | `(*uint256.Int).Uint64WithOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Uint64WithOverflow.lean |
 | `(*uint256.Int).UnmarshalJSON` | FV-E | todo | todo | |
-| `(*uint256.Int).UnmarshalSSZ` | FV-C | partial | partial | lean/Fv256/{Arm64,Amd64}/UnmarshalSSZ.lean: PARTIAL, success path only (`len(buf) = 32`); extracted with `--contract fmt.errorf --contract runtime.convT64 --contract runtime.newobject` (the error path is not covered: no fmt.Errorf contract exists); full spec blocked on U-LIVESAT |
+| `(*uint256.Int).UnmarshalSSZ` | FV-C2 | verified (+ witness) | partial | arm64 (FV-C2, fv/wc 58b87b9, correctness + Witness.nonvacuous in one run, 303 s): FULL spec incl. the error path: len == 32: *z = LE(buf), nil error; len != 32: a fresh *fmt.wrapError wrapping ErrBadEncodedLength's own value, message text ++ ": have <len>, want 32 bytes" (any len up to 2^48); z and buf untouched. Contracts ErrorfLive and Iface.ConvT64, same witnessed placement assumptions as MarshalSSZInto. lean/Fv256/Arm64/UnmarshalSSZ*.lean. PIN d58575d2: re-verify on the batch-15 pin. amd64 pending (earlier: success path only) |
 | `(*uint256.Int).UnmarshalText` | FV-E | todo | todo | |
 | `(*uint256.Int).Value` | FV-C | todo | todo | |
 | `(*uint256.Int).WriteToArray20` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/WriteToArray20.lean |
