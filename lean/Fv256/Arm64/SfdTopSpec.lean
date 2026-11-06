@@ -67,7 +67,10 @@ def Env (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi
   R.inv b L (s.regs 28).toNat (view R.rt L s.mem) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) [(lo, hi)])
 
-/-- the state-independent runtime-model facts -/
+/-- the state-independent runtime-model facts.  `R2.depth` is the interface model's stack allowance: the bytes below `SP`
+that the `runtime.ifaceeq` contract (reached through `strconv.toError`'s error-interface comparison) may use.  `8 ≤ R2.depth`
+is not new: it is the model's own well-formedness condition in Janus (`Janus/Contracts/Iface.lean`, line 84, the contract's
+call precondition: the callee window excludes the caller's saved-FP slot `[SP-8, SP)`), and the witness model satisfies it. -/
 def Mod (R : RtInv) (R2 : IfaceModel) (T : Nat) (L : List (Nat × Nat)) : Prop :=
   R2.Laws ∧ 8 ≤ R2.depth ∧ R2.depth ≤ 4096 ∧ R2.IsType T ∧ (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧ (∀ r ∈ R.rt, 0 < r.1) ∧
