@@ -10,6 +10,7 @@ import Fv256.Amd64.DecIter
 import Fv256.Amd64.DecLoop
 import Fv256.Amd64.StrconvFormatUint
 import Fv256.DecAt
+import Fv256.GrabTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 open Fv256.E
@@ -157,7 +158,8 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
       rw [hX9]; exact hret47
     have hX5 : (s.regs 4).toNat - 376 + 86 + (98 - decLen v) + decLen v ≤ 281474976710656 := by omega
     janus64_run [hdE, q2, q13, q4, q5, q14, hdlm, hX9] calls [hc]
-    rename_i w9 w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright
+    grab_const Janus.Contracts.StrAt as hright
+    grab_frame 4096 as hleft
     obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
     have hdig : Spec.strBytes S2.mem ((s.regs 4).toNat - 376 + 86 + (98 - decLen v)) (decLen v) = decBytes v :=
       strBytes_dec _ _ _ (fun k hk => by
@@ -180,7 +182,7 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
       have h3 : MemFrame S2.mem (Arm64.Memory.writeLE S2.mem ((s.regs 4).toNat - 376 - 8) 8 4931926)
           (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) :=
         MemFrame.of_writeLE S2.mem 4931926 (List.mem_append_right _ (List.mem_singleton_self _)) (by simp; omega) (by simp; omega)
-      have h4 : MemFrame (Arm64.Memory.writeLE S2.mem ((s.regs 4).toNat - 376 - 8) 8 4931926) w2
+      have h4 : MemFrame (Arm64.Memory.writeLE S2.mem ((s.regs 4).toNat - 376 - 8) 8 4931926) _
           (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) :=
         hleft.mono (fun a n h => by
           simp only [outside_append, outside_cons] at h ⊢
@@ -189,8 +191,8 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
       refine ⟨h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_⟩
       simp only [DecAt]; left
       simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
-      have hlen : BitVec.toNat w8 = decLen v := by
-        first | exact hr1 | (rw [hr1]; simp [Spec.strBytes]) | (simp [hr1, Spec.strBytes])
+      have hlen := hr1
+      simp only [Spec.strBytes, List.length_map, List.length_range] at hlen
       have h3' : 2 ≤ decLen v := by
         rw [decLen_ge _ (by omega), decLen_ge _ (by omega)]
         have := decLen_pos (v / 10 / 10); omega
@@ -237,7 +239,10 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
         simp only [BitVec.or_zero, BitVec.toNat_ofNat] at h
         omega
       janus64_run [hdE, hrip.rip, hlow.1, hlow.2.1, hlow.2.2, hl0, hnzv] calls [hfu]
-      rename_i hqtab hqd hqs hqf
+      clear hfu
+      grab_const Fv256.E.DecAt as hqd
+      grab_const Fv256.E.decBytes as hqs
+      grab_const Janus.MemFrame as hqf
       rw [hzv]
       obtain ⟨q1, q2, q3, q4⟩ := hqs
       refine ⟨⟨q1, q2, q3, q4⟩, ?_, hqd⟩

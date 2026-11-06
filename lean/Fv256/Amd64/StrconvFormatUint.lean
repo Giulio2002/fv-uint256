@@ -6,6 +6,7 @@ import Fv256.Amd64.DecA
 import Fv256.Amd64.DecT
 import Fv256.Amd64.DecM
 import Fv256.DecAt
+import Fv256.GrabTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Contracts
 open Fv256.E
@@ -146,7 +147,8 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
       have hF : False → Spec.Disjoint ((s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48)
           (18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat))) 0 32 := fun h => h.elim
       janus64_run [hmask, hmask2] calls [hc]
-      rename_i _ w9 w8 _ _ _ _ _ w2 _ _ hleft hright
+      grab_const Janus.Contracts.StrAt as hright
+      grab_last_const Janus.MemFrame as hleft
       obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
       have eL : 18446744073709551616 - (18446744073709551592 + (24 - decLen (s.regs 0).toNat)) = decLen (s.regs 0).toNat := by omega
       have eA : (s.regs 4).toNat - 80 + (24 - decLen (s.regs 0).toNat) + 48 = (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) := by omega
@@ -166,11 +168,9 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
         have h1 : MemFrame sA.mem (Arm64.Memory.writeLE sA.mem ((s.regs 4).toNat - 88) 8 4225542)
             (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) :=
           MemFrame.of_writeLE sA.mem 4225542 (List.mem_append_right _ (List.mem_singleton_self _)) (by dsimp only; omega) (by dsimp only; omega)
-        have h2 : MemFrame (Arm64.Memory.writeLE sA.mem ((s.regs 4).toNat - 88) 8 4225542) w2
-            (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) := by
-          refine hleft.mono (fun a n h => ?_)
+        have h2 := MemFrame.mono (rs' := rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) hleft (fun a n h => by
           simp only [outside_append, outside_cons] at h ⊢
-          refine ⟨h.1, ?_, ?_, trivial⟩ <;> omega
+          refine ⟨h.1, ?_, ?_, trivial⟩ <;> omega)
         exact hfs'.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
       · have hacc : sA.mem.accessible ((s.regs 4).toNat - 88) 8 true = true := by
           rw [hfs.accessible]; exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
@@ -181,8 +181,8 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
           refine ⟨hrt3, ?_, ?_, trivial⟩ <;> omega
       · simp only [DecAt]; left
         simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
-        have hlen : BitVec.toNat w8 = decLen (s.regs 0).toNat := by
-          first | exact hr1 | (rw [hr1]; simp [Spec.strBytes]) | (simp [hr1, Spec.strBytes])
+        have hlen := hr1
+        simp only [Spec.strBytes, List.length_map, List.length_range] at hlen
         have h3 : 3 ≤ decLen (s.regs 0).toNat := by
           rw [decLen_ge _ (by omega), decLen_ge _ (by omega)]
           have := decLen_pos ((s.regs 0).toNat / 10 / 10); omega

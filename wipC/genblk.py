@@ -22,6 +22,15 @@ t = t.replace('hz8 : S.mem.readLE (z.toNat + 0) 8 = s.mem.readLE (z.toNat + 0) 8
 t = t.replace('S.mem.readLE z.toNat 8', 'S.mem.readLE (z.toNat + %d) 8' % (8 * k))
 t = t.replace('Memory.readLE S.mem z.toNat 8', 'Memory.readLE S.mem (z.toNat + %d) 8' % (8 * k))
 
+if k >= 1:
+    # the engine rewrites the spilled limb with `hz8` (S.mem -> s.mem) in the call's memory chain
+    a = '((S.mem.writeLE ((s.regs 4).toNat - %d) 8 (S.mem.readLE (z.toNat + %d) 8)).writeLE' % (sp, 8 * k)
+    assert a in t, 'hMr chain'
+    t = t.replace(a, a.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'))
+    b = 'have hM16 : M.readLE ((s.regs 4).toNat - %d) 8 = S.mem.readLE (z.toNat + %d) 8' % (sp, 8 * k)
+    assert b in t, 'hM16'
+    t = t.replace(b, b.replace('= S.mem.readLE', '= s.mem.readLE'))
+
 HM1 = """      have hmid' : M.readLE (r0.toNat + len0) (len.toNat - len0) = S.mem.readLE (pp.toNat + len0) (len.toNat - len0) := by
         apply readLE_bytes_shift; intro i hi
         rw [show r0.toNat + len0 + i = r0.toNat + (len0 + i) by omega, hcopy (len0 + i) (by omega),
@@ -50,6 +59,6 @@ for X in ('pp', 'r0'):
     t = t.replace(old, new, 1)
 if k > 0:
     key = '    have hgC : ((S.mem.writeLE ((s.regs 4).toNat - %d) 8 (S.mem.readLE (z.toNat + %d) 8))' % (sp, 8 * k)
-    assert key in t
-    t = t.replace(key, key.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'), 1)
+    if key in t:
+        t = t.replace(key, key.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'), 1)
 sys.stdout.write(t)

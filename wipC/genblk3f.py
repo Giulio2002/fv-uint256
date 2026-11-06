@@ -24,10 +24,14 @@ def find(prefix, start=0):
 a = find('    refine hcont _ pp cc b L')
 b = find('  · have hcostK', a)
 c = find('    refine hcont _ r0 r2', b)
+for n in range(b, c):
+    if lines[n].startswith('    janus64_run [hM16, hM70] until'):
+        lines[n] = '    have hret48 := hret.user\n    have hArr : r0.toNat + r2.toNat ≤ (s.regs 4).toNat - 4208 ∨ (s.regs 4).toNat + 24 ≤ r0.toNat := by\n      obtain ⟨rr, hrr, h1, h2⟩ := hin\n      have := MemFrame.outside_mem hout hrr\n      simp only [Nat.mul_one] at h2\n      omega\n    have hMret : M.readLE (s.regs 4).toNat 8 = ret := by\n      rw [hMr _ _ (Outside.of_sub hout (by omega) (by omega)) (by omega),\n        Memory.readLE_writeLE_of_disjoint _ _ (by omega), Memory.readLE_writeLE_of_disjoint _ _ (by omega)]\n      exact h_rd1\n    janus64_run [hM16, hM70, hMret, hM8]'
+        break
 end = find('end Fv256.Amd64.Msa', c)
 if probe:
     tail1 = ['    have hret48 := hret.user', '    janus64_run [h_rd1]', '    trace_state', '    sorry']
-    tail2 = ['    have hret48 := hret.user', '    janus64_run [h_rd1]', '    trace_state', '    sorry', '']
+    tail2 = ['    trace_state', '    sorry', '']
     out = lines[:a] + tail1 + lines[b:c] + tail2 + lines[end:]
 else:
     body1 = open('/srv/fv-uint256-wC/wipC/b3fa/branch1.txt').read().rstrip('\n').split('\n')

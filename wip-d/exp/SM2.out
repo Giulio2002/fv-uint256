@@ -1,0 +1,552 @@
+Fv256/Amd64/SqrtMainL.lean:53:41: warning: This simp argument is unused:
+  valueAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Util.readLE_32, Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside] at hLv hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:53:50: warning: This simp argument is unused:
+  Util.readLE_32
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside] at hLv hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:75:77: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside] at hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:76:4: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self] at hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:81:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:82:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:112:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:113:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:115:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:116:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:127:151: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:127:191: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:127:368: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:127:408: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:128:151: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:128:191: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:128:408: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:129:149: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:129:189: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:129:406: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:130:149: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:130:189: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:130:406: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:180:41: warning: This simp argument is unused:
+  valueAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Util.readLE_32, Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside] at hLv hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:180:50: warning: This simp argument is unused:
+  Util.readLE_32
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside] at hLv hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:202:77: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside] at hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:203:4: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self] at hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:208:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:209:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:239:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:240:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:242:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:243:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:254:151: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:254:191: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:254:368: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:254:408: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:255:151: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:255:191: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:255:408: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:256:149: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:256:189: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:256:406: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:257:149: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:257:189: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:257:406: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:307:41: warning: This simp argument is unused:
+  valueAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Util.readLE_32, Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside] at hLv hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:307:50: warning: This simp argument is unused:
+  Util.readLE_32
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_inside] at hLv hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:329:77: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside] at hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:330:4: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self] at hRv
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:335:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:336:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:366:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:367:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:369:79: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:370:6: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:381:151: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:381:191: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:381:368: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:381:408: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:382:151: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:382:191: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:382:408: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:383:149: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:383:189: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:383:406: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:384:149: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_inside]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:384:189: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtMainL.lean:384:406: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_inside
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint,
+    Janus.Arm64.Memory.readLE_writeLE_self]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
