@@ -3,8 +3,3 @@ lean/Fv256/Amd64/MarshalText.lean	FV-E	draft
 lean/Fv256/Amd64/Reciprocal.lean	FV-B	WIP
 lean/Fv256/Amd64/RecipArith3.lean	FV-B	WIP
 lean/Fv256/Amd64/RecipSeg2.lean	FV-B	WIP
-lean/Fv256/Arm64/AddMod.lean	FV-G	WIP
-lean/Fv256/Arm64/AddModG.lean	FV-G	WIP
-lean/Fv256/Arm64/AddModGa.lean	FV-G	WIP
-lean/Fv256/Arm64/AddModGb.lean	FV-G	WIP
-lean/Fv256/Arm64/AddModGc.lean	FV-G	WIP
