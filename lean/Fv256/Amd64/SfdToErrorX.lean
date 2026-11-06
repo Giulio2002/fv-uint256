@@ -200,7 +200,13 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
          | omega
          | (simp only [errItab, herr] at *; omega))
       | skip
-    · refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
+    all_goals first
+      | (exfalso; te_flags; done)
+      | skip
+    run_tac do
+      Lean.logInfo m!"D goals {(← Lean.Elab.Tactic.getGoals).length}"
+    all_goals
+      refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
       case F =>
         obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields (‹InRanges _ 48 R.rt›) (rs' := R.rt) (fun r hr => hr)
         te_frame
@@ -238,8 +244,6 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
             (by te_omega) (by te_omega) (by te_omega) (by with_reducible assumption)
             (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
-    -- TODO(FV-I): the other 3 live branches (WB variants) OOM at 30G if run via all_goals in this declaration; split the tail into a lemma
-    all_goals sorry
   all_goals (exfalso; exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption))
 
 end Fv256.Amd64.SfdToError

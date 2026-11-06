@@ -207,6 +207,54 @@ elab "te_walk" : tactic => withMainContext do
   evalTactic (← `(tactic| te_close))
 
 open Lean Elab Tactic Meta in
+/-- give the (possibly shadowed) hypothesis `fv` the fresh name `n` -/
+def teRenameFV (fv : FVarId) (n : Name) : TacticM Unit := do
+  let g ← getMainGoal
+  g.withContext do
+    let lctx := (← getLCtx).setUserName fv n
+    let ng ← mkFreshExprMVarAt lctx (← getLocalInstances) (← g.getType)
+    g.assign ng
+    replaceMainGoal [ng.mvarId!]
+
+open Lean Elab Tactic Meta in
+/-- `te_walk` at the two hypotheses that test the write-barrier flag address (they must agree): close the goal
+when one is `P` and the other `¬P` after the rewriting (syntactically, up to reducible unfolding) -/
+elab "te_flags" : tactic => withMainContext do
+  let mut rules : Array (TSyntax `term) := #[]
+  let mut hs : Array FVarId := #[]
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if ty.isAppOf ``Janus.LiveFrame && (ty.getArg! 3).isAppOf ``List.nil then
+      let h ← Term.exprToSyntax d.toExpr
+      rules := rules.push (← `(Janus.LiveFrame.readLE_nil $h))
+    else if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
+      let h ← Term.exprToSyntax d.toExpr
+      rules := rules.push (← `(($h).readLE))
+    else if (ty.find? fun e => e.isRawNatLit && e.rawNatLit? == some 6156064).isSome &&
+        (ty.isAppOf ``Eq || ty.isAppOf ``Not) then
+      hs := hs.push d.fvarId
+  let mut names : Array Name := #[]
+  let mut k := 0
+  for fv in hs do
+    let n := Name.mkSimple s!"teflag{k}"
+    teRenameFV fv n
+    names := names.push n
+    k := k + 1
+  for n in names do
+    let h := mkIdent n
+    evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff] at $h:ident))
+    evalTactic (← `(tactic| try simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
+      Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*] at $h:ident))
+  for a in names do
+    for b in names do
+      if a != b then
+        let ia := mkIdent a
+        let ib := mkIdent b
+        evalTactic (← `(tactic| try (with_reducible exact absurd $ia $ib)))
+        if (← getGoals).isEmpty then return
+
+open Lean Elab Tactic Meta in
 /-- `te_walk` through the stores only (no frame facts) -/
 elab "te_walk0" : tactic => withMainContext do
   evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]))
