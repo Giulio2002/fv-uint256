@@ -18,14 +18,14 @@ def R4Regs (s S : State) : Prop :=
 /-- memory facts that stay true through the body: the spilled `x0` at `sp+8`, the saved `x29`, and the frame -/
 def R4Mem (s : State) (M : Memory) : Prop :=
   M.readLE (s.sp.toNat + 8) 8 = (s.regs 0).toNat ∧ M.readLE (s.sp.toNat - 168) 8 = (s.regs 29).toNat ∧
-  MemFrame s.mem M [(s.sp.toNat - 168, s.sp.toNat + 16)]
+  MemFrame s.mem M [(s.sp.toNat - 168, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 16)]
 
-/-- a store of `k` bytes at `a` inside `[sp-160, sp+8)` keeps `R4Mem` -/
+/-- a store of `k` bytes at `a` inside `[sp-160, sp)` keeps `R4Mem` -/
 theorem R4Mem.write {s : State} {M : Memory} (h : R4Mem s M) (a k v : Nat)
-    (h1 : s.sp.toNat - 168 ≤ a) (h2 : a + k ≤ s.sp.toNat + 16)
-    (hp : s.sp.toNat - 160 ≤ a ∧ a + k ≤ s.sp.toNat + 8) (hsp : 168 ≤ s.sp.toNat) : R4Mem s (M.writeLE a k v) := by
+    (h1 : s.sp.toNat - 168 ≤ a) (h2 : a + k ≤ s.sp.toNat)
+    (hp : s.sp.toNat - 160 ≤ a ∧ a + k ≤ s.sp.toNat) (hsp : 168 ≤ s.sp.toNat) : R4Mem s (M.writeLE a k v) := by
   obtain ⟨h3, h4, h6⟩ := h
-  refine ⟨?_, ?_, h6.writeLE v (r := (s.sp.toNat - 168, s.sp.toNat + 16)) (by simp) h1 h2⟩
+  refine ⟨?_, ?_, h6.writeLE v (r := (s.sp.toNat - 168, s.sp.toNat)) (by simp) h1 h2⟩
   · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h3
   · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h4
 

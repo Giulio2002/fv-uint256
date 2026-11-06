@@ -33,6 +33,7 @@ theorem r4_pro (s : State) (hpc : s.pc = BitVec.ofNat 64 r4Entry) (hs : R4Pre s)
       exact Nat.mod_eq_of_lt (BitVec.isLt _)
     · repeat' first
         | exact MemFrame.refl _ _
-        | refine MemFrame.writeLE ?_ _ (r := (s.sp.toNat - 168, s.sp.toNat + 16)) (by simp) (by dsimp only; omega) (by dsimp only; omega))
+        | refine MemFrame.writeLE ?_ _ (r := (s.sp.toNat - 168, s.sp.toNat)) (by simp) (by dsimp only; omega) (by dsimp only; omega)
+        | refine MemFrame.writeLE ?_ _ (r := (s.sp.toNat + 8, s.sp.toNat + 16)) (by simp) (by dsimp only; omega) (by dsimp only; omega))
 
 end Fv256.Arm64.R4Seg
