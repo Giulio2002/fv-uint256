@@ -22,10 +22,10 @@ theorem g_b27_b47 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_xb27rax, hB_xb27rax, hE_xb27rcx, hB_xb27rcx, hE_xb27rdx, hB_xb27rdx, hE_xb27rbx, hB_xb27rbx, hE_xb27rsi, hB_xb27rsi, hE_xb27rdi, hB_xb27rdi, hE_xb27r9, hB_xb27r9, hE_xb27r10, hB_xb27r10, hE_xb27r11, hB_xb27r11, hE_xb27r12, hB_xb27r12, hE_xb27r13, hB_xb27r13, hE_xb27r15, hB_xb27r15, hE_xb27m40, hB_xb27m40, hE_xb27m48, hB_xb27m48, hE_xb27m50, hB_xb27m50, hE_xb27m60, hB_xb27m60, hE_xb27m100, hB_xb27m100, hE_xb27m160, hB_xb27m160, hE_xb27m168, hB_xb27m168⟩ := hL
   janus64_run [Util.readLE_32, hE_xb27rax, hE_xb27rcx, hE_xb27rdx, hE_xb27rbx, hE_xb27rsi, hE_xb27rdi, hE_xb27r9, hE_xb27r10, hE_xb27r11, hE_xb27r12, hE_xb27r13, hE_xb27r15, hE_xb27m40, hE_xb27m48, hE_xb27m50, hE_xb27m60, hE_xb27m100, hE_xb27m160, hE_xb27m168, hsp4, Nat.mod_eq_of_lt hB_xb27rax, Nat.mod_eq_of_lt hB_xb27rcx, Nat.mod_eq_of_lt hB_xb27rdx, Nat.mod_eq_of_lt hB_xb27rbx, Nat.mod_eq_of_lt hB_xb27rsi, Nat.mod_eq_of_lt hB_xb27rdi, Nat.mod_eq_of_lt hB_xb27r9, Nat.mod_eq_of_lt hB_xb27r10, Nat.mod_eq_of_lt hB_xb27r11, Nat.mod_eq_of_lt hB_xb27r12, Nat.mod_eq_of_lt hB_xb27r13, Nat.mod_eq_of_lt hB_xb27r15, Nat.mod_eq_of_lt hB_xb27m40, Nat.mod_eq_of_lt hB_xb27m48, Nat.mod_eq_of_lt hB_xb27m50, Nat.mod_eq_of_lt hB_xb27m60, Nat.mod_eq_of_lt hB_xb27m100, Nat.mod_eq_of_lt hB_xb27m160, Nat.mod_eq_of_lt hB_xb27m168]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_b27_b47
   refine ⟨(xb27rax + xb27rdi + (xb27m168 + xb27r9 + (xb27m160 + xb27r15) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616, (xb27rdx + xb27r11 + (xb27rax + xb27rdi + (xb27m168 + xb27r9 + (xb27m160 + xb27r15) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616, (xb27m160 + xb27r15) % 18446744073709551616, (xb27r13 + (xb27rdx + xb27r11 + (xb27rax + xb27rdi + (xb27m168 + xb27r9 + (xb27m160 + xb27r15) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616, (xb27m168 + xb27r9 + (xb27m160 + xb27r15) / 18446744073709551616) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
