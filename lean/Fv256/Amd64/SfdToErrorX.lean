@@ -223,40 +223,40 @@ macro "te_body" : tactic => `(tactic| (
           simp only [Apart, hesn] at hA2
           have hA3 := (‹ApartAll _ 48 L ∧ Apart _ 48 _ _›).2
           simp only [Apart] at hA3
-          try (obtain ⟨⟨hS6a, hS6q⟩, hS6t⟩ := (by assumption : (ApartAll _ 8 L ∧ _) ∧ _)
+          try (obtain ⟨⟨hS6a, hS6q⟩, hS6t⟩ := (by with_reducible assumption : (ApartAll _ 8 L ∧ _) ∧ _)
                have hS6q' := hS6q
                have hS6t' := hS6t
                simp only [Apart] at hS6q' hS6t')
-          try (obtain ⟨⟨hS2a, hS2q⟩, hS2t⟩ := (by assumption : (ApartAll _ 16 L ∧ _) ∧ _)
+          try (obtain ⟨⟨hS2a, hS2q⟩, hS2t⟩ := (by with_reducible assumption : (ApartAll _ 16 L ∧ _) ∧ _)
                have hS2q' := hS2q
                have hS2t' := hS2t
                simp only [Apart] at hS2q' hS2t')
-          try (have hWt := (by assumption : Apart ((s.regs 4).toNat - 4192) 4264 _ 48)
+          try (have hWt := (by with_reducible assumption : Apart ((s.regs 4).toNat - 4192) 4264 _ 48)
                simp only [Apart] at hWt)
         case c5 => first
           | exact te_f0 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
-              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+              hS6t' hS2t' (win_a hWt hlow (by decide) (by decide)) (by te_b8)
           | te_walk
         case c6 => first
           | exact te_f1 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
-              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+              hS6t' hS2t' (win_a hWt hlow (by decide) (by decide)) (by te_b8)
           | te_walk
         case c7 => first
           | exact te_f2 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
-              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+              hS6t' hS2t' (win_a hWt hlow (by decide) (by decide)) (by te_b8)
           | te_walk
         case c8 => first
           | exact te_f3 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
-              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+              hS6t' hS2t' (win_a hWt hlow (by decide) (by decide)) (by te_b8)
           | te_walk
         case c9 => first
           | (refine Eq.trans (te_f4 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
-              (by te_omega) (by te_omega) (by te_omega) (by te_b8)) ?_
+              hS6t' hS2t' (win_a hWt hlow (by decide) (by decide)) (by te_b8)) ?_
              rw [hesn]; te_walk)
           | (rw [hesn]; te_walk)
         case c10 => first
           | (refine Eq.trans (te_f5 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
-              (by te_omega) (by te_omega) (by te_omega) (by te_b8)) ?_
+              hS6t' hS2t' (win_a hWt hlow (by decide) (by decide)) (by te_b8)) ?_
              rw [hesn]; te_walk)
           | (rw [hesn]; te_walk)
         case c12 => first | te_inv | te_inv1
@@ -268,7 +268,9 @@ macro "te_body" : tactic => `(tactic| (
               (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
           | exact te_copy1 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
               (hL0 := by with_reducible assumption) (hk := hk) (hsl := hQsl)
-              (by te_omega) (by te_omega) (by te_omega) (by te_omega) (by te_omega) (by te_omega) (by te_omega)
+              hS6q' hS2q' hA3 (win_a hAw hlow (by decide) (by decide))
+              (win_k (win_a hAw hlow (by decide) (by decide)) (Nat.lt_of_lt_of_le hk hQsl)) (win_k (win_a hAw hlow (by decide) (by decide)) (Nat.lt_of_lt_of_le hk hQsl))
+              (win_k (win_a hAw hlow (by decide) (by decide)) (Nat.lt_of_lt_of_le hk hQsl))
               (by with_reducible assumption)
               (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
@@ -296,7 +298,7 @@ theorem te_sum0 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hsRe, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR, hrt0, hnP, hwP, hePr, hwbacc, heacc, hspR, hspP⟩, hfl⟩
   te_body
 
-set_option maxHeartbeats 16000000 in
+set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 20000 in
 theorem te_sum1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Laws)
     (T b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64)

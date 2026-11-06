@@ -8,6 +8,7 @@ import Fv256.Amd64.SfdEnv
 import Fv256.Amd64.SfdTePre
 import Fv256.Amd64.SfdBridge
 import Fv256.Amd64.SfdParse
+import Fv256.Amd64.SfdToErrorX
 
 /-!
 # `strconv.ParseUint(s, 10, 64)` (the exported wrapper) on a chunk of 1 to 19 bytes (amd64)
@@ -16,7 +17,7 @@ The wrapper calls `internal/strconv.ParseUint` (`SfdParse.pu_sum`) and, on a fai
 `hte`, a hypothesis here and discharged where this lemma is used).  Result registers: `RAX = n`, `RBX, RCX = err`.
 -/
 
-open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64
   Fv256.Amd64.SfdEnv Fv256.Amd64.SfdToError Fv256.Amd64.SfdBridge Fv256.Amd64.SfdParse Fv256.I
 
 namespace Fv256.Amd64.SfdPw
@@ -50,10 +51,21 @@ set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 20000 in
 theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (p len : BitVec 64)
-    (hte : Summary (Extracted.program.link impl) te (TePre R R2 T b L (BitVec.ofNat 64 fnStr) 9#64 p len)
-      (TePost R R2 b L (BitVec.ofNat 64 fnStr) 9#64 p len)) :
+    (hif : Ifaceeq (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
     Summary (Extracted.program.link impl) pw (PwPre R R2 T b L lo hi p len) (PwPost R R2 T b L lo hi p len) := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, hl1, hl2, hMod, hEnv, hlo, hhi, hCh⟩
+  have hte := te_sum impl R R2 hMod.1 T b L (BitVec.ofNat 64 fnStr) 9#64 p len hif hnew hmg hmv hwb1 hwb2
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hgl : Amd64.load s.mem ((s.regs 14).toNat + 16) 8 = .ok (s.mem.readLE ((s.regs 14).toNat + 16) 8) := by

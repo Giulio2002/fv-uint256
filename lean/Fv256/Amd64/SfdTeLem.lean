@@ -321,4 +321,10 @@ theorem te_f5 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
   exact Nat.mod_eq_of_lt hb
 
+
+theorem win_a {r4 q m d : Nat} (h : r4 - 4192 + 4264 ≤ q ∨ q + m ≤ r4 - 4192) (hlow : 4192 ≤ r4) (h1 : 8 ≤ d)
+    (h2 : d ≤ 4192) : r4 - d + 8 ≤ q ∨ q + m ≤ r4 - d := by omega
+
+theorem win_k {q m k a : Nat} (h : a + 8 ≤ q ∨ q + m ≤ a) (hk : k < m) : q + k + 1 ≤ a ∨ a + 8 ≤ q + k := by omega
+
 end Fv256.Amd64.SfdToError
