@@ -25,7 +25,7 @@ set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem segZ (S : State) (hpc : S.rip = BitVec.ofNat 64 (addmodEntry + 0x235))
     (hx15 : S.xmm 15 = 0) (hret : S.mem.readLE ((S.regs 4).toNat + 0x168) 8 < 2 ^ 47)
-    (hacc : S.mem.accessible ((S.regs 4).toNat + 0x150) 0x20 false = true)
+    (hacc : S.mem.accessible ((S.regs 4).toNat + 0x150) 0x20 true = true)
     (hnw : (S.regs 4).toNat + 0x170 ≤ 2 ^ 48)
     (hz : Buffer S (S.regs 0) 32 true) (hm : Buffer S (S.regs 7) 32 false)
     (hr2 : S.regs 2 = BitVec.ofNat 64 (S.mem.readLE ((S.regs 7).toNat + 24) 8))

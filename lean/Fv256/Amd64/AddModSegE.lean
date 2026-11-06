@@ -33,7 +33,9 @@ set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem segE (S : State) (hpc : S.rip = BitVec.ofNat 64 (addmodEntry + 0x2de))
     (hx15 : S.xmm 15 = 0) (hret : S.mem.readLE ((S.regs 4).toNat + 0x168) 8 < 2 ^ 47)
-    (hdata : Fv256.AddModProg.program.DataLoaded S.mem)
+    (hdacc : S.mem.accessible 5184320 96 false = true) (hrod : S.mem.readLE 5184344 16 = 18446744073709551616)
+    (hdd1 : (S.regs 4).toNat - 0x158 + 0x2e8 ≤ 5184320 ∨ 5184320 + 96 ≤ (S.regs 4).toNat - 0x158)
+    (hdd2 : (S.regs 0).toNat + 32 ≤ 5184320 ∨ 5184320 + 96 ≤ (S.regs 0).toNat)
     (hlow : 0x158 ≤ (S.regs 4).toNat) (hnw : (S.regs 4).toNat + 0x190 ≤ 2 ^ 48)
     (hacc : S.mem.accessible ((S.regs 4).toNat - 0x158) 0x2e8 true = true)
     (hgl : S.mem.accessible ((S.regs 14).toNat + 16) 8 false = true)
@@ -52,10 +54,9 @@ theorem segE (S : State) (hpc : S.rip = BitVec.ofNat 64 (addmodEntry + 0x2de))
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32), ((S.regs 4).toNat - 0x158, (S.regs 4).toNat + 0x190)]) := by
   obtain ⟨hzw, hza⟩ := hz
   obtain ⟨hmw, hma⟩ := hm
-  janus64_data hdata [hacc, hza]
   have hmne' : ¬ (S.mem.readLE (S.regs 2).toNat 8 + 18446744073709551616 * S.mem.readLE ((S.regs 2).toNat + 8) 8 + 340282366920938463463374607431768211456 * S.mem.readLE ((S.regs 2).toNat + 16) 8 + 6277101735386680763835789423207666416102355444464034512896 * S.mem.readLE ((S.regs 2).toNat + 24) 8 = 0) := by
     intro h; apply hmne; omega
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero5, Fv256.F.wv_zero5', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_rem_L (L := 5) (by omega))]
+  janus64_run [hrod, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero5, Fv256.F.wv_zero5', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_rem_L (L := 5) (by omega))]
   refine ⟨?val, ?fr⟩
   case fr => janus_frame
   rename_i hL1 hL2 hR
