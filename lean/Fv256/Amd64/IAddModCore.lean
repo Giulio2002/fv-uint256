@@ -4,6 +4,7 @@ import Fv256.SpecF
 import Fv256.CodeIn
 import Fv256.AddModProg
 import Fv256.Amd64.AddModSpecS
+import Fv256.SqrtTac
 
 /-!
 # `(*uint256.Int).IAddMod(x, m *Int) *Int` (amd64): in place, `z = (z + x) mod m`   (core: conditional on the callee summary)
@@ -60,7 +61,11 @@ theorem correctness (hS : Summary Fv256.AddModProg.program addEntry (fun s => Ad
   simp only [valueAt]
   have hdlA : Fv256.AddModProg.program.DataLoaded s.mem := (hdl _).1 hdlE
   janus64_run [Util.readLE_32] calls [Fv256.CodeIn.lib_summary hcLib hS]
-  trace_state
-  all_goals sorry
+  grab_const Fv256.F.addmodSpec as hv
+  grab_const Janus.MemFrame as hf
+  refine ⟨hv, MemFrame.trans (rs := [(z.toNat, z.toNat + 32), ((s.regs 4).toNat - 0x378, (s.regs 4).toNat + 0x10)])
+    (rs'' := [(z.toNat, z.toNat + 32), ((s.regs 4).toNat - 0x378, (s.regs 4).toNat + 0x10)]) ?A hf ?sub⟩
+  · repeat' (first | exact MemFrame.refl _ _ | refine MemFrame.writeLE_inRanges ?_ _ ⟨((s.regs 4).toNat - 0x378, (s.regs 4).toNat + 0x10), List.mem_cons_of_mem _ (List.mem_cons_self ..), by omega, by omega⟩)
+  · intro a n h; simp [Outside] at h ⊢; omega
 
 end Fv256.Amd64.IAddModCore
