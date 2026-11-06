@@ -223,6 +223,54 @@ def teRenameFV (fv : FVarId) (n : Name) : TacticM Unit := do
     g.assign ng
     replaceMainGoal [ng.mvarId!]
 
+
+/-- the `i`-th argument of an application, or a dummy constant when there is none -/
+def targ (e : Lean.Expr) (i : Nat) : Lean.Expr := (e.getAppArgs[i]?).getD (Lean.mkConst ``Nat)
+
+open Lean Elab Tactic Meta in
+/-- Name, by the content of their types (not by position), the facts of the `mallocgc` call's postcondition that the
+`toError` proof uses: `q` (the fresh string), `m2` (memory after the call), `hLF`/`hMF` (its live and memory frames),
+`hInR` (the block lies in the runtime ranges), `hQsl` (`sl ≤ blockSize sl`) and the four `Apart` facts of the block
+against the stack window, `numErrType`, `wbFlag` and `strconvErrSyntax`. -/
+elab "te_grab" : tactic => withMainContext do
+  let mut found : Array (Name × FVarId) := #[]
+  let mut mem2 : Option Expr := none
+  -- first pass: the live frame whose live list is the variable `L` (not `L ++ _`)
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if ty.isAppOf ``Janus.LiveFrame && (targ ty 2).isFVar && (targ ty 3).isAppOf ``List.nil && mem2.isNone then
+      mem2 := some (targ ty 1)
+      found := found.push (`hLF, d.fvarId)
+  let some m2e := mem2 | throwError "te_grab: no LiveFrame over the live variable"
+  let mut qfv : Option FVarId := none
+  for d in ← getLCtx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if ty.isAppOf ``Janus.MemFrame && ty.getAppNumArgs == 3 && (← isDefEq (targ ty 1) m2e) && !(found.any (·.1 == `hMF)) then
+      found := found.push (`hMF, d.fvarId)
+    else if ty.isAppOf ``Janus.InRanges && (targ ty 1).isAppOf ``Janus.Contracts.blockSize then
+      found := found.push (`hInR, d.fvarId)
+      match (targ ty 0) with
+      | .app _ (.fvar q) => qfv := some q
+      | _ => pure ()
+    else if ty.isAppOf ``LE.le && (targ ty 3).isAppOf ``Janus.Contracts.blockSize then
+      found := found.push (`hQsl, d.fvarId)
+    else if ty.isAppOf ``Janus.Apart && (targ ty 2).isApp then
+      let a := targ ty 0
+      let b := targ ty 2
+      if b.isAppOf ``BitVec.toNat then
+        if a.isAppOf ``HSub.hSub then found := found.push (`hAw, d.fvarId)
+        else if a.isConstOf `Fv256.I.numErrType || a.isConstOf `Fv256.Amd64.SfdEnv.numErrType then found := found.push (`hAn, d.fvarId)
+        else if a.isConstOf `Fv256.I.wbFlag || a.isConstOf `Fv256.Amd64.SfdEnv.wbFlag then found := found.push (`hAwb, d.fvarId)
+        else if a.isConstOf `Fv256.I.strconvErrSyntax || a.isConstOf `Fv256.Amd64.SfdEnv.strconvErrSyntax then found := found.push (`hAe, d.fvarId)
+  for n in [`hLF, `hMF, `hInR, `hQsl, `hAw, `hAn, `hAwb, `hAe] do
+    unless found.any (·.1 == n) do throwError "te_grab: no hypothesis for {n}"
+  for (n, fv) in found do
+    teRenameFV fv n
+  if let some q := qfv then teRenameFV q `q
+  if m2e.isFVar then teRenameFV m2e.fvarId! `m2
+
 open Lean Elab Tactic Meta in
 /-- `te_walk` at the two hypotheses that test the write-barrier flag address (they must agree): close the goal
 when one is `P` and the other `¬P` after the rewriting (syntactically, up to reducible unfolding) -/

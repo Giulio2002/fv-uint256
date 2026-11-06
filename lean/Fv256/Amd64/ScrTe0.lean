@@ -156,7 +156,7 @@ macro "te_body" : tactic => `(tactic| (
     simp only [Spec.Disjoint] at hgdis
     clear hres hpc' hpre0 hcmp hdesc hxacc hres' hfr' hinvS hSf hSreg hSacc hS4 hret0 hSra hra' hS0 henv' h1 h3
     janus64_run [hal1, hgm] until [Extracted.program.contractAddr "runtime.memmove"] calls [hmg.pos]
-    rename_i q j2 f2 x2 y2 m2 z2 k2 hLF hMF hApA hInR hQ48 hQacc hQa8 hQa16 hQz hQsl hAp hInv2 hAw hAn hAwb hAe hAx1 hAx2 hAx3 hAx4 hAx5 hAx6
+    te_grab
     try clear hTS hregS hndS hszS
     have hrsp : (s.regs 4 - 96#64).toNat = (s.regs 4).toNat - 96 := hs496
     have hgm2 : m2.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 := by
