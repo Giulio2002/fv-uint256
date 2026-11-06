@@ -117,7 +117,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).Sign` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Sign.lean |
 | `(*uint256.Int).SizeSSZ` | FV-C | verified | verified | lean/Fv256/{Arm64,Amd64}/SizeSSZ.lean |
 | `(*uint256.Int).Slt` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Slt.lean |
-| `(*uint256.Int).Sqrt` | FV-F | todo | todo | |
+| `(*uint256.Int).Sqrt` | FV-D | todo (FV-D queue) | verified (+ witness) | amd64 (FV-D, fv/wd, correctness + Witness.nonvacuous in one run, 2240 s cold incl. the library build; axioms Classical.choice, Quot.sound, propext; leanchecker passed). Spec z = floor(sqrt x) (Fv256.F.IsSqrt) for z and x equal or disjoint, window [SP-0x1f0, SP+0x18); covers the uint64 path and the 256-bit Newton loop incl. no overflow in the 256-bit add. Library form (SqrtProg, SqrtLib.sqrt_summary). arm64 todo |
 | `(*uint256.Int).String` | FV-E | verified (+ witness) | verified (+ witness) | String on both ISAs over the DecProg library, Janus 2452acd6 (fv/we 0ac73dd, logs build/v-str{amd,arm}-e2.log): amd64 55m37, arm64 49m51. Only runtime contract: slicebytetostring; to be re-done when the U-SBTS-POST contract change lands. (earlier: fv/we 6b04caf, correctness + Witness.nonvacuous in one run per ISA (arm64 41m14s, amd64 44m07s, pre-repin; dec_summary over the ChainProg library); le) |
 | `(*uint256.Int).Sub` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/Sub.lean |
 | `(*uint256.Int).SubOverflow` | FV-A | verified | verified | lean/Fv256/{Arm64,Amd64}/SubOverflow.lean |
