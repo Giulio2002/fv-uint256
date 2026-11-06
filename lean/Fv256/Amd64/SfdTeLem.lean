@@ -11,6 +11,29 @@ open Janus Janus.Contracts
 
 namespace Fv256.Amd64.SfdToError
 
+theorem inRanges_fields {t : Nat} {rs rs' : List (Nat × Nat)} (h : InRanges t 48 rs) (hs : ∀ r ∈ rs, r ∈ rs') :
+    InRanges t 8 rs' ∧ InRanges (t + 8) 8 rs' ∧ InRanges (t + 16) 8 rs' ∧ InRanges (t + 24) 8 rs' ∧
+      InRanges (t + 32) 8 rs' ∧ InRanges (t + 40) 8 rs' := by
+  obtain ⟨r, hr, h1, h2⟩ := h
+  have hr' := hs r hr
+  exact ⟨⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩,
+    ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩⟩
+
+theorem frame_trans {m m' m'' : Janus.Arm64.Memory} {rs rs' : List (Nat × Nat)} (h : MemFrame m m' rs)
+    (h' : MemFrame m' m'' rs') (sub : ∀ a n, Outside a n rs → Outside a n rs') : MemFrame m m'' rs :=
+  h.trans h' (fun a n ho => ⟨ho, sub a n ho⟩)
+
+theorem inRanges16_lo {a : Nat} {rs : List (Nat × Nat)} (h : InRanges a 16 rs) : InRanges a 8 rs := by
+  obtain ⟨r, hr, h1, h2⟩ := h; exact ⟨r, hr, by omega, by omega⟩
+
+theorem inRanges16_hi {a : Nat} {rs : List (Nat × Nat)} (h : InRanges a 16 rs) : InRanges (a + 8) 8 rs := by
+  obtain ⟨r, hr, h1, h2⟩ := h; exact ⟨r, hr, by omega, by omega⟩
+
+theorem frame_writeLE_rt {m m' : Janus.Arm64.Memory} {rt priv : List (Nat × Nat)} {w : Nat × Nat} {a k : Nat} (v : Nat)
+    (h : MemFrame m m' (rt ++ priv ++ [w])) (hin : InRanges a k rt) :
+    MemFrame m (m'.writeLE a k v) (rt ++ priv ++ [w]) :=
+  h.writeLE_inRanges v (InRanges.of_subset hin (by intro r hr; simp [List.mem_append, hr]))
+
 /-- the bytes copied into the fresh string `q`, read back through the stores into the fresh `NumError` `t` and
 through the `newobject` call -/
 theorem te_copy {M w2 w10 M0 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
@@ -123,5 +146,179 @@ theorem te_base {m0 m' m2 w10 w2 : Janus.Arm64.Memory} {rt priv : List (Nat × N
   obtain ⟨h1, _, h3⟩ := key x n ho
   simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
   refine ⟨h1, ?_, ?_⟩ <;> omega
+
+
+set_option maxRecDepth 20000 in
+/-- the write-barrier branch of the `ErrSyntax` path: after the `newobject` frame (`te_base`), the first barrier
+(`gcWriteBarrier2`, slot `s2` of 16 bytes inside `rt`), the stores into the slot and into the fresh `NumError` `t`, and the
+second barrier (`gcWriteBarrier1`, slot `s1` of 8 bytes inside `rt`) -/
+theorem te_base1 {m0 w16 w9 w2 : Janus.Arm64.Memory} {rt priv : List (Nat × Nat)}
+    {r4 t s2 q a b c d e f g c4 : Nat}
+    (hB : MemFrame m0 w16 (rt ++ priv ++ [(r4 - 4192, r4 + 72)]))
+    (hw2 : MemFrame ((w16.writeLE (t + 8) 8 a).writeLE (r4 - 96) 8 b) w9 (rt ++ [(r4 - 96 - 4096, r4 - 96)]))
+    (hw1 : MemFrame (((((((w9.writeLE s2 8 c).writeLE (s2 + 8) 8 d).writeLE t 8 e).writeLE (t + 24) 8 f).writeLE
+        (t + 16) 8 g).writeLE (t + 32) 8 q).writeLE (r4 - 96) 8 c4) w2 (rt ++ [(r4 - 96 - 4096, r4 - 96)]))
+    (hr4 : 4192 ≤ r4) (ht : InRanges t 48 rt) (hs2 : InRanges s2 16 rt) :
+    MemFrame m0 w2 (rt ++ priv ++ [(r4 - 4192, r4 + 72)]) := by
+  have hW : (r4 - 4192, r4 + 72) ∈ rt ++ priv ++ [(r4 - 4192, r4 + 72)] := by simp
+  have key : ∀ x n, Outside x n (rt ++ priv ++ [(r4 - 4192, r4 + 72)]) →
+      Outside x n (rt ++ [(r4 - 96 - 4096, r4 - 96)]) := by
+    intro x n ho
+    simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true] at ho ⊢
+    refine ⟨ho.1.1, ?_⟩
+    omega
+  obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields ht (rs' := rt) (fun r hr => hr)
+  obtain ⟨g0, g1⟩ : InRanges s2 8 rt ∧ InRanges (s2 + 8) 8 rt :=
+    ⟨inRanges16_lo hs2, inRanges16_hi hs2⟩
+  have A : MemFrame m0 ((w16.writeLE (t + 8) 8 a).writeLE (r4 - 96) 8 b) (rt ++ priv ++ [(r4 - 4192, r4 + 72)]) :=
+    (frame_writeLE_rt a hB f1).writeLE _ hW (by omega) (by omega)
+  have B : MemFrame m0 w9 (rt ++ priv ++ [(r4 - 4192, r4 + 72)]) :=
+    A.trans hw2 (fun x n ho => ⟨ho, key x n ho⟩)
+  have C : MemFrame m0 (((((((w9.writeLE s2 8 c).writeLE (s2 + 8) 8 d).writeLE t 8 e).writeLE (t + 24) 8 f).writeLE
+        (t + 16) 8 g).writeLE (t + 32) 8 q).writeLE (r4 - 96) 8 c4) (rt ++ priv ++ [(r4 - 4192, r4 + 72)]) :=
+    (((((((frame_writeLE_rt c B g0)).writeLE_inRanges d (InRanges.of_subset g1 (by intro r hr; simp [List.mem_append, hr]))).writeLE_inRanges
+      e (InRanges.of_subset f0 (by intro r hr; simp [List.mem_append, hr]))).writeLE_inRanges
+      f (InRanges.of_subset f3 (by intro r hr; simp [List.mem_append, hr]))).writeLE_inRanges
+      g (InRanges.of_subset f2 (by intro r hr; simp [List.mem_append, hr]))).writeLE_inRanges
+      q (InRanges.of_subset f4 (by intro r hr; simp [List.mem_append, hr]))).writeLE _ hW (by omega) (by omega)
+  exact C.trans hw1 (fun x n ho => ⟨ho, key x n ho⟩)
+
+
+theorem outside_of_apart3 {a n q m t k : Nat} {L : List (Nat × Nat)} (h1 : Janus.Contracts.ApartAll a n L)
+    (h2 : Janus.Apart a n q m) (h3 : Janus.Apart a n t k) : Outside a n (L ++ [(q, q + m)] ++ [(t, t + k)]) := by
+  have := h1.outside
+  simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
+  simp only [Janus.Apart] at h2 h3
+  refine ⟨⟨this, ?_⟩, ?_⟩ <;> omega
+
+/-- the invariant after a store into a write-barrier slot (inside `rt`, outside the live set) -/
+theorem inv_slot1 {R : RtInv} {b g buf x : Nat} {L rt : List (Nat × Nat)} {m : Janus.Arm64.Memory}
+    (hI : InvSlots R b L g rt m buf 1) (hrt : InRanges buf 8 rt) (hout : Outside buf 8 L) :
+    R.inv b L g (view rt L (m.writeLE buf 8 x)) := by
+  rw [view_writeLE_vis hrt hout]
+  exact hI _ (((MemFrame.refl _ _).writeLE x (r := (buf, buf + 8 * 1)) (by simp) (by omega) (by omega)))
+
+/-- the bytes copied into the fresh string `q`, read back through the write-barrier branch's stores, the two barrier
+frames and the `newobject` frame -/
+theorem te_copy1 {M w2 w9 w16 w10 M0 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs sl sp k r4 s2 s6 a1 a2 a3 v1 v2 v3 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 X : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL0 : LiveFrame (((w10.writeLE a1 8 v1).writeLE a2 8 v2).writeLE a3 8 v3) w16 (L ++ [(q, q + bs)]) [])
+    (hk : k < sl) (hsl : sl ≤ bs)
+    (hq6 : s6 + 8 ≤ q ∨ q + bs ≤ s6) (hq2 : s2 + 16 ≤ q ∨ q + bs ≤ s2) (hqt : t + 48 ≤ q ∨ q + bs ≤ t)
+    (hqr : r4 - 96 + 8 ≤ q ∨ q + bs ≤ r4 - 96)
+    (hd1 : q + k + 1 ≤ a1 ∨ a1 + 8 ≤ q + k) (hd2 : q + k + 1 ≤ a2 ∨ a2 + 8 ≤ q + k)
+    (hd3 : q + k + 1 ≤ a3 ∨ a3 + 8 ≤ q + k)
+    (hCop : Mem.Copied M0 w10 q sp sl) (hsrc : M0.readLE (sp + k) 1 = X) :
+    M.readLE (q + k) 1 = X := by
+  subst hM
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL2.readLE_nil _ _ ⟨(q, q + bs), by simp, by omega, by omega⟩]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL1.readLE_nil _ _ ⟨(q, q + bs), by simp, by omega, by omega⟩]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL0.readLE_nil _ _ ⟨(q, q + bs), by simp, by omega, by omega⟩]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [Janus.Arm64.Memory.readLE_one, hCop k hk, ← Janus.Arm64.Memory.readLE_one]
+  exact hsrc
+
+
+theorem te_f0 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs r4 s2 s6 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hq6 : s6 + 8 ≤ t ∨ t + 48 ≤ s6) (hq2 : s2 + 16 ≤ t ∨ t + 48 ≤ s2) (hqr : r4 - 96 + 8 ≤ t ∨ t + 48 ≤ r4 - 96)
+    (hb : c3 < 256 ^ 8) :
+    M.readLE (t) 8 = c3 := by
+  subst hM
+  have e2 : InRanges (t) 8 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) := ⟨(t, t + 48), by simp, by omega, by omega⟩
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL2.readLE_nil _ _ e2]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  exact Nat.mod_eq_of_lt hb
+
+theorem te_f1 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs r4 s2 s6 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hq6 : s6 + 8 ≤ t ∨ t + 48 ≤ s6) (hq2 : s2 + 16 ≤ t ∨ t + 48 ≤ s2) (hqr : r4 - 96 + 8 ≤ t ∨ t + 48 ≤ r4 - 96)
+    (hb : d1 < 256 ^ 8) :
+    M.readLE (t + 8) 8 = d1 := by
+  subst hM
+  have e2 : InRanges (t + 8) 8 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) := ⟨(t, t + 48), by simp, by omega, by omega⟩
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL2.readLE_nil _ _ e2]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL1.readLE_nil _ _ e2]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  exact Nat.mod_eq_of_lt hb
+
+theorem te_f2 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs r4 s2 s6 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hq6 : s6 + 8 ≤ t ∨ t + 48 ≤ s6) (hq2 : s2 + 16 ≤ t ∨ t + 48 ≤ s2) (hqr : r4 - 96 + 8 ≤ t ∨ t + 48 ≤ r4 - 96)
+    (hb : c5 < 256 ^ 8) :
+    M.readLE (t + 16) 8 = c5 := by
+  subst hM
+  have e2 : InRanges (t + 16) 8 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) := ⟨(t, t + 48), by simp, by omega, by omega⟩
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL2.readLE_nil _ _ e2]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  exact Nat.mod_eq_of_lt hb
+
+theorem te_f3 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs r4 s2 s6 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hq6 : s6 + 8 ≤ t ∨ t + 48 ≤ s6) (hq2 : s2 + 16 ≤ t ∨ t + 48 ≤ s2) (hqr : r4 - 96 + 8 ≤ t ∨ t + 48 ≤ r4 - 96)
+    (hb : c4 < 256 ^ 8) :
+    M.readLE (t + 24) 8 = c4 := by
+  subst hM
+  have e2 : InRanges (t + 24) 8 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) := ⟨(t, t + 48), by simp, by omega, by omega⟩
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL2.readLE_nil _ _ e2]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  exact Nat.mod_eq_of_lt hb
+
+theorem te_f4 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs r4 s2 s6 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hq6 : s6 + 8 ≤ t ∨ t + 48 ≤ s6) (hq2 : s2 + 16 ≤ t ∨ t + 48 ≤ s2) (hqr : r4 - 96 + 8 ≤ t ∨ t + 48 ≤ r4 - 96)
+    (hb : c6 < 256 ^ 8) :
+    M.readLE (t + 32) 8 = c6 := by
+  subst hM
+  have e2 : InRanges (t + 32) 8 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) := ⟨(t, t + 48), by simp, by omega, by omega⟩
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  rw [hL2.readLE_nil _ _ e2]
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  exact Nat.mod_eq_of_lt hb
+
+theorem te_f5 {M w2 w9 w16 : Janus.Arm64.Memory} {L : List (Nat × Nat)}
+    {t q bs r4 s2 s6 y z c1 c2 c3 c4 c5 c6 c7 d1 d2 : Nat}
+    (hM : M = (w2.writeLE s6 8 y).writeLE (t + 40) 8 z)
+    (hL2 : LiveFrame (((((((w9.writeLE s2 8 c1).writeLE (s2 + 8) 8 c2).writeLE t 8 c3).writeLE (t + 24) 8 c4).writeLE
+      (t + 16) 8 c5).writeLE (t + 32) 8 c6).writeLE (r4 - 96) 8 c7) w2 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hL1 : LiveFrame ((w16.writeLE (t + 8) 8 d1).writeLE (r4 - 96) 8 d2) w9 (L ++ [(q, q + bs)] ++ [(t, t + 48)]) [])
+    (hq6 : s6 + 8 ≤ t ∨ t + 48 ≤ s6) (hq2 : s2 + 16 ≤ t ∨ t + 48 ≤ s2) (hqr : r4 - 96 + 8 ≤ t ∨ t + 48 ≤ r4 - 96)
+    (hb : z < 256 ^ 8) :
+    M.readLE (t + 40) 8 = z := by
+  subst hM
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+  exact Nat.mod_eq_of_lt hb
 
 end Fv256.Amd64.SfdToError

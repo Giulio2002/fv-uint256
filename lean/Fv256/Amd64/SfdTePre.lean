@@ -5,6 +5,7 @@ import Fv256.SpecI
 import Fv256.UtilI
 import Fv256.SumC64
 import Fv256.Amd64.SfdEnv
+import Fv256.Amd64.SfdTeLem
 
 /-!
 # `strconv.toError(fn, s, base, bitSize, err)` for `err == ErrSyntax` (amd64), as a callee of `strconv.ParseUint`
@@ -82,29 +83,6 @@ open Fv256.C in
 def TePost (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64) (s s' : State) : Prop :=
   Kept s s' ∧ TeErr R b L fp fl sp sl s s' ∧
   MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)])
-
-theorem inRanges_fields {t : Nat} {rs rs' : List (Nat × Nat)} (h : InRanges t 48 rs) (hs : ∀ r ∈ rs, r ∈ rs') :
-    InRanges t 8 rs' ∧ InRanges (t + 8) 8 rs' ∧ InRanges (t + 16) 8 rs' ∧ InRanges (t + 24) 8 rs' ∧
-      InRanges (t + 32) 8 rs' ∧ InRanges (t + 40) 8 rs' := by
-  obtain ⟨r, hr, h1, h2⟩ := h
-  have hr' := hs r hr
-  exact ⟨⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩,
-    ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩, ⟨r, hr', by omega, by omega⟩⟩
-
-theorem frame_trans {m m' m'' : Janus.Arm64.Memory} {rs rs' : List (Nat × Nat)} (h : MemFrame m m' rs)
-    (h' : MemFrame m' m'' rs') (sub : ∀ a n, Outside a n rs → Outside a n rs') : MemFrame m m'' rs :=
-  h.trans h' (fun a n ho => ⟨ho, sub a n ho⟩)
-
-theorem inRanges16_lo {a : Nat} {rs : List (Nat × Nat)} (h : InRanges a 16 rs) : InRanges a 8 rs := by
-  obtain ⟨r, hr, h1, h2⟩ := h; exact ⟨r, hr, by omega, by omega⟩
-
-theorem inRanges16_hi {a : Nat} {rs : List (Nat × Nat)} (h : InRanges a 16 rs) : InRanges (a + 8) 8 rs := by
-  obtain ⟨r, hr, h1, h2⟩ := h; exact ⟨r, hr, by omega, by omega⟩
-
-theorem frame_writeLE_rt {m m' : Janus.Arm64.Memory} {rt priv : List (Nat × Nat)} {w : Nat × Nat} {a k : Nat} (v : Nat)
-    (h : MemFrame m m' (rt ++ priv ++ [w])) (hin : InRanges a k rt) :
-    MemFrame m (m'.writeLE a k v) (rt ++ priv ++ [w]) :=
-  h.writeLE_inRanges v (InRanges.of_subset hin (by intro r hr; simp [List.mem_append, hr]))
 
 /-- discharge the coverage side condition of a callee frame in `te_frame` -/
 macro "te_sub" : tactic => `(tactic|
@@ -343,6 +321,18 @@ macro "te_inv" : tactic => `(tactic|
    rw [blockSize48, append_two]
    simp (disch := te_disch) only [Janus.Contracts.view_writeLE_live]
    janus_assumption))
+
+/-- `c < 256 ^ 8` for a word or a memory read -/
+macro "te_b8" : tactic => `(tactic| first
+  | exact Janus.Arm64.Memory.readLE_lt _ _ _
+  | (rw [show (256 : Nat) ^ 8 = 2 ^ 64 from rfl]; exact BitVec.isLt _))
+
+/-- `te_inv` for the write-barrier branch: the last store goes into a barrier slot (`inv_slot1`) -/
+macro "te_inv1" : tactic => `(tactic|
+  (try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]
+   rw [blockSize48, append_two]
+   simp (disch := te_disch) only [Janus.Contracts.view_writeLE_live]
+   exact inv_slot1 (by assumption) (by assumption) (outside_of_apart3 (by assumption) (by assumption) (by assumption))))
 
 theorem te_post_intro {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)} {fp fl sp sl : BitVec 64} {s s' : State}
     (hk : Fv256.C.Kept s s')

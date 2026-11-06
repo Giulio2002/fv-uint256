@@ -195,8 +195,13 @@ macro "te_body" : tactic => `(tactic| (
       refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
       case F =>
         obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields (‹InRanges _ 48 R.rt›) (rs' := R.rt) (fun r hr => hr)
-        repeat' (refine frame_writeLE_rt _ ?_ (by first | exact f0 | exact f1 | exact f2 | exact f3 | exact f4 | exact f5))
-        exact te_base hfr hMF (by with_reducible assumption) (by with_reducible assumption) hdep hlow hInR hQsl
+        first
+        | (repeat' (refine frame_writeLE_rt _ ?_ (by first | exact f0 | exact f1 | exact f2 | exact f3 | exact f4 | exact f5))
+           exact te_base hfr hMF (by with_reducible assumption) (by with_reducible assumption) hdep hlow hInR hQsl)
+        | (refine frame_writeLE_rt _ ?_ f5
+           refine frame_writeLE_rt _ ?_ (by assumption)
+           exact te_base1 (te_base hfr hMF (by with_reducible assumption) (by with_reducible assumption) hdep hlow hInR hQsl)
+             (by with_reducible assumption) (by with_reducible assumption) hlow (by assumption) (by assumption))
       case obj =>
         refine ⟨?c1, ?c2, ?c3, ?c4, ?c5, ?c6, ?c7, ?c8, ?c9, ?c10, ?c11, ?c12⟩
         case c1 => assumption
@@ -218,18 +223,54 @@ macro "te_body" : tactic => `(tactic| (
           simp only [Apart, hesn] at hA2
           have hA3 := (‹ApartAll _ 48 L ∧ Apart _ 48 _ _›).2
           simp only [Apart] at hA3
-        case c5 => te_walk
-        case c6 => te_walk
-        case c7 => te_walk
-        case c8 => te_walk
-        case c9 => rw [hesn]; te_walk
-        case c10 => rw [hesn]; te_walk
-        case c12 => te_inv
+          try (obtain ⟨⟨hS6a, hS6q⟩, hS6t⟩ := (by assumption : (ApartAll _ 8 L ∧ _) ∧ _)
+               have hS6q' := hS6q
+               have hS6t' := hS6t
+               simp only [Apart] at hS6q' hS6t')
+          try (obtain ⟨⟨hS2a, hS2q⟩, hS2t⟩ := (by assumption : (ApartAll _ 16 L ∧ _) ∧ _)
+               have hS2q' := hS2q
+               have hS2t' := hS2t
+               simp only [Apart] at hS2q' hS2t')
+          try (have hWt := (by assumption : Apart ((s.regs 4).toNat - 4192) 4264 _ 48)
+               simp only [Apart] at hWt)
+        case c5 => first
+          | exact te_f0 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+          | te_walk
+        case c6 => first
+          | exact te_f1 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+          | te_walk
+        case c7 => first
+          | exact te_f2 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+          | te_walk
+        case c8 => first
+          | exact te_f3 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (by te_omega) (by te_omega) (by te_omega) (by te_b8)
+          | te_walk
+        case c9 => first
+          | (refine Eq.trans (te_f4 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (by te_omega) (by te_omega) (by te_omega) (by te_b8)) ?_
+             rw [hesn]; te_walk)
+          | (rw [hesn]; te_walk)
+        case c10 => first
+          | (refine Eq.trans (te_f5 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (by te_omega) (by te_omega) (by te_omega) (by te_b8)) ?_
+             rw [hesn]; te_walk)
+          | (rw [hesn]; te_walk)
+        case c12 => first | te_inv | te_inv1
         case c11 =>
           intro k hk
-          exact te_copy (hM := rfl) (hLF := by with_reducible assumption) (hApt := hA3) (hk := hk) (hsl := hQsl)
-            (by te_omega) (by te_omega) (by te_omega) (by with_reducible assumption)
-            (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
+          first
+          | exact te_copy (hM := rfl) (hLF := by with_reducible assumption) (hApt := hA3) (hk := hk) (hsl := hQsl)
+              (by te_omega) (by te_omega) (by te_omega) (by with_reducible assumption)
+              (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
+          | exact te_copy1 (hM := rfl) (hL2 := by with_reducible assumption) (hL1 := by with_reducible assumption)
+              (hL0 := by with_reducible assumption) (hk := hk) (hsl := hQsl)
+              (by te_omega) (by te_omega) (by te_omega) (by te_omega) (by te_omega) (by te_omega) (by te_omega)
+              (by with_reducible assumption)
+              (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
   all_goals (exfalso; exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption))
   ))
