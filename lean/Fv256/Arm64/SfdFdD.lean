@@ -46,6 +46,9 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
       ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (s.regs 30) S2 (FdPost R R2 T b L lo hi z pS nS s)) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (s.regs 30) S' (FdPost R R2 T b L lo hi z pS nS s) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv0, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
+  have hnz : nS.toNat ≠ 0 := Nat.pos_iff_ne_zero.mp (Nat.lt_of_le_of_lt (Nat.zero_le _) hrem)
+  have hpC := hpC.resolve_left hnz
+  have hpD := hpD.resolve_left hnz
   have hI' := hI
   obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2', m3, m4, mtab, mval, hEnvS, hfb, hall, hK⟩ := hI'
   obtain ⟨c1, c2, c3, c4, c5, c6⟩ := hS1

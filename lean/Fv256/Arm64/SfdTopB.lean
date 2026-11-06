@@ -74,7 +74,7 @@ theorem topSt_acc {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Na
     S.mem.accessible a n w = s.mem.accessible a n w := hS.2.2.2.2.1.accessible a n w
 
 theorem topSt_byte {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {z pS nS : BitVec 64}
-    {s S : State} (hS : TopSt R R2 T b L lo hi z pS s S) (hpC : pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat)
+    {s S : State} (hS : TopSt R R2 T b L lo hi z pS s S) (hpC : nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat)
     (off : Nat) (h : off < nS.toNat) : S.mem.readLE (pS.toNat + off) 1 = s.mem.readLE (pS.toNat + off) 1 := by
   refine hS.2.2.2.2.1.readLE _ _ ?_
   simp only [outside_cons, outside_nil, and_true]
