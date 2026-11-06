@@ -51,3 +51,9 @@ z = F.mulmodSpec x y m (0 if m = 0, else x*y mod m); MulModWithReciprocal under 
 ## MustFromDecimal amd64 + environment predicates (2026-11-07)
 - lean/Fv256/Amd64/MustFromDecimal.lean: EnsuresGo (goClass P) proved, conditional on hsfd like FromDecimal. Returns: ok v -> ptr in R.rt with val256 = v; panics: io.EOF / ErrBig256Range -> v = ⟨type word of the sentinel's itab, its data word⟩; syntax -> v = ⟨static type word of *strconv.NumError itab, t⟩ with t a fresh 48-byte block in R.rt.
 - Named environment predicates (FromDecimalSpec.lean), to be listed in COVERAGE assumptions: `InitDone cfg R2 m` (io.EOF and ErrBig256Range initialised: nonzero itab+data words; R2.priv ranges well-formed) and `PanicInit cfg R R2 lo hi m` (MustFromDecimal only: sentinel itab type words readable and outside rt/window, *NumError itab static). Neither reads [RSP]. FV-C's FromHex uses an anonymous `∀ e<6, readLE (errAddrOf e) 8 ≠ 0` for the same purpose; suggest adopting InitDone-style naming repo-wide.
+
+## arm64 wrappers (2026-11-07)
+- Arm64/FromDecimal.lean and Arm64/MustFromDecimal.lean proved (no sorry), conditional on `hsfd` (arm64 SfdSummary over the wrapper's own link, fv/wb7 SfdTopSpec d3ac4b2 incl. `8 ≤ R2.depth` in Mod and the maxStr rodata facts) + NewobjectLiveContract. Extracted-free: Arm64/FromDecimalSpec (PreC, toppre_of_call, s3_reads, str_read, PanicInit/InitDone), Arm64/SfdEnvC, Arm64/SfdTopSpec (copy of d3ac4b2).
+- Callee window for SetFromDecimal is [lo, sp-16): the wrapper's z slot sits at sp-16; saved x29/x30 at sp-56/sp-48 are covered by TopPost's explicit FP/LR preservation (k5,k6).
+- ol77 build: build/mkol77.py ROOT (Extracted-free closure into build/ol77), build/lcx.sh afd|amfd FILE (arm64 FromDecimal / MustFromDecimal Extracted).
+- amd64 wrappers: Mod destructuring assumes 11 conjuncts (no depth ≥ 8); if FV-I5's amd64 SfdTopSpec adds `8 ≤ R2.depth`, add one name to the `obtain ⟨m1, ...⟩` in Amd64/FromDecimalSpec.toppre_of_call.
