@@ -36,7 +36,9 @@ def RecRegs (s S : State) : Prop :=
 `y` of `m` (local at `sp-544`), the spilled `bsr` index at `sp-16`, `y = m << clz`, the frame -/
 def RecMem (s : State) (M : Memory) (y3 : Nat) : Prop :=
   y3 = M.readLE ((s.regs 4).toNat - 520) 8 ∧
-  M.readLE ((s.regs 4).toNat - 16) 8 = 63 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8) ∧
+  (M.readLE ((s.regs 4).toNat - 16) 8 = 63 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8) ∧
+    M.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+    M.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat) ∧
   M.readLE ((s.regs 4).toNat - 544) 32 =
     Fv256.Spec.lsh (s.mem.readLE (s.regs 0).toNat 32) (Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8)) ∧
   MemFrame s.mem M [((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)]
@@ -45,11 +47,15 @@ def RecMem (s : State) (M : Memory) (y3 : Nat) : Prop :=
 theorem RecMem.write {s : State} {M : Memory} {y3 : Nat} (h : RecMem s M y3) (a k v : Nat) (hsp : 576 ≤ (s.regs 4).toNat)
     (h1 : (s.regs 4).toNat - 576 ≤ a) (h2 : a + k ≤ (s.regs 4).toNat + 48)
     (hy : a + k ≤ (s.regs 4).toNat - 544 ∨ (s.regs 4).toNat - 512 ≤ a)
-    (hp : a + k ≤ (s.regs 4).toNat - 16 ∨ (s.regs 4).toNat - 8 ≤ a) : RecMem s (M.writeLE a k v) y3 := by
+    (hp : a + k ≤ (s.regs 4).toNat - 16 ∨ (s.regs 4).toNat - 8 ≤ a)
+    (hret : a + k ≤ (s.regs 4).toNat ∨ (s.regs 4).toNat + 8 ≤ a := by omega)
+    (hpush : a + k ≤ (s.regs 4).toNat - 8 ∨ (s.regs 4).toNat ≤ a := by omega) : RecMem s (M.writeLE a k v) y3 := by
   obtain ⟨h3, h4, h5, h6⟩ := h
-  refine ⟨?_, ?_, ?_, h6.writeLE v (r := ((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)) (by simp) h1 h2⟩
+  refine ⟨?_, ⟨?_, ?_, ?_⟩, ?_, h6.writeLE v (r := ((s.regs 4).toNat - 576, (s.regs 4).toNat + 48)) (by simp) h1 h2⟩
   · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h3
-  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h4
+  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h4.1
+  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h4.2.1
+  · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h4.2.2
   · rw [Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]; exact h5
 
 /-- the state at `recEntry + 0xe7` (both `yh = 2^31` and not merge here): `RAX = r0`, `RSI = y3` -/
@@ -92,7 +98,7 @@ theorem seg0 (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : RecPre
   all_goals (
     have hfr := (show MemFrame _ s'.mem [((s.regs 4).toNat - 544, (s.regs 4).toNat - 544 + 32)] by janus_assumption)
     unfold RecQ0 RecRegs RecMem
-    refine ⟨s'.mem.readLE ((s.regs 4).toNat - 520) 8, ?_, ?_, ⟨?_, ?_, ?_, ?_⟩, ⟨rfl, ?_, ?_, ?_⟩, ?_, ?_⟩
+    refine ⟨s'.mem.readLE ((s.regs 4).toNat - 520) 8, ?_, ?_, ⟨?_, ?_, ?_, ?_⟩, ⟨rfl, ⟨?_, ?_, ?_⟩, ?_, ?_⟩, ?_, ?_⟩
     · first
         | (unfold r0f; rw [if_pos (by omega)]; simp [setRegF])
         | (unfold r0f; rw [if_neg (by omega)]; simp [setRegF])
@@ -104,6 +110,11 @@ theorem seg0 (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : RecPre
     · rw [hfr.readLE ((s.regs 4).toNat - 16) 8 (by simp only [Outside, and_true]; omega)]
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
       exact Nat.mod_eq_of_lt (by omega)
+    · rw [hfr.readLE (s.regs 4).toNat 8 (by simp only [Outside, and_true]; omega)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    · rw [hfr.readLE ((s.regs 4).toNat - 8) 8 (by simp only [Outside, and_true]; omega)]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      exact Nat.mod_eq_of_lt (BitVec.isLt _)
     · grab_const Fv256.Spec.lsh as hLvAll
       have hLv := hLvAll.2.2.2.2.2.2.2.1
       simp only [valueAt, hzeq] at hLv ⊢

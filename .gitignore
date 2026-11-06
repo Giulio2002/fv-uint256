@@ -1,5 +1,8 @@
+
 build/
+build/ws-*.env
 jcache/
+lean/.lake/
 NOTES.md
 stage/
 tools/__pycache__/

@@ -119,7 +119,7 @@ theorem seg1 (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry + 0xe7)) (hs
   · simp [setRegF]; exact add_self_ofNat y3
   · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]
     exact BitVec.or_comm _ _
-  · simp [setRegF]; rw [hmem.2.1]
+  · simp [setRegF]; rw [hmem.2.1.1]
   · simp [setRegF]
   · simp [setRegF]
   · simp [setRegF]

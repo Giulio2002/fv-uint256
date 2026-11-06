@@ -1,3 +1,4 @@
+import Fv256.CarrySimpV1
 import Fv256.Amd64.RecipSeg1
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
@@ -381,6 +382,40 @@ def L4ca (s S : State) (x4carcx x4carsi x4car9 x4car10 x4car11 x4car12 x4car13 x
   S.mem.readLE ((s.regs 4).toNat - 24) 8 = x4cam220 ∧
   x4cam220 < 2 ^ 64
 
+def L502 (s S : State) (x502rcx x502rbx x502rsi x502rdi x502r8 x502r9 x502r10 x502m68 x502m70 x502m98 x502ma0 x502ma8 x502m208 x502m210 x502m218 x502m220 : Nat) : Prop :=
+  S.regs 1 = BitVec.ofNat 64 x502rcx ∧
+  x502rcx < 2 ^ 64 ∧
+  S.regs 3 = BitVec.ofNat 64 x502rbx ∧
+  x502rbx < 2 ^ 64 ∧
+  S.regs 6 = BitVec.ofNat 64 x502rsi ∧
+  x502rsi < 2 ^ 64 ∧
+  S.regs 7 = BitVec.ofNat 64 x502rdi ∧
+  x502rdi < 2 ^ 64 ∧
+  S.regs 8 = BitVec.ofNat 64 x502r8 ∧
+  x502r8 < 2 ^ 64 ∧
+  S.regs 9 = BitVec.ofNat 64 x502r9 ∧
+  x502r9 < 2 ^ 64 ∧
+  S.regs 10 = BitVec.ofNat 64 x502r10 ∧
+  x502r10 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 464) 8 = x502m68 ∧
+  x502m68 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 456) 8 = x502m70 ∧
+  x502m70 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 416) 8 = x502m98 ∧
+  x502m98 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 408) 8 = x502ma0 ∧
+  x502ma0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 400) 8 = x502ma8 ∧
+  x502ma8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 48) 8 = x502m208 ∧
+  x502m208 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 40) 8 = x502m210 ∧
+  x502m210 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 32) 8 = x502m218 ∧
+  x502m218 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 24) 8 = x502m220 ∧
+  x502m220 < 2 ^ 64
+
 def L549 (s S : State) (x549rax x549rcx x549rbx x549rsi x549rdi x549r8 x549r9 x549r10 x549r13 x549r15 x549m48 x549m50 x549m58 x549m68 x549m70 x549m98 x549ma0 x549ma8 x549m1f8 x549m200 x549m208 x549m210 x549m218 x549m220 : Nat) : Prop :=
   S.regs 0 = BitVec.ofNat 64 x549rax ∧
   x549rax < 2 ^ 64 ∧
@@ -506,6 +541,96 @@ def L5e2 (s S : State) (x5e2rcx x5e2rbx x5e2rsi x5e2rdi x5e2r8 x5e2r9 x5e2r10 x5
   x5e2m218 < 2 ^ 64 ∧
   S.mem.readLE ((s.regs 4).toNat - 24) 8 = x5e2m220 ∧
   x5e2m220 < 2 ^ 64
+
+def L660 (s S : State) (x660rax x660rcx x660rdi x660r8 x660r9 x660r10 x660r15 x660m38 x660m40 x660m48 x660m50 x660m58 x660m68 x660m70 x660m98 x660ma0 x660ma8 x660m150 x660m158 x660m160 x660m168 x660m170 x660m178 x660m180 x660m188 x660m190 x660m198 x660m1a0 x660m1a8 x660m1b0 x660m1b8 x660m1c0 x660m1c8 x660m1d0 x660m1d8 x660m1e0 x660m1e8 x660m1f0 x660m1f8 x660m200 x660m208 x660m210 x660m218 x660m220 : Nat) : Prop :=
+  S.regs 0 = BitVec.ofNat 64 x660rax ∧
+  x660rax < 2 ^ 64 ∧
+  S.regs 1 = BitVec.ofNat 64 x660rcx ∧
+  x660rcx < 2 ^ 64 ∧
+  S.regs 7 = BitVec.ofNat 64 x660rdi ∧
+  x660rdi < 2 ^ 64 ∧
+  S.regs 8 = BitVec.ofNat 64 x660r8 ∧
+  x660r8 < 2 ^ 64 ∧
+  S.regs 9 = BitVec.ofNat 64 x660r9 ∧
+  x660r9 < 2 ^ 64 ∧
+  S.regs 10 = BitVec.ofNat 64 x660r10 ∧
+  x660r10 < 2 ^ 64 ∧
+  S.regs 15 = BitVec.ofNat 64 x660r15 ∧
+  x660r15 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 512) 8 = x660m38 ∧
+  x660m38 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 504) 8 = x660m40 ∧
+  x660m40 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 496) 8 = x660m48 ∧
+  x660m48 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 488) 8 = x660m50 ∧
+  x660m50 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 480) 8 = x660m58 ∧
+  x660m58 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 464) 8 = x660m68 ∧
+  x660m68 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 456) 8 = x660m70 ∧
+  x660m70 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 416) 8 = x660m98 ∧
+  x660m98 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 408) 8 = x660ma0 ∧
+  x660ma0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 400) 8 = x660ma8 ∧
+  x660ma8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 232) 8 = x660m150 ∧
+  x660m150 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 224) 8 = x660m158 ∧
+  x660m158 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 216) 8 = x660m160 ∧
+  x660m160 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 208) 8 = x660m168 ∧
+  x660m168 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 200) 8 = x660m170 ∧
+  x660m170 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 192) 8 = x660m178 ∧
+  x660m178 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 184) 8 = x660m180 ∧
+  x660m180 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 176) 8 = x660m188 ∧
+  x660m188 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 168) 8 = x660m190 ∧
+  x660m190 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 160) 8 = x660m198 ∧
+  x660m198 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 152) 8 = x660m1a0 ∧
+  x660m1a0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 144) 8 = x660m1a8 ∧
+  x660m1a8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 136) 8 = x660m1b0 ∧
+  x660m1b0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 128) 8 = x660m1b8 ∧
+  x660m1b8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 120) 8 = x660m1c0 ∧
+  x660m1c0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 112) 8 = x660m1c8 ∧
+  x660m1c8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 104) 8 = x660m1d0 ∧
+  x660m1d0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 96) 8 = x660m1d8 ∧
+  x660m1d8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 88) 8 = x660m1e0 ∧
+  x660m1e0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 80) 8 = x660m1e8 ∧
+  x660m1e8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 72) 8 = x660m1f0 ∧
+  x660m1f0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 64) 8 = x660m1f8 ∧
+  x660m1f8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 56) 8 = x660m200 ∧
+  x660m200 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 48) 8 = x660m208 ∧
+  x660m208 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 40) 8 = x660m210 ∧
+  x660m210 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 32) 8 = x660m218 ∧
+  x660m218 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 24) 8 = x660m220 ∧
+  x660m220 < 2 ^ 64
 
 def L689 (s S : State) (x689rax x689rcx x689rdx x689rsi x689rdi x689r8 x689r9 x689r10 x689r13 x689r15 x689m38 x689m40 x689m68 x689m70 x689m98 x689ma0 x689ma8 x689m150 x689m158 x689m160 x689m168 x689m170 x689m178 x689m180 x689m188 x689m190 x689m198 x689m1a0 x689m1a8 x689m1b0 x689m1b8 x689m1c0 x689m1c8 x689m1d0 x689m1d8 x689m1e0 x689m1e8 x689m1f0 x689m208 x689m210 x689m218 x689m220 : Nat) : Prop :=
   S.regs 0 = BitVec.ofNat 64 x689rax ∧
@@ -1099,6 +1224,100 @@ def L92d (s S : State) (x92drcx x92drbx x92drsi x92drdi x92dr8 x92dr9 x92dr10 x9
   S.mem.readLE ((s.regs 4).toNat - 24) 8 = x92dm220 ∧
   x92dm220 < 2 ^ 64
 
+def L9d4 (s S : State) (x9d4rax x9d4rcx x9d4rdx x9d4rbx x9d4r10 x9d4r11 x9d4r12 x9d4r13 x9d4r15 x9d4m40 x9d4m48 x9d4m50 x9d4m60 x9d4m68 x9d4m70 x9d4mc0 x9d4mc8 x9d4md0 x9d4md8 x9d4me0 x9d4m100 x9d4m160 x9d4m168 x9d4m170 x9d4m178 x9d4m180 x9d4m188 x9d4m190 x9d4m198 x9d4m1a0 x9d4m1a8 x9d4m1b0 x9d4m1b8 x9d4m1c0 x9d4m1c8 x9d4m1d0 x9d4m1d8 x9d4m1e0 x9d4m1e8 x9d4m1f0 x9d4m1f8 x9d4m200 x9d4m208 x9d4m210 x9d4m218 x9d4m220 : Nat) : Prop :=
+  S.regs 0 = BitVec.ofNat 64 x9d4rax ∧
+  x9d4rax < 2 ^ 64 ∧
+  S.regs 1 = BitVec.ofNat 64 x9d4rcx ∧
+  x9d4rcx < 2 ^ 64 ∧
+  S.regs 2 = BitVec.ofNat 64 x9d4rdx ∧
+  x9d4rdx < 2 ^ 64 ∧
+  S.regs 3 = BitVec.ofNat 64 x9d4rbx ∧
+  x9d4rbx < 2 ^ 64 ∧
+  S.regs 10 = BitVec.ofNat 64 x9d4r10 ∧
+  x9d4r10 < 2 ^ 64 ∧
+  S.regs 11 = BitVec.ofNat 64 x9d4r11 ∧
+  x9d4r11 < 2 ^ 64 ∧
+  S.regs 12 = BitVec.ofNat 64 x9d4r12 ∧
+  x9d4r12 < 2 ^ 64 ∧
+  S.regs 13 = BitVec.ofNat 64 x9d4r13 ∧
+  x9d4r13 < 2 ^ 64 ∧
+  S.regs 15 = BitVec.ofNat 64 x9d4r15 ∧
+  x9d4r15 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 504) 8 = x9d4m40 ∧
+  x9d4m40 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 496) 8 = x9d4m48 ∧
+  x9d4m48 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 488) 8 = x9d4m50 ∧
+  x9d4m50 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 472) 8 = x9d4m60 ∧
+  x9d4m60 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 464) 8 = x9d4m68 ∧
+  x9d4m68 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 456) 8 = x9d4m70 ∧
+  x9d4m70 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 376) 8 = x9d4mc0 ∧
+  x9d4mc0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 368) 8 = x9d4mc8 ∧
+  x9d4mc8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 360) 8 = x9d4md0 ∧
+  x9d4md0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 352) 8 = x9d4md8 ∧
+  x9d4md8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 344) 8 = x9d4me0 ∧
+  x9d4me0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 312) 8 = x9d4m100 ∧
+  x9d4m100 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 216) 8 = x9d4m160 ∧
+  x9d4m160 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 208) 8 = x9d4m168 ∧
+  x9d4m168 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 200) 8 = x9d4m170 ∧
+  x9d4m170 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 192) 8 = x9d4m178 ∧
+  x9d4m178 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 184) 8 = x9d4m180 ∧
+  x9d4m180 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 176) 8 = x9d4m188 ∧
+  x9d4m188 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 168) 8 = x9d4m190 ∧
+  x9d4m190 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 160) 8 = x9d4m198 ∧
+  x9d4m198 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 152) 8 = x9d4m1a0 ∧
+  x9d4m1a0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 144) 8 = x9d4m1a8 ∧
+  x9d4m1a8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 136) 8 = x9d4m1b0 ∧
+  x9d4m1b0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 128) 8 = x9d4m1b8 ∧
+  x9d4m1b8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 120) 8 = x9d4m1c0 ∧
+  x9d4m1c0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 112) 8 = x9d4m1c8 ∧
+  x9d4m1c8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 104) 8 = x9d4m1d0 ∧
+  x9d4m1d0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 96) 8 = x9d4m1d8 ∧
+  x9d4m1d8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 88) 8 = x9d4m1e0 ∧
+  x9d4m1e0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 80) 8 = x9d4m1e8 ∧
+  x9d4m1e8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 72) 8 = x9d4m1f0 ∧
+  x9d4m1f0 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 64) 8 = x9d4m1f8 ∧
+  x9d4m1f8 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 56) 8 = x9d4m200 ∧
+  x9d4m200 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 48) 8 = x9d4m208 ∧
+  x9d4m208 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 40) 8 = x9d4m210 ∧
+  x9d4m210 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 32) 8 = x9d4m218 ∧
+  x9d4m218 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat - 24) 8 = x9d4m220 ∧
+  x9d4m220 < 2 ^ 64
+
 def La06 (s S : State) (xa06rax xa06rcx xa06rdx xa06rbx xa06rdi xa06r10 xa06r11 xa06r12 xa06r13 xa06r15 xa06m40 xa06m48 xa06m50 xa06m60 xa06mc0 xa06mc8 xa06md0 xa06m100 xa06m160 xa06m168 xa06m170 xa06m178 xa06m180 xa06m188 xa06m190 xa06m198 xa06m1a0 xa06m1a8 xa06m1b0 xa06m1b8 xa06m1c0 xa06m1c8 xa06m1d0 xa06m1d8 xa06m1e0 xa06m1e8 xa06m1f0 xa06m1f8 xa06m200 xa06m210 xa06m218 xa06m220 : Nat) : Prop :=
   S.regs 0 = BitVec.ofNat 64 xa06rax ∧
   xa06rax < 2 ^ 64 ∧
@@ -1561,7 +1780,16 @@ def Lc49 (s S : State) (xc49rcx xc49rdx xc49rbx xc49rsi xc49r9 xc49r11 xc49m78 x
   S.mem.readLE ((s.regs 4).toNat - 424) 8 = xc49m90 ∧
   xc49m90 < 2 ^ 64
 
-def Ld1b (s S : State) : Prop :=
-  True
+def Ld1b (s S : State) (xd1bm240 xd1bm248 xd1bm250 xd1bm258 xd1bm260 : Nat) : Prop :=
+  S.mem.readLE ((s.regs 4).toNat + 8) 8 = xd1bm240 ∧
+  xd1bm240 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat + 16) 8 = xd1bm248 ∧
+  xd1bm248 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat + 24) 8 = xd1bm250 ∧
+  xd1bm250 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat + 32) 8 = xd1bm258 ∧
+  xd1bm258 < 2 ^ 64 ∧
+  S.mem.readLE ((s.regs 4).toNat + 40) 8 = xd1bm260 ∧
+  xd1bm260 < 2 ^ 64
 
 end Fv256.Amd64.RecipSeg
