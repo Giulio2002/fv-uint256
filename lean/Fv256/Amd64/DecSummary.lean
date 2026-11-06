@@ -189,7 +189,7 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
           simp only [outside_append, outside_cons] at h ⊢
           obtain ⟨h1, h2, -⟩ := h
           exact ⟨h1, by omega, by omega, trivial⟩)
-      refine ⟨h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩?_, fun h => absurd h (by simp only [valueAt]; omega)⟩
+      refine ⟨h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_, fun h => absurd h (by simp only [valueAt]; omega)⟩
       simp only [DecAt]; left
       simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
       have hlen := hr1
