@@ -78,3 +78,19 @@ elab "grab_proj_of " fr:ident f:ident i:num " as " n:ident : tactic => do
           return
     | none => pure ()
   throwError "grab_proj_of: no hypothesis st.{f.getId} {i.getNat} = _ for the state of {fr.getId}"
+
+/-- `grab_last_const c as h`: name `h` the LAST local hypothesis whose type mentions the constant `c` (the newest one: a callee's
+output frame comes after the frames of the caller's own earlier steps). -/
+elab "grab_last_const " c:ident " as " n:ident : tactic => do
+  let cn ← realizeGlobalConstNoOverloadWithInfo c
+  let g ← getMainGoal
+  let mut found : Option (FVarId × Expr) := none
+  for d in (← g.getDecl).lctx do
+    if d.isImplementationDetail then continue
+    let ty ← instantiateMVars d.type
+    if (ty.find? fun e => e.isConstOf cn).isSome then found := some (d.fvarId, ty)
+  match found with
+  | some (fv, ty) =>
+    let (_, g') ← g.withContext (g.note n.getId (mkFVar fv) ty)
+    replaceMainGoal [g']
+  | none => throwError "grab_last_const: no hypothesis mentions {cn}"

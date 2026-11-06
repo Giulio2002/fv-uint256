@@ -178,7 +178,8 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
     have hX6 : False → Disjoint (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) 0 32 := fun h => h.elim
     have hR30 : S.mem.readLE (s.sp.toNat - 384) 8 = (s.regs 30).toNat := hsv2
     janus_run [hdE, q9, q11, hdlm, hR30] calls [hc]
-    rename_i w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright hbrx
+    grab_const Janus.Contracts.StrAt as hright
+    grab_frame 4096 as hleft
     obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
     have hdig : strBytes S2.mem (s.sp.toNat - 384 + 94 + (98 - decLen v)) (decLen v) = decBytes v :=
       strBytes_dec _ _ _ (fun k hk => by
@@ -198,7 +199,7 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
         hfr.mono (fun a n h => by simp only [outside_append, outside_cons, Outside, and_true] at h ⊢; omega)
       have h2 : MemFrame S.mem S2.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) :=
         qfr.mono (fun a n h => by simp only [outside_append, outside_cons, Outside, and_true] at h ⊢; omega)
-      have h3 : MemFrame S2.mem w2 (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) :=
+      have h3 : MemFrame S2.mem _ (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) :=
         hleft.mono (fun a n h => by
           simp only [outside_append, outside_cons] at h ⊢
           obtain ⟨h1, h2, -⟩ := h
@@ -209,8 +210,8 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
       have h3' : 2 ≤ decLen v := by
         rw [decLen_ge _ (by omega), decLen_ge _ (by omega)]
         have := decLen_pos (v / 10 / 10); omega
-      have hlen : BitVec.toNat w7 = decLen v := by
-        rw [hr1]; first | simp [Spec.strBytes] | simp [strBytes]
+      have hlen := hr1
+      simp only [strBytes, List.length_map, List.length_range] at hlen
       rcases hat with h | h | h | h <;> first | exact h.2.2 | (exfalso; omega)
   · by_cases hz0 : v = 0
     · have hl0 : s.mem.readLE z.toNat 8 = 0 := by rw [hvl.1] at hz0; omega
