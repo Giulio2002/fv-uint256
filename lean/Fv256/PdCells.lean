@@ -97,3 +97,11 @@ theorem cOf_plen (z : Nat) : cOf (decLen z) = plen z := by
   unfold cOf plen; simp only [show decLen z ≠ 0 by omega, if_false]
 
 end Fv256.E
+
+namespace Fv256.E
+
+theorem cOf_mono (a b : Nat) (h : a ≤ b) : cOf a ≤ cOf b := by
+  unfold cOf
+  split <;> split <;> omega
+
+end Fv256.E
