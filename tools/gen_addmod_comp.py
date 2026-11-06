@@ -192,42 +192,76 @@ def gen(name, clone, ov):
   · rw [u0, sp3n] at q4frame
     exact f3.trans q4frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)""")
     else:
-        HDM = "rw [mptr]; omega"
-        HMB = "rw [mptr]; omega" if clone else "rw [mptr]; exact hmb"
-        HMA = "rw [hacc3, mptr]; exact s.mem.accessible_sub hsw (Or.inl rfl) (by omega) (by omega)" if clone else "rw [hacc3, mptr]; exact hma"
-        w(f"""  refine seg_mono (segEF S3 (s.regs 30) (s.regs 29) h3pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
+        HMB = "omega" if clone else "exact hmb"
+        HMA = "exact s.mem.accessible_sub hsw (Or.inl rfl) (by omega) (by omega)" if clone else "exact hma"
+        w(f"""  refine seg_trans (segE S3 h3pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
   · omega
   · omega
   · omega
   · rw [hacc3]; exact s.mem.accessible_mono hsw (by omega) (by omega)
   · rw [hacc3]; exact hrod
-  · rw [u28]; exact hg1
-  · rw [u28, hacc3]; exact hg2
-  · {G3}
-  · rw [u28, sp3n]; omega
   · rw [u0]; exact hzb
   · rw [u0, hacc3]; exact hza
-  · {HMB}
-  · {HMA}
   · rw [u0, sp3n]; omega
-  · rw [mptr, sp3n]; omega
-  · rw [mptr, u0]; omega
-  · rw [mval]; exact hm32
-  · exact hret_3
+  intro S4 h4pc ⟨q4pc, q4sp, q40, q41, q42, q43, q44, q45, q46, q47, q4r, q4frame, q4spill, q4sum, q4rem, q4quot⟩
+  have sp4n : S4.sp.toNat = s.sp.toNat - 368 := by rw [q4sp]; exact sp3n
+  have v0 : S4.regs 6 = S3.regs 8 := q46
+  have hmem4 : ∀ a n, (a + n ≤ S3.sp.toNat + 144 ∨ S3.sp.toNat + 328 ≤ a) → (a + n ≤ S3.sp.toNat + 376 ∨ S3.sp.toNat + 384 ≤ a) →
+      S4.mem.readLE a n = S3.mem.readLE a n := by
+    intro a n h h'
+    apply q4frame.readLE
+    simp only [Outside, and_true]; omega
+  have hacc4 : ∀ a n w, S4.mem.accessible a n w = s.mem.accessible a n w := by
+    intro a n w; rw [q4frame.accessible, hacc3]
+  have mval4 : S4.mem.readLE (S4.regs 6).toNat 32 = s.mem.readLE (s.regs 3).toNat 32 := by
+    rw [v0, hmem4 _ _ (by omega) (by omega), mval]
+  refine seg_mono (segF S4 (s.regs 30) (s.regs 29) (s.regs 0) (S3.mem.readLE (s.regs 0).toNat 32) h4pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
+  · omega
+  · omega
+  · omega
+  · rw [hacc4]; exact s.mem.accessible_mono hsw (by omega) (by omega)
+  · rw [q40, q4sp]
+  · rw [q41]
+  · rw [q42]
+  · rw [q43, q4sp]
+  · rw [q44]
+  · rw [q45]
+  · rw [q47, q4sp]
+  · rw [q4sp]; exact q4quot
+  · rw [q4sp]; exact q4rem
+  · rw [q4sp]; rw [u0] at q4sum; exact q4sum
+  · rw [q4sp, q4spill, u0]
+  · have := q4r 28 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+    rw [this, u28]; exact hg1
+  · have := q4r 28 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+    rw [this, u28, hacc4]; exact hg2
+  · have := q4r 28 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+    rw [this, u28, hmem4 ((s.regs 28).toNat + 16) 8 (by omega) (by omega), hmem3 ((s.regs 28).toNat + 16) 8 (by omega), {H2.replace('_ _', '((s.regs 28).toNat + 16) 8')}, sp4n]; omega
+  · have := q4r 28 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+    rw [this, u28, sp4n]; omega
+  · exact hzb
+  · rw [hacc4]; exact hza
+  · rw [v0, mptr]; {HMB}
+  · rw [v0, mptr, hacc4]; {HMA}
+  · rw [sp4n]; omega
+  · rw [v0, mptr, sp4n]; omega
+  · rw [mval4]; exact hm32
+  · rw [q4sp, hmem4 _ _ (by omega) (by omega)]; exact hret_3
   · exact h30a
   · exact h30b
-  · exact hx29_3
-  intro S4 ⟨q4pc, q4sp, q40, q428, q429, q418, q430, q4val, q4frame⟩
-  refine ⟨q4pc, ?_, ?_, ?_, ?_, q429, q430, ?_, ?_⟩
-  · rw [q4sp, sp3]; exact BitVec.sub_add_cancel _ _
-  · rw [q40, u0]
-  · rw [q418, u18]
-  · rw [q428, u28]
-  · rw [u0, mval, vz] at q4val
-    rw [q4val]
+  · rw [q4sp, hmem4 _ _ (by omega) (by omega)]; exact hx29_3
+  intro S5 ⟨q5pc, q5sp, q50, q528, q529, q518, q530, q5val, q5frame⟩
+  refine ⟨q5pc, ?_, ?_, ?_, ?_, q529, q530, ?_, ?_⟩
+  · rw [q5sp, q4sp, sp3]; exact BitVec.sub_add_cancel _ _
+  · rw [q50]
+  · rw [q518, q4r 18 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), u18]
+  · rw [q528, q4r 28 (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), u28]
+  · rw [q5val, mval4, vz]
     simp [Fv256.F.addmodSpec, hm32]
-  · rw [u0, sp3n] at q4frame
-    exact f3.trans q4frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)""")
+  · rw [sp4n] at q5frame
+    have f4 : MemFrame s.mem S4.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] :=
+      f3.trans q4frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
+    exact f4.trans q5frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)""")
     w("")
     return "\n".join(L)
 
