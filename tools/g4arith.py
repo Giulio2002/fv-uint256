@@ -207,3 +207,17 @@ def bounded_units(cuts, name, finalw, dropexp=256, tactic='omega'):
         u['allv'] = allv; u['in_act'] = in_act; u['lname'] = '%s_u%d' % (name, k); u['exact'] = exact[k]; u['lhs'] = lhs; u['rhs'] = rhs
         text += th
     return text, units, inact, om, exact
+
+def chain_full(cuts):
+    """units with renamed equations and out-args (actual names), plus per-cut actual name lists."""
+    units = [g4chain.load(a, b) for a, b in zip(cuts, cuts[1:])]
+    cutnames = [units[0]['invars']]
+    for k in range(1, len(units)):
+        u = units[k]; actual = units[k - 1]['outargs']
+        mp = dict(zip(u['invars'], actual))
+        sub = lambda s, mp=mp: re.sub(r'\bx[0-9a-f]+[a-z0-9]+\b', lambda m: mp.get(m.group(0), m.group(0)), s)
+        u['eqs'] = [(n, sub(e)) for n, e in u['eqs']]
+        u['outargs'] = [mp.get(a, a) for a in u['outargs']]
+        cutnames.append(actual)
+    cutnames.append(units[-1]['outargs'])
+    return units, cutnames

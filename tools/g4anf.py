@@ -4,15 +4,15 @@ subterm by fresh variables (with the facts  2^64 * c + m = A,  m < 2^64)  so tha
 import re
 D64 = '18446744073709551616'
 def tokenize(s):
-    return re.findall(r'\(|\)|\+|\*|/|%|[A-Za-z0-9_]+', s)
+    return re.findall(r'\(|\)|\+|-|\*|/|%|[A-Za-z0-9_]+', s)
 class P:
     def __init__(self, toks): self.t = toks; self.i = 0
     def peek(self): return self.t[self.i] if self.i < len(self.t) else None
     def next(self): x = self.t[self.i]; self.i += 1; return x
     def expr(self):
         a = self.mul()
-        while self.peek() == '+':
-            self.next(); b = self.mul(); a = ('+', a, b)
+        while self.peek() in ('+', '-'):
+            op = self.next(); b = self.mul(); a = (op, a, b)
         return a
     def mul(self):
         a = self.atom()
