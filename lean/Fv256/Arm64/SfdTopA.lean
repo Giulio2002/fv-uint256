@@ -104,8 +104,9 @@ theorem top_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (BitVec.ofNat 64 0xb89f4) s
       (fun S => TopSt R R2 T b L lo hi z pS s S ∧ S.regs 0 = z ∧
         S.regs 2 = nS - BitVec.ofNat 64 (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ∧
-        (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < nS.toNat →
-          S.regs 1 = pS + BitVec.ofNat 64 (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat))) := by
+        (∃ k, k ≤ plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat ∧
+          (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < nS.toNat → k = plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ∧
+          S.regs 1 = pS + BitVec.ofNat 64 k)) := by
   have hpre' := hpre
   obtain ⟨hl1, hl2, h0, h1, h2, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hMaxA, hMaxO, hMaxR, hMaxB, hErrA, hErrO, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA⟩ := hpre
   have hEnv' := hEnv
@@ -125,7 +126,8 @@ theorem top_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     janus_run [hpc, h0, h1, h2, hacc, hg, e7, e4, hmod16, hpe] until [0xb89f4]
     all_goals (
       refine ⟨hintro _ rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) rfl, ?_⟩
-      rw [hpe0]; simp)
+      rw [hpe0]
+      exact ⟨by simp, 0, Nat.le_refl _, fun h => absurd h (by omega), by simp⟩)
   · have hn' : nS.toNat ≠ 0 := fun h => hn (BitVec.eq_of_toNat_eq h)
     have hpA' : s.mem.accessible pS.toNat 1 false = true :=
       Arm64.Memory.accessible_mono _ hpA (by omega) (by omega)
@@ -142,13 +144,16 @@ theorem top_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
       janus_run [hpc, h0, h1, h2, hn, hacc, hg, e7, e4, hmod16, hpA', hb, hpe] until [0xb89f4]
       all_goals (
         refine ⟨hintro _ rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) rfl, ?_⟩
-        intro hlt
-        rw [Fv256.TopMath.asr_and1 _ hm, if_neg (hne (by omega))])
+        by_cases hlt : 1 < nS.toNat
+        · exact ⟨1, Nat.le_refl _, fun _ => rfl, by rw [Fv256.TopMath.asr_and1 _ hm, if_neg (hne hlt)]⟩
+        · have h1 : nS = 1#64 := BitVec.eq_of_toNat_eq (by simp; omega)
+          have h0 : nS - 1#64 = 0#64 := by rw [h1]; decide
+          exact ⟨0, by omega, fun h => by omega, by rw [Fv256.TopMath.asr_and1 _ hm, if_pos h0]⟩)
     · have hpe : plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 0 :=
         pe_not _ _ (by rw [hb0]; intro h; exact hb ((byte_eq _ (by simpa using hbl)).2 h))
       janus_run [hpc, h0, h1, h2, hn, hacc, hg, e7, e4, hmod16, hpA', hb, hpe] until [0xb89f4]
       all_goals (
         refine ⟨hintro _ rfl (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) rfl, ?_⟩
-        exact fun _ => trivial)
+        exact ⟨0, Nat.le_refl _, fun _ => rfl, by simp⟩)
 
 end Fv256.Arm64.SfdTop

@@ -27,7 +27,7 @@ def DecPre (p len k : BitVec 64) (s : State) : Prop :=
 def DecPost (s s' : State) : Prop :=
   s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
   128 ≤ (s'.regs 0).toNat ∧ (s'.regs 0).toNat < 2 ^ 32 ∧
-  MemFrame s.mem s'.mem [(s.sp.toNat - 24, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 16)]
+  MemFrame s.mem s'.mem [(s.sp.toNat - 24, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]
 
 theorem mask_keep' (len k : BitVec 64) (hk : k.toNat < len.toNat) (hl : len.toNat < 2 ^ 63) :
     k.toNat &&& ((k - len).sshiftRight 63).toNat = k.toNat := by
