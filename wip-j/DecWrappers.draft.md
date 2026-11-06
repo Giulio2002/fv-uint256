@@ -28,3 +28,14 @@ Source: uint256 master 48f3f44 decimal.go / conversion.go. Spec base: Fv256.I.de
 - FromDecimal (44) / MustFromDecimal (45): newobject(Int) + SetFromDecimal (+ gopanic for Must).
 - Scan (95): type switch + scanScientificFromString (IndexByte, Exp, MulOverflow, GtUint64).
 - All of them share the heap/runtime-model plumbing of SetFromDecimal (R, R2, T, b, L, hif hnew hmg hmv hwb1 hwb2): the wrappers' Pre should be TopPre-like for the callee plus the wrapper's own stack window; start with UnmarshalJSON/UnmarshalText once FV-I3's top proof (extCfg) closes, since every wrapper needs `extCfg` to instantiate SfdSummary on Extracted.
+
+## Spec-level statements for UnmarshalText / UnmarshalJSON (2026-11-07, to write once the SfdTopSpec Mod fix lands)
+Notation: bs = bytes of the input slice (ptr p, len n, cap c); dec(bs) := Fv256.I.decParse (bytesAt mem p) n; hex(bs) := parseHex (FV-C's HexLemmas / SetFromHex spec).
+- UnmarshalText(z, input): let isHex := n >= 2 ∧ b0 = '0' ∧ (b1 = 'x' ∨ b1 = 'X').
+    isHex  -> result of z.fromHex(string(input)) : ok v -> z = v, err nil; error e -> the fromHex error (ErrEmptyNumber/ErrSyntax/ErrBig256Range/leading-zero variants per hex spec), z unspecified/zeroed per hex spec.
+    ¬isHex -> result of SetFromDecimal(string(input)): the four decParse outcomes exactly as for FromDecimal (z updated only on ok / eof zeroes z / range leaves z / syntax unspecified).
+  Both branches copy the input first (runtime.slicebytetostring; for n <= 32 it uses the caller's 32-byte stack buffer, no allocation): the object copied is outside the live set and does not change the bytes the parser sees (str_read-style lemma needed for the copy).
+- UnmarshalJSON(z, input): quoted := n >= 2 ∧ b0 = '"' ∧ b[n-1] = '"'.
+    ¬quoted -> as the decimal branch above on the whole input (so `"` alone and ` 12` are syntax errors; unquoted hex is a syntax error).
+    quoted  -> UnmarshalText on input[1:n-1] (so `"0x1f"` hex, `"12"` decimal, `""` -> io.EOF, `"0x"` -> hex error).
+- Both need: the slicebytetostring runtime contract (hypothesis, from the pin's U-SBTS-POST), a Live heap (R, b, L) budget for the copy, and the SfdSummary hypothesis for the decimal branch; UnmarshalText additionally the amd64/arm64 fromHex library summary (FV-C family; check it is over a library program, not Extracted).
