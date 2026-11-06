@@ -6,6 +6,27 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
 
 namespace Fv256.Arm64.SfdFd
 
+theorem TeObj.congr {R : RtInv} {b : Nat} {L : List (Nat × Nat)} {fp fl sp sl : BitVec 64} {s1 s0 s' s'' : State} {q t : Nat}
+    (h : TeObj R b L fp fl sp sl s1 s' q t) (h28 : s1.regs 28 = s0.regs 28)
+    (he : s1.mem.readLE strconvErrSyntax 8 = s0.mem.readLE strconvErrSyntax 8)
+    (he2 : s1.mem.readLE (strconvErrSyntax + 8) 8 = s0.mem.readLE (strconvErrSyntax + 8) 8)
+    (hb : ∀ k, k < sl.toNat → s1.mem.readLE (sp.toNat + k) 1 = s0.mem.readLE (sp.toNat + k) 1)
+    (hm : s''.mem = s'.mem) : TeObj R b L fp fl sp sl s0 s'' q t := by
+  obtain ⟨o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12⟩ := h
+  unfold TeObj
+  rw [hm]
+  refine ⟨o1, o2, o3, o4, o5, o6, o7, o8, ?_, ?_, ?_, ?_⟩
+  · rw [o9, he]
+  · rw [o10, he2]
+  · intro k hk; rw [o11 k hk, hb k hk]
+  · rw [← h28]; exact o12
+
+theorem out_sub (x k lo hi p n : Nat) (h : p + n ≤ lo ∨ hi ≤ p) (h1 : p ≤ x) (h2 : x + k ≤ p + n) :
+    x + k ≤ lo ∨ hi ≤ x := by omega
+
+theorem win_sub (a n lo hi lo' hi' : Nat) (h : a + n ≤ lo ∨ hi ≤ a) (h1 : lo ≤ lo') (h2 : hi' ≤ hi) :
+    a + n ≤ lo' ∨ hi' ≤ a := by omega
+
 theorem bvo (x : BitVec 64) : x = BitVec.ofNat 64 x.toNat := by rw [BitVec.ofNat_toNat, BitVec.setWidth_eq]
 
 set_option maxHeartbeats 64000000 in
@@ -78,7 +99,7 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
     have hal : S'.sp.toNat % 16 = 0 := by rw [hr_sp]; omega
     refine Fv256.Arm64.SegCompose.seg_trans (fd_ret_to_mid impl S' s.sp.toNat (nS.toNat - 19 * i) RA hRA (by rw [hpc', c6]) hr_sp hacc hr hsp64 hal) ?_
     intro S2 hpc2 hq2
-    obtain ⟨q1, q2, q3, q4, q5, q6, q7, q8, q9, q10⟩ := hq2
+    obtain ⟨q1, q2, q3, q4, q5, qr2, q6, q7, q8, q9, q10⟩ := hq2
     have hle : nS - BitVec.ofNat 64 (19 * i) = BitVec.ofNat 64 (nS.toNat - 19 * i) := by
       apply BitVec.eq_of_toNat_eq
       simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := nS.isLt; omega
@@ -148,6 +169,96 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
       · rw [q7, k28, c4, r28]
       · rw [q2]; exact hFS'
     all_goals sorry
-  · sorry
+  · -- error
+    have hr_sp : S'.sp.toNat = s.sp.toNat - 160 := by rw [k1]; exact hsp1
+    have hEnvS' := hEnvS
+    obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnvS'
+    have hOut : ∀ a n, s.sp.toNat - 112 ≤ a → a + n ≤ hi → lo ≤ a →
+        Outside a n (R.rt ++ R2.priv ++ [(s.sp.toNat - 4440, s.sp.toNat - 112)]) := by
+      intro a n h1 h2 h3
+      simp only [outside_append, outside_cons, outside_nil, and_true]
+      exact ⟨⟨Outside.of_sub e9 (by omega) (by omega), Outside.of_sub e10 (by omega) (by omega)⟩, by omega⟩
+    have hbyt : ∀ k, k < nS.toNat - 19 * i - clo → Fv256.C.bytesAt S1.mem (pS.toNat + clo) k =
+        Fv256.C.bytesAt s.mem pS.toNat (clo + k) := by
+      intro k hk; unfold Fv256.C.bytesAt
+      rw [hFs1.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; rw [Nat.add_assoc]
+    rw [hpn, hln] at hA
+    have hnot : ¬ allDec (Fv256.C.bytesAt s.mem pS.toNat) (chunkBounds nS.toNat 0 i).1 (chunkBounds nS.toNat 0 i).2 := by
+      intro hh
+      apply hA
+      rw [chunk_allDec_iff (Fv256.C.bytesAt s.mem pS.toNat) (Fv256.C.bytesAt S1.mem (pS.toNat + clo)) clo
+        (nS.toNat - 19 * i - clo) hbyt]
+      have e : clo + (nS.toNat - 19 * i - clo) = (chunkBounds nS.toNat 0 i).2 := by rw [chunk_hi]; omega
+      rw [e, hclo]; exact hh
+    have hfd : fromDec (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat 0 = .syntax clo (nS.toNat - 19 * i - clo) := by
+      refine fromDec_syntax_of_some _ _ _ _ (by omega) ?_
+      rw [hfb, fb_bad _ _ _ hi5 hrem hnot, chunk_hi, hclo]
+    have hacc : S'.mem.accessible (S'.sp.toNat + 48) 8 false = true := by
+      rw [hfrE.accessible, hF1.accessible]
+      exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ e5 (by omega) (by omega))
+    have hr : S'.mem.readLE (S'.sp.toNat + 48) 8 = nS.toNat - 19 * i := by
+      have ea : S'.sp.toNat + 48 = s.sp.toNat - 112 := by omega
+      rw [ea, hfrE.readLE _ _ (hOut _ _ (by omega) (by omega) (by omega)), c1]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+      rw [show (256:Nat) ^ 8 = 2 ^ 64 from rfl]; have := nS.isLt; simp only [Nat.reducePow] at this; omega
+    have hsp64 : S'.sp.toNat + 48 < 2 ^ 64 := by omega
+    have hal : S'.sp.toNat % 16 = 0 := by rw [hr_sp]; omega
+    refine Fv256.Arm64.SegCompose.seg_trans (fd_ret_to_mid impl S' s.sp.toNat (nS.toNat - 19 * i) RA hRA (by rw [hpc', c6]) hr_sp hacc hr hsp64 hal) ?_
+    intro S2 hpc2 hq2
+    obtain ⟨q1, q2, q3, q4, q5, qr2, q6, q7, q8, q9, q10⟩ := hq2
+    have hS2sp : S2.sp.toNat = s.sp.toNat - 160 := by rw [q3]; exact hr_sp
+    have hx29 : S2.mem.readLE (S2.sp.toNat - 8) 8 = (s.regs 29).toNat := by
+      have := kfp; rw [hsp1, show s.sp.toNat - 160 - 8 = s.sp.toNat - 168 by omega] at this
+      rw [hS2sp, show s.sp.toNat - 160 - 8 = s.sp.toNat - 168 by omega, q2, this, hS1rd _ (by omega)]; exact m2'
+    have hx30 : S2.mem.readLE S2.sp.toNat 8 = (s.regs 30).toNat := by
+      have := klr; rw [hsp1] at this
+      rw [hS2sp, q2, this, hS1rd _ (by omega)]; exact m1
+    have hacc2 : S2.mem.accessible (S2.sp.toNat - 8) 16 false = true := by
+      rw [q2, hfrE.accessible, hF1.accessible]
+      exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ e5 (by omega) (by omega))
+    have hz1' : S2.regs 1 ≠ 0 := by
+      rw [q5, hz3]; intro h; have := congrArg BitVec.toNat h; simp at this
+    refine Fv256.Arm64.SegCompose.seg_mono (fd_err_ret impl S2 (s.regs 29) (s.regs 30) q1 hz1' hx29 hx30 hacc2
+      (by omega) (by omega) (by omega) (by omega) (by omega)) ?_
+    intro S'' hq''
+    obtain ⟨u1, u0, u2, u29, u28, u18, umem⟩ := hq''
+    have hpD' : pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat := hpD
+    have hst0 : Outside strconvErrSyntax 16 [(lo, hi), (z.toNat, z.toNat + 32)] := by
+      have a1 := e14 (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
+      have a2 := hzS (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
+      simp only [outside_cons, outside_nil, and_true, Nat.add_sub_cancel_left] at a1 a2 ⊢
+      exact ⟨a1, a2⟩
+    unfold FdPost
+    refine ⟨?_, ?_, ?_, ?_, Or.inr (Or.inr ⟨clo, nS.toNat - 19 * i - clo, hfd, q, t, ?_, ?_, ?_, ?_⟩)⟩
+    · rw [u1, q3, k1, c2, rsp]; bv_omega
+    · rw [u29]
+    · rw [u28, q7, k28, c4, r28]
+    · rw [u18, q9, k18, c5, r18]
+    · rw [u0, q5]; exact hz3
+    · rw [u2, qr2]; exact hz2
+    · have hpn' : (BitVec.ofNat 64 (pS.toNat + clo)).toNat = pS.toNat + clo := by rw [← hp]; exact hpn
+      have hln' : (BitVec.ofNat 64 (nS.toNat - 19 * i - clo)).toNat = nS.toNat - 19 * i - clo := by rw [← hl]; exact hln
+      rw [hp, hl] at hobj
+      refine TeObj.congr hobj (by rw [c4, r28]) ?_ ?_ ?_ (by rw [umem, q2])
+      · exact hFs1.readLE _ _ (Outside.of_sub hst0 (Nat.le_refl _) (by decide))
+      · exact hFs1.readLE _ _ (Outside.of_sub hst0 (by decide) (by decide))
+      · intro k hk
+        rw [hpn']; rw [hln'] at hk
+        refine hFs1.readLE _ _ ?_
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨out_sub _ _ _ _ _ _ hpC (by omega) (by omega), out_sub _ _ _ _ _ _ hpD' (by omega) (by omega)⟩
+    · have hFB1 : MemFrame s.mem S1.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) :=
+        hFs1.mono (by
+          intro a n h
+          simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+          exact h.2)
+      have hFB2 : MemFrame S1.mem S'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) :=
+        hfrE.mono (by
+          intro a n h
+          simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+          exact ⟨h.1, win_sub _ _ _ _ _ _ h.2.1 (by omega) (by omega)⟩)
+      have h3 : MemFrame S'.mem S''.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
+        rw [umem, q2]; exact MemFrame.refl _ _
+      exact (hFB1.trans hFB2 (fun a n h => ⟨h, h⟩)).trans h3 (fun a n h => ⟨h, h⟩)
 
 end Fv256.Arm64.SfdFd
