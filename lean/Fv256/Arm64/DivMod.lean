@@ -6,286 +6,311 @@ import Fv256.UtilB
 import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.UtilH
-import Fv256.Arm64.ChainProg
+import Fv256.Arm64.DivModLib
+import Fv256.Arm64.DivModBridge
 import Fv256.Arm64.CodeIn
-import Fv256.Arm64.UdivremFinal
-import Fv256.Arm64.DivLemmas
-import Fv256.Arm64.DivMLem
-import Fv256.Arm64.DivMGlue
+import Fv256.Arm64.DivMSlots
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
+open Fv256.Arm64.DivModLib
 
 namespace Fv256.Arm64.DivMod
 
-set_option maxRecDepth 200000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
-  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
-
 def intType : Nat := Extracted.dataAddr.«type:uint256.Int#33f34945»
 
-theorem outside_stk {a n : Nat} {rt : List (Nat × Nat)} {lo hi : Nat} (h1 : Outside a n rt) (h2 : a + n ≤ lo ∨ hi ≤ a) :
-    Outside a n (rt ++ [(lo, hi)]) := by
-  simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true]
-  exact ⟨h1, h2⟩
-
-theorem div64_goal (x y : Nat) (hx : x < 2 ^ 64) (hy : y ≠ 0) : x / y % 18446744073709551616 = Fv256.B.divSpec x y := by
-  rw [Fv256.B.divSpec_of_ne _ _ hy]
-  exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_le_self _ _) (by simpa using hx))
-
-theorem mod64_goal (x y : Nat) (hx : x < 2 ^ 64) (hy : y ≠ 0) :
-    (18446744073709551616 - x / y * y % 18446744073709551616 + x) % 18446744073709551616 + 18446744073709551616 * 0 +
-      340282366920938463463374607431768211456 * 0 + 6277101735386680763835789423207666416102355444464034512896 * 0 =
-    Fv256.B.modSpec x y := by
-  rw [Fv256.B.modSpec_of_ne _ _ hy]
-  have h3 : x / y * y ≤ x := Nat.div_mul_le_self _ _
-  have h4 := Nat.mod_add_div x y
-  have hx' : x < 18446744073709551616 := by simpa using hx
-  rw [Nat.mod_eq_of_lt (by omega : x / y * y < 18446744073709551616)]
-  simp only [Nat.mul_zero, Nat.add_zero]
-  have := Nat.mul_comm y (x / y)
-  omega
-
-abbrev dm : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).DivMod"
-
-set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-/-- The code after the `udivrem` call (`+0x130`): copy the quotient to `z` and the remainder to `m'`, return. -/
-theorem partC (impl : List Segment) (rt : List (Nat × Nat)) (z m' : Nat) (ret : Nat) (Q R : Nat)
-    (hret : RetAddr (Extracted.program.link impl) ret) (s S : State)
-    (hal : s.sp.toNat % 16 = 0) (hb : 4256 ≤ s.sp.toNat) (ha : s.sp.toNat + 40 ≤ 2 ^ 48)
-    (hdz : z + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ z)
-    (hdm : m' + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ m')
-    (hzm : z + 32 ≤ m' ∨ m' + 32 ≤ z)
-    (hzb : z + 32 ≤ 2 ^ 48) (hmb : m' + 32 ≤ 2 ^ 48)
-    (hpc : S.pc = BitVec.ofNat 64 (dm + 0x130)) (hsp : S.sp.toNat = s.sp.toNat - 160)
-    (h18 : S.regs 18 = s.regs 18) (h28 : S.regs 28 = s.regs 28)
-    (hfr : MemFrame s.mem S.mem (rt ++ [(s.sp.toNat - 4256, s.sp.toNat + 40)]))
-    (hw : s.mem.accessible (s.sp.toNat - 4256) (4256 + 40) true = true)
-    (hzw : s.mem.accessible z 32 true = true) (hmw : s.mem.accessible m' 32 true = true)
-    (hretslot : S.mem.readLE S.sp.toNat 8 = ret)
-    (hbp : S.mem.readLE (S.sp.toNat - 8) 8 = (s.regs 29).toNat)
-    (hz8 : S.mem.readLE (S.sp.toNat + 168) 8 = z) (hm8 : S.mem.readLE (S.sp.toNat + 144) 8 = m')
-    (hq : Fv256.B.wv S.mem (S.sp.toNat + 112) 4 = Q) (hr : Fv256.B.wv S.mem (S.sp.toNat + 80) 4 = R) :
-    Reaches ((Extracted.program.link impl).withExit ret) S
-      (IsReturn fun s' => ABIReturn s s' ∧ s'.regs 0 = BitVec.ofNat 64 z ∧
-        (s'.regs 1).toNat = m' ∧ val256 s'.mem z = Q ∧ val256 s'.mem m' = R ∧
-        MemFrame s.mem s'.mem (rt ++ [(z, z + 32), (m', m' + 32), (s.sp.toNat - 4256, s.sp.toNat + 40)])) := by
-  have hret48 := hret.user
-  have hspal : S.sp.toNat % 16 = 0 := by omega
-  have hfa := hfr.accessible
-  have hstk : S.mem.accessible (S.sp.toNat - 4096) 4296 true = true := by
-    rw [hfa, hsp]; exact Janus.Arm64.Memory.accessible_mono _ hw (by omega) (by omega)
-  have hstkr : S.mem.accessible (S.sp.toNat - 4096) 4296 false = true := Janus.Arm64.Memory.accessible_read_of_write _ hstk
-  have hzb' : S.mem.accessible z 32 true = true := by rw [hfa]; exact hzw
-  have hmb' : S.mem.accessible m' 32 true = true := by rw [hfa]; exact hmw
-  simp only [dm, reduceSegAddr, Nat.reduceAdd] at hpc
-  have hq' := hq
-  have hr' := hr
-  simp only [Fv256.B.wv4_eq] at hq' hr'
-  rw [Util.readLE_32] at hq' hr'
-  janus_run [Util.readLE_32, hretslot, hbp, hz8, hm8, hq', hr']
-  simp only [Nat.add_assoc, Nat.reduceAdd] at hq' hr'
-  refine ⟨?_, ?_⟩
-  · apply BitVec.eq_of_toNat_eq
-    simp only [BitVec.toNat_add, BitVec.toNat_ofNat]
-    have := s.sp.isLt
-    omega
-  · have hf0 : MemFrame s.mem S.mem (rt ++ [(z, z + 32), (m', m' + 32), (s.sp.toNat - 4256, s.sp.toNat + 40)]) :=
-      hfr.mono (by
+theorem hcDM : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.DivModProg.program Extracted.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
+
+set_option maxRecDepth 200000 in
+theorem hsegsDM : ∀ seg ∈ Fv256.Arm64.DivModProg.program.segments, seg ∈ Extracted.program.segments := by decide
+
+set_option maxRecDepth 200000 in
+theorem hstubsDM : ∀ st ∈ Fv256.Arm64.DivModProg.program.stubs, ∃ st' ∈ Extracted.program.stubs, st'.addr = st.addr := by decide
+
+set_option maxHeartbeats 32000000 in
+set_option maxRecDepth 200000 in
+theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
+    (hnew : NewobjectContract (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
+    Ensures (Extracted.program.link impl) Extracted.entry [z, x, y, m]
+      (fun s => GuardOK s 464 ∧ StackOK s 4256 40 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4256) (4256 + 40) rt ∧
+        Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧ Ptr32 s.mem m true ∧
+        Outside z.toNat 32 rt ∧ Outside x.toNat 32 rt ∧ Outside y.toNat 32 rt ∧ Outside m.toNat 32 rt ∧
+        Disjoint z.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧ Disjoint x.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧
+        Disjoint y.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧ Disjoint m.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧
+        (z = m ∨ Disjoint32 z.toNat m.toNat) ∧
+        ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16) ∧
+        Outside ((s.regs 28).toNat + 16) 8 rt ∧
+        H [intType] (s.regs 28).toNat (s.sp.toNat - 160) (rtView rt s.mem))
+      (fun s s' => s'.regs 0 = z ∧
+        ∃ m' : Nat, (s'.regs 1).toNat = m' ∧ (z ≠ m → m' = m.toNat) ∧
+          (z = m → InRanges m' 32 rt ∧ m' % 16 = 0 ∧ s'.mem.accessible m' 32 true = true) ∧
+          val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+          val256 s'.mem m' = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+          MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
+            (s.sp.toNat - 4256, s.sp.toNat + 40)])) := by
+  intro ret hret s hs ⟨hg, ⟨hal, hb, ha, hw⟩, hd, hout, hzp, hxp, hyp, hmp, hzo, hxo, hyo, hmo, hdz, hdx, hdy, hdm, hzm, hdg, hgo, hH⟩
+  janus_intro hs
+  have hretL : RetAddr Fv256.Arm64.DivModProg.program ret := Fv256.Arm64.DivModBridge.retAddr_lib hsegsDM hstubsDM hret
+  janus_eval_nat h_pt : intType
+  rw [h_pt] at hH
+  janus_data hd [hw]
+  obtain ⟨⟨hzb, hza⟩, ⟨hxb, hxa⟩, ⟨hyb, hya⟩, ⟨hmb, hma⟩⟩ := And.intro hzp (And.intro hxp (And.intro hyp hmp))
+  simp only [Disjoint] at hdz hdx hdy hdm
+  obtain ⟨hg1, hg2, hg3⟩ := hg
+  have hout := hout
+  janus_run until [Extracted.entry + 0x40, Extracted.entry + 0x64] calls [hnew.pos]
+  · -- alloc
+    rename_i ptrW rr fl vr mmm ex exp cfr cin clt cacc cal8 cal16 czb ctriv
+    have hdj := InRanges.disjoint cin hout
+    have hdzp := InRanges.disjoint cin hzo
+    have hdxp := InRanges.disjoint cin hxo
+    have hdyp := InRanges.disjoint cin hyo
+    have hmz : m = z := BitVec.eq_of_toNat_eq (by omega)
+    janus_run until [Extracted.entry + 0x64]
+    have hsp160 : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
+      simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := s.sp.isLt; omega
+    have hptr : BitVec.ofNat 64 ptrW.toNat = ptrW := by simp
+    apply Fv256.H.reaches_return_mono (P := fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ ∃ m'', (s'.regs 1).toNat = m'' ∧ m'' = ptrW.toNat ∧ val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧ val256 s'.mem m'' = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧ MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (ptrW.toNat, ptrW.toNat + 32), (s.sp.toNat - 4256, s.sp.toNat + 40)]))
+    case hq =>
+      intro S ⟨c1, c2, m'', c3, c4, c5, c6, c7⟩
+      subst c4
+      refine ⟨c1, c2, ptrW.toNat, c3, fun h => absurd hmz.symm h, fun _ => ⟨cin, cal16, ?_⟩, c5, c6, ?_⟩
+      · rw [c7.accessible]; exact cacc
+      · refine c7.mono ?_
         intro a n h
         simp only [Janus.outside_append, Janus.outside_cons, Janus.outside_nil, and_true] at h ⊢
-        exact ⟨h.1, h.2.2.2⟩)
-    refine (((((((hf0.writeLE _ (r := (z, z + 32)) (by simp) (by omega) (by omega)).writeLE _ (r := (z, z + 32)) (by simp) (by omega) (by omega)).writeLE _
-      (r := (z, z + 32)) (by simp) (by omega) (by omega)).writeLE _ (r := (z, z + 32)) (by simp) (by omega) (by omega)).writeLE _
-      (r := (m', m' + 32)) (by simp) (by omega) (by omega)).writeLE _ (r := (m', m' + 32)) (by simp) (by omega) (by omega)).writeLE _
-      (r := (m', m' + 32)) (by simp) (by omega) (by omega)).writeLE _ (r := (m', m' + 32)) (by simp) (by omega) (by omega)
+        have hd := InRanges.disjoint cin h.1
+        exact ⟨h.1, h.2.1, hd, h.2.2.2⟩
+    case h =>
+      have hs := Fv256.Arm64.DivMSlots.alloc_slots rt s.mem mmm s.sp.toNat ret (s.regs 29).toNat z.toNat x.toNat y.toNat ptrW.toNat
+        (s.mem.readLE z.toNat 8) (s.mem.readLE (z.toNat + 8) 8) (s.mem.readLE (z.toNat + 16) 8) (s.mem.readLE (z.toNat + 24) 8) hb hout (by omega) cfr
+      have a1 : ptrW.toNat + 32 ≤ 2 ^ 48 := by omega
+      have a2 : Apart z.toNat 32 (s.sp.toNat - 4256) (4256 + 40) := by unfold Apart; omega
+      have a3 : Apart x.toNat 32 (s.sp.toNat - 4256) (4256 + 40) := by unfold Apart; omega
+      have a4 : Apart y.toNat 32 (s.sp.toNat - 4256) (4256 + 40) := by unfold Apart; omega
+      have a5 : Apart ptrW.toNat 32 (s.sp.toNat - 4256) (4256 + 40) := by unfold Apart; omega
+      have a6 : Apart z.toNat 32 ptrW.toNat 32 := by unfold Apart; omega
+      have a7 : Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4256) (4256 + 40) := by unfold Apart; omega
+      refine Fv256.Arm64.DivModBridge.reaches_lift hcDM impl hret <| partB rt z x y m ptrW.toNat ret hretL s _ hal hb ha hw hout hzb hza hxb hxa hyb hya cacc a1
+        hxo hyo hzo a2 a3 a4 a5 a6 hg1 hg2 hg3 a7 hgo (Or.inl cin) ?a_hpc hsp160 ?a_h0 ?a_h1 ?a_h2 ?a_h3 ?a_h18 ?a_h28 ?a_h29 ?a_hfr ?a_hretslot ?a_hbp ?a_hz8
+        ?a_hr30 ?a_hr30b h_lr
+      case a_hpc => simp only [dm, reduceSegAddr, Nat.reduceAdd]
+      case a_h0 => simp [setReg_apply]
+      case a_h1 => simp [setReg_apply]
+      case a_h2 => simp [setReg_apply]
+      case a_h3 => simp [setReg_apply]
+      case a_h18 => simp [setReg_apply, callRegs]
+      case a_h28 => simp [setReg_apply, callRegs]
+      case a_h29 => simp [setReg_apply, callRegs]
+      case a_hfr => janus_frame
+      case a_hretslot =>
+        simp only [hsp160]
+        rw [hs.1]; exact RetAddr.mod64 hret
+      case a_hbp =>
+        simp only [hsp160]
+        rw [hs.2.1]; exact Nat.mod_eq_of_lt (by simpa using (s.regs 29).isLt)
+      case a_hz8 =>
+        simp only [hsp160]
+        rw [hs.2.2]; exact Nat.mod_eq_of_lt (by simpa using z.isLt)
+      case a_hr30 => rw [h_lr, BitVec.toNat_ofNat]; have := hret.user; have := hret.aligned; omega
+      case a_hr30b => rw [h_lr, BitVec.toNat_ofNat]; have := hret.user; omega
+  · -- no allocation: z != m
+    have hne : z.toNat ≠ m.toNat := by omega
+    have hzm2 : Apart z.toNat 32 m.toNat 32 := by
+      rcases hzm with h | h
+      · exact absurd (congrArg BitVec.toNat h) (by omega)
+      · simp only [Disjoint32, Disjoint] at h; exact h
+    have a7 : Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4256) (4256 + 40) := by unfold Apart; omega
+    have hsp160 : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
+      simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := s.sp.isLt; omega
+    apply Fv256.H.reaches_return_mono (P := fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ ∃ m'', (s'.regs 1).toNat = m'' ∧ m'' = m.toNat ∧ val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧ val256 s'.mem m'' = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧ MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32), (s.sp.toNat - 4256, s.sp.toNat + 40)]))
+    case hq =>
+      intro S ⟨c1, c2, m'', c3, c4, c5, c6, c7⟩
+      subst c4
+      refine ⟨c1, c2, m.toNat, c3, fun _ => rfl, fun h => absurd (by rw [h]) hne, c5, c6, c7⟩
+    case h =>
+      refine Fv256.Arm64.DivModBridge.reaches_lift hcDM impl hret <| partB rt z x y m m.toNat ret hretL s _ hal hb ha hw hout hzb hza hxb hxa hyb hya hmb hma
+        hxo hyo hzo (by unfold Apart; omega) (by unfold Apart; omega) (by unfold Apart; omega) (by unfold Apart; omega) hzm2 hg1 hg2 hg3 a7 hgo (Or.inr rfl) ?hpc hsp160 ?h0 ?h1 ?h2 ?h3 ?h18 ?h28 ?h29 ?hfr ?hretslot ?hbp ?hz8
+        ?hr30 ?hr30b h_lr
+      case hpc => simp only [dm, reduceSegAddr, Nat.reduceAdd]
+      case h0 => simp [setReg_apply, h_x0]
+      case h1 => simp [setReg_apply, h_x1]
+      case h2 => simp [setReg_apply, h_x2]
+      case h3 => simp [setReg_apply, h_x3]
+      case h18 => simp [setReg_apply]
+      case h28 => simp [setReg_apply]
+      case h29 => simp [setReg_apply]
+      case hfr => janus_frame
+      case hretslot =>
+        simp (disch := omega) only [hsp160, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
+        exact RetAddr.mod64 hret
+      case hbp =>
+        have hh := (Fv256.Arm64.DivMSlots.slots s.mem s.sp.toNat ret (s.regs 29).toNat z.toNat (by omega)).1
+        simp only [hsp160]
+        rw [hh]; exact Nat.mod_eq_of_lt (by simpa using (s.regs 29).isLt)
+      case hz8 =>
+        have hh := (Fv256.Arm64.DivMSlots.slots s.mem s.sp.toNat ret (s.regs 29).toNat z.toNat (by omega)).2
+        simp only [hsp160]
+        rw [hh]; exact Nat.mod_eq_of_lt (by simpa using z.isLt)
+      case hr30 => rw [h_lr, BitVec.toNat_ofNat]; have := hret.user; have := hret.aligned; omega
+      case hr30b => rw [h_lr, BitVec.toNat_ofNat]; have := hret.user; omega
 
-set_option maxHeartbeats 64000000 in
-set_option maxRecDepth 200000 in
-/-- The part of `DivMod` after the (possible) un-aliasing allocation: from the merge point (`+0x64`) with `m'` in `X3`. -/
-theorem partB (impl : List Segment) (rt : List (Nat × Nat)) (z x y m : BitVec 64) (m' : Nat) (ret : Nat)
-    (hret : RetAddr (Extracted.program.link impl) ret) (s st : State)
-    (hal : s.sp.toNat % 16 = 0) (hb : 4256 ≤ s.sp.toNat) (ha : s.sp.toNat + 40 ≤ 2 ^ 48)
-    (hw : s.mem.accessible (s.sp.toNat - 4256) (4256 + 40) true = true)
-    (hout : Outside (s.sp.toNat - 4256) (4256 + 40) rt)
-    (hzb : s.mem.accessible z.toNat 32 true = true) (hza : z.toNat + 32 ≤ 2 ^ 48)
-    (hxb : s.mem.accessible x.toNat 32 false = true) (hxa : x.toNat + 32 ≤ 2 ^ 48)
-    (hyb : s.mem.accessible y.toNat 32 false = true) (hya : y.toNat + 32 ≤ 2 ^ 48)
-    (hmb : s.mem.accessible m'  32 true = true) (hma : m' + 32 ≤ 2 ^ 48)
-    (hxo : Outside x.toNat 32 rt) (hyo : Outside y.toNat 32 rt) (hzo : Outside z.toNat 32 rt)
-    (hdz : z.toNat + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ z.toNat)
-    (hdx : x.toNat + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ x.toNat)
-    (hdy : y.toNat + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ y.toNat)
-    (hdm : m' + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ m')
-    (hzm : z.toNat + 32 ≤ m' ∨ m' + 32 ≤ z.toNat)
-    (hg1 : (s.regs 28).toNat + 24 ≤ 2 ^ 48) (hg2 : s.mem.accessible ((s.regs 28).toNat + 16) 8 false = true)
-    (hg3 : s.mem.readLE ((s.regs 28).toNat + 16) 8 + 464 < s.sp.toNat)
-    (hdg : (s.regs 28).toNat + 24 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16)
-    (hgo : Outside ((s.regs 28).toNat + 16) 8 rt)
-    (hm'r : InRanges m' 32 rt ∨ m' = m.toNat)
-    (hpc : st.pc = BitVec.ofNat 64 (dm + 0x64)) (hsp : st.sp.toNat = s.sp.toNat - 160)
-    (h0 : st.regs 0 = z) (h1 : st.regs 1 = x) (h2 : st.regs 2 = y) (h3 : st.regs 3 = BitVec.ofNat 64 m')
-    (h18 : st.regs 18 = s.regs 18) (h28 : st.regs 28 = s.regs 28) (h29 : st.regs 29 = s.sp - 168#64)
-    (hfr : MemFrame s.mem st.mem (rt ++ [(s.sp.toNat - 4256, s.sp.toNat + 40)]))
-    (hretslot : st.mem.readLE st.sp.toNat 8 = ret)
-    (hbp : st.mem.readLE (st.sp.toNat - 8) 8 = (s.regs 29).toNat)
-    (hz8 : st.mem.readLE (st.sp.toNat + 168) 8 = z.toNat)
-    (hr30 : (s.regs 30).toNat % 4 = 0) (hr30b : (s.regs 30).toNat < 2 ^ 56) (hlr : s.regs 30 = BitVec.ofNat 64 ret) :
-    Reaches ((Extracted.program.link impl).withExit ret) st
-      (IsReturn fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
-        ∃ m'', (s'.regs 1).toNat = m'' ∧ m'' = m' ∧
-          val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
-          val256 s'.mem m'' = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
-          MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m', m' + 32), (s.sp.toNat - 4256, s.sp.toNat + 40)])) := by
-  have hU := Fv256.H.summary_link impl (Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain
-    (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 4) (by omega) (by omega)))
-  have hx0 := Util.readLE8_lt s.mem x.toNat
-  have hx1 := Util.readLE8_lt s.mem (x.toNat + 8)
-  have hx2 := Util.readLE8_lt s.mem (x.toNat + 16)
-  have hx3 := Util.readLE8_lt s.mem (x.toNat + 24)
-  have hy0 := Util.readLE8_lt s.mem y.toNat
-  have hy1 := Util.readLE8_lt s.mem (y.toNat + 8)
-  have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
-  have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
-  have hfa := hfr.accessible
-  have h_lr := hlr
-  have hxb' : st.mem.accessible x.toNat 32 false = true := by rw [hfa]; exact hxb
-  have hyb' : st.mem.accessible y.toNat 32 false = true := by rw [hfa]; exact hyb
-  have hzb' : st.mem.accessible z.toNat 32 true = true := by rw [hfa]; exact hzb
-  have hmb' : st.mem.accessible m' 32 true = true := by rw [hfa]; exact hmb
-  have hstk : st.mem.accessible (st.sp.toNat - 4096) 4296 true = true := by
-    rw [hfa, hsp]; exact Janus.Arm64.Memory.accessible_mono _ hw (by omega) (by omega)
-  have hstkr : st.mem.accessible (st.sp.toNat - 4096) 4296 false = true := Janus.Arm64.Memory.accessible_read_of_write _ hstk
-  have hacc8 : st.mem.accessible (st.sp.toNat - 8) 8 false = true := Janus.Arm64.Memory.accessible_mono _ hstkr (by omega) (by omega)
-  have hacc0 : st.mem.accessible st.sp.toNat 8 false = true := Janus.Arm64.Memory.accessible_mono _ hstkr (by omega) (by omega)
-  have hfo : ∀ a n, Outside a n (rt ++ [(s.sp.toNat - 4256, s.sp.toNat + 40)]) → st.mem.readLE a n = s.mem.readLE a n := fun a n h => hfr.readLE a n h
-  have rdp : ∀ p k, Outside p 32 rt → (p + 32 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ p) → k ≤ 24 →
-      st.mem.readLE (p + k) 8 = s.mem.readLE (p + k) 8 := fun p k h1 h2 hk =>
-    hfo _ _ (outside_stk (Outside.of_sub h1 (by omega) (by omega)) (by omega))
-  have rx0 := rdp x.toNat 0 hxo hdx (by omega)
-  have rx1 := rdp x.toNat 8 hxo hdx (by omega)
-  have rx2 := rdp x.toNat 16 hxo hdx (by omega)
-  have rx3 := rdp x.toNat 24 hxo hdx (by omega)
-  have ry0 := rdp y.toNat 0 hyo hdy (by omega)
-  have ry1 := rdp y.toNat 8 hyo hdy (by omega)
-  have ry2 := rdp y.toNat 16 hyo hdy (by omega)
-  have ry3 := rdp y.toNat 24 hyo hdy (by omega)
-  simp only [Nat.add_zero] at rx0 ry0
-  have hgv : st.mem.readLE ((st.regs 28).toNat + 16) 8 = s.mem.readLE ((s.regs 28).toNat + 16) 8 := by
-    rw [h28]; exact hfo _ _ (outside_stk hgo (by omega))
-  simp only [dm, reduceSegAddr, Nat.reduceAdd] at hpc
-  have hret48 := hret.user
-  have hspal : st.sp.toNat % 16 = 0 := by omega
-  have hdz' : z.toNat + 32 ≤ st.sp.toNat - 4096 ∨ st.sp.toNat + 200 ≤ z.toNat := by omega
-  have hdx' : x.toNat + 32 ≤ st.sp.toNat - 4096 ∨ st.sp.toNat + 200 ≤ x.toNat := by omega
-  have hdy' : y.toNat + 32 ≤ st.sp.toNat - 4096 ∨ st.sp.toNat + 200 ≤ y.toNat := by omega
-  have hdm' : m' + 32 ≤ st.sp.toNat - 4096 ∨ st.sp.toNat + 200 ≤ m' := by omega
-  have hspb : st.sp.toNat + 200 ≤ 2 ^ 48 := by omega
-  have hsp344 : 344 ≤ st.sp.toNat := by omega
-  have hdz0 := hdz
-  have hdm0 := hdm
-  have hzm0 := hzm
-  have hxo0 := hxo
-  have hyo0 := hyo
-  have hdx0 := hdx
-  have hdy0 := hdy
-  clear hdz hdx hdy hdm hout hxo hyo hzo hfa rdp
-  have hnb := Fv256.Arm64.DivMLem.nb4 _ _ _ _ _ _ _ _ (by simpa using hx0) (by simpa using hx1) (by simpa using hx2) (by simpa using hx3) (by simpa using hy0) (by simpa using hy1) (by simpa using hy2) (by simpa using hy3)
-  simp only [Nat.reducePow] at hnb
-  janus_run [Util.readLE_32, hretslot, hbp, hz8, hacc8, hacc0, rx0, rx1, rx2, rx3, ry0, ry1, ry2, ry3, hgv,
-    Janus.Tactic.sub_flags_c, BitVec.toNat_not, Util.readLE8_mod, Nat.reducePow, Nat.or_eq_zero_iff, Fv256.B.wv4_eq,
-    Fv256.B.wv_writeLE_outside, Fv256.Arm64.DivLemmas.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod,
-    Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff,
-    Fv256.B.bv128_zero_toNat, Nat.zero_div, Fv256.B.ne_zero_of_limbs] until [dm + 0x130] calls [hU]
-  all_goals (try simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *)
-  all_goals (try simp only [hnb, Fv256.B.xor_eq_zero_nat] at *)
-  all_goals (first
-    | (refine ⟨?_, m', rfl, rfl, ?_, ?_, ?_⟩)
-    | skip)
-  all_goals (first
-    | (apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; have := s.sp.isLt; omega; done)
-    | skip)
-  all_goals (first | janus_frame | skip)
-  all_goals (
-    try set_option maxHeartbeats 300000 in simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside,
-      Janus.Arm64.Memory.readLE_writeLE_self, Nat.zero_div, Nat.zero_mod, Nat.reducePow, Nat.sub_self, Nat.pow_zero, Nat.div_one,
-      Fv256.B.divSpec_zero_left, Fv256.B.divSpec_zero_right, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right, Util.readLE8_mod])
-  all_goals (
-    first
-    | with_reducible assumption
-    | (rw [Fv256.B.divSpec]
-       split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
-           | exact (Nat.div_eq_of_lt (by omega)).symm
-           | exact Fv256.B.div_congr _ _ _ (by omega)))
-    | (rw [Fv256.B.modSpec]
-       split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.zero_eq_mod_self _ _ (by omega)
-           | exact (Nat.mod_eq_of_lt (by omega)).symm
-           | exact Fv256.B.mod_congr _ _ _ (by omega)))
-    | (exfalso; omega)
-    | (have e1 : s.mem.readLE (y.toNat + 8) 8 = 0 := by omega
-       have e2 : s.mem.readLE (y.toNat + 16) 8 = 0 := by omega
-       have e3 : s.mem.readLE (y.toNat + 24) 8 = 0 := by omega
-       rw [e1, e2, e3]
-       simp only [Nat.mul_zero, Nat.add_zero]
-       first
-         | exact div64_goal _ _ hx0 (by omega)
-         | exact mod64_goal _ _ hx0 (by omega))
-    | skip)
-  rename_i a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11
-  simp (config := { decide := true }) only [setReg_apply, ↓reduceIte] at a0 a1 a2 a3 a4 a5 a6 a8 a9
-  have hsp0 : st.sp.toNat = s.sp.toNat - 160 := hsp
-  obtain ⟨MM, hMM⟩ : ∃ MM, MM = ((((((((st.mem.writeLE (st.sp.toNat + 144) 8 m').writeLE (st.sp.toNat + 112) 8 0).writeLE
-      (st.sp.toNat + 120) 8 0).writeLE (st.sp.toNat + 128) 8 0).writeLE (st.sp.toNat + 136) 8 0).writeLE
-      (st.sp.toNat + 80) 8 0).writeLE (st.sp.toNat + 88) 8 0).writeLE (st.sp.toNat + 96) 8 0).writeLE (st.sp.toNat + 104) 8 0 := ⟨_, rfl⟩
-  have hMMf : MemFrame st.mem MM [(st.sp.toNat + 80, st.sp.toNat + 152)] := by
-    rw [hMM]; janus_frame
-  have hpcS : s'.pc = BitVec.ofNat 64 (dm + 0x130) := by
-    simp only [dm, reduceSegAddr, Nat.reduceAdd]; exact a0
-  have hsp2 : s'.sp = st.sp := a2
-  have hspb' : st.sp.toNat + 200 ≤ 2 ^ 48 := hspb
-  have e112 : (st.sp + 112#64).toNat = st.sp.toNat + 112 := by
-    simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
-  have e80 : (st.sp + 80#64).toNat = st.sp.toNat + 80 := by
-    simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; omega
-  rw [e112] at a8
-  rw [e80] at a9
-  simp (config := { decide := true }) only [setReg_apply, ↓reduceIte, e112, e80] at a10
-  rw [← hMM] at a10 a8 a9
-  have hMM144 : MM.readLE (st.sp.toNat + 144) 8 = m' := by
-    rw [hMM]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]
-    exact Nat.mod_eq_of_lt (by omega)
-  obtain ⟨gf0, gf, g0, g1, g2, g3, g4, g5⟩ := Fv256.Arm64.DivMGlue.glue rt s.sp.toNat z.toNat x.toNat y.toNat m' ret (s.regs 29).toNat
-    s.mem st.mem MM s'.mem hb hxo0 hyo0 hdx0 hdy0 hfr (by rw [hsp0] at hMMf; exact hMMf) (by rw [hsp0] at hMM144; exact hMM144)
-    (by rw [hsp0] at a10; exact a10) (by rw [hsp0] at hretslot; exact hretslot) (by rw [hsp0] at hbp; exact hbp) (by rw [hsp0] at hz8; exact hz8)
-  have hyne : s.mem.readLE y.toNat 32 ≠ 0 := by rw [Util.readLE_32]; omega
-  have hS : s'.sp.toNat = s.sp.toNat - 160 := by rw [hsp2]; exact hsp0
-  rw [g4, g5] at a8
-  rw [g4, g5] at a9
-  have hq : Fv256.B.wv s'.mem (s'.sp.toNat + 112) 4 = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
-    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a8, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
-    show _ = Fv256.B.divSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
-    rw [Fv256.B.divSpec_of_ne _ _ hyne]
-  have hr : Fv256.B.wv s'.mem (s'.sp.toNat + 80) 4 = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) := by
-    rw [hS, show s.sp.toNat - 160 = st.sp.toNat by omega, a9, Fv256.B.wv4_eq, Fv256.B.wv4_eq]
-    show _ = Fv256.B.modSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32)
-    rw [Fv256.B.modSpec_of_ne _ _ hyne]
-  have hC := partC impl rt z.toNat m' ret _ _ hret s s' hal hb ha hdz0 hdm0 hzm0 hza hma hpcS hS (by rw [a3]; exact h18) (by rw [a4]; exact h28)
-    gf0 hw hzb hmb (by rw [hS]; exact g0) (by rw [hS]; exact g1) (by rw [hS]; exact g2) (by rw [hS]; exact g3) hq hr
-  refine Fv256.H.reaches_mono hC ?_
-  intro o ho
-  cases o with
-  | returned S => 
-    obtain ⟨c1, c2, c3, c4, c5, c6⟩ := ho
-    exact ⟨c1, by rw [c2]; simp, _, c3, rfl, c4, c5, c6⟩
-  | stub _ _ _ => exact ho.elim
 
+namespace Witness
+
+open Janus.Contracts.IfaceModel
+
+def heap : Nat := 0x10000
+def tyA : Nat := janus_eval% intType
+def cA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.newobject")
+def rtW : List (Nat × Nat) := [(heap, heap + 0x10000), (tyA, tyA + 16)]
+
+/-- A toy allocator at the runtime.newobject address: `MOVZ X0, #1, LSL #16; RET` (returns the heap at `0x10000`). -/
+def implW : List Segment :=
+  [{ name := "witness.newobject", base := cA, words := [0xd2a00020, 0xd65f03c0] }]
+
+def HW : RtReady := fun args _ _ v =>
+  ∃ typ, args = [typ] ∧ InRanges typ 16 rtW ∧ typSize v typ ≤ 32768 ∧
+    v.accessible heap 0x10000 true = true ∧ ZeroBytes v heap 0x10000
+
+def linked : Program := Extracted.program.link implW
+
+theorem addr : Extracted.program.contractAddr "runtime.newobject" = cA := by decide
+
+theorem callRegs_eq (r : Nat → W64) :
+    callRegs r r [BitVec.ofNat 64 heap] = setReg r 0 (BitVec.ofNat 64 heap) := by
+  funext i
+  simp only [callRegs, setReg]
+  rcases i with _ | i
+  · rfl
+  · simp only [List.getD_cons_succ, List.getD_nil]
+    split <;> rfl
+
+theorem hnewW : NewobjectContract (Extracted.program.link implW)
+    (Extracted.program.contractAddr "runtime.newobject") rtW 4096 HW := by
+  rw [addr]
+  intro s hpc ⟨⟨⟨h30a, h30b, _, _, _, _, _⟩, _, _⟩, typ, hargs, hin, hsz, hacc, hz⟩
+  simp only [List.cons.injEq, and_true] at hargs
+  subst hargs
+  change ReachesRet linked _ s _
+  janus_run
+  refine ⟨BitVec.ofNat 64 heap, s.regs, s.flags, s.vregs, s.mem, s.excl, s.exclPass, ?_, ⟨fun _ _ _ => rfl, fun _ _ _ => rfl⟩,
+    fun hpos => ?_⟩
+  · simp only [retStateX]; rw [callRegs_eq]; rfl
+  · unfold typSize at hsz
+    rw [readLE_rtView (hin.sub (Nat.le_refl _) (by omega))] at hsz
+    change typSize s.mem (s.regs 0).toNat ≤ 32768 at hsz
+    have hb := blockSize_le_maxSmallSize (typSize s.mem (s.regs 0).toNat)
+      (typNoscan s.mem (s.regs 0).toNat) hsz
+    have hle : typSize s.mem (s.regs 0).toNat ≤
+        blockSize (typSize s.mem (s.regs 0).toNat) (typNoscan s.mem (s.regs 0).toNat) := by
+      unfold blockSize; split
+      · exact Nat.le_refl _
+      · exact le_roundupsize _ _
+    simp only [maxSmallSize] at hb
+    have hheap : (BitVec.ofNat 64 heap).toNat = heap := by decide
+    rw [hheap]
+    refine ⟨⟨(heap, heap + 0x10000), by simp [rtW], Nat.le_refl _, by simp only [heap]; omega⟩,
+      by simp only [heap]; omega, ?_, fun _ => by decide, fun _ _ => by decide, fun _ => ?_, hle⟩
+    · rw [rtView_accessible] at hacc
+      exact Memory.accessible_mono _ hacc (Nat.le_refl _) (by omega)
+    · have := ZeroBytes.of_rtView hz ⟨(heap, heap + 0x10000), by simp [rtW], Nat.le_refl _, Nat.le_refl _⟩
+      exact fun i hi => this i (by omega)
+
+def retW : Nat := 0x1000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x200000
+def zp : Nat := 0x30800
+def xp : Nat := 0x30900
+def yp : Nat := 0x30a00
+def mp : Nat := 0x30b00
+def dat : DataSegment := Extracted.data.head!
+def dlen : Nat := janus_eval% dat.bytes.length
+
+def bytesW (a : Nat) : Byte :=
+  if tyA ≤ a ∧ a < tyA + dlen then BitVec.ofNat 8 (dat.bytes.getD (a - tyA) 0) else 0
+
+def zW : BitVec 64 := BitVec.ofNat 64 zp
+def xW : BitVec 64 := BitVec.ofNat 64 xp
+def yW : BitVec 64 := BitVec.ofNat 64 yp
+def mW : BitVec 64 := BitVec.ofNat 64 mp
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then zW else if i = 1 then xW else if i = 2 then yW else if i = 3 then mW
+      else if i = 28 then BitVec.ofNat 64 g0 else if i = 29 then BitVec.ofNat 64 sp0 - 8#64
+      else if i = 30 then BitVec.ofNat 64 retW else 0,
+    sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩,
+    mem := ⟨bytesW, [⟨sp0 - 4256, 4296, true⟩, ⟨g0, 0x100, false⟩, ⟨tyA, dlen, false⟩,
+      ⟨heap, 0x10000, true⟩, ⟨zp, 32, true⟩, ⟨xp, 32, false⟩, ⟨yp, 32, false⟩, ⟨mp, 32, true⟩]⟩ }
+
+theorem hretW : RetAddr linked retW := RetAddr.of_check (by decide)
+
+theorem setupW : CallSetup (linked.withExit retW) Extracted.entry [zW, xW, yW, mW] s0 :=
+  ⟨rfl, rfl, by
+    intro r h
+    match r, h with
+    | 0, _ => rfl
+    | 1, _ => rfl
+    | 2, _ => rfl
+    | 3, _ => rfl⟩
+
+set_option maxRecDepth 100000 in
+theorem dataLoadedW : Extracted.program.DataLoaded s0.mem := by
+  unfold Program.DataLoaded
+  decide
+
+set_option maxRecDepth 100000 in
+theorem hHW : HW [intType] (s0.regs 28).toNat (s0.sp.toNat - 160) (rtView rtW s0.mem) := by
+  have hpt : intType = tyA := by unfold tyA; decide
+  rw [hpt]
+  refine ⟨tyA, rfl, ⟨(tyA, tyA + 16), by simp [rtW], Nat.le_refl _, Nat.le_refl _⟩, by decide,
+    by decide, ?_⟩
+  intro i hi
+  have h1 : ¬(tyA ≤ heap + i ∧ heap + i < tyA + dlen) := by
+    simp only [tyA, heap, dlen]; omega
+  show (if _ then bytesW (heap + i) else 0) = 0
+  split
+  · simp only [bytesW]; rw [if_neg h1]
+  · rfl
+
+set_option maxRecDepth 100000 in
+theorem preW : GuardOK s0 464 ∧ StackOK s0 4256 40 ∧ Extracted.program.DataLoaded s0.mem ∧
+    Outside (s0.sp.toNat - 4256) (4256 + 40) rtW ∧
+    Ptr32 s0.mem zW true ∧ Ptr32 s0.mem xW false ∧ Ptr32 s0.mem yW false ∧ Ptr32 s0.mem mW true ∧
+    Outside zW.toNat 32 rtW ∧ Outside xW.toNat 32 rtW ∧ Outside yW.toNat 32 rtW ∧ Outside mW.toNat 32 rtW ∧
+    Disjoint zW.toNat 32 (s0.sp.toNat - 4256) (4256 + 40) ∧ Disjoint xW.toNat 32 (s0.sp.toNat - 4256) (4256 + 40) ∧
+    Disjoint yW.toNat 32 (s0.sp.toNat - 4256) (4256 + 40) ∧ Disjoint mW.toNat 32 (s0.sp.toNat - 4256) (4256 + 40) ∧
+    (zW = mW ∨ Disjoint32 zW.toNat mW.toNat) ∧
+    ((s0.regs 28).toNat + 24 ≤ s0.sp.toNat - 4256 ∨ s0.sp.toNat + 40 ≤ (s0.regs 28).toNat + 16) ∧
+    Outside ((s0.regs 28).toNat + 16) 8 rtW ∧
+    HW [intType] (s0.regs 28).toNat (s0.sp.toNat - 160) (rtView rtW s0.mem) := by
+  refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide, by decide⟩, dataLoadedW, ?_,
+    ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩,
+    ?_, ?_, ?_, ?_, by unfold Disjoint; decide, by unfold Disjoint; decide, by unfold Disjoint; decide,
+    by unfold Disjoint; decide, Or.inr (by unfold Disjoint32 Disjoint zW mW zp mp; decide), by decide, ?_, hHW⟩
+  all_goals simp only [rtW, outside_cons, outside_nil]; decide
+
+/-- Non-vacuity of `correctness`: every hypothesis (the runtime contract included) holds together for a toy allocator and a concrete call. -/
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64) (ret : Nat) (s : State),
+    NewobjectContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, x, y, m] s ∧
+    (GuardOK s 464 ∧ StackOK s 4256 40 ∧ Extracted.program.DataLoaded s.mem ∧
+      Outside (s.sp.toNat - 4256) (4256 + 40) rt ∧
+      Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧ Ptr32 s.mem m true ∧
+      Outside z.toNat 32 rt ∧ Outside x.toNat 32 rt ∧ Outside y.toNat 32 rt ∧ Outside m.toNat 32 rt ∧
+      Disjoint z.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧ Disjoint x.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧
+      Disjoint y.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧ Disjoint m.toNat 32 (s.sp.toNat - 4256) (4256 + 40) ∧
+      (z = m ∨ Disjoint32 z.toNat m.toNat) ∧
+      ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16) ∧
+      Outside ((s.regs 28).toNat + 16) 8 rt ∧
+      H [intType] (s.regs 28).toNat (s.sp.toNat - 160) (rtView rt s.mem)) :=
+  ⟨implW, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW⟩
+
+end Witness
 
 end Fv256.Arm64.DivMod

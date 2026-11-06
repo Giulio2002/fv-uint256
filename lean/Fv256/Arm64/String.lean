@@ -4,6 +4,7 @@ import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
 import Fv256.StrE
+import Fv256.GrabTac
 import Fv256.Arm64.DecExt
 
 open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
@@ -15,7 +16,7 @@ namespace Fv256.Arm64.String
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
-    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
+    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => GuardOK s (688 + 32) ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧
         Outside (s.sp.toNat - 4640) (4640 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
@@ -37,7 +38,8 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   have hdE : decE = 754624 := by unfold decE; decide
   have hcE : decE + 0x5000 < 2 ^ 47 := by decide
   janus_run [hdE] calls [dec_summary_ext impl rt H z hc]
-  rename_i ha hsp hr29 hr28 hr18 hstr hfrm
+  grab_const Fv256.E.decBytes as hstr
+  grab_const Janus.MemFrame as hfrm
   have hr4 := s.sp.isLt
   have hu : (s.regs 29).toNat < 2 ^ 64 := (s.regs 29).isLt
   have hfr1 : MemFrame ((s.mem.writeLE (s.sp.toNat - 32) 8 ret).writeLE (s.sp.toNat - 40) 8 (s.regs 29).toNat) s'.mem
@@ -63,14 +65,14 @@ def implAt : List Segment := [{ name := "model", base := ssAddr, words := constC
 def linked : Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
 theorem linked_eq : Extracted.program.link implAt = linked := rfl
 
-theorem model : RtContract (Extracted.program.link implAt) ssAddr rtW 4096 H0 slicebytetostringSpec := by
+theorem model : RtContract (Extracted.program.link implAt) ssAddr rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») := by
   rw [linked_eq]
   rintro s hpc ⟨⟨h30a, h30b, -⟩, -, -, -, hH⟩
   have ha := ready_of rfl hH
   simp only [Ready, H0, arg, List.getD_eq_getElem?_getD, slicebytetostringSpec] at ha
   janus_run
   apply rtPost_const <;> (try rfl) <;> (try simp [setReg])
-  simp [ha, strBytes]
+  simp [ha, strBytes, StrAt]
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -128,7 +130,7 @@ theorem pre : GuardOK s0 (688 + 32) ∧ StackOK s0 4640 8 ∧ Extracted.program.
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
-    RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec ∧
+    RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (GuardOK s (688 + 32) ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧

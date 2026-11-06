@@ -1,9 +1,9 @@
+build/
+jcache/
+NOTES.md
+stage/
+tools/__pycache__/
+wip/
 wip-d/logs/
 wip-d/*.out
 wip-d/*.time
-jcache/
-stage/
-build/
-wip/
-NOTES.md
-tools/__pycache__/

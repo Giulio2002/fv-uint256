@@ -32,6 +32,19 @@ theorem wv_zero8 (m : Janus.Arm64.Memory) (p q1 q2 q3 q4 q5 q6 q7 : Nat) (h1 : q
   subst h1 h2 h3 h4 h5 h6 h7
   simp (disch := omega) only [wv, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
 
+/-- four consecutive 8-byte zero stores clear four words -/
+theorem wv_zero4w (m : Janus.Arm64.Memory) (p q1 q2 q3 : Nat) (h1 : q1 = p + 8) (h2 : q2 = p + 16) (h3 : q3 = p + 24) :
+    wv ((((m.writeLE p 8 0).writeLE q1 8 0).writeLE q2 8 0).writeLE q3 8 0) p 4 = 0 := by
+  subst h1 h2 h3
+  simp (disch := omega) only [wv, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+
+/-- five consecutive 8-byte zero stores clear five words -/
+theorem wv_zero5w (m : Janus.Arm64.Memory) (p q1 q2 q3 q4 : Nat) (h1 : q1 = p + 8) (h2 : q2 = p + 16) (h3 : q3 = p + 24)
+    (h4 : q4 = p + 32) :
+    wv (((((m.writeLE p 8 0).writeLE q1 8 0).writeLE q2 8 0).writeLE q3 8 0).writeLE q4 8 0) p 5 = 0 := by
+  subst h1 h2 h3 h4
+  simp (disch := omega) only [wv, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+
 /-- the sum of four limbs is zero iff each limb is -/
 theorem sum4_eq_zero (a b c d : Nat) :
     a + 18446744073709551616 * b + 340282366920938463463374607431768211456 * c +
