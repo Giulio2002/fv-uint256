@@ -26,7 +26,6 @@ theorem epi_d1b {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntr
   have hacc' : S.mem.accessible ((s.regs 4).toNat - 576) (576 + 48) true = true := by
     rw [hfr.accessible]; exact hacc
   janus64_run [hsp4, hpush]
-  all_goals (trace_state; sorry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
@@ -44,7 +43,6 @@ theorem epi_d66 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntr
   have hacc' : S.mem.accessible ((s.regs 4).toNat - 576) (576 + 48) true = true := by
     rw [hfr.accessible]; exact hacc
   janus64_run [hsp4, hpush]
-  all_goals (trace_state; sorry)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
@@ -62,6 +60,5 @@ theorem epi_d6f {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntr
   have hacc' : S.mem.accessible ((s.regs 4).toNat - 576) (576 + 48) true = true := by
     rw [hfr.accessible]; exact hacc
   janus64_run [hsp4, hpush]
-  all_goals (trace_state; sorry)
 
 end Fv256.Amd64.RecipSeg
