@@ -33,6 +33,7 @@ structure SfdCfg where
   strconvErrSyntax : Nat -- package variable `strconv.ErrSyntax`
   wbFlag : Nat           -- `runtime.writeBarrier`
   fnStr : Nat            -- the string constant "ParseUint"
+  maxStr : Nat           -- the 78-byte rodata string `twoPow256Sub1` (the decimal digits of 2^256-1)
   mallocgc : Nat         -- entry of `runtime.mallocgc`
   memmove : Nat
   newobject : Nat
@@ -118,6 +119,8 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   Env C R R2 T b L lo hi s ∧ lo + 4520 ≤ s.sp.toNat ∧ s.sp.toNat + 32 ≤ hi ∧
   MultOK C z.toNat lo hi s.mem ∧
   s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
+  s.mem.accessible C.maxStr 78 false = true ∧ Outside C.maxStr 78 [(lo, hi), (z.toNat, z.toNat + 32)] ∧ Outside C.maxStr 78 R.rt ∧
+  (∀ k, k < 78 → s.mem.readLE (C.maxStr + k) 1 = maxDigit k) ∧
   s.mem.accessible C.errBig 16 false = true ∧ Outside C.errBig 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
   Ptr32 s.mem z true ∧ (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧ (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
   Outside z.toNat 32 R2.priv ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
