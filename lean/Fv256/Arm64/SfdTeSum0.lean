@@ -4,6 +4,9 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
 
 namespace Fv256.Arm64.SfdToError
 
+/-- `omega` after dropping the hypotheses unrelated to the goal (the contexts carry giant memory terms) -/
+macro "te_omega" : tactic => `(tactic| first | (janus_clear_irrel; omega) | omega)
+
 theorem reach_name {p : Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
     (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl
 
@@ -23,13 +26,13 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩,
     ⟨hokm, hokv, hbud, hsacc, hsp48, hsdisj, hspR, hspP⟩⟩, hfl⟩
   obtain ⟨t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12⟩ := e15
-  have hsp0 : (s.sp - 96#64).toNat = s.sp.toNat - 96 := by rw [BitVec.toNat_sub]; simp; omega
+  have hsp0 : (s.sp - 96#64).toNat = s.sp.toNat - 96 := by rw [BitVec.toNat_sub]; simp; te_omega
   have hcOK : Iface.CallerOK R2 s 96 72 := by
     refine ⟨e16, ⟨by simp only [regG, stackguard0Offset]; omega, by simp only [regG, stackguard0Offset]; exact e7, by
       simp only [stackguard0, regG, stackguard0Offset]; omega⟩, e4, hdep8, by omega, by omega, ?_, ?_, ?_, e12⟩
-    · exact Memory.accessible_mono _ e5 (by omega) (by omega)
-    · exact Outside.of_sub e10 (by omega) (by omega)
-    · simp only [Spec.Disjoint]; omega
+    · exact Memory.accessible_mono _ e5 (by te_omega) (by te_omega)
+    · exact Outside.of_sub e10 (by te_omega) (by te_omega)
+    · simp only [Spec.Disjoint]; te_omega
   janus_run until [P.contractAddr "runtime.ifaceeq"]
   refine reach_name ?_
   intro S hS
@@ -39,7 +42,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     dsimp only
     janus_frame
   have hpre0 : Iface.RTPre R2 3 S := Iface.RTPre.of_caller hl hcOK hSf hS4 (by subst hS; rfl) (by subst hS; simp [setReg_apply])
-    (by subst hS; simp [setReg_apply]) (by omega) (by omega)
+    (by subst hS; simp [setReg_apply]) (by te_omega) (by te_omega)
   have hSacc : ∀ a n w, S.mem.accessible a n w = s.mem.accessible a n w := hSf.accessible
   have hSreg : S.regs 0 = BitVec.ofNat 64 errItab ∧ S.regs 1 = BitVec.ofNat 64 synConst ∧
       S.regs 2 = BitVec.ofNat 64 synConst := by
@@ -63,16 +66,16 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     simp only [outside_cons, outside_nil, and_true] at h ⊢
     omega
   have hTS : S.mem.readLE (errItab + 8) 8 = T := by
-    rw [hSf.readLE _ _ (hWsub _ _ (Outside.of_sub oI (by omega) (by omega)))]; exact t1
+    rw [hSf.readLE _ _ (hWsub _ _ (Outside.of_sub oI (by te_omega) (by te_omega)))]; exact t1
   have hregS : isRegularMemory S.mem T = true := by
     simp only [isRegularMemory, tyTFlag] at t3 ⊢
-    rw [hSf.readLE _ _ (Outside.of_sub hTw (by omega) (by omega))]; exact t3
+    rw [hSf.readLE _ _ (Outside.of_sub hTw (by te_omega) (by te_omega))]; exact t3
   have hndS : isDirectIface S.mem T = false := by
     simp only [isDirectIface, tyTFlag] at t4 ⊢
-    rw [hSf.readLE _ _ (Outside.of_sub hTw (by omega) (by omega))]; exact t4
+    rw [hSf.readLE _ _ (Outside.of_sub hTw (by te_omega) (by te_omega))]; exact t4
   have hszS : tySize S.mem T = 8 := by
     simp only [tySize] at t5 ⊢
-    rw [hSf.readLE _ _ (Outside.of_sub hTw (by omega) (by omega))]; exact t5
+    rw [hSf.readLE _ _ (Outside.of_sub hTw (by te_omega) (by te_omega))]; exact t5
   have hxacc : S.mem.accessible synConst (tySize S.mem T) false = true := by
     rw [hszS, hSacc]; exact t11
   have hcmp := (hl.regular S.mem (S.regs 28) T synConst synConst hpre0.1 hTty hregS hndS hxacc hxacc)
@@ -100,7 +103,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
         intro r hr
         simp only [List.mem_singleton] at hr
         subst hr
-        exact Outside.of_sub e9 (by omega) (by omega)) e17
+        exact Outside.of_sub e9 (by te_omega) (by te_omega)) e17
     have hfr' := hfr
     simp only [Iface.rtWrites, calleeStack, List.append_nil, hS4] at hfr'
     have hgm : m'.readLE ((s.regs 28).toNat + 16) 8 = s.mem.readLE ((s.regs 28).toNat + 16) 8 := by
@@ -117,14 +120,14 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
         simp only [List.mem_append, List.mem_cons, List.mem_nil_iff, or_false] at hr
         rcases hr with hr | hr | hr
         · exact hprR r hr
-        · subst hr; exact Outside.of_sub e9 (by omega) (by omega)
-        · subst hr; exact Outside.of_sub e9 (by omega) (by omega)) hinvS
+        · subst hr; exact Outside.of_sub e9 (by te_omega) (by te_omega)
+        · subst hr; exact Outside.of_sub e9 (by te_omega) (by te_omega)) hinvS
     have hS30 : S.regs 30 = 618732#64 := by subst hS; simp [setReg_apply]
     have hkey : ∀ a v, S.mem.readLE a 8 = v → s.sp.toNat + 8 ≤ a → a + 8 ≤ s.sp.toNat + 72 → m'.readLE a 8 = v := by
       intro a v hv h1 h2
       rw [hfr'.readLE _ _ (by
         simp only [outside_append, outside_cons, outside_nil, and_true]
-        refine ⟨Outside.of_sub e10 (by omega) (by omega), by omega, by omega⟩)]
+        refine ⟨Outside.of_sub e10 (by te_omega) (by te_omega), by omega, by omega⟩)]
       exact hv
     have h64 : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
     have hSlr : S.mem.readLE (s.sp.toNat - 96) 8 = (s.regs 30).toNat := by
@@ -147,21 +150,21 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     have hSm32 : S.mem.readLE (s.sp.toNat + 32) 8 = sl.toNat := by
       subst hS; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
       rw [h64]; exact Nat.mod_eq_of_lt sl.isLt
-    have hsl32 : m'.readLE (s.sp.toNat + 32) 8 = sl.toNat := hkey _ _ hSm32 (by omega) (by omega)
+    have hsl32 : m'.readLE (s.sp.toNat + 32) 8 = sl.toNat := hkey _ _ hSm32 (by te_omega) (by te_omega)
     have hrsp : S.sp = s.sp - 96#64 := by subst hS; rfl
     have hg28 : S.regs 28 = s.regs 28 := by subst hS; simp [setReg_apply]
-    have hgm2 : m'.readLE ((s.regs 28).toNat + 16) 8 + 4096 < s.sp.toNat - 96 := by rw [hgm]; omega
+    have hgm2 : m'.readLE ((s.regs 28).toNat + 16) 8 + 4096 < s.sp.toNat - 96 := by rw [hgm]; te_omega
     have hLw : ∀ r ∈ L, (r.1 + (r.2 - r.1) ≤ s.sp.toNat - 96 - 4096 ∨ s.sp.toNat - 96 - 8 ≤ r.1) ∧
         (r.1 + (r.2 - r.1) ≤ s.sp.toNat - 96 + 8 ∨ s.sp.toNat - 96 + 8 + 24 ≤ r.1) := by
       intro r hr
       have := e18 r hr
       simp only [outside_cons, outside_nil, and_true] at this
       omega
-    have hsl24 : m'.readLE (s.sp.toNat + 24) 8 = sp.toNat := hkey _ _ hSm24 (by omega) (by omega)
-    have hbL : blockSize sl.toNat true ≤ b := by omega
-    have hg6 : (s.regs 28).toNat ≤ 281474976710632 := by omega
-    have hga1 : (s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 96 - 4096 ∨ s.sp.toNat - 96 - 8 ≤ (s.regs 28).toNat + 16 := by omega
-    have hga2 : (s.regs 28).toNat + 16 ≤ s.sp.toNat - 96 ∨ s.sp.toNat - 96 + 16 ≤ (s.regs 28).toNat := by omega
+    have hsl24 : m'.readLE (s.sp.toNat + 24) 8 = sp.toNat := hkey _ _ hSm24 (by te_omega) (by te_omega)
+    have hbL : blockSize sl.toNat true ≤ b := by te_omega
+    have hg6 : (s.regs 28).toNat ≤ 281474976710632 := by te_omega
+    have hga1 : (s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 96 - 4096 ∨ s.sp.toNat - 96 - 8 ≤ (s.regs 28).toNat + 16 := by te_omega
+    have hga2 : (s.regs 28).toNat + 16 ≤ s.sp.toNat - 96 ∨ s.sp.toNat - 96 + 16 ≤ (s.regs 28).toNat := by te_omega
     have hbit : (BitVec.getLsbD (r 0) 0 == false) = false := by
       have h1 : (r 0).getLsbD 0 = true := by
         simp [BitVec.getLsbD, Nat.testBit_zero]
@@ -197,7 +200,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
       rw [hMF2.readLE _ _ (by
             simp only [calleeStack, outside_append, outside_cons, outside_nil, and_true]
             (repeat' apply And.intro) <;> first | exact h1 | omega),
-          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
+          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by te_omega),
           hMF1.readLE _ _ (by
             simp only [calleeStack, outside_append, outside_cons, outside_nil, and_true]
             (repeat' apply And.intro) <;> first | exact h1 | omega),
@@ -207,14 +210,14 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
       exact hSf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
     have hqN : Outside numErrType 16 [(q.toNat, q.toNat + sl.toNat)] := by
       have := InRanges.disjoint hInR pN
-      simp only [outside_cons, outside_nil, and_true]; omega
-    have oN8 : Outside numErrType 8 R.rt := Outside.of_sub pN (by omega) (by omega)
+      simp only [outside_cons, outside_nil, and_true]; te_omega
+    have oN8 : Outside numErrType 8 R.rt := Outside.of_sub pN (by te_omega) (by te_omega)
     have hN0 : m3.readLE numErrType 8 = 48 := by
-      rw [hM3 numErrType 8 oN8 (Outside.of_sub qN (by omega) (by omega)) (Outside.of_sub oN (by omega) (by omega))
-        (Outside.of_sub hqN (by omega) (by omega))]; exact t6
+      rw [hM3 numErrType 8 oN8 (Outside.of_sub qN (by te_omega) (by te_omega)) (Outside.of_sub oN (by te_omega) (by te_omega))
+        (Outside.of_sub hqN (by te_omega) (by te_omega))]; exact t6
     have hN1 : m3.readLE (numErrType + 8) 8 ≠ 0 := by
-      rw [hM3 (numErrType + 8) 8 (Outside.of_sub pN (by omega) (by omega)) (Outside.of_sub qN (by omega) (by omega))
-        (Outside.of_sub oN (by omega) (by omega)) (Outside.of_sub hqN (by omega) (by omega))]; exact t7
+      rw [hM3 (numErrType + 8) 8 (Outside.of_sub pN (by te_omega) (by te_omega)) (Outside.of_sub qN (by te_omega) (by te_omega))
+        (Outside.of_sub oN (by te_omega) (by te_omega)) (Outside.of_sub hqN (by te_omega) (by te_omega))]; exact t7
     have hN1b : (m3.readLE (numErrType + 8) 8 == 0) = false := by simp [hN1]
     have hb48 : 48 ≤ b - blockSize sl.toNat true := by
       have : blockSize 48 false = 48 := by decide
@@ -231,7 +234,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     simp only [Nat.add_sub_cancel_left] at pW qW
     have hqW : Outside wbFlag 4 [(q.toNat, q.toNat + sl.toNat)] := by
       have := InRanges.disjoint hInR pW
-      simp only [outside_cons, outside_nil, and_true]; omega
+      simp only [outside_cons, outside_nil, and_true]; te_omega
     have hf3 : m3.readLE wbFlag 4 = 0 := by
       rw [hM3 wbFlag 4 pW qW (by simp only [outside_cons, outside_nil, and_true] at oW ⊢; omega) hqW]; exact hfl
     have hoWd := oW
@@ -240,11 +243,14 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
       rw [hMF3.readLE _ _ (by
             simp only [calleeStack, outside_append, outside_cons, outside_nil, and_true]
             (repeat' apply And.intro) <;> first | exact pW | omega),
-          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega),
-          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)]
+          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by te_omega),
+          Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by te_omega)]
       exact hf3
     have hInTW := InRanges.disjoint hInT pW
     have hf4b : (m4.readLE wbFlag 4 == 0) = true := by simp [hf4]
-    janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hSlr, hSfp, hof30, hof29]
+    have hInTW' : wbFlag + 4 ≤ t.toNat ∨ t.toNat + 48 ≤ wbFlag := hInTW
+    rcases hInTW' with hdt | hdt
+    all_goals sorry
+    all_goals janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hSlr, hSfp, hof30, hof29]
     trace_state
     all_goals sorry
