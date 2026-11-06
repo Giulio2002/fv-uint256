@@ -64,4 +64,34 @@ theorem init_inv (x0 : Nat) (h2 : 2 ≤ x0) (h64 : x0 < 2 ^ 64) :
     x0 < (2 ^ ((Spec.bitLen x0 + 1) / 2) + 1) * (2 ^ ((Spec.bitLen x0 + 1) / 2) + 1) :=
   SqrtMath.inv_init x0 (Spec.bitLen x0) (Util.bitLen_bounds x0 (by omega)).2
 
+/-- the first-iteration facts of the 256-bit path, from the bit length `bl` of `X` (`65 ≤ bl ≤ 256`) and `cnt = (bl+1)/2` -/
+theorem head_arith (X bl cnt : Nat) (hbl : Spec.bitLen X = bl) (h65 : 65 ≤ bl) (h256 : bl ≤ 256)
+    (hcnt : cnt = (bl + 1) / 2) :
+    1 ≤ cnt ∧ cnt ≤ 128 ∧ X < (2 ^ cnt + 1) * (2 ^ cnt + 1) ∧ 2 ^ 64 ≤ X ∧ X < 2 ^ 256 := by
+  have hX0 : X ≠ 0 := by
+    intro h; subst h
+    simp [Spec.bitLen] at hbl; omega
+  have hb := Util.bitLen_bounds X hX0
+  rw [hbl] at hb
+  refine ⟨by omega, by omega, ?_, ?_, ?_⟩
+  · rw [hcnt]; exact SqrtMath.inv_init X bl hb.2
+  · have : 2 ^ 64 ≤ 2 ^ (bl - 1) := Nat.pow_le_pow_right (by omega) (by omega)
+    omega
+  · have : 2 ^ bl ≤ 2 ^ 256 := Nat.pow_le_pow_right (by omega) h256
+    omega
+
+theorem shr1_add (a c : Nat) (h : a + c < 2 ^ 64) :
+    ((BitVec.ofNat 64 a + BitVec.ofNat 64 c) >>> 1).toNat = (a + c) / 2 := by
+  rw [BitVec.toNat_ushiftRight, BitVec.toNat_add, BitVec.toNat_ofNat, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow,
+    Nat.pow_one, Nat.mod_eq_of_lt (by omega : a < 2 ^ 64), Nat.mod_eq_of_lt (by omega : c < 2 ^ 64)]
+  rw [Nat.mod_eq_of_lt h]
+
+theorem bl_pos (v : Nat) (h : v ≠ 0) : 1 ≤ Spec.bitLen v := by
+  have := Util.bitLen_bounds v h
+  refine Classical.byContradiction fun hc => ?_
+  have h0 : Spec.bitLen v = 0 := by omega
+  rw [h0] at this
+  simp at this
+  omega
+
 end Fv256.SqrtHead
