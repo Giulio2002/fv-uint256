@@ -111,7 +111,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
     left
     rcases hr with rfl | rfl <;> exact Outside.of_sub hr9 (by omega) (by simp only; omega)
   obtain ⟨hS_ret, hS_rbp, hS_z⟩ := Fv256.Amd64.FromDecimalSpec.s3_reads (v5 := (s.regs 5).toNat) (vn := nS.toNat)
-    (vp := pS.toNat) (zN := zv.toNat) (ra := 4932933) hlo hhi hr9 hMF
+    (vp := pS.toNat) (zN := zv.toNat) (ra := 4932933) (rc := 4932953) hlo hhi hr9 hMF
   have hbytes : ∀ k, k < nS.toNat → bytesAt ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4932953) pS.toNat k
       = bytesAt s.mem pS.toNat k := by
     intro k hk

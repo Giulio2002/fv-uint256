@@ -44,6 +44,13 @@ theorem outside_of_in {rt : List (Nat × Nat)} {z n : Nat} (hz : InRanges z n rt
     simp only at hab this
     omega
 
+/-- `MustFromDecimal` additionally reads the type word of the error's itab (`mov 8(%rax), %rax`) before it panics: the itab words
+of the sentinel errors, and the `*strconv.NumError` itab, are readable static data outside the runtime's ranges and the window. -/
+def PanicInit (R : RtInv) (R2 : IfaceModel) (lo hi : Nat) (m : Janus.Arm64.Memory) : Prop :=
+  (∀ w, (w = m.readLE C.ioEOF 8 ∨ w = m.readLE C.errBig 8) →
+    w + 16 ≤ 2 ^ 48 ∧ m.accessible (w + 8) 8 false = true ∧ Outside (w + 8) 8 R.rt ∧ Outside (w + 8) 8 [(lo, hi)]) ∧
+  Outside C.numErrItab 16 R.rt ∧ Outside C.numErrItab 16 [(lo, hi)] ∧ Outside C.numErrItab 16 R2.priv ∧ m.accessible C.numErrItab 16 false = true
+
 def PreC (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi tI : Nat) (pS nS : BitVec 64)
     (s : State) : Prop :=
   RetOK s ∧ s.regs 0 = pS ∧ s.regs 3 = nS ∧ Mod C R R2 T L ∧
@@ -66,13 +73,13 @@ theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : l
   exact ⟨h2, h1, by omega, by omega⟩
 
 /-- the reads of the spill slots of `FromDecimal`'s frame in the memory at the `SetFromDecimal` call -/
-theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp v5 vn vp zN ra : Nat}
+theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp v5 vn vp zN ra rc : Nat}
     (hlo : lo + 4848 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt9 : Outside lo (hi - lo) rt)
     (hMF : MemFrame ((((m0.writeLE (sp - 8) 8 v5).writeLE (sp + 16) 8 vn).writeLE (sp + 8) 8 vp).writeLE (sp - 48) 8 ra) mN
       (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)])) :
-    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE sp 8 = m0.readLE sp 8 ∧
-    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE (sp - 8) 8 = v5 % 2 ^ 64 ∧
-    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE (sp - 16) 8 = zN % 2 ^ 64 := by
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 rc).readLE sp 8 = m0.readLE sp 8 ∧
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 rc).readLE (sp - 8) 8 = v5 % 2 ^ 64 ∧
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 rc).readLE (sp - 16) 8 = zN % 2 ^ 64 := by
   have o1 : ∀ a n, lo ≤ a → a + n ≤ hi → (a + n ≤ sp - 48 - 4096 ∨ sp - 48 ≤ a) → (a + n ≤ sp - 48 + 8 ∨ sp - 48 + 8 + 8 ≤ a) →
       Outside a n (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
     intro a n h1 h2 h3 h4
@@ -90,13 +97,13 @@ theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp
   · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
 
 /-- a byte of the string is unchanged between the entry memory and the memory at the `SetFromDecimal` call -/
-theorem str_read {rt : List (Nat × Nat)} {L : List (Nat × Nat)} {m0 M0 mN : Janus.Arm64.Memory} {lo hi sp zN a : Nat}
+theorem str_read {rt : List (Nat × Nat)} {L : List (Nat × Nat)} {m0 M0 mN : Janus.Arm64.Memory} {lo hi sp zN a rc : Nat}
     (hlo : lo + 4848 ≤ sp) (hhi : sp + 24 ≤ hi)
     (hM0 : MemFrame m0 M0 [(lo, hi)])
     (hMF : MemFrame M0 mN (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)]))
     (hLF : LiveFrame M0 mN L [])
     (hwin : a + 1 ≤ lo ∨ hi ≤ a) (hs : Outside a 1 rt ∨ InRanges a 1 L) :
-    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 4932953).readLE a 1 = m0.readLE a 1 := by
+    ((mN.writeLE (sp - 16) 8 zN).writeLE (sp - 48) 8 rc).readLE a 1 = m0.readLE a 1 := by
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   have h1 : M0.readLE a 1 = m0.readLE a 1 := hM0.readLE a 1 (by simp only [outside_cons, outside_nil, and_true]; exact hwin)
   rcases hs with h | h
