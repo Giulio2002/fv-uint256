@@ -4,6 +4,8 @@ usage: arm64live.py DIS [ADDR ...]   -> prints live regs / sp-slots / flags befo
 Slots are [sp,#d] 8-byte words. Memory through other bases is ignored except the known Lsh output (sp+0x20..0x3f, defined by `bl`).
 At `ret` the result words sp+280..312 are live; panics end the path (nothing live)."""
 import re, sys
+STUB_START = 0xb989c   # reduce4: morestack stub
+RET_MEM = ()
 def parse(path):
     ins = []
     for ln in open(path):
@@ -64,13 +66,13 @@ def successors(ins, idx):
     addr, mn, ops = ins[idx]
     nxt = idx + 1 if idx + 1 < len(ins) else None
     if mn == 'ret': return []
-    m = re.search(r'0x([0-9a-f]+)', ops)
+    m = re.search(r'(?:^|,\s*)(?:0x)?([0-9a-f]{5,6})\b(?!\s*,)', ops)
     tgt = None
     if m and (mn == 'b' or mn.startswith('b.') or mn in ('cbz', 'cbnz')):
         t = int(m.group(1), 16)
         for k, x in enumerate(ins):
             if x[0] == t: tgt = k
-    if tgt is not None and ins[tgt][0] >= 0xb9534: tgt = None   # panic/morestack stubs: infeasible paths, nothing live
+    if tgt is not None and ins[tgt][0] >= STUB_START: tgt = None   # panic/morestack stubs: infeasible paths, nothing live
     if mn == 'b': return [tgt] if tgt is not None else []
     if mn == 'bl':
         t = int(m.group(1), 16) if m else 0
@@ -90,7 +92,7 @@ def analyse(ins):
             defs, uses, mdef, muse, fd, fu = dus[idx]
             outR, outM, outF = set(), set(), False
             if mn == 'ret':
-                outM = {280, 288, 296, 304, 312}
+                outM = set(RET_MEM)
             for s in successors(ins, idx):
                 outR |= LR[s]; outM |= LM[s]; outF |= LF[s]
             inR = (outR - defs) | uses
@@ -104,7 +106,7 @@ if __name__ == '__main__':
     LR, LM, LF = analyse(ins)
     want = [int(a, 16) for a in sys.argv[2:]]
     for k, i in enumerate(ins):
-        if (not want and i[0] >= 0xb8e08) or i[0] in want:
+        if (not want and i[0] >= 0) or i[0] in want:
             if not want and LF[k]: continue
             print('%x %-6s %s | regs %s | slots %s | flags %s' % (i[0], i[1], i[2][:30],
                   ' '.join(sorted(LR[k], key=lambda r: int(r[1:]))), ' '.join(str(s) for s in sorted(LM[k])), LF[k]))
