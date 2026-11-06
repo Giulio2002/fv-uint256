@@ -48,6 +48,9 @@ set_option linter.unusedVariables false
 set_option linter.deprecated false
 """
 EXTRA = {0x20: ['x20r1 = (s.regs 1).toNat', 'x20r2 = (s.regs 2).toNat', 'x20r3 = (s.regs 3).toNat']}
+if os.environ.get('R4EXTRA'):
+    for kv in os.environ['R4EXTRA'].split(';;'):
+        k, v = kv.split('=', 1); EXTRA[int(k, 16)] = [v]
 EXTAC = {}       # extra-fact text -> closing tactic (default omega)
 OVR = {(0x2b4, 0x2f4): {('r', 3): ('(if x2b4r8 = 0 then x2b4r3 else (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 4): ('(if x2b4r8 = 0 then x2b4r4 else (x2b4r4 + x2b4r12 + (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 5): ('(if x2b4r8 = 0 then x2b4r5 else (x2b4r5 + (x2b4r6 + x2b4m72 + (x2b4r4 + x2b4r12 + (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 6): ('(if x2b4r8 = 0 then x2b4r6 else (x2b4r6 + x2b4m72 + (x2b4r4 + x2b4r12 + (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 7): ('(if x2b4r8 = 0 then x2b4r7 else (x2b4r7 + x2b4r2) % 18446744073709551616)', 'IF')}}
 COMMON = ['BitVec.toNat_setWidth', 'BitVec.toNat_eq', 'BitVec.toNat_ushiftRight', 'BitVec.toNat_ofNat', 'Nat.shiftRight_eq_div_pow',

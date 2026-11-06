@@ -66,7 +66,7 @@ def successors(ins, idx):
     addr, mn, ops = ins[idx]
     nxt = idx + 1 if idx + 1 < len(ins) else None
     if mn == 'ret': return []
-    m = re.search(r'0x([0-9a-f]+)', ops)
+    m = re.search(r'(?:^|,\s*)(?:0x)?([0-9a-f]{5,6})\b(?!\s*,)', ops)
     tgt = None
     if m and (mn == 'b' or mn.startswith('b.') or mn in ('cbz', 'cbnz')):
         t = int(m.group(1), 16)
