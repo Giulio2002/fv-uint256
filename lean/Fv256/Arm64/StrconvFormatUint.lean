@@ -5,6 +5,7 @@ import Fv256.StrE
 import Fv256.UtilE64
 import Fv256.Arm64.DecT
 import Fv256.DecAt
+import Fv256.GrabTac
 import Fv256.Arm64.DecA
 import Fv256.Arm64.DecL
 
@@ -188,7 +189,8 @@ theorem formatUint_summary (st : Nat) (impl : List Segment) (rt : List (Nat × N
         have e2 : 18446744073709551616 - (24 - decLen (s.regs 0).toNat) - 18446744073709551592 = decLen (s.regs 0).toNat := by omega
         rw [e1, e2]; exact hH2
       janus_run [hmask, hmask2] calls [hc]
-      rename_i p l _ _ _ _ w2 _ _ hleft hright _
+      grab_const Janus.Contracts.StrAt as hright
+      grab_last_const Janus.MemFrame as hleft
       obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
       have eL : 18446744073709551616 - (24 - decLen (s.regs 0).toNat) - 18446744073709551592 = decLen (s.regs 0).toNat := by omega
       have eA : 24 - decLen (s.regs 0).toNat + (s.sp.toNat - 32) = s.sp.toNat - 32 + (24 - decLen (s.regs 0).toNat) := by omega
@@ -206,10 +208,9 @@ theorem formatUint_summary (st : Nat) (impl : List Segment) (rt : List (Nat × N
       · rw [hr4]; exact hdig
       · have hfs' : MemFrame s.mem sA.mem (rt ++ [(s.sp.toNat - 4192, s.sp.toNat - 8)]) :=
           hfs.mono (fun a n h => by simp only [outside_append] at h; exact h.2)
-        have hl' : MemFrame sA.mem w2 (rt ++ [(s.sp.toNat - 4192, s.sp.toNat - 8)]) := by
-          refine hleft.mono (fun a n h => ?_)
+        have hl' := MemFrame.mono (rs' := rt ++ [(s.sp.toNat - 4192, s.sp.toNat - 8)]) hleft (fun a n h => by
           simp only [outside_append, outside_cons] at h ⊢
-          refine ⟨h.1, ?_, ?_, trivial⟩ <;> omega
+          refine ⟨h.1, ?_, ?_, trivial⟩ <;> omega)
         exact hfs'.trans hl' fun a n h => ⟨h, h⟩
       · refine tabs_frame_out btab hleft ?_ ?_
         · simp only [outside_append, outside_cons]
@@ -222,7 +223,7 @@ theorem formatUint_summary (st : Nat) (impl : List Segment) (rt : List (Nat × N
           have h := decLen_div_pow (s.regs 0).toNat 2 (by show 100 ≤ (s.regs 0).toNat; omega)
           have h' := decLen_pos ((s.regs 0).toNat / 10 ^ 2)
           omega
-        have hlen : BitVec.toNat l = decLen (s.regs 0).toNat := by
-          rw [hr1]; first | simp [Spec.strBytes] | simp [strBytes]
+        have hlen := hr1
+        simp only [strBytes, List.length_map, List.length_range] at hlen
         rcases hat with h | h | h | h <;> first | exact h.2.2 | (exfalso; omega)
 end Fv256.Arm64.Dec
