@@ -1,4 +1,5 @@
 import Fv256.Arm64.SfdFdE
+import Fv256.Arm64.SfdFdEof
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I
   Fv256.Arm64.SfdEnv Fv256.Arm64.SfdToError Fv256.Arm64.SfdPw Fv256.Arm64.SfdFd
@@ -88,5 +89,36 @@ theorem fd_nil (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
       · dsimp only; rw [mval, hval]
       · refine Env.frame0 hMod.1 hEnvS ⟨by omega, by omega, e4'⟩ (by simp [setReg_apply, r28]) (MemFrame.refl _ _) (by omega)
       · exact hfr)
+
+/-- the loop from the head, by induction on the rounds left -/
+theorem fd_loop (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State)
+    (hpw : ∀ (lo' hi' : Nat) (p len : BitVec 64), PwSum impl R R2 T b L lo' hi' p len)
+    (hpre : FdPre R R2 T b L lo hi z pS nS s) (hn : nS.toNat ≠ 0) :
+    ∀ (k i : Nat) (S : State), 5 - i = k → FdInv R R2 T b L lo hi z pS nS s i S →
+      ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (s.regs 30) S (FdPost R R2 T b L lo hi z pS nS s) := by
+  intro k
+  induction k with
+  | zero =>
+    intro i S hk hI
+    exact fd_nil impl R R2 T b L lo hi z pS nS s hpre hn S i hI (Or.inl (by have := hI.2.1; omega))
+  | succ k ih =>
+    intro i S hk hI
+    by_cases hex : nS.toNat ≤ 19 * i
+    · exact fd_nil impl R R2 T b L lo hi z pS nS s hpre hn S i hI (Or.inr hex)
+    · exact fd_round impl R R2 T b L lo hi z pS nS s hpw hpre S i hI (by omega) (by omega)
+        (fun S' hI' => ih (i + 1) S' (by omega) hI')
+
+theorem fd_sum (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64)
+    (hpw : ∀ (lo' hi' : Nat) (p len : BitVec 64), PwSum impl R R2 T b L lo' hi' p len) :
+    FdSum impl R R2 T b L lo hi z pS nS := by
+  intro s hpc hpre
+  by_cases hn : nS = 0
+  · exact fd_eof impl R R2 T b L lo hi z pS nS s hpc hpre hn
+  · have hn' : nS.toNat ≠ 0 := fun h => hn (BitVec.eq_of_toNat_eq h)
+    refine Fv256.Arm64.SegCompose.seg_trans (fd_pro impl R R2 T b L lo hi z pS nS s hpc hpre hn) ?_
+    intro S hpc1 hI
+    exact fd_loop impl R R2 T b L lo hi z pS nS s hpw hpre hn' 5 0 S rfl hI
 
 end Fv256.Arm64.SfdFd

@@ -35,3 +35,11 @@ Build: lean/ lakefile pinned to /srv/janus-fvA-pin655 @655a23fa; build with ../b
 - fd_to_pw: from FdInv i (i<5, 19i<nS, rem>19) run to the ParseUint call, PwPre discharged (window lo'=s.sp-4440, hi'=s.sp-112, Env.frame0+Env.shrink, ChunkOK.mono_win).
 - Interface: PwSum fits; FV-I4 added `s'.mem.readLE (s.sp-8) 8 = s.mem.readLE (s.sp-8) 8 ∧ s'.mem.readLE s.sp 8 = ...` to PwPost (preserves saved FP/LR of the caller). Rebase SfdPw when FV-I4 sends the hash.
 - NEXT: rem<=19 variant of fd_to_pw (second call site returns at 0xb8c5c; same pw), ReachesRet.call pw (hpw lo' hi' p len), error exit (0xb8d18, TeObj.congr_src), MID = fd+0x114 state, then i=0 store / Mul call+add / increment+chop to head (i+1), exits, fd_loop induction, fd_sum.
+
+## Update 3: fd_sum CLOSED (Arm64/SfdFdF.lean), takes hpw : forall lo' hi' p len, PwSum impl R R2 T b L lo' hi' p len
+Chain of files (all sorry-free, each < 1 min): SfdFdSpec (FdPre/FdPost/FdSum), SfdFdPro (FdInv, fd_pro), SfdFdEof (fd_eof), SfdFdRnd (PwCtx, fd_to_pw, fd_to_pw_small),
+SfdFdMid (fd_ret_to_mid, fd_err_ret), SfdFdInc (M2Inv, fd_incr, Env.congr), SfdFdA (MidInv, fd_mid0), SfdFdB (fd_to_mul, fd_add), SfdFdC (fd_midK),
+SfdFdD (fd_post_call), SfdFdE (fd_round), SfdFdF (fd_nil, fd_loop, fd_sum).
+Lessons: never `omega` in contexts holding many hypotheses or after `.trans`/`.mono` without explicit intermediate `have` types (hangs 20+ min); use `exact` with structured Outside conjunctions and small standalone lemmas (out_sub, win_sub, toInt_small, toInt_nonpos).
+To derive hpw: PwSum from pw_sum (FV-I4) + the six runtime contracts (pw_sum ... hif hnew hmg hmv hwb1 hwb2).
+TODO: SfdTop (plus skip, zero-skip + decoderune, cmpstring, call fd_sum), Extracted-level correctness + witness, ONE verify.
