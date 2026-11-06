@@ -1,3 +1,2 @@
 # path	owner	note  (must be empty at final release)
 lean/Fv256/Amd64/MarshalJSON.lean	FV-E	draft
-lean/Fv256/Arm64/ISqrt.lean	FV-H	WIP
