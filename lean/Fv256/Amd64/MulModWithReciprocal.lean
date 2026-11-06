@@ -4,6 +4,7 @@ import Fv256.Util
 import Fv256.SpecF
 import Fv256.Amd64.MulModRecCorr
 import Fv256.Amd64.ReduceSpec
+import Fv256.Amd64.Reduce4
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -24,7 +25,7 @@ theorem correctness (z x y m mu : BitVec 64) :
         valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s x 32) (valueAt s y 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x2e8, (s.regs regSP).toNat),
           ((s.regs regSP).toNat + 8, (s.regs regSP).toNat + 0x30)])  :=
-  Fv256.Amd64.MulModRecCorr.correctness_param Fv256.Amd64.ReduceSpec.R4Summary_PLACEHOLDER z x y m mu
+  Fv256.Amd64.MulModRecCorr.correctness_param Fv256.Amd64.Reduce4.reduce4_summary z x y m mu
 
 set_option exponentiation.threshold 600
 namespace Witness
