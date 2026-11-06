@@ -47,4 +47,22 @@ theorem r4step (W R4p Y c P : Nat) (hW : W < 2 ^ 320)
     · omega
     · omega
 
+theorem cpy (c : Bool) (a b r m : Nat) (hb : b < 2 ^ 64)
+    (gr : r = (if c = true then BitVec.ofNat 64 a else BitVec.ofNat 64 b).toNat)
+    (gm : m = (if c = true then a % 2 ^ 64 else b) % 2 ^ 64) : m = r := by
+  cases c
+  · simp only [Bool.false_eq_true, if_false, BitVec.toNat_ofNat] at gr gm
+    rw [gm, gr, Nat.mod_eq_of_lt hb]
+  · simp only [if_true, BitVec.toNat_ofNat] at gr gm
+    rw [gm, gr, Nat.mod_mod]
+
+theorem rcx_dbl (rcx r : Nat) (hr : rcx < 2 ^ 64)
+    (g : r = (if (BitVec.ofNat 64 rcx).msb = true then 0#64 else BitVec.ofNat 64 rcx).toNat) :
+    r = if 2 ^ 63 ≤ rcx then 0 else rcx := by
+  by_cases hm : (BitVec.ofNat 64 rcx).msb = true
+  · have hc := (msb_iff rcx hr).1 hm
+    rw [if_pos hc]; rw [if_pos hm] at g; simpa using g
+  · have hc : ¬ 2 ^ 63 ≤ rcx := fun h => hm ((msb_iff rcx hr).2 h)
+    rw [if_neg hc]; rw [if_neg hm] at g; simpa [BitVec.toNat_ofNat, Nat.mod_eq_of_lt hr] using g
+
 end Fv256.Amd64.RecipSeg
