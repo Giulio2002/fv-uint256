@@ -28,25 +28,11 @@ namespace Fv256.Amd64.SfdToError
 theorem reach_name {p : Janus.Amd64.Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
     (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl
 
-set_option maxHeartbeats 16000000 in
+set_option hygiene false in
 set_option maxRecDepth 20000 in
-theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Laws)
-    (T b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64)
-    (hif : Ifaceeq (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
-    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
-    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
-    (hmv : MemmoveLive64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
-    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
-    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
-    Summary (Extracted.program.link impl) te (TePre R R2 T b L fp fl sp sl) (TePost R R2 b L fp fl sp sl) := by
-  intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, h9, h10, hsl1, hsl2, hg, ⟨hlow, hnw, hacc⟩, hal, hNT1, hNT2, hNa, hIa, hSa, hdep, hc2,
-    hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hsRe, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR, hrt0, hnP, hwP, hePr, hwbacc, heacc, hspR, hspP⟩
+/-- the proof of `te_sum0`/`te_sum1` after the introduction of the precondition (shared; the two theorems differ in the
+write-barrier-flag hypothesis `hfl`, which closes the branches of the other flag value) -/
+macro "te_body" : tactic => `(tactic| (
   have hgl := hg.load
   have hgb := hg.below
   have hgn := hg.noWrap
@@ -245,5 +231,73 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
             (te_src hLF hMF hspR hk hsdisj (te_hfr hfr hspP hk hdep hsdisj))
       all_goals first | rfl | (simp [hx15, hdf]; done) | skip
   all_goals (exfalso; exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption))
+  ))
 
+set_option maxHeartbeats 16000000 in
+set_option maxRecDepth 20000 in
+theorem te_sum0 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Laws)
+    (T b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64)
+    (hif : Ifaceeq (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
+    Summary (Extracted.program.link impl) te (fun s => TePre R R2 T b L fp fl sp sl s ∧ s.mem.readLE 6156064 4 = 0) (TePost R R2 b L fp fl sp sl) := by
+  intro s hpc ⟨⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, h9, h10, hsl1, hsl2, hg, ⟨hlow, hnw, hacc⟩, hal, hNT1, hNT2, hNa, hIa, hSa, hdep, hc2,
+    hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hsRe, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR, hrt0, hnP, hwP, hePr, hwbacc, heacc, hspR, hspP⟩, hfl⟩
+  te_body
+
+set_option maxHeartbeats 16000000 in
+set_option maxRecDepth 20000 in
+theorem te_sum1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Laws)
+    (T b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64)
+    (hif : Ifaceeq (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
+    Summary (Extracted.program.link impl) te (fun s => TePre R R2 T b L fp fl sp sl s ∧ ¬ s.mem.readLE 6156064 4 = 0) (TePost R R2 b L fp fl sp sl) := by
+  intro s hpc ⟨⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, h9, h10, hsl1, hsl2, hg, ⟨hlow, hnw, hacc⟩, hal, hNT1, hNT2, hNa, hIa, hSa, hdep, hc2,
+    hout, hinv, hLs, hbud, hTd, hTty, hTreg, hTnd, hTsz, hoI, hoS, hoE, hoW, hoN, hprR, hLpr, hnR, hwR, hsRe, hokm, hokn, hokv, hokb1, hokb2, hsacc, hsp48, hsdisj, hgdis, hgR, hrt0, hnP, hwP, hePr, hwbacc, heacc, hspR, hspP⟩, hfl⟩
+  te_body
+
+theorem summary_split {p : Janus.Amd64.Program} {e : Nat} {P : State → Prop} {c : State → Prop} {Q : State → State → Prop}
+    (h0 : Summary p e (fun s => P s ∧ c s) Q) (h1 : Summary p e (fun s => P s ∧ ¬ c s) Q) : Summary p e P Q := by
+  intro s hpc hP
+  by_cases hc : c s
+  · exact h0 s hpc ⟨hP, hc⟩
+  · exact h1 s hpc ⟨hP, hc⟩
+
+theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Laws)
+    (T b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64)
+    (hif : Ifaceeq (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
+    Summary (Extracted.program.link impl) te (TePre R R2 T b L fp fl sp sl) (TePost R R2 b L fp fl sp sl) := by
+  summary_split (c := fun s => s.mem.readLE 6156064 4 = 0)
+    (te_sum0 impl R R2 hl T b L fp fl sp sl hif hnew hmg hmv hwb1 hwb2)
+    (te_sum1 impl R R2 hl T b L fp fl sp sl hif hnew hmg hmv hwb1 hwb2)
 end Fv256.Amd64.SfdToError
