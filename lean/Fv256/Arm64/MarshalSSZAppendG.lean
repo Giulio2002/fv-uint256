@@ -166,11 +166,12 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     clear hdesc
     obtain ⟨gp1, gp2, gp3, gp4⟩ := grow_pre_a64 len.toNat cc.toNat pp.toNat s.sp.toNat hlc hPb hdj hb'
     have pack := And.intro hrdy (And.intro hdj (And.intro hlc (And.intro hlle (And.intro hlge (And.intro hC (And.intro hPb (And.intro hcostK (And.intro hK (And.intro hbud (And.intro hwho (And.intro hzs (And.intro hmid (And.intro hpre (And.intro hzpd (And.intro hrd (True.intro))))))))))))))))
-    replace pack := show Hidden _ from pack
+    replace pack := Nonempty.intro pack
     clear hrdy hdj hlc hlle hlge hC hPb hcostK hK hbud hwho hzs hmid hpre hzpd hrd
     janus_run [hu1, hu2] until [Extracted.entry + 0x64] calls [hg]
     rename_i r0 r1 r2 jk fl vr M ex epm hfr' hpost hlf hfresh hapart hinv2
     obtain ⟨hr1, hr2, hin, hlim, hacc2, hcopy, hz1, hz2⟩ := hpost
+    obtain ⟨pack⟩ := pack
     obtain ⟨hrdy, hdj, hlc, hlle, hlge, hC, hPb, hcostK, hK, hbud, hwho, hzs, hmid, hpre, hzpd, hrd, -⟩ := pack
     have hle := le_growCap 1 true (len.toNat + 8) cc.toNat (by omega)
     have hst : M.accessible (r0.toNat + len.toNat) 8 true = true :=
@@ -276,7 +277,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     · intro _ h0'; dsimp only; rw [Memory.accessible_writeLE, hlen8]
       exact Memory.accessible_sub M hacc2 (Or.inl rfl) (Nat.le_refl _) (by omega)
     · rw [Nat.succ_mul] at hbud; omega
-    · rw [hlen8, hr2]; exact (hrdy.1 hbr).2
+    · rw [hlen8, hr2]; exact (hrdy.1 (by omega)).2
     · exact Or.inr ⟨rr, hrr, hrr1, hrr2⟩
     · intro i hi; dsimp only
       rw [Memory.bytes_writeLE_outside _ (Or.inl (by omega)), hcopy i (by omega),
