@@ -9,7 +9,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 namespace Fv256.Arm64.RecipSeg
 
 /-- the 40-byte result `mu` (5 words, little endian) is written to the caller frame at `sp+8 .. sp+48`;
-`sp`, `x18`, `x28`, `x29`, `x30` are as on entry; the frame window `[sp-280, sp+48)` is the only memory touched.
+`sp`, `x18`, `x28`, `x29`, `x30` are as on entry; only `[sp-280, sp-8)` (own frame) and `[sp+8, sp+48)` (result) are written; the caller's saved FP/LR words `[sp-8, sp+8)` are untouched.
 `mu = 0` below `2^192`, `RecipWeak` from `2^192`, `RecipOK` from `2^193` (m = the 32 bytes at `X0`). -/
 def RecSpec (s s' : State) : Prop :=
   s'.sp = s.sp ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
