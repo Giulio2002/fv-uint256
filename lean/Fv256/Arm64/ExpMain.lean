@@ -24,7 +24,7 @@ def PostE (s s' : State) : Prop :=
   s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
     s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
     s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.expSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) ∧
-    MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 168, s.sp.toNat),
+    MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 168, s.sp.toNat - 8),
       (s.sp.toNat + 8, s.sp.toNat + 32)]
 
 set_option maxHeartbeats 64000000 in

@@ -27,7 +27,7 @@ def Inv1 (s0 : State) (n z ep base0 k r b w : Nat) (S : State) : Prop :=
   S.mem.readLE (s0.sp.toNat + 8) 8 = z ∧ S.mem.readLE (s0.sp.toNat + 24) 8 = ep ∧
   S.mem.readLE (s0.sp.toNat - 120) 8 = n ∧ S.mem.readLE (s0.sp.toNat - 16) 8 = base0 ∧
   S.mem.readLE (s0.sp.toNat - 160) 8 = (s0.regs 30).toNat ∧ S.mem.readLE (s0.sp.toNat - 168) 8 = (s0.regs 29).toNat ∧
-  MemFrame s0.mem S.mem [(s0.sp.toNat - 168, s0.sp.toNat), (s0.sp.toNat + 8, s0.sp.toNat + 32)]
+  MemFrame s0.mem S.mem [(s0.sp.toNat - 168, s0.sp.toNat - 8), (s0.sp.toNat + 8, s0.sp.toNat + 32)]
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in

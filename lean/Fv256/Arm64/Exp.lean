@@ -60,7 +60,7 @@ theorem correctness (z b e : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, b, e] (Pre z b e)
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.expSpec (val256 s.mem b.toNat) (val256 s.mem e.toNat) ∧
-        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 168, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 32)]) := by
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 168, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32)]) := by
   refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ exp_summary_ex ?_ ?_
   · intro ret hret s hsu ⟨hg, hs, hsp, hgw, ⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, hdz, hdx, hdy, hdl⟩
     have h30 : s.regs 30 = BitVec.ofNat 64 ret := by
