@@ -69,7 +69,7 @@ macro "segC_close" : tactic => `(tactic| (
      apply Janus.Tactic.ReachesRet.done
      · simp [Extracted.entry]
        done
-     refine ⟨by simp [Extracted.entry], rfl, ?_, ?_⟩
+     refine ⟨by simp [Extracted.entry], rfl, fun i h9 h10 => by simp [setReg, h9, h10], ?_, ?_⟩
      · dsimp only
        janus_frame
      · dsimp only
@@ -101,6 +101,7 @@ theorem segC (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x214)
     (hnov : S.mem.readLE (S.regs 1).toNat 32 + S.mem.readLE (S.regs 2).toNat 32 < 2 ^ 256) :
     Janus.Tactic.ReachesRet Extracted.program (BitVec.ofNat 64 (Extracted.entry + 0x318)) S
       (fun S' => S'.pc = BitVec.ofNat 64 (Extracted.entry + 0x318) ∧ S'.sp = S.sp ∧
+        (∀ i, i ≠ 9 → i ≠ 10 → S'.regs i = S.regs i) ∧
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32)] ∧
         S'.mem.readLE (S.regs 0).toNat 32 = S.mem.readLE (S.regs 1).toNat 32 + S.mem.readLE (S.regs 2).toNat 32) := by
   have bx0 := Util.readLE8_lt S.mem (S.regs 1).toNat
