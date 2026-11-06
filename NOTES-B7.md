@@ -61,3 +61,25 @@ HEAVY_PRIORITY=0 for janus verify (noted)
 - Arm64/SfdTopPro.lean: probe of the entry up to ta = 0xb89f0 (after plus skip) for nS = 0 runs; needs LITERAL pc (0xb89b0 / 0xb89f0, not segAddr abbrevs), g+24 <= 2^48 and `Nat.mod_eq_of_lt` for g+16, sp%16.
   The nS != 0 case (byte load, '+' compare, plus skip) is the next step; then zero loop at 0xb8aa8 with decoderune (call at 0xb8adc), cmp 78 / cmpstring (0xb8a40) / fromDecimal calls (0xb8a70, 0xb8a98), error returns.
 - HEAVY_PRIORITY=0 for the final janus verify (coordinator request).
+
+# HANDOVER (FV-B7 -> next worker), written at the end of session
+State: branch fv/wb7, worktree /srv/fv-uint256-wB7, HEAD = see `git log -1` (4ee796e or later). Build: `./build_lb.sh Fv256.Arm64.<Module>` (lake build, log build/lb-<Module>.log, ENDMARK line; janus pin 655a23fa
+via lean/lakefile.toml -> /srv/janus-fvA-pin655; for the final verify use 77fb30cc + workaround per coordinator). HEAVY_PRIORITY=0 for heavy-run.
+
+DONE (all sorry-free except FV-I4's pw_sum body in Arm64/SfdPw.lean): fd_sum : FdSum impl R R2 T b L lo hi z pS nS from hpw (Arm64/SfdFdF.lean + SfdFdSpec/Pro/Eof/Rnd/Mid/Inc/A/B/C/D/E).
+ FdPost has `Keep s s'` (words at s.sp-8, s.sp preserved). SfdTopSpec.lean (TopPre/TopPost/SfdSummary, SfdCfg with maxStr; commit 2e2ff749) is the target statement.
+ SfdTopPro.lean: probe `top_pro_probe` (entry -> pc 0xb89f0, only nS=0 branch runs; the rest `all_goals sorry`).
+
+NEXT LEMMA (exact): Arm64/SfdTopPro.lean `top_pro` for nS != 0: from entry pc 0xb89b0 to pc 0xb89f0 (call it `ta`).
+ Code: 0xb89b0 ldr x16,[x28,#16]; cmp sp; bls morestack; 0xb89bc MOVD.W x30,-80(sp); 0xb89c0 str x29,-8(sp); 0xb89c4 sub x29,sp,#8; 0xb89c8 str x1,96(sp) [topSP+16 := pS];
+  0xb89cc cbz x2 -> 0xb89f0; 0xb89d0 ldrb w4,[x1]; cmpw #43; bne -> 0xb89f0; 0xb89dc sub x2,x2,#1; neg x4,x2; asr x4,x4,#63; and x4,x4,#1; add x1,x1,x4; 0xb89f0 str x0,88(sp) [topSP+8 := z]; cbz x2 -> 0xb8a18.
+ Needed hypotheses (see probe): LITERAL pc 0xb89b0, g+24<=2^48 (Env e6), g+16 < 2^64 via Nat.mod_eq_of_lt, sp%16=0, accessible (sp-88) 120 true, accessible pS nS false, byte read s.mem.readLE pS 1 (case split b=43 vs not).
+ Post to prove (state at 0xb89f0): sp = s.sp-80, x29 = s.sp-88, x28/x18 same, R0=z, R1 = pS + plusEnd, R2 = nS - plusEnd (plusEnd b n in SpecI: 1 if n>0 and b 0 = 43), mem = writes at s.sp-80(LR), s.sp-88(FP), s.sp+16(pS), s.sp+8(z) over s.mem.
+NEXT: (1) zero-skip loop head 0xb8aa8 (CMP R2,R3; ldrb; cmpw #127; bgt -> decoderune call at 0xb8adc with R0=p,R1=len,R2=idx; cmpw #48; beq loop; after loop s=s[i:] via mask trick `AND R4->63 ... (R3-R2)>>63` = UtilI.mask_keep) -- use SfdDecode.decoderune_sum (DecPre/DecPost) for bytes >= 0x80 (result rune >= 0x80 != '0');
+ invariant relates to SpecI zerosFrom/startPos (startPos_spec, startPos_lead); (2) length compare 0xb8a18: CMP $78,R2: BLT -> fromDecimal call 0xb8a98; BNE (>78) -> ErrBig256Range return (LDP from 0x1b5bc0+? at 0xb8a4c/0xb8a80);
+ ==78 -> spill, runtime.cmpstring(R0=p,R1=len,R2=maxStr(0xf490b),R3=78) at 0xb8a40 via Janus.Contracts.Cmpstring.CmpstringContract (hypothesis), then R0>0 -> ErrBig return else fromDecimal call at 0xb8a70 (reload z,p,len from slots 88/64/56(RSP));
+ fromDecimal call: ReachesRet.call (fd_sum impl R R2 T b L lo hi z p len hpw) -- window = same [lo,hi) (FdPre needs lo+4440 <= sp-80, i.e. lo+4520 <= s.sp; Env etc. re-establish at the call state; ChunkAll/MultOK/io.EOF facts from TopPre). Epilogue 0xb8a74: ldur x29,-8(sp); ldr x30,80(sp)!; ret (reload from topSP-88 / topSP-80 slots; FdPost.Keep protects them). Result: map fromDec results to decParse (decParse b n = fromDec b n (startPos b n) or .range; lexGt via UtilI.strCmp_eq_one_iff).
+ (3) discharge: TopPost eof/ok/range/syntax cases (syntax: TeObj from FdPost, p = pS+startPos+lo').
+ (4) Extracted level: Arm64/SetFromDecimal.lean like Arm64/Reciprocal.lean (Summary.of_codeIn + codeIn_of_sub for SfdProg.program, cfg from extraction: maxStr=0xf490b, ioEOF=0x1b5c10, errBig=?, mulTab=0x1b6540 etc. from `go tool objdump` / extraction data), Witness.nonvacuous (EqHashModel witness, RtInv/IfaceModel instances: see how FV-I4's pw witness plans), hpw from FV-I4's pw_sum + six contracts.
+ (5) ONE verify: HEAVY_PRIORITY=0 heavy-run, janus 77fb30cc (+ fv_carry_simp_v1 only matters for amd64), --theorem ...correctness --theorem ...Witness.nonvacuous.
+LESSONS: never omega in big contexts or inside inline .trans/.mono (give explicit `have` types); structure Outside facts with `exact ⟨..⟩`; use literal pcs; numeric abbrev constants must be re-stated as literals for omega/janus_run; `case` names for refine goals; fresh `have`s after refine apply only to the first goal.
