@@ -14,6 +14,7 @@ import Fv256.Arm64.UdivremFinal
 import Fv256.Arm64.ChainProg
 import Fv256.Arm64.ModProg
 import Fv256.Arm64.CodeIn
+import Fv256.Amd64.AddModTac
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
@@ -68,6 +69,9 @@ theorem addmod_fast : Summary Extracted.program Extracted.entry (fun s => PreS s
   have hm3 := Util.readLE8_lt s.mem ((s.regs 3).toNat + 24)
   janus_data hdata [hsw, hza]
   janus_run [Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div, Fv256.B.wv_writeLE_outside, Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcMod Fv256.Arm64.ModSum.mod_summary, Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 5) (by decide) (by decide))]
+  all_goals (try simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, Util.readLE8_mod, BitVec.toNat_add] at *)
+  all_goals (refine ⟨?_, ?_⟩)
+  all_goals (first | janus_frame | skip)
   all_goals (trace_state; sorry)
 
 end Fv256.Arm64.AddModF
