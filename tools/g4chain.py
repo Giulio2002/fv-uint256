@@ -49,8 +49,11 @@ def emit(name, cuts):
     outargs = units[-1]['outargs']
     L = 'PC_%x_%x' % (A, Z)
     eqtxt = ' ∧ '.join('%s = %s' % (n, e) for n, e in alleqs)
-    pdef = ("def %s (s : State) %s(S' : State) : Prop :=\n  ∃ %s, L%x s S' %s ∧ %s%sR4Regs s S' ∧ R4Mem s S'.mem\n" %
-            (L, ('(%s : Nat) ' % ' '.join(invars)) if invars else '', ' '.join(allnew), Z, ' '.join(outargs), eqtxt, ' ∧ ' if eqtxt else ''))
+    En = 'E_%x_%x' % (A, Z)
+    allvars_ = invars + allnew
+    edef = 'abbrev %s (%s : Nat) : Prop :=\n  %s\n\n' % (En, ' '.join(allvars_), eqtxt if eqtxt else 'True')
+    pdef = edef + ("def %s (s : State) %s(S' : State) : Prop :=\n  ∃ %s, L%x s S' %s ∧ %s %s ∧ R4Regs s S' ∧ R4Mem s S'.mem\n" %
+            (L, ('(%s : Nat) ' % ' '.join(invars)) if invars else '', ' '.join(allnew), Z, ' '.join(outargs), En, ' '.join(allvars_)))
     st, _ = gseg.seg_stmt(A, Z, '%s s  %s' % (L, ' '.join(invars)))
     st = st.replace('theorem g_%x_%x' % (A, Z), 'theorem c_%x_%x' % (A, Z))
     out = imports + '\nopen Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic\nopen Fv256.Amd64.ReduceSpec\n\nnamespace Fv256.Amd64.R4Seg\n\n' + pdef + '\n'
@@ -73,7 +76,7 @@ def emit(name, cuts):
         lines.append('  obtain ⟨%s⟩ := hq%d' % (', '.join(names), k + 1))
         prev = dict(S='S%d' % (k + 1), hpc='hpc%d' % (k + 1), hR='hR%d' % (k + 1), hM='hM%d' % (k + 1), hL='hL%d' % (k + 1), args=u['outargs'])
     lines.append('  unfold %s' % L)
-    lines.append('  exact ⟨%s, hL%d, %s%shR%d, hM%d⟩' % (', '.join(allnew), len(units), ', '.join('h_' + n for n, e in alleqs), ', ' if alleqs else '', len(units), len(units)))
+    lines.append('  exact ⟨%s, hL%d, ⟨%s⟩, hR%d, hM%d⟩' % (', '.join(allnew), len(units), ', '.join('h_' + n for n, e in alleqs), len(units), len(units)))
     # fix: intermediate hpc names: segments need S.rip = ..., provided by seg_trans callback (hpc_k)
     out += '\n'.join(lines) + '\n\nend Fv256.Amd64.R4Seg\n'
     f = D + 'C_%x_%x.lean' % (A, Z)
