@@ -1,0 +1,81 @@
+import Fv256.Arm64.RecipLive
+
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
+
+namespace Fv256.Arm64.RecipSeg
+set_option linter.unusedSimpArgs false
+set_option linter.unusedVariables false
+set_option linter.deprecated false
+
+def P_284_2a8 (s : State) (x284r0 x284r1 x284r2 x284r3 x284r10 x284m128 x284m136 x284m176 x284m240 x284m248 x284m256 : Nat) (S' : State) : Prop :=
+  ∃ x2a8r4 x2a8r5 x2a8r6 x2a8r7 x2a8r8 x2a8r9 x2a8r11 x2a8r12, L2a8 S' x284r0 x284r2 x284r3 x2a8r4 x2a8r5 x2a8r6 x2a8r7 x2a8r8 x2a8r9 x284r10 x2a8r11 x2a8r12 x284m128 x284m136 x284r0 x284m176 x284m240 x284m248 x284m256 ∧ x2a8r4 = x284r1 * x284r1 % 18446744073709551616 ∧ x2a8r5 = x284r1 * x284r1 / 18446744073709551616 ∧ x2a8r6 = x284r2 * x284r1 % 18446744073709551616 ∧ x2a8r7 = x284r2 * x284r1 / 18446744073709551616 ∧ x2a8r8 = x284r0 * x284r1 % 18446744073709551616 ∧ x2a8r9 = x284r0 * x284r1 / 18446744073709551616 ∧ x2a8r11 = x284r2 * x284r2 % 18446744073709551616 ∧ x2a8r12 = x284r2 * x284r2 / 18446744073709551616 ∧ RecRegs s S' ∧ RecMem s S'.mem
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem g_284_2a8 (s S : State) (hpc : S.pc = BitVec.ofNat 64 (recEntry + 0x284)) (hs : RecPre s)
+    (hR : RecRegs s S) (hM : RecMem s S.mem) (x284r0 x284r1 x284r2 x284r3 x284r10 x284m128 x284m136 x284m176 x284m240 x284m248 x284m256 : Nat) (hL : L284 S x284r0 x284r1 x284r2 x284r3 x284r10 x284m128 x284m136 x284m176 x284m240 x284m248 x284m256) :
+    ReachesRet Fv256.Arm64.RecipProg.program (BitVec.ofNat 64 (recEntry + 0x2a8)) S (P_284_2a8 s x284r0 x284r1 x284r2 x284r3 x284r10 x284m128 x284m136 x284m176 x284m240 x284m248 x284m256) := by
+  obtain ⟨h1, h2, ⟨hg1, hg2, hg3⟩, ⟨hsa, hsb, hsc, hsd⟩, hgw, hm1, hm2, hmd⟩ := hs
+  have hS := hR.sp_toNat hsb
+  have hacc : S.mem.accessible (S.sp.toNat - 8) 328 true = true := by
+    rw [hM.2.2.accessible]; rw [show S.sp.toNat - 8 = s.sp.toNat - 280 by omega]; exact hsd
+  obtain ⟨hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256⟩ := hL
+  have hB_x284r0 : x284r0 < 2 ^ 64 := by rw [← hE_x284r0]; exact BitVec.isLt _
+  have hR_x284r0 : S.regs 0 = BitVec.ofNat 64 x284r0 := by rw [← hE_x284r0]; exact bv_eq_ofNat _
+  have hB_x284r1 : x284r1 < 2 ^ 64 := by rw [← hE_x284r1]; exact BitVec.isLt _
+  have hR_x284r1 : S.regs 1 = BitVec.ofNat 64 x284r1 := by rw [← hE_x284r1]; exact bv_eq_ofNat _
+  have hB_x284r2 : x284r2 < 2 ^ 64 := by rw [← hE_x284r2]; exact BitVec.isLt _
+  have hR_x284r2 : S.regs 2 = BitVec.ofNat 64 x284r2 := by rw [← hE_x284r2]; exact bv_eq_ofNat _
+  have hB_x284r3 : x284r3 < 2 ^ 64 := by rw [← hE_x284r3]; exact BitVec.isLt _
+  have hR_x284r3 : S.regs 3 = BitVec.ofNat 64 x284r3 := by rw [← hE_x284r3]; exact bv_eq_ofNat _
+  have hB_x284r10 : x284r10 < 2 ^ 64 := by rw [← hE_x284r10]; exact BitVec.isLt _
+  have hR_x284r10 : S.regs 10 = BitVec.ofNat 64 x284r10 := by rw [← hE_x284r10]; exact bv_eq_ofNat _
+  have hB_x284m128 : x284m128 < 2 ^ 64 := by rw [← hE_x284m128]; exact Util.readLE8_lt _ _
+  have hB_x284m136 : x284m136 < 2 ^ 64 := by rw [← hE_x284m136]; exact Util.readLE8_lt _ _
+  have hB_x284m176 : x284m176 < 2 ^ 64 := by rw [← hE_x284m176]; exact Util.readLE8_lt _ _
+  have hB_x284m240 : x284m240 < 2 ^ 64 := by rw [← hE_x284m240]; exact Util.readLE8_lt _ _
+  have hB_x284m248 : x284m248 < 2 ^ 64 := by rw [← hE_x284m248]; exact Util.readLE8_lt _ _
+  have hB_x284m256 : x284m256 < 2 ^ 64 := by rw [← hE_x284m256]; exact Util.readLE8_lt _ _
+  janus_run [hR_x284r0, hR_x284r1, hR_x284r2, hR_x284r3, hR_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256, Nat.mod_eq_of_lt hB_x284r0, Nat.mod_eq_of_lt hB_x284r1, Nat.mod_eq_of_lt hB_x284r2, Nat.mod_eq_of_lt hB_x284r3, Nat.mod_eq_of_lt hB_x284r10, Nat.mod_eq_of_lt hB_x284m128, Nat.mod_eq_of_lt hB_x284m136, Nat.mod_eq_of_lt hB_x284m176, Nat.mod_eq_of_lt hB_x284m240, Nat.mod_eq_of_lt hB_x284m248, Nat.mod_eq_of_lt hB_x284m256, Fv256.B.rot32_and, BitVec.toNat_setWidth, BitVec.toNat_eq, BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.shiftRight_eq_div_pow, BitVec.le_def, BitVec.lt_def, BitVec.toNat_sub, BitVec.toNat_add] until [recEntry + 0x2a8]
+  all_goals (
+  refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [recEntry, segAddr]) ?_
+  unfold P_284_2a8
+  refine ⟨x284r1 * x284r1 % 18446744073709551616, x284r1 * x284r1 / 18446744073709551616, x284r2 * x284r1 % 18446744073709551616, x284r2 * x284r1 / 18446744073709551616, x284r0 * x284r1 % 18446744073709551616, x284r0 * x284r1 / 18446744073709551616, x284r2 * x284r2 % 18446744073709551616, x284r2 * x284r2 / 18446744073709551616, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · unfold L2a8
+    and_intros
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+    · dsimp only; simp (disch := omega) only [janus_post, setReg, ↓reduceIte, Nat.reduceEqDiff, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, BitVec.toNat_setWidth, Fv256.B.rot32_and, Bool.toNat_true, Bool.toNat_false, hE_x284r0, hE_x284r1, hE_x284r2, hE_x284r3, hE_x284r10, hE_x284m128, hE_x284m136, hE_x284m176, hE_x284m240, hE_x284m248, hE_x284m256]
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · rfl
+  · refine ⟨hR.1, ?_, ?_⟩
+    · first | exact hR.2.1 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.1)
+    · first | exact hR.2.2 | (simp only [setReg, ↓reduceIte, Nat.reduceEqDiff]; exact hR.2.2)
+  · dsimp only
+    repeat (refine RecMem.write ?_ _ _ _ (by omega) (by omega) (by omega) hsb)
+    exact hM
+  )
+
+end Fv256.Arm64.RecipSeg
