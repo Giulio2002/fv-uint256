@@ -34,7 +34,7 @@ set_option maxRecDepth 200000 in
 /-- Loop 1 of `Exp`: `t` iterations remain (`k + t = min n 64`). -/
 theorem loop1 (s0 : State) (Q : State → Prop) (n z ep base0 : Nat) (hn : n < 2 ^ 20)
     (hal : s0.sp.toNat % 16 = 0) (hsp : 336 ≤ s0.sp.toNat) (hspb : s0.sp.toNat + 40 ≤ 2 ^ 48)
-    (hwin : s0.mem.accessible (s0.sp.toNat - 168) (168 + 32) true = true) :
+    (hwin : s0.mem.accessible (s0.sp.toNat - 168) (168 + 40) true = true) :
     ∀ t k r b w (S : State), k + t = min n 64 → Inv1 s0 n z ep base0 k r b w S →
       (∀ S', Inv1 s0 n z ep base0 (min n 64) (Fv256.F.expIter t (r, b, w)).1 (Fv256.F.expIter t (r, b, w)).2.1
         (Fv256.F.expIter t (r, b, w)).2.2 S' → ReachesRet Fv256.Arm64.ExpProg.program (s0.regs 30) S' Q) →
@@ -52,9 +52,9 @@ theorem loop1 (s0 : State) (Q : State → Prop) (n z ep base0 : Nat) (hn : n < 2
     have hk2 : k < 64 := by omega
     have hkt3 : (BitVec.ofNat 64 k).toNat = k := by rw [BitVec.toNat_ofNat]; omega
     have hnt : (BitVec.ofNat 64 n).toNat = n := by rw [BitVec.toNat_ofNat]; omega
-    have hMa : S.mem.accessible (s0.sp.toNat - 168) (168 + 32) true = true := by rw [hfr.accessible]; exact hwin
+    have hMa : S.mem.accessible (s0.sp.toNat - 168) (168 + 40) true = true := by rw [hfr.accessible]; exact hwin
     simp only [head1, reduceSegAddr, Nat.reduceAdd] at hpc
-    have hMa' : S.mem.accessible (S.sp.toNat - 8) 200 true = true := by
+    have hMa' : S.mem.accessible (S.sp.toNat - 8) 208 true = true := by
       rw [hsp', show s0.sp.toNat - 160 - 8 = s0.sp.toNat - 168 by omega]; exact hMa
     have hspb' : S.sp.toNat + 200 ≤ 2 ^ 48 := by omega
     have hspl' : 168 ≤ S.sp.toNat := by omega
