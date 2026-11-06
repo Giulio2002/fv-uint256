@@ -129,15 +129,15 @@ theorem hpre : GuardOK s0 0 ∧ StackOK s0 72 16 ∧ Ptr32 s0.mem z false ∧ Pt
   refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, by decide,
     by decide, by decide, ⟨by decide, by decide⟩, Or.inr (by decide), ?_, ?_, ?_, rfl⟩ <;> (unfold Disjoint; decide)
 
-theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw len : BitVec 64), RetAddr Extracted.program ret ∧
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧
     (GuardOK s 0 ∧ StackOK s 72 16 ∧ Ptr32 s.mem z false ∧ Ptr s.mem x 32 false ∧ s.mem.readLE x.toNat 1 < 2 ∧
-      s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
-      Ptr s.mem pw (8 * len.toNat) false ∧
-      (len.toNat = 0 ∨ s.mem.readLE (pw.toNat + 8 * (len.toNat - 1)) 8 ≠ 0) ∧
+      s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
+      Ptr s.mem pw (8 * (2 : BitVec 64).toNat) false ∧
+      ((2 : BitVec 64).toNat = 0 ∨ s.mem.readLE (pw.toNat + 8 * ((2 : BitVec 64).toNat - 1)) 8 ≠ 0) ∧
       Disjoint z.toNat 32 (s.sp.toNat - 72) 88 ∧ Disjoint x.toNat 32 (s.sp.toNat - 72) 88 ∧
-      Disjoint pw.toNat (8 * len.toNat) (s.sp.toNat - 72) 88 ∧ s.regs 29 = s.sp - 8#64) :=
-  ⟨ret, s0, z, x, pw, 2, hret, setup, hpre⟩
+      Disjoint pw.toNat (8 * (2 : BitVec 64).toNat) (s.sp.toNat - 72) 88 ∧ s.regs 29 = s.sp - 8#64) :=
+  ⟨ret, s0, z, x, pw, hret, setup, hpre⟩
 
 /-- `0` compared with `-(5 + 2^64)`: the result is `+1`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

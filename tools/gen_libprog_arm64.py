@@ -6,11 +6,12 @@ import re, sys
 args = sys.argv[1:]
 out, ns = args[0], args[1]
 fns, ins, base, i = [], [], None, 2
-dats, cons = [], []
+dats, cons, own_stubs = [], [], False
 while i < len(args):
     if args[i] == "--fn": fns.append(args[i + 1]); i += 2
     elif args[i] == "--data": dats.append(args[i + 1]); i += 2
     elif args[i] == "--contract": cons.append(args[i + 1]); i += 2
+    elif args[i] == "--own-stubs": own_stubs = True; i += 1
     elif args[i] == "--base": base = args[i + 1]; i += 2
     elif args[i] == "--": ins = args[i + 1:]; break
     else: sys.exit("bad arg " + args[i])
@@ -63,7 +64,9 @@ for name in dats:
 L.append(",\n".join(rows_d) + " ]")
 L += ["", "def contracts : List (String × Nat) := [" + ", ".join('("%s", %s)' % (n, ref_c[n]) for n in cons) + "]"]
 if base:
-    L += ["", "def program : Program := { %s.program with segments := %s.segments ++ segments, stubs := stubs, data := %s.program.data ++ data, contracts := %s.program.contracts ++ contracts }" % (base, base, base, base)]
+    # segments: base.program.segments (correct for chained bases); stubs: base ++ own, or only own with --own-stubs (DecProg)
+    sx = "stubs" if own_stubs else "%s.program.stubs ++ stubs" % base
+    L += ["", "def program : Program := { %s.program with segments := %s.program.segments ++ segments, stubs := %s, data := %s.program.data ++ data, contracts := %s.program.contracts ++ contracts }" % (base, base, sx, base, base)]
 else:
     L += ["", "def program : Program := { segments := segments, stubs := stubs, exitAddr := 0, data := data, contracts := contracts }"]
 L += ["", "end " + ns, ""]

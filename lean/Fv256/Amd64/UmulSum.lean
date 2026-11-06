@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.UmulProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -11,13 +11,13 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.UmulSum
 
-abbrev umulEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.umul"
+abbrev umulEntry : Nat := segAddr Fv256.UmulProg.program "github.com/holiman/uint256.umul"
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 set_option exponentiation.threshold 600 in
 theorem umul_summary :
-    Summary Extracted.program umulEntry
+    Summary Fv256.UmulProg.program umulEntry
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         StackWritable s 0x30 0x18 ∧
         Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 0) 32 false ∧ Buffer s (s.regs 1) 64 true ∧
@@ -43,7 +43,7 @@ theorem umul_summary :
       have := Nat.mul_lt_mul'' hx hy
       omega
     all_goals (simp only [Nat.reducePow, BitVec.toNat_mul, BitVec.toNat_ofNat, Util.readLE8_mod])
-    all_goals (first | janus_carry | (trace_state; sorry))
+    all_goals janus_carry
   · janus_frame
 
 end Fv256.Amd64.UmulSum

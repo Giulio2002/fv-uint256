@@ -1,7 +1,7 @@
 {"version": "1.2.0",
  "packagesDir": ".lake/packages",
  "packages":
- [{"url": "/srv/janus-we-p5",
+ [{"url": "/srv/janus",
    "type": "git",
    "subDir": null,
    "scope": "",

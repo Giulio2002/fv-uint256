@@ -16,6 +16,7 @@ Upstream blockers: `/srv/janus-ops/UINT256-UPSTREAM.md` (U7 = kernel deep recurs
 | `(*uint256.Int).MulMod` | todo | todo | |
 | `(*uint256.Int).MulModWithReciprocal` | todo | todo | |
 | `(*uint256.Int).MulDivOverflow` | todo | todo | |
+| `(*uint256.Int).MulDivOverflowRem` | verified incl. `Witness.nonvacuous` (Janus 2452acd6, one run, 294 s with warm shared cache; links Extracted-free arm64 `UmulProg`/`ChainProg` via `Arm64.CodeIn.codeIn_of_sub` + `udivrem_rem_L_final`; same Apart contract and non-nil-m assumption as amd64) | verified incl. `Witness.nonvacuous` (Janus 2452acd6, one run, 2782 s cold incl. rebuild of 303 chain modules after repin; module itself elaborates in 30 s / 2.6 GB) | spec: `mulmodSpec` into m, `muldivSpec` into z, overflow flag `muldivOv` (low byte of rax); ASSUMPTION: m must be non-nil (pointer address != 0; the doc doesn't define nil m; udivrem treats nil rem as 'no remainder'), x/y/d values incl. zero fully covered; links the Extracted-free `Fv256.UmulProg` (commit 9e1d6a2) and `udivrem_rem_L` via lib_summary. Speed: pointer disjointness stated as `Apart` (not `∨`): 16 disjunctive hyps made janus_run's omega side goals cost 1200 s / 35 GB (OOM-killed at 33 GB); with Apart 30 s / 2.6 GB |
 | `(*uint256.Int).Exp` | todo | todo | |
 | `(*uint256.Int).Sqrt` | todo | todo | |
 
@@ -51,3 +52,13 @@ DivMod (2625 s) still imports the chain through DivModB.partB (non-live newobjec
 Profile (trace.profiler) showed ~290 s in failing/slow `exact` alternatives on goals like `a % y0 + B*0 + .. = a % (y0 + B*y1 + ..)`:
 the unifier proved `x + B*0 = x` by whnf of huge Nat literals (91-180 s per leaf). Fix: `simp only [Nat.mul_zero, Nat.add_zero]` before `mod_congr`, and `with_reducible` alternatives first.
 DivModB compile 442-490 s -> 163 s; DivMod verify (correctness + nonvacuous) 2625 s -> 419 s.
+
+## Speed pass 3: Apart contracts (MulDivOverflowRem)
+A statement with many pointers: write each disjointness fact as `Apart a n b k` (Janus.Apart, not unfolded by omega), `unfold Apart at ...` only after janus64_run for the closers. Witness: `(try unfold Apart); (try unfold regSP); (try unfold regG); decide`. MulDivOverflowRem janus64_run stage: 1200 s / 35 GB -> 30 s / 2.6 GB.
+
+DivModB (Apart contracts for partB) compiles standalone in 108 s / 3.8 GB on Janus 2452acd6 (was 163 s on 6365855c); DivMod correctness+nonvacuous verified 1803 s cold incl. chain rebuild.
+
+## Reciprocal (FV-B) — open question F-F1b (not a defect)
+Upstream documents only "a 320-bit value representing 1/m" (m[3] != 0, zero otherwise). Spec used: (i) m < 2^192: mu = 0; (ii) 2^192 <= m: RecipWeak (ex-3 <= mu <= ex); (iii) 2^193 <= m: RecipOK (ex-1 <= mu <= ex).
+Analysis (pure Nat, `RecipMath.lean`): r4pre = r3*2^128 - ceil(x/2^128), r4pre - A/y = D/2^320 - g - R with 0 <= D < 2^258, g = d3^2/(2^320 y) <= 2^-60.8, R in [0,1); one final decrement gives r4' in {E-1, E} (E = floor(2^574/y)).
+For s = clz(m3) = 63 (2^192 <= m < 2^193) the code doubles r4', so mu = 2 r4' and ex-1 <= mu would need r4' = E exactly; only r4' >= E-1 is provable, hence ex-3 <= mu. A violating m would need frac(2^511/m) < g AND the rounding term R within 2^-61 of 1 (joint density ~2^-122); 1M+ structured/adversarial inputs: 0 violations (s=63 always mu in {ex-1, ex}). Open: whether mu = ex-2 / ex-3 occurs for any m. Harmless for MulModWithReciprocal (reduce4's loop absorbs the larger quotient error).

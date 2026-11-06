@@ -1,0 +1,35 @@
+Fv256/Amd64/SqrtSmall.lean:71:14: warning: This simp argument is unused:
+  setRegF
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [headS, Extracted.entry]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtSmall.lean:78:14: warning: This simp argument is unused:
+  setRegF
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [x15]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtSmall.lean:87:23: warning: This simp argument is unused:
+  r4
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtSmall.lean:88:23: warning: This simp argument is unused:
+  r5
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/SqrtSmall.lean:90:14: warning: This simp argument is unused:
+  setRegF
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [x15]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

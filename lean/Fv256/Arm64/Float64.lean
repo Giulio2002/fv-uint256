@@ -5,48 +5,73 @@ import Fv256.SpecB
 import Fv256.UtilB
 import Fv256.UtilD
 import Fv256.Arm64.Float64Lsh
+import Fv256.Arm64.Float64J0
+import Fv256.Arm64.Float64J1
+import Fv256.Arm64.Float64J2
+import Fv256.Arm64.Float64J3
+
+/-!
+# `(*uint256.Int).Float64() float64` (arm64), master 48f3f44: documented spec "the float64 value nearest to x"
+
+**Guarantee.** For every receiver `x` (`X0`) whose 32 bytes are readable, every Go call state whose stack-growth check falls
+through (`GuardOK s 0`), with the 88 bytes below `SP` writable and aligned, disjoint from `x`, and `FPCR = 0`: the call returns, obeys
+the ABI, `D0` (as 64 bits) is `Fv256.B.float64BitsNearest` of the 256-bit number at `x` (IEEE 754 binary64 round-to-nearest-even
+`convertFromInt`, documented behaviour), and only the 88-byte window below `SP` changes.
+
+The proof splits on the highest non-zero limb (`lem0` .. `lem3`, one module each, so each compiles on its own).
+
+**Non-vacuity.** `Witness.nonvacuous`; `Witness.returns`.
+-/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Float64
 
-set_option maxHeartbeats 0 in
 theorem correctness (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0)
       (fun s s' => s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s.mem x.toNat) ∧
         MemFrame s.mem s'.mem [(s.sp.toNat - 88, s.sp.toNat)]) := by
-  intro ret hret s hs ⟨⟨hx, hx'⟩, ⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hdis, hf⟩
-  janus_intro hs
-  simp only [Disjoint] at hdis
-  janus_run calls [hS := Fv256.Arm64.Float64.lsh_summary (s.sp - 40#64) x]
-  all_goals clear_states
-  all_goals (simp only [State.getV, setVReg_apply, ite_true, BitVec.toNat_ofNat] at *)
-  all_goals (refine ⟨?_, ?_⟩; rotate_right; janus_frame)
-  all_goals have l0 := Util.readLE8_lt s.mem x.toNat
-  all_goals have l1 := Util.readLE8_lt s.mem (x.toNat + 8)
-  all_goals have l2 := Util.readLE8_lt s.mem (x.toNat + 16)
-  all_goals have l3 := Util.readLE8_lt s.mem (x.toNat + 24)
-  all_goals first
-    | timed "j3" (
-       have hxj : (s.mem.readLE (x.toNat + 24) 8) ≠ 0 := (show ¬ (s.mem.readLE (x.toNat + 24) 8) = 0 by janus_assumption)
-       have hkj : clzNat 64 (s.mem.readLE (x.toNat + 24) 8) < 64 := (Fv256.B.clz_cases _ l3).resolve_left hxj
-       have hbl := Fv256.B.f64_bl3 (s.mem.readLE x.toNat 8) (s.mem.readLE (x.toNat + 8) 8) (s.mem.readLE (x.toNat + 16) 8) (s.mem.readLE (x.toNat + 24) 8) (clzNat 64 (s.mem.readLE (x.toNat + 24) 8)) l0 l1 l2 l3 hxj rfl
-       grab_lsh hS3
-       generalize clzNat 64 (s.mem.readLE (x.toNat + 24) 8) = k at *
-       have m0 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 40)
-       have m1 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 32)
-       have m2 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 24)
-       have m3 := Util.readLE8_lt s'.mem (BitVec.toNat s.sp - 16)
-       have hexp : (18446744073709551616 - (18446744073709551616 - k % 18446744073709551616 + 64 + 192) % 18446744073709551616 + 257) % 18446744073709551616 = 1 + k := by omega
-       have e8 : BitVec.toNat s.sp - 40 + 8 = BitVec.toNat s.sp - 32 := by omega
-       have e16 : BitVec.toNat s.sp - 40 + 16 = BitVec.toNat s.sp - 24 := by omega
-       have e24 : BitVec.toNat s.sp - 40 + 24 = BitVec.toNat s.sp - 16 := by omega
-       have hS4 := hS3
-       simp only [hexp, e8, e16, e24, Nat.mul_zero, Nat.add_zero] at hS4
-       first
-        | (refine Fv256.D.leaf0 _ (256 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (256 - k) = 1 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega))
-        | (refine Fv256.D.leaf1 _ (256 - k) _ _ _ _ _ (by simp only [BitVec.toNat_ofNat]; omega) (by omega) (by omega) (by simpa using hbl) m0 m1 m2 m3 (by rw [show 257 - (256 - k) = 1 + k by omega]; exact hS4) (by simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq, decide_eq_false_iff_not] at *; omega)))
-    | skip
+  intro ret hret s hs hpre
+  by_cases h3 : s.mem.readLE (x.toNat + 24) 8 = 0
+  · by_cases h2 : s.mem.readLE (x.toNat + 16) 8 = 0
+    · by_cases h1 : s.mem.readLE (x.toNat + 8) 8 = 0
+      · exact lem0 x ret hret s hs ⟨hpre, h1, h2, h3⟩
+      · exact lem1 x ret hret s hs ⟨hpre, h2, h3, h1⟩
+    · exact lem2 x ret hret s hs ⟨hpre, h3, h2⟩
+  · exact lem3 x ret hret s hs ⟨hpre, h3⟩
+
+namespace Witness
+
+open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
+
+def ret : Nat := wret
+
+theorem hret : RetAddr Extracted.program ret := RetAddr.of_check (by decide)
+
+def x : BitVec 64 := BitVec.ofNat 64 DST
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then x else if i = 28 then BitVec.ofNat 64 wg else if i = 30 then BitVec.ofNat 64 ret else 0,
+    sp := BitVec.ofNat 64 wsp, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩, mem := Janus.Contracts.EqHashModel.wmem }
+
+theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s0 :=
+  ⟨rfl, rfl, by intro i h; simp at h; subst h; rfl⟩
+
+theorem hpre : Ptr32 s0.mem x false ∧ GuardOK s0 0 ∧ StackOK s0 88 0 ∧ Disjoint x.toNat 32 (s0.sp.toNat - 88) 88 ∧ s0.fpcr = 0 :=
+  ⟨⟨by decide, by decide⟩, by unfold GuardOK; decide, by unfold StackOK; decide, by unfold Disjoint; decide, rfl⟩
+
+theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extracted.program ret ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧
+    (Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0) :=
+  ⟨ret, s0, x, hret, setup, hpre⟩
+
+theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
+    ABIReturn s0 s' ∧ s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s0.mem x.toNat) ∧
+      MemFrame s0.mem s'.mem [(s0.sp.toNat - 88, s0.sp.toNat)] :=
+  correctness x ret hret s0 setup hpre
+
+end Witness
 
 end Fv256.Arm64.Float64

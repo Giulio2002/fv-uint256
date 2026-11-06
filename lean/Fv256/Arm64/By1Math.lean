@@ -92,7 +92,7 @@ theorem step_rem (v rem uk d : Nat) (X : BitVec 64) (hv : v < 2 ^ 64) (hrem : re
     have hQl : Q < 18446744073709551616 := by omega
     have hm := Nat.mul_comm d Q
     repeat' split
-    all_goals first | omega | (trace_state; sorry)
+    all_goals omega
   · simp only [hVR, hc, ite_false]
     rw [apply_ite BitVec.toNat]
     simp only [BitVec.toNat_add, BitVec.toNat_sub, hUk, hD, hDQ', BitVec.toNat_ofNat, Nat.reducePow, Nat.mod_mod]
@@ -103,7 +103,7 @@ theorem step_rem (v rem uk d : Nat) (X : BitVec 64) (hv : v < 2 ^ 64) (hrem : re
     have hQl : Q < 18446744073709551616 := by omega
     have hm := Nat.mul_comm d Q
     repeat' split
-    all_goals first | omega | (trace_state; sorry)
+    all_goals omega
 
 
 set_option maxHeartbeats 8000000 in
@@ -146,7 +146,7 @@ theorem step_quot (v rem uk d : Nat) (X : BitVec 64) (hv : v < 2 ^ 64) (hrem : r
     have hQl : Q < 18446744073709551616 := by omega
     have hm := Nat.mul_comm d Q
     repeat' split
-    all_goals first | omega | (trace_state; sorry)
+    all_goals omega
   · simp only [hVR, hc, ite_false]
     simp only [apply_ite BitVec.toNat]
     simp only [BitVec.toNat_add, BitVec.toNat_sub, hUk, hD, hDQ', BitVec.toNat_ofNat, Nat.reducePow, Nat.mod_mod]
@@ -157,7 +157,7 @@ theorem step_quot (v rem uk d : Nat) (X : BitVec 64) (hv : v < 2 ^ 64) (hrem : r
     have hQl : Q < 18446744073709551616 := by omega
     have hm := Nat.mul_comm d Q
     repeat' split
-    all_goals first | omega | (trace_state; sorry)
+    all_goals omega
 
 
 end Fv256.Arm64.By1Math

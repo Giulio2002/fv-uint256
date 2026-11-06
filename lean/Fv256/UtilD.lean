@@ -341,4 +341,107 @@ theorem lsb0_toNat (v : BitVec 64) : v.getLsbD 0 = decide (v.toNat % 2 = 1) := b
   unfold BitVec.getLsbD
   rw [Nat.testBit_eq_decide_div_mod_eq]; simp
 
+/-- sticky-bit materialisation `if a|b|c = 0 then 0 else 1` seen through `getLsbD 0` -/
+theorem ite_or_lsb (a b c : Nat) :
+    (((if a ||| b ||| c = 0 then 0#64 else 1#64).getLsbD 0 == true) = true) ↔ (a ≠ 0 ∨ b ≠ 0 ∨ c ≠ 0) := by
+  have hor : a ||| b ||| c = 0 ↔ (a = 0 ∧ b = 0 ∧ c = 0) := by
+    simp only [Nat.or_eq_zero_iff, and_assoc]
+  by_cases h : a ||| b ||| c = 0
+  · have h' := hor.mp h
+    rw [if_pos h]
+    constructor
+    · intro hh; simp at hh
+    · rintro (h1 | h1 | h1) <;> exact absurd (by first | exact h'.1 | exact h'.2.1 | exact h'.2.2) h1
+  · rw [if_neg h]
+    constructor
+    · intro _
+      exact Classical.byContradiction fun hc => h (hor.mpr (by simp only [not_or, ne_eq, Decidable.not_not] at hc; exact hc))
+    · intro _; decide
+
+/-- the 0/1 sticky flag seen through `toNat % 2` (after `lsb0_toNat`) -/
+theorem ite_toNat_mod2 (c : Prop) [Decidable c] : ((if c then 0#64 else 1#64).toNat % 2 = 1) ↔ ¬ c := by
+  by_cases h : c <;> simp [h]
+
+theorem pureForm (g a : Nat) (hg : g < 2 ^ 64) :
+    ((a * 2 ^ 52 % 2 ^ 64) ||| g) % 340282366920938463463374607431768211456 =
+      (g ||| 4503599627370496 * a % 18446744073709551616) % 18446744073709551616 % 340282366920938463463374607431768211456 % 18446744073709551616 := by
+  have ht : ((a * 2 ^ 52 % 2 ^ 64) ||| g) < 2 ^ 64 := Nat.or_lt_two_pow (Nat.mod_lt _ (by decide)) hg
+  rw [Nat.or_comm g, Nat.mul_comm 4503599627370496 a, show (4503599627370496 : Nat) = 2 ^ 52 by decide]
+  generalize ((a * 2 ^ 52 % 2 ^ 64) ||| g) = t at *
+  simp only [Nat.reducePow] at ht ⊢
+  have h1 : t % 340282366920938463463374607431768211456 = t := Nat.mod_eq_of_lt (by omega)
+  have h2 : t % 18446744073709551616 = t := Nat.mod_eq_of_lt ht
+  rw [h1, h2, h1, h2]
+
+/-- amd64 packing (`SHLQ`/`ORQ` form) equals the shared `Form` -/
+theorem amd_eq_Form (G e : BitVec 64) :
+    ((if (G >>> 52).toNat = 0 then e + 1022#64 else e + 1023#64) <<< 52 |||
+        (if (G >>> 52).toNat = 0 then G else 0#64)).toNat % 340282366920938463463374607431768211456 = Form G e := by
+  have hc : ((G >>> 52).toNat = 0) ↔ ((G.rotateRight 52).toNat % 4096 = 0) := by
+    rw [rot52, BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow]
+  unfold Form
+  by_cases h : (G >>> 52).toNat = 0
+  · have h' := hc.mp h
+    simp only [h, h', if_true]
+    rw [BitVec.toNat_or, BitVec.toNat_shiftLeft, Nat.shiftLeft_eq]
+    exact pureForm _ _ G.isLt
+  · have h' : ¬ ((G.rotateRight 52).toNat % 4096 = 0) := fun hh => h (hc.mpr hh)
+    simp only [h, h', ite_false]
+    rw [BitVec.toNat_or, BitVec.toNat_shiftLeft, Nat.shiftLeft_eq]
+    have := pureForm 0 (e + 1023#64).toNat (by decide)
+    simpa using this
+
+theorem shr12_eq_fr (y : Nat) (hy : y < 2 ^ 64) : BitVec.ofNat 64 y >>> 12 = fr y :=
+  BitVec.eq_of_toNat_eq (by
+    rw [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.mod_eq_of_lt hy, Nat.shiftRight_eq_div_pow, fr_toNat _ hy])
+
+theorem shr64_zero (y : Nat) (hy : y < 2 ^ 64) : (BitVec.ofNat 64 y >>> 64).toNat = 0 := by
+  rw [BitVec.toNat_ushiftRight, BitVec.toNat_ofNat, Nat.mod_eq_of_lt hy, Nat.shiftRight_eq_div_pow]
+  exact Nat.div_eq_of_lt hy
+
+theorem shr12_lt (y : Nat) (hy : y < 2 ^ 64) : (BitVec.ofNat 64 y >>> 12 >>> 52).toNat = 0 := by
+  rw [shr12_eq_fr y hy, BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow, fr_toNat _ hy]
+  apply Nat.div_eq_of_lt; omega
+
+theorem leafA0 (V bl y0 y1 y2 y3 : Nat) (e : BitVec 64) (he : e.toNat = bl) (hV : V < 2 ^ 256) (hge : 2 ^ 64 ≤ V)
+    (hbl : Spec.bitLen V = bl) (h0 : y0 < 2 ^ 64) (h1 : y1 < 2 ^ 64) (h2 : y2 < 2 ^ 64) (h3 : y3 < 2 ^ 64)
+    (hy : y0 + 2 ^ 64 * y1 + 2 ^ 128 * y2 + 2 ^ 192 * y3 = V * 2 ^ (257 - bl) % 2 ^ 256)
+    (hn : ¬ Up y0 y1 y2 y3) :
+    ((if (BitVec.ofNat 64 y3 >>> 64).toNat = 0 then e + 1022#64 else e + 1023#64) <<< 52 |||
+        (if (BitVec.ofNat 64 y3 >>> 64).toNat = 0 then BitVec.ofNat 64 y3 >>> 12 else 0#64)).toNat %
+      340282366920938463463374607431768211456 = Fv256.B.float64BitsNearest V := by
+  rw [← leaf0 V bl y0 y1 y2 y3 e he hV hge hbl h0 h1 h2 h3 hy hn, ← shr12_eq_fr y3 h3, ← amd_eq_Form]
+  simp only [shr64_zero y3 h3, shr12_lt y3 h3]
+
+theorem leafA1 (V bl y0 y1 y2 y3 : Nat) (e : BitVec 64) (he : e.toNat = bl) (hV : V < 2 ^ 256) (hge : 2 ^ 64 ≤ V)
+    (hbl : Spec.bitLen V = bl) (h0 : y0 < 2 ^ 64) (h1 : y1 < 2 ^ 64) (h2 : y2 < 2 ^ 64) (h3 : y3 < 2 ^ 64)
+    (hy : y0 + 2 ^ 64 * y1 + 2 ^ 128 * y2 + 2 ^ 192 * y3 = V * 2 ^ (257 - bl) % 2 ^ 256)
+    (hu : Up y0 y1 y2 y3) :
+    ((if ((BitVec.ofNat 64 y3 >>> 12 + 1#64) >>> 52).toNat = 0 then e + 1022#64 else e + 1023#64) <<< 52 |||
+        (if ((BitVec.ofNat 64 y3 >>> 12 + 1#64) >>> 52).toNat = 0 then BitVec.ofNat 64 y3 >>> 12 + 1#64 else 0#64)).toNat %
+      340282366920938463463374607431768211456 = Fv256.B.float64BitsNearest V := by
+  rw [← leaf1 V bl y0 y1 y2 y3 e he hV hge hbl h0 h1 h2 h3 hy hu, shr12_eq_fr y3 h3, amd_eq_Form]
+
+/-- amd64: bit `i < 32` of the 32-bit view of a 64-bit value -/
+theorem lsb32 (y i : Nat) (hi : i < 32) :
+    (BitVec.setWidth 32 (BitVec.ofNat 64 y)).getLsbD i = decide (y / 2 ^ i % 2 = 1) := by
+  rw [BitVec.getLsbD_setWidth, BitVec.getLsbD_ofNat, Nat.testBit_eq_decide_div_mod_eq]
+  simp [hi, show i < 64 by omega]
+
+/-- amd64: the sticky flag `(a | b | c) != 0` as materialised by the code -/
+theorem sticky_iff (a b c : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) (hc : c < 2 ^ 64) :
+    ((if (BitVec.ofNat 64 a ||| BitVec.ofNat 64 b ||| BitVec.ofNat 64 c).toNat = 0 then true else false) = false) ↔
+      (a ≠ 0 ∨ b ≠ 0 ∨ c ≠ 0) := by
+  simp only [BitVec.toNat_or, BitVec.toNat_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb, Nat.mod_eq_of_lt hc]
+  by_cases h : (a ||| b ||| c) = 0
+  · have := Nat.or_eq_zero_iff.mp h
+    have := Nat.or_eq_zero_iff.mp this.1
+    simp [h]; omega
+  · have : a ≠ 0 ∨ b ≠ 0 ∨ c ≠ 0 := by
+      by_cases ha0 : a = 0 <;> by_cases hb0 : b = 0 <;> by_cases hc0 : c = 0 <;> simp_all
+    simp [h, this]
+
+theorem ite_tf (P : Prop) [Decidable P] : (if P then true else false) = decide P := by
+  by_cases h : P <;> simp [h]
+
 end Fv256.D

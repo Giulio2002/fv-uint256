@@ -7,5 +7,5 @@ OUT=.lake/build/lib/lean/Fv256/$D
 for m in "$@"; do
   mkdir -p Fv256/$D/$(dirname $m) $OUT/$(dirname $m)
   cp /srv/fv-uint256-wd/lean/Fv256/$D/$m.lean Fv256/$D/$m.lean
-  LEAN_NUM_THREADS=8 memcap -m 16G lake env lean -o $OUT/$m.olean -i $OUT/$m.ilean Fv256/$D/$m.lean 2>&1 | cut -c1-${WIDTH:-300}
+  LEAN_NUM_THREADS=8 memcap -m 8G lake env lean -o $OUT/$m.olean -i $OUT/$m.ilean Fv256/$D/$m.lean 2>&1 | cut -c1-${WIDTH:-300}
 done
