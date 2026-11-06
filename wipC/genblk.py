@@ -52,16 +52,4 @@ if k > 0:
     key = '    have hgC : ((S.mem.writeLE ((s.regs 4).toNat - %d) 8 (S.mem.readLE (z.toNat + %d) 8))' % (sp, 8 * k)
     assert key in t
     t = t.replace(key, key.replace('(S.mem.readLE (z.toNat', '(s.mem.readLE (z.toNat'), 1)
-# hide hl0 from the stepping tactics (it makes the growslice precondition goals very slow once len > len0)
-HL = 'len.toNat = len0 + %d' % (8 * k)
-t = t.replace("  have hlen8 :", "  have hl0H : Hidden (%s) := hl0\n  have hlen8 :" % HL, 1)
-lines = t.split('\n')
-out = []
-for ln in lines:
-    if ln.startswith('    janus64_data hd ['):
-        out.append('    clear hl0')
-    out.append(ln)
-    if ln.startswith('    janus64_run ') and 'until' in ln:
-        out.append('    have hl0 : %s := hl0H' % HL)
-t = '\n'.join(out)
 sys.stdout.write(t)

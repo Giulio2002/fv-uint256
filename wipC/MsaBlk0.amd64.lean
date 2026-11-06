@@ -19,7 +19,7 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     (hret : RetAddr (Extracted.program.link impl) ret)
     (hg : RtLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.growslice") 4096 R growsliceSpec growsliceLive)
-    (s S : State) (z : BitVec 64) (dp len0 cap0 b : Nat) (len pp cc : BitVec 64) (L : List (Nat × Nat))
+    (s S : State) (z : BitVec 64) (dp len0 cap0 b b0 : Nat) (len pp cc : BitVec 64) (L L0 : List (Nat × Nat))
     (Q : Amd64.Outcome → Prop)
     (hsg : StackGuardOK s 4208) (hal : (s.regs 4).toNat % 8 = 0)
     (hb' : 4208 ≤ (s.regs 4).toNat) (ha : (s.regs 4).toNat + 24 ≤ 2 ^ 48)
@@ -31,12 +31,12 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     (hout : Outside ((s.regs 4).toNat - 4208) 4232 R.rt)
     (hdt : Apart u8T 16 ((s.regs 4).toNat - 4208) 4232) (hdtd : Apart u8T 16 dp cap0)
     (hd : Extracted.program.DataLoaded s.mem) (hdesc : DescOK R u8T)
-    (hl0 : len.toNat = len0 + 0) (hl0b : len0 < 2 ^ 40) (hs15 : s.xmm 15 = 0)
+    (hl0 : len.toNat = len0 + 0) (hk : len.toNat + 8 ≤ len0 + 32) (hl0b : len0 < 2 ^ 40) (hs15 : s.xmm 15 = 0)
     (hpc : S.rip = BitVec.ofNat 64 (Extracted.entry + 0x20))
-    (m : Nat) (hI : BI R ga u8T s S z ret dp len0 cap0 len pp cc b L (m + 1))
+    (m : Nat) (hI : BI R ga u8T s S z ret dp len0 cap0 b0 L0 len pp cc b L (m + 1))
     (hcont : ∀ (S' : State) (pp' cc' : BitVec 64) (b' : Nat) (L' : List (Nat × Nat)),
       S'.rip = BitVec.ofNat 64 (Extracted.entry + 0x63) →
-      BI R ga u8T s S' z ret dp len0 cap0 (len + 8#64) pp' cc' b' L' m → b - Kc len0 ≤ b' →
+      BI R ga u8T s S' z ret dp len0 cap0 b0 L0 (len + 8#64) pp' cc' b' L' m → b - Kc len0 ≤ b' →
       Reaches ((Extracted.program.link impl).withExit ret) S' Q) :
     Reaches ((Extracted.program.link impl).withExit ret) S Q := by
   obtain ⟨hsp, h0, h3, h2, h7, h5, h14, hx15, h_rd1, h_rd2, h_rd3, hw, hfr, hng, hzs, hinv, hLs, hzL, hzpd, hlge, hlle, hlc,
@@ -92,8 +92,8 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     · dsimp only; rw [Memory.accessible_writeLE]; exact hw
     · exact hfrU.writeLE_inRanges _ hin
     · intro hng'
-      obtain ⟨h1, h2, h3'⟩ := hng hng'
-      refine ⟨h1, h2, ?_⟩
+      obtain ⟨h1, h2, h3, h4, h3'⟩ := hng hng'
+      refine ⟨h1, h2, h3, h4, ?_⟩
       have h3w := h3'.mono (rs' := [(dp + len0, dp + len.toNat + 8), ((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24)]) (by
         intro a n ho
         simp only [outside_cons, outside_nil, and_true] at ho ⊢
@@ -172,9 +172,9 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
       unfold Apart at hga; omega
     have hgA2 : (s.regs 14).toNat + 16 ≤ (s.regs 4).toNat - 112 ∨ (s.regs 4).toNat - 112 + 32 ≤ (s.regs 14).toNat := by
       unfold Apart at hga; omega
-    obtain ⟨gp0, gp1, gp2, gp3, gp4, gp5, gp6⟩ := grow_pre len.toNat cc.toNat pp.toNat len0 b (s.regs 4).toNat hlc hlle hl0b hPb hdj hb' hcostK hK _ hgb
+    obtain ⟨gp0, gp1, gp2, gp3, gp4, gp5, gp6⟩ := grow_pre len.toNat cc.toNat pp.toNat len0 b (s.regs 4).toNat hlc hk hl0b hPb hdj hb' hcostK hK _ hgb
     have pack := And.intro hga (And.intro hgd (And.intro hzd (And.intro hdt (And.intro hdtd (And.intro hdj (And.intro hlc (And.intro hlle (And.intro hlge (And.intro hC (And.intro hPb (And.intro hcostK (And.intro hK (And.intro hbud (And.intro hl0b (And.intro hrdy (And.intro hzs (And.intro hmid (And.intro hpre (And.intro hzpd (And.intro hwho (True.intro)))))))))))))))))))))
-    replace pack := show Hidden _ from pack
+    replace pack := Nonempty.intro pack
     clear hga hgd hzd hdt hdtd hdj hlc hlle hlge hC hPb hcostK hK hbud hl0b hrdy hzs hmid hpre hzpd hwho
     janus64_run [hu1, hu2, hgC] until [Extracted.entry + 0x47] calls [hg]
     rename_i r0 r1 r2 jk fl xm xm2 M ex epm hfr' hpost hlf hfresh hapart hinv2
@@ -221,6 +221,7 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     replace hsM := show Hidden _ from hsM
     janus64_data hd [hws, hsts]
     janus64_run [hM16, hM70] until [Extracted.entry + 0x63]
+    obtain ⟨pack⟩ := pack
     obtain ⟨hga, hgd, hzd, hdt, hdtd, hdj, hlc, hlle, hlge, hC, hPb, hcostK, hK, hbud, hl0b, hrdy, hzs, hmid, hpre, hzpd, hwho, -⟩ := pack
     have hr2pos : 0 < r2.toNat := by omega
     simp only [Nat.mul_one, Nat.add_sub_cancel] at hin hlim hacc2 hcopy
