@@ -80,4 +80,81 @@ theorem startPos_b (b : Nat → Nat) (n : Nat) (h : plusEnd b n < n) (hz : ∀ k
   · exact absurd (hz _ s2 this) hl
   · exact hl
 
+theorem allDec_shift (b : Nat → Nat) (p x y : Nat) : allDec b (p + x) (p + y) ↔ allDec (fun k => b (p + k)) x y := by
+  unfold allDec
+  constructor
+  · intro h k h1 h2; exact h (p + k) (by omega) (by omega)
+  · intro h k h1 h2
+    have := h (k - p) (by omega) (by omega)
+    simpa [show p + (k - p) = k by omega] using this
+
+theorem firstBad_shift (b : Nat → Nat) (n p : Nat) (hp : p ≤ n) : ∀ f i,
+    firstBad b n p f i = (firstBad (fun k => b (p + k)) (n - p) 0 f i).map (fun r => (p + r.1, r.2)) := by
+  intro f
+  induction f with
+  | zero => intro i; simp [firstBad]
+  | succ f ih =>
+    intro i
+    simp only [firstBad]
+    by_cases h1 : n - p ≤ 19 * i
+    · have h1' : n - p - 0 ≤ 19 * i := by omega
+      simp [h1, h1']
+    · have h1' : ¬ (n - p - 0 ≤ 19 * i) := by omega
+      simp only [h1, h1', if_false]
+      have e1 : (chunkBounds n p i).1 = p + (chunkBounds (n - p) 0 i).1 := by
+        simp only [chunkBounds]; split <;> split <;> omega
+      have e2 : (chunkBounds n p i).2 = p + (chunkBounds (n - p) 0 i).2 := by
+        simp only [chunkBounds]; omega
+      have e3 : allDec b (chunkBounds n p i).1 (chunkBounds n p i).2 ↔
+          allDec (fun k => b (p + k)) (chunkBounds (n - p) 0 i).1 (chunkBounds (n - p) 0 i).2 := by
+        rw [e1, e2]; exact allDec_shift b p _ _
+      by_cases h2 : allDec b (chunkBounds n p i).1 (chunkBounds n p i).2
+      · have h2' := e3.1 h2
+        simp only [h2, h2', if_true]
+        exact ih (i + 1)
+      · have h2' : ¬ allDec (fun k => b (p + k)) (chunkBounds (n - p) 0 i).1 (chunkBounds (n - p) 0 i).2 := fun h => h2 (e3.2 h)
+        simp only [h2, h2', if_false, Option.map_some]
+        rw [e1, e2, Nat.add_sub_add_left]
+
+/-- the result of `fromDec` on the stripped string, shifted back to absolute chunk positions -/
+def shiftRes (p : Nat) : Res → Res
+  | .syntax lo len => .syntax (p + lo) len
+  | r => r
+
+theorem fromDec_shift (b : Nat → Nat) (n p : Nat) (hp : p ≤ n) :
+    fromDec b n p = shiftRes p (fromDec (fun k => b (p + k)) (n - p) 0) := by
+  unfold fromDec
+  by_cases h : n ≤ p
+  · have h' : n - p ≤ 0 := by omega
+    simp [h, h', shiftRes]
+  · have h' : ¬ (n - p ≤ 0) := by omega
+    simp only [h, h', if_false]
+    rw [firstBad_shift b n p hp 5 0]
+    cases hf : firstBad (fun k => b (p + k)) (n - p) 0 5 0 with
+    | none =>
+      simp only [Option.map_none, shiftRes]
+      rw [Nat.sub_zero, decSum_off b p (n - p)]
+    | some r =>
+      simp [shiftRes]
+
+theorem decParse_lt (b : Nat → Nat) (n : Nat) (h : n - startPos b n < 78) :
+    decParse b n = fromDec b n (startPos b n) := by
+  unfold decParse; simp [h]
+
+theorem decParse_eq (b : Nat → Nat) (n : Nat) (h : n - startPos b n = 78)
+    (hg : ¬ lexGt (fun k => b (startPos b n + k)) maxDigit 78) : decParse b n = fromDec b n (startPos b n) := by
+  unfold decParse; simp [h, hg]
+
+theorem decParse_gt78 (b : Nat → Nat) (n : Nat) (h : n - startPos b n = 78)
+    (hg : lexGt (fun k => b (startPos b n + k)) maxDigit 78) : decParse b n = .range := by
+  unfold decParse; simp [h, hg]
+
+theorem decParse_big (b : Nat → Nat) (n : Nat) (h : 78 < n - startPos b n) : decParse b n = .range := by
+  unfold decParse
+  have h1 : ¬ (n - startPos b n < 78) := by omega
+  have h2 : ¬ (n - startPos b n = 78) := by omega
+  simp [h1, h2]
+
+theorem startPos_spec' (b : Nat → Nat) (n : Nat) : startPos b n ≤ n := (startPos_spec b n).2.2.1
+
 end Fv256.TopMath
