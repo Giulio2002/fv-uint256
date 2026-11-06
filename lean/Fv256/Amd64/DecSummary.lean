@@ -10,6 +10,7 @@ import Fv256.Amd64.DecIter
 import Fv256.Amd64.DecLoop
 import Fv256.Amd64.StrconvFormatUint
 import Fv256.DecAt
+import Fv256.GrabTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 open Fv256.E
@@ -237,7 +238,10 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
         simp only [BitVec.or_zero, BitVec.toNat_ofNat] at h
         omega
       janus64_run [hdE, hrip.rip, hlow.1, hlow.2.1, hlow.2.2, hl0, hnzv] calls [hfu]
-      rename_i hqtab hqd hqs hqf
+      clear hfu
+      grab_const Fv256.E.DecAt as hqd
+      grab_const Fv256.E.decBytes as hqs
+      grab_const Janus.MemFrame as hqf
       rw [hzv]
       obtain ⟨q1, q2, q3, q4⟩ := hqs
       refine ⟨⟨q1, q2, q3, q4⟩, ?_, hqd⟩

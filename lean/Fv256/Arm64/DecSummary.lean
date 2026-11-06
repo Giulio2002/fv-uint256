@@ -11,6 +11,7 @@ import Fv256.Arm64.DecIter
 import Fv256.Arm64.DecLoop
 import Fv256.Arm64.StrconvFormatUint
 import Fv256.DecAt
+import Fv256.GrabTac
 
 open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
 open Fv256.E
@@ -244,8 +245,11 @@ theorem dec_summary (st : Nat) (impl : List Segment) (rt : List (Nat × Nat)) (H
         exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
       have hzv : val256 s.mem z.toNat = v := hvd
       janus_run [hdE, hrip.pc, hlow.1, hlow.2.1, hlow.2.2, hl0, Nat.or_eq_zero_iff] calls [hfu]
-      rename_i hqtab hqs hqf hbrx
-      refine ⟨hqs, ?_, ‹DecAt _ _ _ _ _ _›⟩
+      clear hfu
+      grab_const Fv256.E.DecAt as hqd
+      grab_const Fv256.E.decBytes as hqs
+      grab_const Janus.MemFrame as hqf
+      refine ⟨hqs, ?_, hqd⟩
       have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 392) 8 (s.regs 29).toNat).writeLE (s.sp.toNat - 384) 8 (s.regs 30).toNat)
             (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) := by
           refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])
