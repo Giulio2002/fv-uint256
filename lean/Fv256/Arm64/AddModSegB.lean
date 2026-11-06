@@ -14,6 +14,9 @@ import Fv256.Arm64.UdivremFinal
 import Fv256.Arm64.ChainProg
 import Fv256.Arm64.ModProg
 import Fv256.Arm64.CodeIn
+import Fv256.UtilAM
+import Fv256.Amd64.AddModTac
+import Janus.Tactic.CarryNf
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
@@ -59,6 +62,34 @@ theorem segB (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x1c0)
   exact Janus.Tactic.ReachesRet.done (by simp [Extracted.entry, setReg]) ⟨by simp [Extracted.entry, setReg], rfl, rfl, by simp [setReg],
     fun i h8 h9 h10 => by simp [setReg, h8, h9, h10]⟩
 
+set_option hygiene false in
+macro "segC_close" : tactic => `(tactic| (
+  first
+  | (-- no-overflow stop
+     apply Janus.Tactic.ReachesRet.done
+     · simp [Extracted.entry]
+       done
+     refine ⟨by simp [Extracted.entry], rfl, ?_, ?_⟩
+     · dsimp only
+       janus_frame
+     · dsimp only
+       simp (disch := omega) only [Util.readLE_32, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+       (try simp only [Fv256.AM.awc_fst, Fv256.AM.awc_c, BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Util.readLE8_mod, Bool.toNat_false, e1n, e2n] at *)
+       (try simp (disch := exact Bool.toNat_le _) only [Fv256.AM.ngc_flag, Fv256.AM.flag_mod] at *)
+       (try simp (disch := (keep_only bx0 bx1 bx2 bx3 by0 by1 by2 by3; decide_facts; omega)) only [Fv256.AM.dec_add_div, Fv256.AM.sbc_num, Fv256.AM.notsub, Fv256.AM.notflag] at *)
+       clear_env_facts
+       janus_carry_nf at *
+       janus_omega_values)
+  | (-- overflow stop: contradiction with hnov
+     exfalso
+     (try simp only [e1n, e2n] at hnov)
+     (try simp only [Fv256.AM.awc_fst, Fv256.AM.awc_c, BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Util.readLE8_mod, Bool.toNat_false, e1n, e2n] at *)
+     (try simp (disch := exact Bool.toNat_le _) only [Fv256.AM.ngc_flag, Fv256.AM.flag_mod] at *)
+     (try simp (disch := (keep_only bx0 bx1 bx2 bx3 by0 by1 by2 by3; decide_facts; omega)) only [Fv256.AM.dec_add_div, Fv256.AM.sbc_num, Fv256.AM.notsub, Fv256.AM.notflag] at *)
+     clear_env_facts
+     janus_carry_nf at *
+     janus_omega_values)))
+
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem segC (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x214))
@@ -69,23 +100,37 @@ theorem segC (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x214)
     (hzy : S.regs 0 = S.regs 2 ∨ (S.regs 0).toNat + 32 ≤ (S.regs 2).toNat ∨ (S.regs 2).toNat + 32 ≤ (S.regs 0).toNat)
     (hnov : S.mem.readLE (S.regs 1).toNat 32 + S.mem.readLE (S.regs 2).toNat 32 < 2 ^ 256) :
     Janus.Tactic.ReachesRet Extracted.program (BitVec.ofNat 64 (Extracted.entry + 0x318)) S
-      (fun S' => True) := by
+      (fun S' => S'.pc = BitVec.ofNat 64 (Extracted.entry + 0x318) ∧ S'.sp = S.sp ∧
+        MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32)] ∧
+        S'.mem.readLE (S.regs 0).toNat 32 = S.mem.readLE (S.regs 1).toNat 32 + S.mem.readLE (S.regs 2).toNat 32) := by
+  have bx0 := Util.readLE8_lt S.mem (S.regs 1).toNat
+  have bx1 := Util.readLE8_lt S.mem ((S.regs 1).toNat + 8)
+  have bx2 := Util.readLE8_lt S.mem ((S.regs 1).toNat + 16)
+  have bx3 := Util.readLE8_lt S.mem ((S.regs 1).toNat + 24)
+  have by0 := Util.readLE8_lt S.mem (S.regs 2).toNat
+  have by1 := Util.readLE8_lt S.mem ((S.regs 2).toNat + 8)
+  have by2 := Util.readLE8_lt S.mem ((S.regs 2).toNat + 16)
+  have by3 := Util.readLE8_lt S.mem ((S.regs 2).toNat + 24)
   by_cases e1 : S.regs 0 = S.regs 1 <;> by_cases e2 : S.regs 0 = S.regs 2
   · have e1n : (S.regs 1).toNat = (S.regs 0).toNat := by rw [← e1]
     have e2n : (S.regs 2).toNat = (S.regs 0).toNat := by rw [← e2]
     janus_run [Util.readLE_32, e1n, e2n] until [Extracted.entry + 0x318, Extracted.entry + 0x25c]
-    all_goals (trace_state; sorry)
+    all_goals segC_close
   · have hzy' := hzy.resolve_left e2
     have e1n : (S.regs 1).toNat = (S.regs 0).toNat := by rw [← e1]
+    have e2n : (S.regs 2).toNat = (S.regs 2).toNat := rfl
     janus_run [Util.readLE_32, e1n] until [Extracted.entry + 0x318, Extracted.entry + 0x25c]
-    all_goals (trace_state; sorry)
+    all_goals segC_close
   · have hzx' := hzx.resolve_left e1
     have e2n : (S.regs 2).toNat = (S.regs 0).toNat := by rw [← e2]
+    have e1n : (S.regs 1).toNat = (S.regs 1).toNat := rfl
     janus_run [Util.readLE_32, e2n] until [Extracted.entry + 0x318, Extracted.entry + 0x25c]
-    all_goals (trace_state; sorry)
+    all_goals segC_close
   · have hzx' := hzx.resolve_left e1
     have hzy' := hzy.resolve_left e2
+    have e1n : (S.regs 1).toNat = (S.regs 1).toNat := rfl
+    have e2n : (S.regs 2).toNat = (S.regs 2).toNat := rfl
     janus_run [Util.readLE_32] until [Extracted.entry + 0x318, Extracted.entry + 0x25c]
-    all_goals (trace_state; sorry)
+    all_goals segC_close
 
 end Fv256.Arm64.AddModSegB

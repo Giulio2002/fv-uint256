@@ -96,7 +96,7 @@ elab "clear_env_facts" : tactic => do
     let isP ← g.withContext (isProp d.type)
     if !isP then continue
     let s := (← g.withContext (ppExpr d.type)).pretty
-    let bad := ["accessible", "s.sp", "regs 28", "regs 30", "regs 0)", "DataLoaded", "Extracted"].any (fun b => (s.splitOn b).length > 1)
+    let bad := ["accessible", "s.sp", "S.sp", "regs 28", "regs 30", "DataLoaded", "Extracted"].any (fun b => (s.splitOn b).length > 1)
     if bad then g ← g.tryClear d.fvarId
   replaceMainGoal [g]
 end
