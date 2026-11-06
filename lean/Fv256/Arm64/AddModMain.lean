@@ -6,6 +6,7 @@ import Fv256.UtilB
 import Fv256.SpecF
 import Fv256.Arm64.SummaryEnsures
 import Fv256.Arm64.AddMod
+import Fv256.Arm64.CodeIn
 
 /-!
 # `(*uint256.Int).AddMod(x, y, m *Int) *Int` (arm64): correctness and non-vacuity
@@ -18,6 +19,19 @@ binary loaded) satisfying the whole precondition.
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.AddModMain
+
+set_option maxRecDepth 200000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.AddModProg.program Extracted.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
+
+theorem hdata : Extracted.program.data = Fv256.Arm64.AddModProg.program.data := rfl
+
+theorem hdl (m : Janus.Arm64.Memory) : Extracted.program.DataLoaded m ↔ Fv256.Arm64.AddModProg.program.DataLoaded m := by
+  unfold Program.DataLoaded; rw [hdata]
+
+/-- the library summary `Fv256.Arm64.AddMod.addmod_summary`, moved to this extraction -/
+theorem addmod_ext : Summary Extracted.program Extracted.entry Fv256.Arm64.AddModSeg.PreS Fv256.Arm64.AddModComp2.Post :=
+  Janus.Contracts.EqHashModel.Summary.of_codeIn hcLib Fv256.Arm64.AddMod.addmod_summary
 
 theorem correctness (z x y m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, m]
@@ -34,7 +48,7 @@ theorem correctness (z x y m : BitVec 64) :
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.addmodSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem m.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)]) := by
-  refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ Fv256.Arm64.AddMod.addmod_summary ?_ ?_
+  refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ addmod_ext ?_ ?_
   · intro ret hret s hsu ⟨hg, hsal, hsb, hsc, hsw, hdata, hgw, ⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, ⟨hm, hm'⟩, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩
     have h30 : s.regs 30 = BitVec.ofNat 64 ret := by
       have := hsu.lr; exact this
@@ -46,7 +60,7 @@ theorem correctness (z x y m : BitVec 64) :
     rw [h30, h0, h1, h2, h3]
     have ha := hret.aligned
     have hu := hret.user
-    refine ⟨?_, ?_, hg, hsal, hsb, hsc, hsw, hdata, hgw, hz', hz, hx', hx, hy', hy, hm', hm, ?_, ?_, ?_, ?_, hzm, hzx, hzy, hgz⟩
+    refine ⟨?_, ?_, hg, hsal, hsb, hsc, hsw, (hdl _).1 hdata, hgw, hz', hz, hx', hx, hy', hy, hm', hm, ?_, ?_, ?_, ?_, hzm, hzx, hzy, hgz⟩
     · simp only [BitVec.toNat_ofNat]; rw [show ret % 2 ^ 64 = ret from Nat.mod_eq_of_lt (by omega)]; omega
     · simp only [BitVec.toNat_ofNat]; rw [show ret % 2 ^ 64 = ret from Nat.mod_eq_of_lt (by omega)]; omega
     · simp only [Disjoint] at hdz; omega

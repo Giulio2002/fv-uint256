@@ -1,10 +1,10 @@
-import Extracted
+import Fv256.Arm64.AddModProg
+import Fv256.Arm64.AddModEntry
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
 import Fv256.UtilB
 import Fv256.SpecF
-import Fv256.Arm64.SummaryEnsures
 import Fv256.Arm64.AddModF
 import Fv256.Arm64.AddModComp2
 
@@ -30,7 +30,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.AddMod
 
-theorem addmod_summary : Summary Extracted.program Extracted.entry Fv256.Arm64.AddModSeg.PreS
+theorem addmod_summary : Summary Fv256.Arm64.AddModProg.program Fv256.Arm64.AddModProg.entry Fv256.Arm64.AddModSeg.PreS
     (fun s s' => Fv256.Arm64.AddModComp2.Post s s') := by
   intro s hpc hpre
   by_cases hf : (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧
