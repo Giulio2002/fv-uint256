@@ -32,7 +32,7 @@ abbrev R4Pre (s : State) : Prop :=
 abbrev R4Post (s s' : State) : Prop :=
   s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.sp - 8#64 ∧ s'.regs 30 = s.regs 30 ∧
   s'.mem.readLE (s.regs 0).toNat 32 = s.mem.readLE (s.regs 1).toNat 64 % s.mem.readLE (s.regs 2).toNat 32 ∧
-  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 168, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 16)]
+  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 168, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]
 
 /-- the library summary of `reduce4` (the target of the arm64 proof; consumed by the `MulMod` glue through `lib_summary`) -/
 def R4Summary : Prop := Summary Fv256.Arm64.ReduceProg.program r4Entry R4Pre R4Post
