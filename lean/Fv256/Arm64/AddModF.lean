@@ -78,8 +78,9 @@ theorem addmod_fast : Summary Extracted.program Extracted.entry (fun s => PreS s
   all_goals (
     (try simp only [Bool.toNat_false] at *)
     simp (disch := exact Bool.toNat_le _) only [Fv256.AM.ngc_flag, Fv256.AM.flag_mod] at *
-    simp (disch := (clear * - bx0 bx1 bx2 bx3 by0 by1 by2 by3 bm0 bm1 bm2 bm3; decide_facts; omega)) only
+    simp (disch := (keep_only bx0 bx1 bx2 bx3 by0 by1 by2 by3 bm0 bm1 bm2 bm3; decide_facts; omega)) only
       [Fv256.AM.dec_add_div, Fv256.AM.sbc_num, Fv256.AM.notsub, Fv256.AM.notflag] at *
+    clear_env_facts
     unfold Fv256.F.addmodSpec
     rw [if_neg (by omega)]
     refine (Fv256.AM.mod_cases4 _ _ _ ?_ ?_).symm <;> janus_carry_nf at * <;> janus_omega_values)

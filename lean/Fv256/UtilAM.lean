@@ -1,4 +1,5 @@
 import Janus
+import Lean
 
 /-! Small arm64 normalisation lemmas for carry chains (`adds/adcs/subs/sbcs` leave `addWithCarry` and
 `decide (b ≤ a)` borrows): towards the Nat-level vocabulary of `janus_carry_nf`. -/
@@ -63,3 +64,39 @@ theorem notsub (c : Nat) (hc : c ≤ 1) : (¬ (1 - c = 0)) = (c = 0) := propext 
 theorem notflag (c : Nat) (hc : c ≤ 1) : (¬ (c = 0)) = (c = 1) := propext (by omega)
 
 end Fv256.AM
+
+section
+open Lean Elab Tactic Meta
+/-- clear every hypothesis (proposition) except the listed ones: a focused context for the side goals of a `simp` discharger -/
+elab "keep_only " ids:ident* : tactic => do
+  let names := ids.map (·.getId)
+  let mut g ← getMainGoal
+  let lctx ← g.withContext getLCtx
+  let mut ds : Array LocalDecl := #[]
+  for d in lctx do ds := ds.push d
+  for d in ds.reverse do
+    if d.isImplementationDetail then continue
+    if names.contains d.userName then continue
+    let isP ← g.withContext (isProp d.type)
+    if isP then g ← g.tryClear d.fvarId
+  replaceMainGoal [g]
+end
+
+section
+open Lean Elab Tactic Meta
+/-- clear the hypotheses about the stack window, the guard word, the receiver pointer and loaded data (not about the
+arithmetic of `x`, `y`, `m`), so that `omega` sees only the arithmetic -/
+elab "clear_env_facts" : tactic => do
+  let mut g ← getMainGoal
+  let lctx ← g.withContext getLCtx
+  let mut ds : Array LocalDecl := #[]
+  for d in lctx do ds := ds.push d
+  for d in ds.reverse do
+    if d.isImplementationDetail then continue
+    let isP ← g.withContext (isProp d.type)
+    if !isP then continue
+    let s := (← g.withContext (ppExpr d.type)).pretty
+    let bad := ["accessible", "s.sp", "regs 28", "regs 30", "regs 0)", "DataLoaded", "Extracted"].any (fun b => (s.splitOn b).length > 1)
+    if bad then g ← g.tryClear d.fvarId
+  replaceMainGoal [g]
+end
