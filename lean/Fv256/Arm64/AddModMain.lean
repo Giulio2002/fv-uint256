@@ -42,6 +42,7 @@ theorem correctness (z x y m : BitVec 64) :
     have h1 : s.regs 1 = x := by have := hsu.args 1 (by simp); simpa using this
     have h2 : s.regs 2 = y := by have := hsu.args 2 (by simp); simpa using this
     have h3 : s.regs 3 = m := by have := hsu.args 3 (by simp); simpa using this
+    unfold Fv256.Arm64.AddModSeg.PreS
     rw [h30, h0, h1, h2, h3]
     have ha := hret.aligned
     have hu := hret.user
