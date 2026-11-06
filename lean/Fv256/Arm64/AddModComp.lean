@@ -14,6 +14,17 @@ open Fv256.Arm64.SegCompose (seg_trans seg_mono)
 
 namespace Fv256.Arm64.AddModComp
 
+theorem rod_of_data (m : Janus.Arm64.Memory) (hd : Extracted.program.DataLoaded m) :
+    m.accessible 1010368 32 false = true := by
+  have hne : Extracted.program.data ≠ [] := by decide
+  have h := (hd _ (List.head_mem hne)).1
+  have hb : (Extracted.program.data.head hne).base = 1010368 := rfl
+  have hl : (Extracted.program.data.head hne).bytes.length = 96 := rfl
+  rw [hb, hl] at h
+  simp only [List.any_eq_true, Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true'] at h
+  obtain ⟨r, hr, ⟨⟨h1, h2⟩, h3⟩, _⟩ := h
+  exact m.accessible_of_mem hr h1 (by omega) h3
+
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem gb_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)

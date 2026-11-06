@@ -88,7 +88,7 @@ theorem segZero (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (E
     (hsw8 : S.mem.accessible (S.sp.toNat - 8) 16 false = true)
     (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
     Janus.Tactic.ReachesRet Extracted.program R S
-      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
+      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧ S'.regs 30 = R ∧
         S'.mem.readLE (S.regs 0).toNat 32 = 0 ∧
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32)]) := by
   janus_run [hret, hx29, Nat.or_eq_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, BitVec.toNat_ofNat, Util.readLE_32]

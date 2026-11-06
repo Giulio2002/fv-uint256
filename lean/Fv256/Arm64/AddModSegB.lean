@@ -62,6 +62,12 @@ theorem segB (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x1c0)
   exact Janus.Tactic.ReachesRet.done (by simp [Extracted.entry, setReg]) ⟨by simp [Extracted.entry, setReg], rfl, rfl, by simp [setReg],
     fun i h8 h9 h10 => by simp [setReg, h8, h9, h10]⟩
 
+theorem ne_limbs (m : Janus.Arm64.Memory) (a : Nat) (h : m.readLE a 32 ≠ 0) :
+    ¬ (m.readLE a 8 = 0 ∧ m.readLE (a + 8) 8 = 0 ∧ m.readLE (a + 16) 8 = 0 ∧ m.readLE (a + 24) 8 = 0) := by
+  rintro ⟨h0, h1, h2, h3⟩
+  apply h
+  rw [Util.readLE_32, h0, h1, h2, h3]
+
 set_option hygiene false in
 macro "segC_close" : tactic => `(tactic| (
   first
@@ -222,7 +228,7 @@ theorem segD (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extr
     (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56)
     (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
     Janus.Tactic.ReachesRet Extracted.program R S
-      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
+      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧ S'.regs 30 = R ∧
         S'.mem.readLE (S.regs 0).toNat 32 = Fv256.B.modSpec (S.mem.readLE (S.regs 0).toNat 32) (S.mem.readLE (S.regs 8).toNat 32) ∧
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32), (S.sp.toNat - 488, S.sp.toNat - 8),
           (S.sp.toNat + 8, S.sp.toNat + 16)]) := by
@@ -236,7 +242,7 @@ set_option maxRecDepth 200000 in
 theorem segEF (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x25c))
     (hsal : S.sp.toNat % 16 = 0) (hsb : 344 ≤ S.sp.toNat) (hsc : S.sp.toNat + 384 ≤ 2 ^ 48)
     (hsw : S.mem.accessible (S.sp.toNat - 344) 728 true = true)
-    (hdata : Extracted.program.DataLoaded S.mem)
+    (hrod : S.mem.accessible 1010368 32 false = true)
     (hg1 : (S.regs 28).toNat + 24 ≤ 2 ^ 48) (hg2 : S.mem.accessible ((S.regs 28).toNat + 16) 8 false = true)
     (hg3 : S.mem.readLE ((S.regs 28).toNat + 16) 8 + 304 < S.sp.toNat)
     (hgw : (S.regs 28).toNat + 24 ≤ S.sp.toNat - 344 ∨ S.sp.toNat + 384 ≤ (S.regs 28).toNat + 16)
@@ -245,14 +251,14 @@ theorem segEF (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Ext
     (hdz : (S.regs 0).toNat + 32 ≤ S.sp.toNat - 344 ∨ S.sp.toNat + 384 ≤ (S.regs 0).toNat)
     (hdm : (S.regs 8).toNat + 32 ≤ S.sp.toNat - 344 ∨ (S.regs 8).toNat = S.sp.toNat + 328 ∨ S.sp.toNat + 384 ≤ (S.regs 8).toNat)
     (hdmz : (S.regs 8).toNat + 32 ≤ (S.regs 0).toNat ∨ (S.regs 0).toNat + 32 ≤ (S.regs 8).toNat)
-    (hm : ¬ (S.mem.readLE (S.regs 8).toNat 8 = 0 ∧ S.mem.readLE ((S.regs 8).toNat + 8) 8 = 0 ∧ S.mem.readLE ((S.regs 8).toNat + 16) 8 = 0 ∧ S.mem.readLE ((S.regs 8).toNat + 24) 8 = 0))
+    (hm32 : S.mem.readLE (S.regs 8).toNat 32 ≠ 0)
     (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56)
     (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
     Janus.Tactic.ReachesRet Extracted.program R S
-      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
+      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧ S'.regs 30 = R ∧
         S'.mem.readLE (S.regs 0).toNat 32 = (S.mem.readLE (S.regs 0).toNat 32 + 2 ^ 256) % S.mem.readLE (S.regs 8).toNat 32 ∧
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32), (S.sp.toNat - 344, S.sp.toNat + 384)]) := by
-  janus_data hdata [hsw, hza]
+  have hm := ne_limbs _ _ hm32
   janus_run [hret, Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.wv_writeLE_outside, Fv256.B.wv4_eq, Fv256.F.wv_zero5w, Fv256.F.wv_zero4w, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] until [Extracted.entry + 0x2f8] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain (Fv256.Arm64.UdivremFinal.udivrem_rem_L_final (L := 5) (by decide) (by decide))]
   rename_i hregs hq hrem hf
   have hz8 : s'.mem.readLE (S.sp.toNat + 376) 8 = (S.regs 0).toNat := by
