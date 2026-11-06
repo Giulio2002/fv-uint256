@@ -81,21 +81,32 @@ for a,n,v in writes: print('MEMW',a,n,v[:160])
 
 
 # ---- Lean emission ----------------------------------------------------------------------------------------------------------
-ALT = " | exact (Nat.mod_eq_of_lt (by first | exact (s.regs 0).isLt | exact Util.readLE8_lt _ _)).symm"
+def closer(val):
+    """explicit proof that a stored word `val` (a Nat expression) is `< 2^64`, so `val = val % 2^64`; None when `rfl` closes the fact"""
+    m=re.match(r'^BitVec\.toNat \(s\.regs (\d+)\)$',val)
+    if m: return 'exact (Nat.mod_eq_of_lt (s.regs %s).isLt).symm'%m.group(1)
+    m=re.match(r'^Arm64\.Memory\.readLE s\.mem \((.*)\) 8$',val)
+    if m: return 'exact (Nat.mod_eq_of_lt (Util.readLE8_lt s.mem (%s))).symm'%m.group(1)
+    m=re.match(r'^(Arm64\.Memory\.readLE s\.mem \(.*?\) 8) \* (Arm64\.Memory\.readLE s\.mem \(.*?\) 8) / 18446744073709551616$',val)
+    if m:
+        a=re.match(r'Arm64\.Memory\.readLE s\.mem \((.*)\) 8$',m.group(1)).group(1)
+        b=re.match(r'Arm64\.Memory\.readLE s\.mem \((.*)\) 8$',m.group(2)).group(1)
+        return 'exact (Nat.mod_eq_of_lt (Fv256.Amd64.ReduceSpec.hi_lt _ _ (Util.readLE8_lt s.mem (%s)) (Util.readLE8_lt s.mem (%s)))).symm'%(a,b)
+    return None
 def emit(items, writes):
     vars_=[]; facts=[]; wit=[]; proofs=[]
     for kind,idx,val in items:
         m=re.match(r'BitVec\.ofNat 64 \((.*)\)$',val)
         if m:
             k=len(vars_); vars_.append('v%d'%k); wit.append(m.group(1))
-            facts.append("S'.regs %d = BitVec.ofNat 64 v%d"%(idx,k)); proofs.append('first | rfl | simp [setRegF]'+ALT)
+            facts.append("S'.regs %d = BitVec.ofNat 64 v%d"%(idx,k)); proofs.append('rfl')
             facts.append('v%d = %s'%(k,m.group(1))); proofs.append('rfl')
-        else:
-            facts.append("S'.regs %d = %s"%(idx,val)); proofs.append('first | rfl | simp [setRegF]'+ALT)
+        # registers not of the form `ofNat _` (e.g. rsp/rbp updates) are closed by the run's own simplification: no fact, no proof
     for addr,n,val in writes:
         k=len(vars_); vars_.append('v%d'%k); wit.append(val)
         facts.append("S'.mem.readLE (%s) %d = v%d %% 2 ^ 64"%(addr,n,k))
-        proofs.append('first | rfl | simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow]'+ALT)
+        c=closer(val)
+        proofs.append('first | with_reducible rfl | '+c if c else 'with_reducible rfl')
         facts.append('v%d = %s'%(k,val)); proofs.append('rfl')
     return vars_,wit,facts,proofs
 if args.lean:
