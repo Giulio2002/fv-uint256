@@ -113,13 +113,13 @@ macro "te_sub" : tactic => `(tactic|
    simp only [Janus.outside_cons, Janus.outside_nil, Janus.outside_append, and_true, and_imp]
    intros
    first
-   | (try simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
-      repeat' apply And.intro
-      all_goals first | (with_reducible assumption) | omega)
    | (janus_clear_irrel
       try simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
       repeat' apply And.intro
-      all_goals first | omega | (with_reducible assumption))
+      all_goals first | (with_reducible assumption) | omega)
+   | (try simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *
+      repeat' apply And.intro
+      all_goals first | (with_reducible assumption) | omega)
    | (janus_apart_facts
       try simp only [Janus.Apart] at *
       janus_clear_irrel2
@@ -136,6 +136,13 @@ macro "te_frame" : tactic => `(tactic|
     | (refine Janus.MemFrame.writeLE ?_ _ (List.mem_append_right _ (List.mem_singleton_self _)) (by simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *; omega) (by simp only [BitVec.toNat_sub, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *; omega))
     | (refine frame_trans ?_ (by assumption) ?_))
    all_goals first | (te_sub) | skip))
+
+theorem mem3 {α : Type} {r w : α} {a b : List α} (h : r ∈ a ++ b ++ [w]) : r ∈ a ∨ r ∈ b ∨ r = w := by
+  simp only [List.mem_append, List.mem_singleton] at h
+  rcases h with (h | h) | h
+  · exact Or.inl h
+  · exact Or.inr (Or.inl h)
+  · exact Or.inr (Or.inr h)
 
 theorem blockSize48 : blockSize 48 false = 48 := by decide
 
@@ -234,6 +241,7 @@ elab "te_flags" : tactic => withMainContext do
     else if (ty.find? fun e => e.isRawNatLit && e.rawNatLit? == some 6156064).isSome &&
         (ty.isAppOf ``Eq || ty.isAppOf ``Not) then
       hs := hs.push d.fvarId
+  evalTactic (← `(tactic| try (have teflagw := (by with_reducible assumption : Janus.Outside 6156064 4 [(_, _)]); simp only [Janus.outside_cons, Janus.outside_nil, and_true] at teflagw)))
   let mut names : Array Name := #[]
   let mut k := 0
   for fv in hs do
@@ -246,6 +254,25 @@ elab "te_flags" : tactic => withMainContext do
     evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff] at $h:ident))
     evalTactic (← `(tactic| try simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
       Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*] at $h:ident))
+  if (← System.FilePath.pathExists "/srv/fv-uint256-wi/build/out/debug_flags") then
+    for d in ← getLCtx do
+      if d.isImplementationDetail then continue
+      let ty ← instantiateMVars d.type
+      if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
+        let a ← Meta.ppExpr (ty.getArg! 0)
+        let b ← Meta.ppExpr (ty.getArg! 1)
+        let rs ← Meta.ppExpr (ty.getArg! 2)
+        let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
+        h.putStrLn s!"FRAME {ty.getAppFn.constName!} from={(toString a).take 120} to={(toString b).take 40} rs={(toString rs).take 300}"
+        h.flush
+    for n in names do
+      let str ← withMainContext do
+        let d ← getLocalDeclFromUserName n
+        let ty ← instantiateMVars d.type
+        pure (toString (← Meta.ppExpr ty))
+      let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
+      h.putStrLn s!"FLAG {n}: {str.take 800}"
+      h.flush
   for a in names do
     for b in names do
       if a != b then

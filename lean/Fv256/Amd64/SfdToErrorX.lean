@@ -171,7 +171,7 @@ macro "te_body" : tactic => `(tactic| (
     rw [hwbn] at hwbacc
     rw [hesn] at heacc
     rw [hnum] at hoN' hdq hNT1 hNT2
-    simp only [Apart] at hAw hAn h_apart
+    simp only [Apart] at hAw hAn hAwb h_apart
     have hNT2' : s.mem.readLE 5077160 8 ≠ 0 := by simpa using hNT2
     have hNT2b : (s.mem.readLE 5077160 8 == 0) = false := by simp [hNT2']
     have herr : Extracted.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
@@ -193,7 +193,10 @@ macro "te_body" : tactic => `(tactic| (
       Lean.logInfo m!"D goals {(← Lean.Elab.Tactic.getGoals).length}"
     all_goals
       refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
-      case F => janus_frame
+      case F =>
+        obtain ⟨f0, f1, f2, f3, f4, f5⟩ := inRanges_fields (‹InRanges _ 48 R.rt›) (rs' := R.rt) (fun r hr => hr)
+        repeat' (refine frame_writeLE_rt _ ?_ (by first | exact f0 | exact f1 | exact f2 | exact f3 | exact f4 | exact f5))
+        exact te_base hfr hMF (by with_reducible assumption) (by with_reducible assumption) hdep hlow hInR hQsl
       case obj =>
         refine ⟨?c1, ?c2, ?c3, ?c4, ?c5, ?c6, ?c7, ?c8, ?c9, ?c10, ?c11, ?c12⟩
         case c1 => assumption
