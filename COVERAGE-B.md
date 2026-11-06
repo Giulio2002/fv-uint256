@@ -57,3 +57,8 @@ DivModB compile 442-490 s -> 163 s; DivMod verify (correctness + nonvacuous) 262
 A statement with many pointers: write each disjointness fact as `Apart a n b k` (Janus.Apart, not unfolded by omega), `unfold Apart at ...` only after janus64_run for the closers. Witness: `(try unfold Apart); (try unfold regSP); (try unfold regG); decide`. MulDivOverflowRem janus64_run stage: 1200 s / 35 GB -> 30 s / 2.6 GB.
 
 DivModB (Apart contracts for partB) compiles standalone in 108 s / 3.8 GB on Janus 2452acd6 (was 163 s on 6365855c); DivMod correctness+nonvacuous verified 1803 s cold incl. chain rebuild.
+
+## Reciprocal (FV-B) — open question F-F1b (not a defect)
+Upstream documents only "a 320-bit value representing 1/m" (m[3] != 0, zero otherwise). Spec used: (i) m < 2^192: mu = 0; (ii) 2^192 <= m: RecipWeak (ex-3 <= mu <= ex); (iii) 2^193 <= m: RecipOK (ex-1 <= mu <= ex).
+Analysis (pure Nat, `RecipMath.lean`): r4pre = r3*2^128 - ceil(x/2^128), r4pre - A/y = D/2^320 - g - R with 0 <= D < 2^258, g = d3^2/(2^320 y) <= 2^-60.8, R in [0,1); one final decrement gives r4' in {E-1, E} (E = floor(2^574/y)).
+For s = clz(m3) = 63 (2^192 <= m < 2^193) the code doubles r4', so mu = 2 r4' and ex-1 <= mu would need r4' = E exactly; only r4' >= E-1 is provable, hence ex-3 <= mu. A violating m would need frac(2^511/m) < g AND the rounding term R within 2^-61 of 1 (joint density ~2^-122); 1M+ structured/adversarial inputs: 0 violations (s=63 always mu in {ex-1, ex}). Open: whether mu = ex-2 / ex-3 occurs for any m. Harmless for MulModWithReciprocal (reduce4's loop absorbs the larger quotient error).
