@@ -50,16 +50,17 @@ theorem correctness (m : BitVec 64) :
     have h30 : s.regs 30 = BitVec.ofNat 64 ret := by
       have := hsu.lr; exact this
     have h0 : s.regs 0 = m := by have := hsu.args 0 (by simp); simpa using this
-    rw [h30, h0]
     have ha := hret.aligned
     have hu := hret.user
-    refine ⟨?_, ?_, hg, hs, hgw, hm, hm', ?_⟩
-    · simp only [BitVec.toNat_ofNat]; rw [show ret % 2 ^ 64 = ret from Nat.mod_eq_of_lt (by omega)]; omega
-    · simp only [BitVec.toNat_ofNat]; rw [show ret % 2 ^ 64 = ret from Nat.mod_eq_of_lt (by omega)]; omega
-    · simp only [Disjoint] at hdm; omega
+    refine ⟨?_, ?_, hg, hs, hgw, ?_, ?_, ?_⟩
+    · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [show ret % 2 ^ 64 = ret from Nat.mod_eq_of_lt (by omega)]; omega
+    · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [show ret % 2 ^ 64 = ret from Nat.mod_eq_of_lt (by omega)]; omega
+    · rw [h0]; exact hm'
+    · rw [h0]; exact hm
+    · rw [h0]; simp only [Disjoint] at hdm; omega
   · intro ret hret s hsu ⟨hg, hs, hgw, ⟨hm, hm'⟩, hdm⟩ s' ⟨hsp, h18, h28, h29, h30, hf, hz, hw, hok⟩
     have h0 : s.regs 0 = m := by have := hsu.args 0 (by simp); simpa using this
-    rw [h0] at hz hw hok hf
+    rw [h0] at hz hw hok
     exact ⟨⟨hsp, h28, h29, h18⟩, hz, hw, hok, hf⟩
 
 namespace Witness
