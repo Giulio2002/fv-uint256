@@ -1,6 +1,6 @@
 #!/bin/bash
 # runs a64seg.py seg A B for consecutive cuts; logs per segment
-cd /srv/fv-uint256-wBm
+cd /srv/fv-uint256-wB5
 CUTS="$@"
 prev=""
 for c in $CUTS; do
