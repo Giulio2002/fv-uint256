@@ -100,3 +100,4 @@ UnmarshalText 0x4b1e40: sp=entry rsp; frame sub 0x58 => rsp1=sp-96; spills [sp+8
 - UnmarshalJSON uses a UnmarshalText Summary hypothesis `hut` (Summary form needed, so state UT as Summary Pre/Post over generic P like SfdSummary).
 ## TODO order
 1 sbts_post facts lemma (Extracted-free) 2 UT wrapper proof amd64 dec branch (first janus64_run to find goal shapes with `calls [hsb]`) 3 hex branch 4 UJ 5 arm64 mirrors 6 Scan 7 witnesses/verifies after SFD theorems are real.
+- 2026-11-07: main approved the n=0 request; FV-B9 (arm64) and FV-I5 (amd64) will guard the three string conjuncts with `nS.toNat = 0 ∨ …` and send new SfdTopSpec hashes. On arrival: re-copy byte-identical, re-fix Mod accessors, then toppre_dec's hswin/hsz/hsR hypotheses become `nI.toNat = 0 ∨ …`.
