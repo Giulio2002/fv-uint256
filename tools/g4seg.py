@@ -138,7 +138,7 @@ def preamble(A, names_in):
     s = """  obtain ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hmw, hm⟩, ⟨hux, hu⟩, hdz, hdx, hdm, hdu, hdg, hm3, hmu⟩ := hs
   clear hmu hm3 hdz hdx hdm hdu hdg
   obtain ⟨hr4, hr5, hr14, hx15, hrdf, hrmx⟩ := hR
-  have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM
+  have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM.1
   simp only [regSP] at hacc hlow hnw hsp
   have hacc' : S.mem.accessible ((s.regs 4).toNat - 288) (288 + 16) true = true := by
     rw [hfr.accessible]; exact hacc

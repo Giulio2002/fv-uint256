@@ -24,8 +24,8 @@ def split_conj(s):
         cur += c; k += 1
     out.append(cur.strip()); return out
 cs = split_conj(rest.strip())
-assert cs[-2].startswith('RegsA') and cs[-1].startswith('MemFrame'), cs[-2:]
-facts = cs[:-2]
+assert cs[-3].startswith('RegsA') and cs[-1].startswith('MemFrame'), cs[-3:]
+facts = cs[:-3]
 regmap = {}; memmap = {}
 for n, f in enumerate(facts):
     m = re.fullmatch(r"\(S'\.regs (\d+) = BitVec\.ofNat 64 (v\d+)\)", f)
@@ -58,12 +58,12 @@ out.append('      (%s) ∧' % ' ∧ '.join('%s = %s' % (nm, w) for nm, w in eqs)
 out.append('      (%s) := by' % ' ∧ '.join('%s = %s' % (a, b) for a, b in defs))
 out.append('  unfold PostA at h')
 out.append('  obtain ⟨%s, hh⟩ := h' % ', '.join(vars_))
-out.append('  obtain ⟨%s, hR, hF⟩ := hh' % ', '.join('f%d' % n for n in range(len(facts))))
+out.append('  obtain ⟨%s, hR, hrb, hF⟩ := hh' % ', '.join('f%d' % n for n in range(len(facts))))
 out.append('  refine ⟨%s, %s, ?_, ?_, ?_, ?_, ?_⟩' % (', '.join(vars_), ', '.join(wit)))
 out.append('  · unfold L%x\n    and_intros' % cut)
 for l in leaves: out.append('    · ' + l)
 out.append('  · exact hR')
-out.append('  · exact hF')
+out.append('  · exact ⟨hF, hrb⟩')
 out.append('  · and_intros <;> rfl')
 out.append('  · and_intros' + ''.join('\n    · exact f%d' % n for n, f in enumerate(facts) if re.fullmatch(r"\(v\d+ = .*\)", f)))
 out.append('\nend Fv256.Amd64.R4Seg\n')

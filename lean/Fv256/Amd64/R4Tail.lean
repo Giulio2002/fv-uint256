@@ -41,7 +41,6 @@ def TInv (s S : State) (c0 c1 c2 c3 c4 n0 n1 n2 n3 zz : Nat) : Prop :=
   c0 < 2 ^ 64 ∧ c1 < 2 ^ 64 ∧ c2 < 2 ^ 64 ∧ c3 < 2 ^ 64 ∧ c4 < 2 ^ 64 ∧
   n0 < 2 ^ 64 ∧ n1 < 2 ^ 64 ∧ n2 < 2 ^ 64 ∧ n3 < 2 ^ 64 ∧
   S.mem.readLE ((s.regs 4).toNat + 8) 8 = zz ∧
-  S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
   R4Regs s S ∧ R4Mem s S.mem
 
 def TailPost (s S' : State) (v : Nat) : Prop :=
@@ -60,7 +59,7 @@ theorem sf64 (a b : Nat) (c : Bool) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) :
     (subFlags (BitVec.ofNat 64 a) (BitVec.ofNat 64 b) c).fst = BitVec.ofNat 64 ((a + 2 ^ 64 - b - c.toNat) % 2 ^ 64) := by
   rw [subFlags_fst_ofNat, Nat.mod_eq_of_lt ha, Nat.mod_eq_of_lt hb]
 
-theorem wr_ok (sp : Nat) (h : 296 ≤ sp) : sp - 288 ≤ sp - 232 ∧ sp - 232 + 8 ≤ sp ∧ sp - 0x120 ≤ sp - 232 := by omega
+theorem wr_ok (sp : Nat) (h : 296 ≤ sp) : sp - 288 ≤ sp - 232 ∧ sp - 232 + 8 ≤ sp - 8 ∧ sp - 0x120 ≤ sp - 232 := by omega
 
 theorem zw (z k : Nat) (hk : k + 8 ≤ 32) : z ≤ z + k ∧ z + k + 8 ≤ z + 32 := by omega
 
@@ -80,9 +79,10 @@ theorem tail4 (s : State) (hs : R4Pre s) :
     obtain ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hmw, hm⟩, ⟨hux, hu⟩, hdz, hdx, hdm, hdu, hdg, hm3, hmu⟩ := hs
     clear hmu hm3 hdx hdm hdu hdg
     unfold Apart at hdz
-    obtain ⟨hpc, r1, r2, r3, r6, r8, r9, r10, r12, r7, b0, b1, b2, b3, b4, b5, b6, b7, b8, mz, hrb, hR, hM⟩ := hI
+    obtain ⟨hpc, r1, r2, r3, r6, r8, r9, r10, r12, r7, b0, b1, b2, b3, b4, b5, b6, b7, b8, mz, hR, hM⟩ := hI
     obtain ⟨hr4, hr5, hr14, hx15, hrdf, hrmx⟩ := hR
-    have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM
+    have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM.1
+    have hrb := hM.2
     simp only [regSP] at hacc hlow hnw hsp
     have hacc' : S.mem.accessible ((s.regs 4).toNat - 288) (288 + 16) true = true := by
       rw [hfr.accessible]; exact hacc
@@ -118,9 +118,10 @@ theorem tail4 (s : State) (hs : R4Pre s) :
     obtain ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hmw, hm⟩, ⟨hux, hu⟩, hdz, hdx, hdm, hdu, hdg, hm3, hmu⟩ := hs
     clear hmu hm3 hdx hdm hdu hdg
     unfold Apart at hdz
-    obtain ⟨hpc, r1, r2, r3, r6, r8, r9, r10, r12, r7, b0, b1, b2, b3, b4, b5, b6, b7, b8, mz, hrb, hR, hM⟩ := hI
+    obtain ⟨hpc, r1, r2, r3, r6, r8, r9, r10, r12, r7, b0, b1, b2, b3, b4, b5, b6, b7, b8, mz, hR, hM⟩ := hI
     obtain ⟨hr4, hr5, hr14, hx15, hrdf, hrmx⟩ := hR
-    have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM
+    have hfr : MemFrame s.mem S.mem [((s.regs 4).toNat - 288, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 16)] := hM.1
+    have hrb := hM.2
     simp only [regSP] at hacc hlow hnw hsp
     have hacc' : S.mem.accessible ((s.regs 4).toNat - 288) (288 + 16) true = true := by
       rw [hfr.accessible]; exact hacc
@@ -152,7 +153,7 @@ theorem tail4 (s : State) (hs : R4Pre s) :
         rw [← hval, Nat.add_mod_right]
       refine Fv256.SegCompose.seg_mono (ih d0 d1 d2 d3 d4 n0 n1 n2 n3 _ hq' hM0 ?_) (fun S' h => by rw [← hmod]; exact h)
       unfold TInv
-      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hd0', hd1', hd2', hd3', hd4', b5, b6, b7, b8, ?_, ?_, ?_, ?_⟩
+      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hd0', hd1', hd2', hd3', hd4', b5, b6, b7, b8, ?_, ?_, ?_⟩
       · first | rfl | decide | simp [r4Entry]
       · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; rw [sub64 _ _ b0 b5, hd0]
       · simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; rw [sf64 _ _ _ b1 b6, hd1]
@@ -166,7 +167,6 @@ theorem tail4 (s : State) (hs : R4Pre s) :
       · simp [setRegF, r12]
       · simp [setRegF, r7]
       · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact mz
-      · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; exact hrb
       · unfold R4Regs
         and_intros <;> first | rfl | simp [setRegF, hr4, hr5, hr14, hx15, hrdf, hrmx]
       · exact R4Mem.write hM _ _ _ (wr_ok _ hsp).1 (wr_ok _ hsp).2.1
