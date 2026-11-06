@@ -627,4 +627,68 @@ theorem top_ld2 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     · simp [setReg_apply, c56]
     · simp [setReg_apply, c48])
 
+open Fv256.Arm64.SegCompose in
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- the zero-skip loop, by induction on the bytes left -/
+theorem top_loop (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre cfg R R2 T b L lo hi z pS nS s) :
+    ∀ (k j : Nat) (S : State), nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat - j = k →
+      S.pc = BitVec.ofNat 64 0xb8ab0 → LoopInv R R2 T b L lo hi z pS nS s j S →
+      ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (BitVec.ofNat 64 0xb8a18) S
+        (TopMid R R2 T b L lo hi z pS nS s) := by
+  intro k
+  induction k with
+  | zero =>
+    intro j S hk hpc hI
+    have hjle := hI.2.2.2.2.2.2.2.2.2.1
+    refine seg_trans (top_lend impl R R2 T b L lo hi z pS nS s hpre S j hpc hI (by omega)) ?_
+    intro S1 hpc1 hT
+    exact top_tail impl R R2 T b L lo hi z pS nS s hpre S1 _ hpc1 hT
+  | succ k ih =>
+    intro j S hk hpc hI
+    have hI' := hI
+    obtain ⟨hSt, h0, h1, h2, h3, h4, m56, m64, hlt, hjle, hzs⟩ := hI'
+    have hjm : j + 1 ≤ nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat := by omega
+    by_cases hx48 : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) = 48
+    · refine seg_trans (top_ls impl R R2 T b L lo hi z pS nS s hpre S j hpc hI hjm hx48) ?_
+      intro S1 hpc1 hM
+      refine seg_trans (top_hop impl R R2 T b L lo hi z pS nS s S1 j hpc1 hM) ?_
+      intro S2 hpc2 hI2
+      exact ih (j + 1) S2 (by omega) hpc2 hI2
+    · by_cases hx127 : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) ≤ 127
+      · refine seg_trans (top_lb impl R R2 T b L lo hi z pS nS s hpre S j hpc hI hjm hx127 hx48) ?_
+        intro S1 hpc1 hT
+        exact top_tail impl R R2 T b L lo hi z pS nS s hpre S1 _ hpc1 hT
+      · have hb128 : 128 ≤ Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) := by omega
+        refine seg_trans (top_ld1 impl R R2 T b L lo hi z pS nS s hpre S j hpc hI hjm hb128) ?_
+        intro S1 hpc1 hq
+        obtain ⟨hdp, hC⟩ := hq
+        refine ReachesRet.call (Fv256.Arm64.SfdDecode.decoderune_sum impl _ _ _) hpc1 hdp ?_
+        intro S' hpc' hpost
+        have hr30 := hC.2.1
+        refine seg_trans (top_ld2 impl R R2 T b L lo hi z pS nS s hpre S1 S' j (by rw [hpc', hr30]) hC hpost) ?_
+        intro S3 hpc3 hT
+        exact top_tail impl R R2 T b L lo hi z pS nS s hpre S3 _ hpc3 hT
+
+open Fv256.Arm64.SegCompose in
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- from the entry to the length compare: the number starts at `startPos` -/
+theorem top_to_mid (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpc : s.pc = BitVec.ofNat 64 0xb89b0)
+    (hpre : TopPre cfg R R2 T b L lo hi z pS nS s) :
+    ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (BitVec.ofNat 64 0xb8a18) s
+      (TopMid R R2 T b L lo hi z pS nS s) := by
+  refine seg_trans (top_pro impl R R2 T b L lo hi z pS nS s hpc hpre) ?_
+  intro S hpc1 hA
+  by_cases hR2 : S.regs 2 = 0#64
+  · exact top_b0 impl R R2 T b L lo hi z pS nS s S hpc1 hA hR2
+  · by_cases hbz : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) = 48
+    · refine seg_trans (top_b2 impl R R2 T b L lo hi z pS nS s hpre S hpc1 hA hR2 hbz) ?_
+      intro S1 hpc2 hI
+      have hlt := hI.2.2.2.2.2.2.2.2.1
+      exact top_loop impl R R2 T b L lo hi z pS nS s hpre _ 0 S1 rfl hpc2 hI
+    · exact top_b1 impl R R2 T b L lo hi z pS nS s hpre S hpc1 hA hR2 hbz
+
 end Fv256.Arm64.SfdTop
