@@ -21,6 +21,19 @@ theorem cost_le (len0 len cc : Nat) (h1 : len + 8 ≤ len0 + 32) (h2 : cc < len 
 /-- Wrapper that keeps a hypothesis out of the stepping tactics' reach (a visible `MemFrame s.mem S.mem _` makes the store step stuck). -/
 def Hidden (p : Prop) : Prop := p
 
+/-- `readLE` only depends on the bytes, also across two addresses. -/
+theorem readLE_bytes_shift (m m' : Janus.Arm64.Memory) (a a' n : Nat)
+    (h : ∀ i, i < n → m.bytes (a + i) = m'.bytes (a' + i)) : m.readLE a n = m'.readLE a' n := by
+  induction n generalizing a a' with
+  | zero => rfl
+  | succ n ih =>
+    rw [Janus.Arm64.Memory.readLE_succ, Janus.Arm64.Memory.readLE_succ]
+    have h0 := h 0 (by omega)
+    simp only [Nat.add_zero] at h0
+    rw [h0, ih (a + 1) (a' + 1) (fun i hi => by
+      have := h (i + 1) (by omega)
+      rwa [show a + (i + 1) = a + 1 + i by omega, show a' + (i + 1) = a' + 1 + i by omega] at this)]
+
 /-- One more limb written after the `n` bytes already in place: the (little-endian) read of `n + 8` bytes. -/
 theorem mid_step (m0 s : Janus.Arm64.Memory) (a n z v : Nat)
     (hmid : m0.readLE a n = s.readLE z n) (hv : v % 256 ^ 8 = s.readLE (z + n) 8) :

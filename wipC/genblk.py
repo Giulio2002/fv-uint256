@@ -23,7 +23,7 @@ t = t.replace('S.mem.readLE z.toNat 8', 'S.mem.readLE (z.toNat + %d) 8' % (8 * k
 t = t.replace('Memory.readLE S.mem z.toNat 8', 'Memory.readLE S.mem (z.toNat + %d) 8' % (8 * k))
 
 HM1 = """      have hmid' : M.readLE (r0.toNat + len0) (len.toNat - len0) = S.mem.readLE (pp.toNat + len0) (len.toNat - len0) := by
-        apply Memory.readLE_congr; intro i hi
+        apply readLE_bytes_shift; intro i hi
         rw [show r0.toNat + len0 + i = r0.toNat + (len0 + i) by omega, hcopy (len0 + i) (by omega),
           Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega), Memory.bytes_writeLE_outside _ (by unfold Apart at hdj; omega),
           show pp.toNat + (len0 + i) = pp.toNat + len0 + i by omega]
