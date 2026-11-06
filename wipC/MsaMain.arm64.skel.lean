@@ -80,6 +80,10 @@ set_option maxHeartbeats 4000000 in
 theorem model_gr : RtLiveContract linked grA 4096 R growsliceSpec growsliceLive := by
   janus_live_growslice (u8A, 1, 0) 1 0 1 16 8 hok_gr
 
+-- GROWTH-PATH WITNESS (pending, per main): a second witness with len = 24, cap = 24 (one growslice call, for the last limb
+-- only: len + 8 > cap at block 3) and the stub parameters fixed to that single request
+-- `growslice(p, 32, 24, 8, u8)`: `ok := fun a args => a = grA ∧ args = [p0, 32, 24, 8, u8A]`,
+-- `janus_live_growslice (u8A, 1, 0) 1 24 8 <A> <cap> hok`, `ob = 24` bytes copied. COVERAGE: "growth-path witness: pending".
 -- TODO: state `s0` (sp, g, dst array of 32 writable bytes at dp, z readable), `setup`, `dataLoaded`, `inv0`, `pre`
 -- as in examples/rtmisc/proofs/arm64/Push.lean, then
 -- `theorem nonvacuous : ∃ impl R b L z dp len cap ret s, RetAddr … ∧ CallSetup … ∧ <the whole precondition>`.
