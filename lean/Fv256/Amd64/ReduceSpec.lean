@@ -1,5 +1,6 @@
 import Fv256.SpecF
 import Fv256.MulModMath
+import Fv256.ReduceProg
 
 /-! `reduce4` summary statement pieces (no proof, cheap to import). -/
 
@@ -25,7 +26,10 @@ abbrev R4Post (s s' : State) : Prop :=
   s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
   s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
   s'.mem.readLE (s.regs 0).toNat 32 = s.mem.readLE (s.regs 3).toNat 64 % s.mem.readLE (s.regs 1).toNat 32 ∧
-  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x120, (s.regs 4).toNat + 0x10)]
+  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x120, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x10)]
+
+/-- the library summary of `reduce4` (amd64), proved in `Fv256/Amd64/Reduce4.lean` -/
+def R4Summary : Prop := Summary Fv256.ReduceProg.program r4Entry R4Pre R4Post
 
 theorem hi_lt (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) : a * b / 2 ^ 64 < 2 ^ 64 := by
   have h := Nat.mul_lt_mul'' ha hb
