@@ -229,6 +229,7 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     rename Memory => m4
     rename MemFrame _ m4 _ => hMF3
     rename InRanges _ (blockSize 48 false) R.rt => hInT
+    rename s.mem.accessible (BitVec.toNat t) 48 true = true => hTacc
     have pW := hsR (wbFlag, wbFlag + 4) (by simp [staticRanges])
     have qW := hsP (wbFlag, wbFlag + 4) (by simp [staticRanges])
     simp only [Nat.add_sub_cancel_left] at pW qW
@@ -247,10 +248,38 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
           Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by te_omega)]
       exact hf3
     have hInTW := InRanges.disjoint hInT pW
+    have hacc4 : m4.accessible wbFlag 4 false = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact t8
+    have hacc4t : m4.accessible t.toNat 48 true = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact hTacc
+    have hacc4e : m4.accessible strconvErrSyntax 16 false = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact t9
+    have hacc4w : m4.accessible (BitVec.toNat s.sp - 4192) (BitVec.toNat s.sp + 72 - (BitVec.toNat s.sp - 4192)) true = true := by
+      rw [hMF3.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF2.accessible]
+      simp only [Janus.Arm64.Memory.accessible_writeLE]
+      rw [hMF1.accessible, hfr'.accessible, hSf.accessible]
+      exact e5
     have hf4b : (m4.readLE wbFlag 4 == 0) = true := by simp [hf4]
+    clear hif hnew hmg hmv hwb1 hwb2 hokv hokm hok1 hok2 hokn hprR hLpr hsR hsP e14 e18 e9 e10 hM3 hN0 hN1 hres hres' hinvS hinv' e17 hLw hbL hg6 hga1 hga2 hgm2 hLF1 hApL hMF1 hMF2 hfr hdesc hcmp hTw hWsub hqN hqW
     have hInTW' : wbFlag + 4 ≤ t.toNat ∨ t.toNat + 48 ≤ wbFlag := hInTW
     rcases hInTW' with hdt | hdt
-    all_goals sorry
-    all_goals janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hSlr, hSfp, hof30, hof29]
+    all_goals janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hacc4, hacc4w, hacc4t, hacc4e, hSlr, hSfp, hof30, hof29]
     trace_state
     all_goals sorry
