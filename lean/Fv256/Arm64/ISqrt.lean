@@ -28,7 +28,12 @@ set_option maxRecDepth 200000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.SqrtProg.program Extracted.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
-theorem sqrt_ex : Summary Extracted.program Fv256.Arm64.SqrtSum.sqrtEntry Fv256.Arm64.SqrtSum.SqPre Fv256.Arm64.SqrtSum.PostSq :=
+theorem sqrt_ex : Summary Extracted.program Fv256.Arm64.SqrtSum.sqrtEntry Fv256.Arm64.SqrtSum.SqPre
+    (fun s s' => s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
+      s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
+      Fv256.F.IsSqrt (s.mem.readLE (s.regs 1).toNat 32) (s'.mem.readLE (s.regs 0).toNat 32) ∧
+      MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 488, s.sp.toNat - 8),
+        (s.sp.toNat + 8, s.sp.toNat + 24)]) :=
   Janus.Contracts.EqHashModel.Summary.of_codeIn hcLib Fv256.Arm64.SqrtSum.sqrt_summary
 
 set_option maxHeartbeats 32000000 in
@@ -43,9 +48,12 @@ theorem isqrt_summary_ex : Summary Extracted.program Extracted.entry
         Fv256.F.IsSqrt (s.mem.readLE (s.regs 0).toNat 32) (s'.mem.readLE (s.regs 0).toNat 32) ∧
         MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 520, s.sp.toNat)]) := by
   intro s hpc ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, ⟨hsal, hsb, hsc, hsw⟩, hsp, hdg, hzb, hza, hdz⟩
-  janus_run [] calls [sqrt_ex]
-  trace_state
-  all_goals sorry
+  have e32 : (s.sp - 32#64).toNat = s.sp.toNat - 32 := by
+    simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  have hal32 : (s.sp - 32#64).toNat % 16 = 0 := by omega
+  janus_run [hal32, e32] calls [sqrt_ex]
+  refine ⟨by janus_assumption, ?_⟩
+  janus_frame
 
 abbrev Pre (z : BitVec 64) : State → Prop :=
   fun s => GuardOK s 480 ∧ StackOK s 520 8 ∧ 520 ≤ s.sp.toNat ∧
