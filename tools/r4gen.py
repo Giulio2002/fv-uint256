@@ -49,7 +49,7 @@ set_option linter.deprecated false
 """
 EXTRA = {0x20: ['x20r1 = (s.regs 1).toNat', 'x20r2 = (s.regs 2).toNat', 'x20r3 = (s.regs 3).toNat']}
 EXTAC = {}       # extra-fact text -> closing tactic (default omega)
-OVR = {}         # (A_off, B_off) -> {item: (witness text, closer)}
+OVR = {(0x2b4, 0x2f4): {('r', 3): ('(if x2b4r8 = 0 then x2b4r3 else (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 4): ('(if x2b4r8 = 0 then x2b4r4 else (x2b4r4 + x2b4r12 + (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 5): ('(if x2b4r8 = 0 then x2b4r5 else (x2b4r5 + (x2b4r6 + x2b4m72 + (x2b4r4 + x2b4r12 + (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 6): ('(if x2b4r8 = 0 then x2b4r6 else (x2b4r6 + x2b4m72 + (x2b4r4 + x2b4r12 + (x2b4r3 + x2b4r1 + (x2b4r7 + x2b4r2) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616)', 'IF'), ('r', 7): ('(if x2b4r8 = 0 then x2b4r7 else (x2b4r7 + x2b4r2) % 18446744073709551616)', 'IF')}}
 COMMON = ['BitVec.toNat_setWidth', 'BitVec.toNat_eq', 'BitVec.toNat_ushiftRight', 'BitVec.toNat_ofNat', 'Nat.shiftRight_eq_div_pow',
           'BitVec.le_def', 'BitVec.lt_def', 'BitVec.toNat_sub', 'BitVec.toNat_add']
 NORM = ('Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Nat.reducePow, BitVec.toNat_add, BitVec.toNat_mul, BitVec.toNat_sub, '
@@ -220,6 +220,9 @@ def emit_seg(A, B, norm_out):
         if VARTOK.fullmatch(W) or re.fullmatch(r'\d+', W): args.append(W)
         else:
             new_vars.append(n); args.append(n); eqs.append((n, W)); wit.append(W)
+        if closer == 'IF':
+            lf = leaf_simp(A)
+            closer = 'first\n  | (rw [if_pos hbr]; %s)\n  | (rw [if_neg hbr]; %s)' % (lf, lf)
         leaves.append(closer if closer else leaf_simp(A))
     mapB = {vname(B, k, key): a for (k, key), a in zip(itsB, args)}
     exc = EXTRA.get(off(B), [])
