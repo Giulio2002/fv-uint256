@@ -154,6 +154,121 @@ theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T
       · intro h; rw [hv] at h; cases h
       · intro h; rw [hv] at h; cases h
       · intro _ _ h; rw [hv] at h; cases h
-    all_goals sorry
+    · -- io.EOF
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, -, -, -, hInit, -, -, -, -, -, -, -, -, -⟩ := hpreC
+      have hsp48 : (s.sp - 48#64).toNat = s.sp.toNat - 48 := by
+        have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+      rw [hsp48] at k5 k6
+      have hs_fp : s'.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat := by
+        rw [show s.sp.toNat - 56 = s.sp.toNat - 48 - 8 by omega, k5, show s.sp.toNat - 48 - 8 = s.sp.toNat - 56 by omega, hS_fp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 29).isLt; simpa using this)
+      have hs_ra : s'.mem.readLE (s.sp.toNat - 48) 8 = ret := by
+        rw [k6, hS_ra, hretlt]
+      have hoS : ∀ a n, a + n ≤ lo ∨ s.sp.toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
+          Outside a n [(lo, s.sp.toNat - 16), (zv.toNat, zv.toNat + 32)] := by
+        intro a n h1 h2
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨h1, h2⟩
+      have hio : ∀ a, a = cfg.ioEOF ∨ a = cfg.ioEOF + 8 → (mN.writeLE (s.sp.toNat - 16) 8 zv.toNat).readLE a 8 = s.mem.readLE a 8 := by
+        intro a ha
+        refine hF.readLE a 8 ?_
+        rw [outside_append]
+        refine ⟨?_, ?_⟩
+        · rcases ha with rfl | rfl
+          · exact Outside.of_sub hE3 (by omega) (by omega)
+          · exact Outside.of_sub hE3 (by omega) (by omega)
+        · simp only [outside_cons, outside_nil, and_true] at hE2 ⊢
+          rcases ha with rfl | rfl <;> omega
+      have hnz : s'.regs 0 ≠ 0 := by
+        intro h0'
+        rw [h0', hio _ (Or.inl rfl)] at c0
+        exact hInit.1 (by simpa using c0.symm)
+      have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
+      janus_run [hs_ra, hs_fp, hnz']
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_cons, outside_nil, and_true] at h3 ⊢
+        omega
+      refine ⟨(fun v' hv' => (by rw [hv] at hv'; cases hv')), fun _ => ⟨?_, ?_⟩, (fun h => (by rw [hv] at h; cases h)),
+        (fun _ _ h => (by rw [hv] at h; cases h)), hFr⟩
+      · rw [c0]; exact hio _ (Or.inl rfl)
+      · rw [c1]; exact hio _ (Or.inr rfl)
+    · -- ErrBig256Range
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, hInit, -, -, -, -, -, -, -, -, -⟩ := hpreC
+      have hsp48 : (s.sp - 48#64).toNat = s.sp.toNat - 48 := by
+        have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+      rw [hsp48] at k5 k6
+      have hs_fp : s'.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat := by
+        rw [show s.sp.toNat - 56 = s.sp.toNat - 48 - 8 by omega, k5, show s.sp.toNat - 48 - 8 = s.sp.toNat - 56 by omega, hS_fp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 29).isLt; simpa using this)
+      have hs_ra : s'.mem.readLE (s.sp.toNat - 48) 8 = ret := by
+        rw [k6, hS_ra, hretlt]
+      have hoS : ∀ a n, a + n ≤ lo ∨ s.sp.toNat - 16 ≤ a → a + n ≤ zv.toNat ∨ zv.toNat + 32 ≤ a →
+          Outside a n [(lo, s.sp.toNat - 16), (zv.toNat, zv.toNat + 32)] := by
+        intro a n h1 h2
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨h1, h2⟩
+      have hio : ∀ a, a = cfg.errBig ∨ a = cfg.errBig + 8 → (mN.writeLE (s.sp.toNat - 16) 8 zv.toNat).readLE a 8 = s.mem.readLE a 8 := by
+        intro a ha
+        refine hF.readLE a 8 ?_
+        rw [outside_append]
+        refine ⟨?_, ?_⟩
+        · rcases ha with rfl | rfl
+          · exact Outside.of_sub hE3 (by omega) (by omega)
+          · exact Outside.of_sub hE3 (by omega) (by omega)
+        · simp only [outside_cons, outside_nil, and_true] at hE2 ⊢
+          rcases ha with rfl | rfl <;> omega
+      have hnz : s'.regs 0 ≠ 0 := by
+        intro h0'
+        rw [h0', hio _ (Or.inl rfl)] at c0
+        exact hInit.2.2.1 (by simpa using c0.symm)
+      have hnz' : ¬ (s'.regs 0).toNat = 0 := fun h => hnz (BitVec.eq_of_toNat_eq (by simpa using h))
+      janus_run [hs_ra, hs_fp, hnz']
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_cons, outside_nil, and_true] at h3 ⊢
+        omega
+      refine ⟨(fun v' hv' => (by rw [hv] at hv'; cases hv')), (fun h => (by rw [hv] at h; cases h)), fun _ => ⟨?_, ?_⟩,
+        (fun _ _ h => (by rw [hv] at h; cases h)), hFr⟩
+      · rw [c0]; exact hio _ (Or.inl rfl)
+      · rw [c1]; exact hio _ (Or.inr rfl)
+    · -- syntax error
+      have hsp48 : (s.sp - 48#64).toNat = s.sp.toNat - 48 := by
+        have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+      rw [hsp48] at k5 k6
+      have hs_fp : s'.mem.readLE (s.sp.toNat - 56) 8 = (s.regs 29).toNat := by
+        rw [show s.sp.toNat - 56 = s.sp.toNat - 48 - 8 by omega, k5, show s.sp.toNat - 48 - 8 = s.sp.toNat - 56 by omega, hS_fp]
+        exact Nat.mod_eq_of_lt (by have := (s.regs 29).isLt; simpa using this)
+      have hs_ra : s'.mem.readLE (s.sp.toNat - 48) 8 = ret := by
+        rw [k6, hS_ra, hretlt]
+      have hnz' : ¬ (s'.regs 0).toNat = 0 := by
+        rw [c0]; decide
+      have hnum : ¬ cfg.numErrItab = 0 := by decide
+      have hnz'' : ¬ (BitVec.ofNat 64 cfg.numErrItab).toNat = 0 := by decide
+      janus_run [hs_ra, hs_fp, hnz', hnz'', hnum]
+      have hFr : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+        refine hF.trans cMF ?_
+        intro a n h
+        simp only [outside_append] at h
+        obtain ⟨⟨h1, h2⟩, h3⟩ := h
+        refine ⟨by rw [outside_append]; exact ⟨h1, h3⟩, ?_⟩
+        have h4 := InRanges.apart hInR h1
+        unfold Apart at h4
+        simp only [outside_append, outside_cons, outside_nil, and_true] at h3 ⊢
+        exact ⟨⟨h1, h2⟩, by omega, h4⟩
+      refine ⟨(fun v' hv' => (by rw [hv] at hv'; cases hv')), (fun h => (by rw [hv] at h; cases h)),
+        (fun h => (by rw [hv] at h; cases h)), fun _ _ _ => trivial, hFr⟩
 
 end Fv256.Arm64.FromDecimal
