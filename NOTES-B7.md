@@ -24,3 +24,8 @@ Build: lean/ lakefile pinned to /srv/janus-fvA-pin655 @655a23fa; build with ../b
 1. compile SfdFdSpec (lake build Fv256.Arm64.SfdFdSpec), commit.
 2. FdInv at HEAD, fd_next / fd_round (call PwSum via ReachesRet.call, Mul via mul_sum, inline add, bounds checks), prologue, exits; amd64 SfdFdLoop.lean (FV-I2) is the template but is itself unfinished (ends in `trace_state; sorry`).
 3. SfdTop: plus skip, zero loop (decoderune_sum), cmpstring contract, call fd_sum; Extracted correctness + Witness.nonvacuous; ONE verify.
+
+## Update: fd_pro DONE (Arm64/SfdFdPro.lean, compiles, sorry-free apart from FV-I4's SfdPw)
+- FdInv (arm64 loop-head invariant at head = fd+0x9c) defined there; fd_pro: entry (nS != 0) -> head with FdInv 0 (janus_run until [head] + 20-way refine; ~55 s).
+- Tricks: abbrev constants (mulTab) must be restated as numeric literals for omega/janus_run (have hmA : 1795392+40 <= lo ∨ ... := hmA0).
+- NEXT: nS = 0 (EOF) exit lemma; round (i<5, 19*i<nS): spills, ParseUint call via PwSum (ReachesRet.call), error exit (0xb8d18), i=0 SetUint64 store, i>0 Mul call (mul_sum: tmp at sp'+72, W = mult[i] at sp'+104 spill) + 4-limb ADDS/ADCS into z, then loop increment+chop (0xb8bd8..0xb8d14) back to head with FdInv (i+1); exits 0xb8d2c/0xb8d40 (return nil when rem<=0 or i>=5).
