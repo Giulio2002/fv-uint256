@@ -7,3 +7,5 @@ wip/
 wip-d/logs/
 wip-d/*.out
 wip-d/*.time
+build/ws-*.env
+
