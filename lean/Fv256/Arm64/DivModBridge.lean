@@ -45,7 +45,7 @@ theorem reaches_lift {lib P : Program} (hc : CodeIn lib P) (impl : List Segment)
   obtain ⟨n, o, hr, hq⟩ := h
   cases o with
   | returned s' =>
-    obtain ⟨k, hk, hpc⟩ := steps_of_run_returned hr
+    obtain ⟨k, hk, hpc⟩ := Janus.Tactic.steps_of_run_returned (p := lib.withExit ret) hr
     obtain ⟨fuel, hrun⟩ := run_of_steps hret (steps_lift hc impl ret hk) hpc
     exact ⟨fuel, .returned s', hrun, hq⟩
   | stub _ _ _ => exact hq.elim
