@@ -75,4 +75,23 @@ theorem segBc (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x1c0
     simp (disch := omega) only [Util.readLE_32, Janus.Arm64.Memory.readLE_writeLE_self, Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     simp only [Nat.reducePow, Util.readLE8_mod]
 
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem segZero (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x1c0))
+    (hsal : S.sp.toNat % 16 = 0) (hsb : 368 ≤ S.sp.toNat)
+    (hzb : (S.regs 0).toNat + 32 ≤ 2 ^ 48) (hza : S.mem.accessible (S.regs 0).toNat 32 true = true)
+    (hmb : (S.regs 3).toNat + 32 ≤ 2 ^ 48) (hma : S.mem.accessible (S.regs 3).toNat 32 false = true)
+    (hm : S.mem.readLE (S.regs 3).toNat 8 = 0 ∧ S.mem.readLE ((S.regs 3).toNat + 8) 8 = 0 ∧ S.mem.readLE ((S.regs 3).toNat + 16) 8 = 0 ∧ S.mem.readLE ((S.regs 3).toNat + 24) 8 = 0)
+    (hr8 : S.regs 8 = BitVec.ofNat 64 (S.mem.readLE ((S.regs 3).toNat + 24) 8))
+    (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56)
+    (hdzs : (S.regs 0).toNat + 32 ≤ S.sp.toNat - 8 ∨ S.sp.toNat + 8 ≤ (S.regs 0).toNat)
+    (hsw8 : S.mem.accessible (S.sp.toNat - 8) 16 false = true)
+    (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
+    Janus.Tactic.ReachesRet Extracted.program R S
+      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
+        S'.mem.readLE (S.regs 0).toNat 32 = 0 ∧
+        MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32)]) := by
+  janus_run [hret, hx29, Nat.or_eq_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, BitVec.toNat_ofNat, Util.readLE_32]
+  janus_frame
+
 end Fv256.Arm64.AddModSegZ

@@ -209,7 +209,7 @@ theorem segCov (S : State) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x21
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem segD (S : State) (R : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x318))
+theorem segD (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x318))
     (hsal : S.sp.toNat % 16 = 0) (hsb : 488 ≤ S.sp.toNat) (hsc : S.sp.toNat + 16 ≤ 2 ^ 48)
     (hsw : S.mem.accessible (S.sp.toNat - 488) 504 true = true)
     (hg1 : (S.regs 28).toNat + 24 ≤ 2 ^ 48) (hg2 : S.mem.accessible ((S.regs 28).toNat + 16) 8 false = true)
@@ -219,20 +219,21 @@ theorem segD (S : State) (R : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracte
     (hmb : (S.regs 8).toNat + 32 ≤ 2 ^ 48) (hma : S.mem.accessible (S.regs 8).toNat 32 false = true)
     (hdz : (S.regs 0).toNat + 32 ≤ S.sp.toNat - 488 ∨ S.sp.toNat + 16 ≤ (S.regs 0).toNat)
     (hdm : (S.regs 8).toNat + 32 ≤ S.sp.toNat - 488 ∨ S.sp.toNat + 16 ≤ (S.regs 8).toNat)
-    (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56) :
+    (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56)
+    (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
     Janus.Tactic.ReachesRet Extracted.program R S
-      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧
+      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
         S'.mem.readLE (S.regs 0).toNat 32 = Fv256.B.modSpec (S.mem.readLE (S.regs 0).toNat 32) (S.mem.readLE (S.regs 8).toNat 32) ∧
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32), (S.sp.toNat - 488, S.sp.toNat - 8),
           (S.sp.toNat + 8, S.sp.toNat + 16)]) := by
   have hzr := S.mem.accessible_read_of_write hza
-  janus_run [hret] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcMod Fv256.Arm64.ModSum.mod_summary]
+  janus_run [hret, hx29] calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcMod Fv256.Arm64.ModSum.mod_summary]
   rename_i hv hf _
   exact ⟨hv, hf⟩
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem segEF (S : State) (R : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x25c))
+theorem segEF (S : State) (R X29 : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extracted.entry + 0x25c))
     (hsal : S.sp.toNat % 16 = 0) (hsb : 344 ≤ S.sp.toNat) (hsc : S.sp.toNat + 384 ≤ 2 ^ 48)
     (hsw : S.mem.accessible (S.sp.toNat - 344) 728 true = true)
     (hdata : Extracted.program.DataLoaded S.mem)
@@ -245,9 +246,10 @@ theorem segEF (S : State) (R : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extract
     (hdm : (S.regs 8).toNat + 32 ≤ S.sp.toNat - 344 ∨ (S.regs 8).toNat = S.sp.toNat + 328 ∨ S.sp.toNat + 384 ≤ (S.regs 8).toNat)
     (hdmz : (S.regs 8).toNat + 32 ≤ (S.regs 0).toNat ∨ (S.regs 0).toNat + 32 ≤ (S.regs 8).toNat)
     (hm : ¬ (S.mem.readLE (S.regs 8).toNat 8 = 0 ∧ S.mem.readLE ((S.regs 8).toNat + 8) 8 = 0 ∧ S.mem.readLE ((S.regs 8).toNat + 16) 8 = 0 ∧ S.mem.readLE ((S.regs 8).toNat + 24) 8 = 0))
-    (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56) :
+    (hret : S.mem.readLE S.sp.toNat 8 = R.toNat) (hRa : R.toNat % 4 = 0) (hRb : R.toNat < 2 ^ 56)
+    (hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat) :
     Janus.Tactic.ReachesRet Extracted.program R S
-      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧
+      (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = S.regs 0 ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
         S'.mem.readLE (S.regs 0).toNat 32 = (S.mem.readLE (S.regs 0).toNat 32 + 2 ^ 256) % S.mem.readLE (S.regs 8).toNat 32 ∧
         MemFrame S.mem S'.mem [((S.regs 0).toNat, (S.regs 0).toNat + 32), (S.sp.toNat - 344, S.sp.toNat + 384)]) := by
   janus_data hdata [hsw, hza]
@@ -261,7 +263,11 @@ theorem segEF (S : State) (R : BitVec 64) (hpc : S.pc = BitVec.ofNat 64 (Extract
     rw [hf.readLE _ _ (by simp only [Outside, and_true, setReg, reduceIte, Nat.reduceEqDiff, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow]; omega)]
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
     exact hret
-  janus_run [hz8, hret', Util.readLE_32]
+  have hx29' : s'.mem.readLE (S.sp.toNat - 8) 8 = X29.toNat := by
+    rw [hf.readLE _ _ (by simp only [Outside, and_true, setReg, reduceIte, Nat.reduceEqDiff, BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow]; omega)]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    exact hx29
+  janus_run [hz8, hret', hx29', Util.readLE_32]
   have e216 : (S.sp + 216#64).toNat = S.sp.toNat + 216 := by simp [BitVec.toNat_add]; omega
   have e248 : (S.sp + 248#64).toNat = S.sp.toNat + 248 := by simp [BitVec.toNat_add]; omega
   have e144 : (S.sp + 144#64).toNat = S.sp.toNat + 144 := by simp [BitVec.toNat_add]; omega
