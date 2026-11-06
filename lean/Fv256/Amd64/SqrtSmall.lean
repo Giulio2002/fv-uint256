@@ -30,7 +30,7 @@ def SmallInv (s0 : State) (x0 z1 : Nat) (z : BitVec 64) (S : State) : Prop :=
 set_option maxHeartbeats 8000000 in
 set_option maxRecDepth 200000 in
 theorem small_loop (s0 : State) (x0 : Nat) (z : BitVec 64) (Q : State → Prop) (hsp : 0x280 ≤ (s0.regs 4).toNat)
-    (hsp48 : (s0.regs 4).toNat + 0x20 ≤ 2 ^ 48)
+    (hsp48 : (s0.regs 4).toNat + 8 ≤ 2 ^ 48)
     (hret47 : s0.mem.readLE (s0.regs 4).toNat 8 < 2 ^ 47) :
     ∀ z1 (S : State), SmallInv s0 x0 z1 z S →
       (∀ r (S' : State), SqrtMath.IsSqrt x0 r →
