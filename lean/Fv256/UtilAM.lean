@@ -63,6 +63,9 @@ theorem notsub (c : Nat) (hc : c ≤ 1) : (¬ (1 - c = 0)) = (c = 0) := propext 
 
 theorem notflag (c : Nat) (hc : c ≤ 1) : (¬ (c = 0)) = (c = 1) := propext (by omega)
 
+theorem eq_mod_congr (A B C A' B' C' : Nat) (h1 : A = A') (h2 : B = B') (h3 : C = C') (h : A' = B' % C') :
+    A = B % C := by subst h1 h2 h3; exact h
+
 end Fv256.AM
 
 section
