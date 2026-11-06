@@ -48,6 +48,18 @@ def sbtsCopyCode (h : Nat) : List Nat :=
   [0xbf] ++ le32 h ++ [0x31, 0xd2, 0x48, 0x39, 0xca, 0x73, 0x0d, 0x0f, 0xb6, 0x34, 0x13, 0x40, 0x88, 0x34, 0x17,
     0x48, 0xff, 0xc2, 0xeb, 0xee, 0x48, 0x89, 0xcb, 0xb8] ++ le32 h ++ [0xc3]
 
+/-- `runtime.slicebytetostring(0, ptr, 2)` for a two-byte string: both bytes are read first, then stored at the runtime block `h`
+(so the string may overlap the block); returns `(h, 2)`. -/
+def sbts2Code (h : Nat) : List Nat :=
+  [0x0f, 0xb6, 0x03, 0x0f, 0xb6, 0x4b, 0x01, 0xbf] ++ le32 h ++ [0x88, 0x07, 0x88, 0x4f, 0x01, 0xb8] ++ le32 h ++
+    [0xbb, 2, 0, 0, 0, 0xc3]
+
+/-- `runtime.stringtoslicebyte(0, ptr, 2)` for a two-byte string: the two bytes (zero-extended to 8 bytes: `cap = roundupsize 2 = 8`)
+stored at the runtime block `h`; returns `(h, 2, 8)`. -/
+def stb2Code (h : Nat) : List Nat :=
+  [0x0f, 0xb6, 0x03, 0x0f, 0xb6, 0x4b, 0x01, 0xc1, 0xe1, 0x08, 0x09, 0xc8, 0xbf] ++ le32 h ++
+    [0x48, 0x89, 0x07, 0xb8] ++ le32 h ++ [0xbb, 2, 0, 0, 0, 0xb9, 8, 0, 0, 0, 0xc3]
+
 theorem sbtsCopyCode_length (h : Nat) : (sbtsCopyCode h).length = 34 := by simp [sbtsCopyCode, le32]
 
 theorem stb1Code_length (h : Nat) : (stb1Code h).length = 27 := by simp [stb1Code, le32]
