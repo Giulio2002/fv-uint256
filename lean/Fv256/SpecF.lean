@@ -1,4 +1,5 @@
 import Fv256.Spec
+import Fv256.RecipSpec
 
 /-!
 # Specifications of the modular-arithmetic and power family (FV-F)
@@ -29,12 +30,5 @@ def expSpec (b e : Nat) : Nat := b ^ e % 2 ^ 256
 
 /-- `z.Sqrt(x)` is `z` iff `z` is the integer square root: `z² ≤ x < (z+1)²`. -/
 def IsSqrt (x z : Nat) : Prop := z * z ≤ x ∧ x < (z + 1) * (z + 1)
-
-/-- The exact quantity a 320-bit reciprocal of `m` approximates: `⌊(2^512 - 1) / m⌋`. -/
-def recipExact (m : Nat) : Nat := (2 ^ 512 - 1) / m
-
-/-- `mu` is a valid `Reciprocal(m)` value for `2^192 ≤ m < 2^256`: it is `⌊(2^512-1)/m⌋`, or one less
-(the Newton refinement of the library may end one unit low). -/
-def RecipOK (m mu : Nat) : Prop := recipExact m - 1 ≤ mu ∧ mu ≤ recipExact m
 
 end Fv256.F
