@@ -8,6 +8,7 @@ contract_flags() {
     Hex) echo "--contract runtime.slicebytetostring";;
     Dec|String) echo "--contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic";;
     MarshalSSZ|PaddedBytes) echo "--contract runtime.makeslice";;
+    SetFromDecimal) echo "--contract runtime.cmpstring --contract runtime.ifaceeq --contract runtime.mallocgc --contract runtime.memmove --contract runtime.newobject --contract runtime.gcWriteBarrier1 --contract runtime.gcWriteBarrier2 --contract runtime.gcWriteBarrier3 --contract runtime.growslice --contract runtime.slicebytetostring --contract runtime.concatstring2";;
     MarshalSSZAppend) echo "--contract runtime.growslice";;
     MarshalSSZInto|UnmarshalSSZ) echo "--contract runtime.convT64 --contract fmt.errorf --contract runtime.newobject";;
     *) echo "";;
