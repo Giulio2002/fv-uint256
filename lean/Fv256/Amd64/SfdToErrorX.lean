@@ -298,7 +298,7 @@ theorem te_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (hwb2 : WbLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
     Summary (Extracted.program.link impl) te (TePre R R2 T b L fp fl sp sl) (TePost R R2 b L fp fl sp sl) := by
-  summary_split (c := fun s => s.mem.readLE 6156064 4 = 0)
+  exact summary_split (c := fun s => s.mem.readLE 6156064 4 = 0)
     (te_sum0 impl R R2 hl T b L fp fl sp sl hif hnew hmg hmv hwb1 hwb2)
     (te_sum1 impl R R2 hl T b L fp fl sp sl hif hnew hmg hmv hwb1 hwb2)
 end Fv256.Amd64.SfdToError
