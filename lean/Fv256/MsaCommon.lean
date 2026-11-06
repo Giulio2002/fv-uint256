@@ -41,4 +41,12 @@ theorem grow_pre (len cc pp len0 b sp : Nat) (hlc : len ≤ cc) (hlle : len + 8 
   unfold Apart at hdj
   exact ⟨by omega, hlc, by omega, by omega, by omega, by omega, Nat.le_trans hcostK hK⟩
 
+/-- The requests the runtime must accept: `m` blocks remain, the next one needs length `n` and the slice has capacity `c`
+(a `growslice(p, n, c, 8, uint8)` call is made exactly when `c < n`; its result capacity is `growCap 1 true n c`).
+ISA-independent copy of `Fv256.Amd64.Msa.Ready`. -/
+def Ready (R : RtInv) (ga u8 : Nat) : Nat → Nat → Nat → Prop
+  | 0, _, _ => True
+  | m + 1, n, c => (c < n → (∀ p, R.ok ga [p, n, c, 8, u8]) ∧ Ready R ga u8 m (n + 8) (growCap 1 true n c)) ∧
+      (n ≤ c → Ready R ga u8 m (n + 8) c)
+
 end Fv256.Msa
