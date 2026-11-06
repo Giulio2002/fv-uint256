@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ExpProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -12,7 +12,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.ExpLoop4
 
-abbrev head4 : Nat := Extracted.entry + 0x2cc
+abbrev head4 : Nat := Fv256.Amd64.ExpSum.expEntry + 0x2cc
 
 theorem head4_lt : head4 + 0x100 < 2 ^ 47 := by decide
 
@@ -49,8 +49,8 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
     (hwin : s0.mem.accessible ((s0.regs 4).toNat - 0xa8) (0xa8 + 0x20) true = true) :
     ∀ t k r b w (S : State), k + t = min n 256 → Inv4 s0 n z ep ev k r b w S →
       (∀ S', Inv4 s0 n z ep ev (min n 256) (Fv256.F.expIter t (r, b, w)).1 (Fv256.F.expIter t (r, b, w)).2.1
-        (Fv256.F.expIter t (r, b, w)).2.2 S' → ReachesRet Extracted.program (retAddrOf s0) S' Q) →
-      ReachesRet Extracted.program (retAddrOf s0) S Q := by
+        (Fv256.F.expIter t (r, b, w)).2.2 S' → ReachesRet Fv256.ExpProg.program (retAddrOf s0) S' Q) →
+      ReachesRet Fv256.ExpProg.program (retAddrOf s0) S Q := by
   intro t
   induction t with
   | zero =>
@@ -81,7 +81,7 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
       unfold Inv4
       rw [e1, e2, e3]
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, head4, Extracted.entry]
+      · simp [setRegF, head4, Fv256.Amd64.ExpSum.expEntry]
       · omega
       · exact hr
       · exact Nat.mod_lt _ (Nat.two_pow_pos _)
@@ -132,7 +132,7 @@ theorem loop4 (s0 : State) (Q : State → Prop) (n z ep ev : Nat) (hn : n < 2 ^ 
       unfold Inv4
       rw [e1, e2, e3]
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, head4, Extracted.entry]
+      · simp [setRegF, head4, Fv256.Amd64.ExpSum.expEntry]
       · omega
       · exact Nat.mod_lt _ (Nat.two_pow_pos _)
       · exact Nat.mod_lt _ (Nat.two_pow_pos _)
