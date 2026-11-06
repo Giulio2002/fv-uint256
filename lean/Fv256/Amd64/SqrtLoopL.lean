@@ -1,18 +1,18 @@
-import Extracted
 import Fv256.Spec
+import Fv256.Amd64.SqrtLibBase
 import Fv256.Util
 import Fv256.SpecF
 import Fv256.SqrtMath
 import Fv256.SpecB
 import Fv256.UtilB
-import Fv256.Amd64.SqrtBig
+import Fv256.Amd64.SqrtBigL
 import Fv256.SqrtLimb
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
-namespace Fv256.Amd64.Sqrt
+namespace Fv256.Amd64.SqrtLib
 
-abbrev headB : Nat := Extracted.entry + 0x205
+abbrev headB : Nat := Fv256.Amd64.SqrtLib.sqrtEntry + 0x205
 
 def BigInv (s0 : State) (a0 a1 a2 a3 b0 b1 b2 b3 : Nat) (z x : BitVec 64) (S : State) : Prop :=
   S.rip = BitVec.ofNat 64 headB ∧ S.regs 4 = s0.regs 4 - 136#64 ∧ S.regs 5 = s0.regs 4 - 8#64 ∧ S.regs 14 = s0.regs 14 ∧
@@ -57,7 +57,7 @@ theorem big_loop (s0 : State) (X : Nat) (z x : BitVec 64) (Q : State → Prop)
       BigInv s0 a0 a1 a2 a3 b0 b1 b2 b3 z x S →
       b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3 = X / A → 0 < A → A ≤ 2 ^ 128 → X < (A + 1) * (A + 1) →
       S.mem.readLE x.toNat 32 = X →
-      ReachesRet Extracted.program (retAddrOf s0) S Q := by
+      ReachesRet Fv256.SqrtProg.program (retAddrOf s0) S Q := by
   intro A
   induction A using Nat.strongRecOn with
   | _ A ih =>
@@ -173,4 +173,4 @@ theorem big_loop (s0 : State) (X : Nat) (z x : BitVec 64) (Q : State → Prop)
           Janus.Arm64.Memory.readLE_writeLE_inside]
         exact hXm2
 
-end Fv256.Amd64.Sqrt
+end Fv256.Amd64.SqrtLib

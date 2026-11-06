@@ -1,16 +1,16 @@
-import Extracted
 import Fv256.Spec
+import Fv256.Amd64.SqrtLibBase
 import Fv256.Util
 import Fv256.SpecF
 import Fv256.SqrtMath
 import Fv256.SqrtHead
 import Fv256.SpecB
 import Fv256.UtilB
-import Fv256.Amd64.SqrtSmall
+import Fv256.Amd64.SqrtSmallL
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
-namespace Fv256.Amd64.Sqrt
+namespace Fv256.Amd64.SqrtLib
 
 /-- precondition of the `Sqrt` summary (receiver `RAX`, operand `RBX`; return address at `[RSP]`) -/
 abbrev SPre (s : State) : Prop :=
@@ -31,7 +31,7 @@ abbrev SPost (s s' : State) : Prop :=
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 200000 in
 theorem sqrt_small :
-    Summary Extracted.program Extracted.entry
+    Summary Fv256.SqrtProg.program Fv256.Amd64.SqrtLib.sqrtEntry
       (fun s => SPre s ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧
         s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0)
       SPost := by
@@ -113,7 +113,7 @@ theorem sqrt_small :
       rw [Util.readLE_32, h1, h2, h3]; simp
     refine small_loop s (s.mem.readLE (s.regs 3).toNat 8) (s.regs 0) (SPost s) (by omega) (by omega) hra2 (2 ^ ((Spec.bitLen (s.mem.readLE (s.regs 3).toNat 8) + 1) / 2)) _ ?_ ?_
     · refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, Nat.two_pow_pos _, ?_, hx2, hx64, SqrtHead.init_inv _ hx2 hx64, ?_, hzw, ?_, ?_, ?_, ?_⟩
-      · simp [Extracted.entry, headS]
+      · show (4957842#64 : BitVec 64) = BitVec.ofNat 64 headS; decide
       · simp [setRegF]
       · simp [setRegF]
       · simp [setRegF]
@@ -140,4 +140,4 @@ theorem sqrt_small :
         simp [Outside] at h ⊢
         omega
 
-end Fv256.Amd64.Sqrt
+end Fv256.Amd64.SqrtLib

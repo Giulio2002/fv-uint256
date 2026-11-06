@@ -1,5 +1,5 @@
-import Extracted
 import Fv256.Spec
+import Fv256.Amd64.SqrtLibBase
 import Fv256.Util
 import Fv256.SpecF
 import Fv256.SqrtMath
@@ -9,9 +9,9 @@ import Fv256.UtilB
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
-namespace Fv256.Amd64.Sqrt
+namespace Fv256.Amd64.SqrtLib
 
-abbrev headS : Nat := Extracted.entry + 0x312
+abbrev headS : Nat := Fv256.Amd64.SqrtLib.sqrtEntry + 0x312
 
 theorem headS_lt : headS + 0x100 < 2 ^ 47 := by decide
 
@@ -37,7 +37,7 @@ theorem small_loop (s0 : State) (x0 : Nat) (z : BitVec 64) (Q : State → Prop) 
         S'.regs 0 = z → S'.regs 4 = s0.regs 4 + 8#64 → S'.regs 5 = s0.regs 5 → S'.regs 14 = s0.regs 14 → S'.xmm 15 = 0 →
         S'.df = s0.df → S'.mxcsr = s0.mxcsr → S'.mem.readLE z.toNat 32 = r →
         MemFrame s0.mem S'.mem [(z.toNat, z.toNat + 32), ((s0.regs 4).toNat - 8, (s0.regs 4).toNat)] → Q S') →
-      ReachesRet Extracted.program (retAddrOf s0) S Q := by
+      ReachesRet Fv256.SqrtProg.program (retAddrOf s0) S Q := by
   intro z1
   induction z1 using Nat.strongRecOn with
   | _ z1 ih =>
@@ -68,7 +68,7 @@ theorem small_loop (s0 : State) (x0 : Nat) (z : BitVec 64) (Q : State → Prop) 
       unfold SqrtMath.step at hinv' hpos
       refine ih ((z1 + x0 / z1) / 2) hlt _ ?_ hex
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hpos, by omega, hx2, hx64, hinv', hza, hzw, hsa, hsv, hdz, hfr⟩
-      · simp [setRegF, headS, Extracted.entry]
+      · show (4957842#64 : BitVec 64) = BitVec.ofNat 64 headS; decide
       · simp [setRegF]; exact hz2'
       · simp [setRegF]
       · simp [setRegF]
@@ -99,4 +99,4 @@ theorem small_loop (s0 : State) (x0 : Nat) (z : BitVec 64) (Q : State → Prop) 
         simp
       · janus_frame
 
-end Fv256.Amd64.Sqrt
+end Fv256.Amd64.SqrtLib

@@ -1,23 +1,23 @@
-import Extracted
 import Fv256.Spec
+import Fv256.Amd64.SqrtLibBase
 import Fv256.Util
 import Fv256.SpecF
 import Fv256.SqrtMath
 import Fv256.SqrtHead
 import Fv256.SpecB
 import Fv256.UtilB
-import Fv256.Amd64.SqrtBig
-import Fv256.Amd64.SqrtLoop
+import Fv256.Amd64.SqrtBigL
+import Fv256.Amd64.SqrtLoopL
 import Fv256.SqrtTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
-namespace Fv256.Amd64.Sqrt
+namespace Fv256.Amd64.SqrtLib
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem sqrt_big :
-    Summary Extracted.program Extracted.entry
+    Summary Fv256.SqrtProg.program Fv256.Amd64.SqrtLib.sqrtEntry
       (fun s => SPre s ∧ (s.mem.readLE ((s.regs 3).toNat + 8) 8 ≠ 0 ∨ s.mem.readLE ((s.regs 3).toNat + 16) 8 ≠ 0 ∨
         s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0))
       SPost := by
@@ -35,7 +35,7 @@ theorem sqrt_big :
     simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   have hs72 : (s.regs 4 - 72#64).toNat = (s.regs 4).toNat - 72 := by
     simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
-  janus64_run [Util.readLE_32, Fv256.B.or3_zero_iff, hor] until [Extracted.entry + 0x205]
+  janus64_run [Util.readLE_32, Fv256.B.or3_zero_iff, hor] until [Fv256.Amd64.SqrtLib.sqrtEntry + 0x205]
     calls [Fv256.CodeIn.lib_summary hcLsh (Fv256.Amd64.LshSumA.lsh_summary_alias (s.regs 4 - 40#64)),
            Fv256.CodeIn.lib_summary hcRsh (Fv256.Amd64.RshSum.rsh_summary (s.regs 4 - 72#64) (s.regs 3))]
   all_goals grab_const Fv256.Spec.lsh as hLv
@@ -318,4 +318,4 @@ theorem sqrt_big :
         · intro a n h; simp [Outside] at h ⊢; omega
         · intro a n h; simp [Outside] at h ⊢; omega
 
-end Fv256.Amd64.Sqrt
+end Fv256.Amd64.SqrtLib
