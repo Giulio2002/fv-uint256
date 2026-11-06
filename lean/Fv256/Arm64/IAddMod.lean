@@ -7,6 +7,7 @@ import Fv256.SpecF
 import Fv256.Arm64.SummaryEnsures
 import Fv256.Arm64.AddMod
 import Fv256.Arm64.CodeIn
+import Fv256.GrabTac
 
 /-!
 # `(*uint256.Int).IAddMod(x, m *Int) *Int` (arm64): in place, `z = (z + x) mod m`
@@ -36,6 +37,15 @@ theorem hdata : Extracted.program.data = Fv256.Arm64.AddModProg.program.data := 
 theorem hdl (m : Janus.Arm64.Memory) : Extracted.program.DataLoaded m ↔ Fv256.Arm64.AddModProg.program.DataLoaded m := by
   unfold Program.DataLoaded; rw [hdata]
 
+/-- the library summary moved to this extraction, with the postcondition spelled out -/
+theorem addmod_ext : Summary Extracted.program Fv256.Arm64.AddModProg.entry Fv256.Arm64.AddModSeg.PreS
+    (fun s s' => s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
+      s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
+      s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.addmodSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32)
+        (s.mem.readLE (s.regs 3).toNat 32) ∧
+      MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]) :=
+  Janus.Contracts.EqHashModel.Summary.of_codeIn hcLib Fv256.Arm64.AddMod.addmod_summary
+
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem iaddmod_summary : Summary Extracted.program Extracted.entry
@@ -59,8 +69,17 @@ theorem iaddmod_summary : Summary Extracted.program Extracted.entry
         MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 904, s.sp.toNat - 32)]) := by
   intro s hpc ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdlE, hgw, hzb, hza, hxb, hxa, hmb, hma, hdz, hdx, hdm, hzm, hzx, hgz⟩
   have hdlA := (hdl _).1 hdlE
-  janus_run calls [Janus.Contracts.EqHashModel.Summary.of_codeIn hcLib Fv256.Arm64.AddMod.addmod_summary]
-  all_goals sorry
+  janus_run calls [addmod_ext]
+  grab_const Fv256.F.addmodSpec as hv
+  grab_frame 856 as hfr
+  refine ⟨hv, ?_⟩
+  have hM0 : MemFrame s.mem ((s.mem.writeLE (BitVec.toNat s.sp - 48) 8 (BitVec.toNat (s.regs 30))).writeLE
+      (BitVec.toNat s.sp - 56) 8 (BitVec.toNat (s.regs 29)))
+      [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 904, s.sp.toNat - 32)] :=
+    ((MemFrame.refl s.mem _).writeLE _ (r := (s.sp.toNat - 904, s.sp.toNat - 32)) (by simp) (by dsimp only; omega)
+      (by dsimp only; omega)).writeLE _ (r := (s.sp.toNat - 904, s.sp.toNat - 32)) (by simp) (by dsimp only; omega)
+      (by dsimp only; omega)
+  exact hM0.trans hfr (fun x n hx => by simp only [Outside, and_true] at hx ⊢; omega)
 
 
 theorem correctness (z x m : BitVec 64) :
