@@ -1,4 +1,5 @@
-import Extracted
+import Fv256.AddModProg
+import Fv256.Amd64.AddModSpecS
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -20,38 +21,33 @@ import Fv256.Amd64.AddModTac
 import Fv256.Amd64.AddModTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
+open Fv256.Amd64.AddModSpecS
 
 namespace Fv256.Amd64.AddModGen
 
+abbrev addmodEntry : Nat := segAddr Fv256.AddModProg.program "github.com/holiman/uint256.(*Int).AddMod"
+
 set_option maxRecDepth 100000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Fv256.AddModProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 100000 in
-theorem hcMod : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Extracted.program :=
+theorem hcMod : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Fv256.AddModProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 set_option profiler true in
 set_option profiler.threshold 20000 in
-theorem gen (z x y m : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x, y, m]
-      (fun s => (fun s => StackGuardOK s 0x300 ∧ 0x380 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x348 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
-        Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 false ∧
-        (z.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ z.toNat) ∧
-        (x.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ x.toNat) ∧
-        (y.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ y.toNat) ∧
-        (m.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ m.toNat) ∧
-        (z = m ∨ z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧
-        (z = x ∨ z.toNat + 32 ≤ x.toNat ∨ x.toNat + 32 ≤ z.toNat) ∧
-        (z = y ∨ z.toNat + 32 ≤ y.toNat ∨ y.toNat + 32 ≤ z.toNat) ∧
-        ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ (s.regs regG).toNat + 16) ∧
-        ((s.regs regG).toNat + 24 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs regG).toNat + 16)) s ∧ ¬ (s.mem.readLE (m.toNat + 24) 8 ≠ 0 ∧ s.mem.readLE (x.toNat + 24) 8 ≤ s.mem.readLE (m.toNat + 24) 8 ∧ s.mem.readLE (y.toNat + 24) 8 ≤ s.mem.readLE (m.toNat + 24) 8))
-      (fun s s' => s'.regs 0 = z ∧ s'.mem.readLE z.toNat 32 = Fv256.F.addmodSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32) (s.mem.readLE m.toNat 32) ∧
-        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x348, (s.regs regSP).toNat + 0x28)]) := by
-  intro ret hret s hs ⟨⟨hg, hsp, ⟨hlow, hnw, hacc⟩, hdata, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hdg, hdgz⟩, hcase⟩
-  janus64_intro hs
+theorem gen :
+    Summary Fv256.AddModProg.program addmodEntry (fun s => AddPre Fv256.AddModProg.program s ∧ ¬ AddCase s) AddPost := by
+  intro s hpc ⟨⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, hdata, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hdg, hdgz⟩, hcase⟩
+  unfold AddPost
+  unfold AddCase at hcase
+  generalize hz0 : s.regs 0 = z at *
+  generalize hx0 : s.regs 3 = x at *
+  generalize hy0 : s.regs 1 = y at *
+  generalize hm0 : s.regs 7 = m at *
   have hgl := hg.load
   have hgb := hg.below
   have hnw2 := hg.noWrap
@@ -63,7 +59,7 @@ theorem gen (z x y m : BitVec 64) :
   have bx3 := Util.readLE8_lt s.mem (x.toNat + 24)
   have by3 := Util.readLE8_lt s.mem (y.toNat + 24)
   rcases hzm with rfl | hzm <;> rcases hzx with rfl | hzx <;> rcases hzy with rfl | hzy
-  all_goals (janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero5, Fv256.F.wv_zero5', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_rem_L (L := 5) (by omega)), Fv256.CodeIn.lib_summary hcMod Fv256.Amd64.ModSum.mod_summary])
+  all_goals (janus64_run [hz0, hx0, hy0, hm0, Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero5, Fv256.F.wv_zero5', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_rem_L (L := 5) (by omega)), Fv256.CodeIn.lib_summary hcMod Fv256.Amd64.ModSum.mod_summary])
   all_goals (first | (exfalso; omega) | skip)
   all_goals (refine ⟨?_, ?_⟩)
   all_goals (first | janus_frame | skip)

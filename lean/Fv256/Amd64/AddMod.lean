@@ -1,7 +1,8 @@
 import Extracted
 import Fv256.SpecF
-import Fv256.Amd64.AddModFast
-import Fv256.Amd64.AddModGen
+import Fv256.CodeIn
+import Fv256.Amd64.AddModSum
+import Fv256.Amd64.EnsuresOfW
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -20,14 +21,32 @@ abbrev Pre (z x y m : BitVec 64) : State → Prop :=
         ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ (s.regs regG).toNat + 16) ∧
         ((s.regs regG).toNat + 24 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs regG).toNat + 16)
 
+set_option maxRecDepth 100000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.AddModProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
+
+set_option maxRecDepth 100000 in
+theorem hdata : Extracted.program.data = Fv256.AddModProg.program.data := by decide
+
+theorem hdl (m : Janus.Arm64.Memory) : Extracted.program.DataLoaded m ↔ Fv256.AddModProg.program.DataLoaded m := by
+  unfold Program.DataLoaded; rw [hdata]
+
+theorem hentry : Fv256.Amd64.AddModSum.addmodEntry = Extracted.entry := by decide
+
+theorem hsumE :
+    Summary Extracted.program Extracted.entry (fun s => Fv256.Amd64.AddModSpecS.AddPre Extracted.program s) Fv256.Amd64.AddModSpecS.AddPost := by
+  have h1 := Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.AddModSum.addmod_summary
+  rw [hentry] at h1
+  intro s hpc hpre
+  obtain ⟨a, b, c, d, hl, rest⟩ := hpre
+  exact h1 s hpc ⟨a, b, c, d, (hdl _).1 hl, rest⟩
+
 theorem correctness (z x y m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, m] (Pre z x y m)
       (fun s s' => s'.regs 0 = z ∧ s'.mem.readLE z.toNat 32 = Fv256.F.addmodSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32) (s.mem.readLE m.toNat 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x348, (s.regs regSP).toNat + 0x28)]) := by
-  intro ret hret s hs hpre
-  by_cases hc : (s.mem.readLE (m.toNat + 24) 8 ≠ 0 ∧ s.mem.readLE (x.toNat + 24) 8 ≤ s.mem.readLE (m.toNat + 24) 8 ∧ s.mem.readLE (y.toNat + 24) 8 ≤ s.mem.readLE (m.toNat + 24) 8)
-  · exact Fv256.Amd64.AddModFast.fast z x y m ret hret s hs ⟨hpre, hc⟩
-  · exact Fv256.Amd64.AddModGen.gen z x y m ret hret s hs ⟨hpre, hc⟩
+  have := Fv256.Amd64.EnsuresOfW.ensures4w 0x380 0x348 0x300 0x28 (by decide) Fv256.F.addmodSpec hsumE z x y m
+  exact this
 
 namespace Witness
 
