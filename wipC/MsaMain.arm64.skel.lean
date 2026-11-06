@@ -35,7 +35,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (L : List (Nat �
         Apart z.toNat 32 dp.toNat cap.toNat ∧
         len.toNat ≤ cap.toNat ∧ cap.toNat < 2 ^ 40 ∧ dp.toNat + cap.toNat ≤ 2 ^ 48 ∧
         Apart dp.toNat cap.toNat (s.sp.toNat - 4232) 4272 ∧
-        Apart u8T 16 (s.sp.toNat - 4232) 4272 ∧ Apart u8T 16 dp.toNat cap.toNat ∧ Outside u8T 256 R.rt ∧
+        Apart u8T 16 (s.sp.toNat - 4232) 4272 ∧ Apart u8T 16 dp.toNat cap.toNat ∧ DescOK R u8T ∧
         (len.toNat + 8 ≤ cap.toNat → s.mem.accessible dp.toNat cap.toNat true = true ∧
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧

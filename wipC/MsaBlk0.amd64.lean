@@ -30,7 +30,7 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     (hzd : Apart z.toNat 32 ((s.regs 4).toNat - 4208) 4232)
     (hout : Outside ((s.regs 4).toNat - 4208) 4232 R.rt)
     (hdt : Apart u8T 16 ((s.regs 4).toNat - 4208) 4232) (hdtd : Apart u8T 16 dp cap0)
-    (hd : Extracted.program.DataLoaded s.mem) (hdto : Outside u8T 256 R.rt)
+    (hd : Extracted.program.DataLoaded s.mem) (hdesc : DescOK R u8T)
     (hl0 : len.toNat = len0 + 0) (hl0b : len0 < 2 ^ 40) (hs15 : s.xmm 15 = 0)
     (hpc : S.rip = BitVec.ofNat 64 (Extracted.entry + 0x20))
     (m : Nat) (hI : BI R ga u8T s S z ret dp len0 cap0 len pp cc b L (m + 1))
@@ -135,31 +135,34 @@ theorem blk0 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
     obtain ⟨hrd⟩ := (⟨hgrow (by omega)⟩ : Nonempty _)
     have hok := (hrdy.1 (by omega)).1
     janus_eval_nat h_ut : u8T
-    rw [h_ut] at hdt hdtd hok hdto
+    rw [h_ut] at hdt hdtd hok hdesc
     have hw16 : S.mem.accessible ((s.regs 4).toNat - 16) 8 true = true :=
       Memory.accessible_sub S.mem hw (Or.inr rfl) (by omega) (by omega)
     janus64_data hd [hws]
-    have hOutU : ∀ a n, 5008256 ≤ a → a + n ≤ 5008256 + 16 →
-        Outside a n (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) := by
-      intro a n h1 h2
-      simp only [outside_append, outside_cons, outside_nil, and_true]
-      unfold Apart at hdt hdtd
-      refine ⟨Outside.of_sub hdto (by omega) (by omega), ?_, ?_⟩ <;> omega
     have hfrU := show MemFrame s.mem S.mem _ from hfrH
-    have hu1 : S.mem.readLE 5008256 8 = 1 := by
-      rw [hfrU.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
-    have hu2 : S.mem.readLE 5008264 8 = 0 := by
-      rw [hfrU.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
-    have hu3 : S.mem.accessible 5008256 16 false = true := by
-      rw [hfrU.accessible]
-      exact Memory.accessible_sub s.mem (show s.mem.accessible 5008256 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
+    have hdescS : S.mem.readLE 5008256 8 = 1 ∧ S.mem.readLE 5008264 8 = 0 ∧ S.mem.accessible 5008256 16 false = true := by
+      rcases hdesc with hdto | hR
+      · have hOutU : ∀ a n, 5008256 ≤ a → a + n ≤ 5008256 + 16 →
+            Outside a n (R.rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 24), (dp + len0, dp + cap0)]) := by
+          intro a n h1 h2
+          simp only [outside_append, outside_cons, outside_nil, and_true]
+          unfold Apart at hdt hdtd
+          refine ⟨Outside.of_sub hdto (by omega) (by omega), ?_, ?_⟩ <;> omega
+        refine ⟨?_, ?_, ?_⟩
+        · rw [hfrU.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
+        · rw [hfrU.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
+        · rw [hfrU.accessible]
+          exact Memory.accessible_sub s.mem (show s.mem.accessible 5008256 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
+      · have h := hR b L (s.regs 14).toNat S.mem hinv
+        exact ⟨h.2.1, h.2.2, h.1⟩
+    obtain ⟨hu1, hu2, hu3⟩ := hdescS
     have hgS : S.mem.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 :=
       hfrU.readLE _ _ (by
         simp only [outside_append, outside_cons, outside_nil, and_true]
         refine ⟨hgr, ?_, ?_⟩ <;> (unfold Apart at hga hgd; omega))
     have hgacc : S.mem.accessible ((s.regs 14).toNat + 16) 8 false = true := by
       rw [hfrU.accessible]; exact hgrd
-    clear hfrU hOutU
+    clear hfrU
     have hgC : ((S.mem.writeLE ((s.regs 4).toNat - 16) 8 (S.mem.readLE z.toNat 8)).writeLE ((s.regs 4).toNat - 112) 8 4926695).readLE
         ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8 := by
       rw [Memory.readLE_writeLE_of_disjoint _ _ (by unfold Apart at hga; omega),

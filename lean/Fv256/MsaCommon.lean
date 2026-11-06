@@ -49,4 +49,15 @@ def Ready (R : RtInv) (ga u8 : Nat) : Nat → Nat → Nat → Prop
   | m + 1, n, c => (c < n → (∀ p, R.ok ga [p, n, c, 8, u8]) ∧ Ready R ga u8 m (n + 8) (growCap 1 true n c)) ∧
       (n ≤ c → Ready R ga u8 m (n + 8) c)
 
+/-- **Runtime assumption `DescOK`**: the element type descriptor `u8` (16 bytes: size, pointer bytes) is either
+outside the runtime-owned ranges `R.rt`, or readable through the runtime invariant (every memory `m` whose runtime view
+satisfies `R.inv` has the `uint8` descriptor `(size 1, ptrdata 0)` and it is readable).
+The real Go runtime satisfies the left disjunct (type descriptors live in read-only data outside the arenas); the generic
+toy runtime `toyR tys ok` owns the descriptors of `tys`, and satisfies the right one. It is strictly weaker than
+`Outside u8 16 R.rt` alone. Extracted-free so both ISAs share it. -/
+def DescOK (R : RtInv) (u8 : Nat) : Prop :=
+  Outside u8 16 R.rt ∨
+    (∀ b L g m, R.inv b L g (view R.rt L m) →
+      m.accessible u8 16 false = true ∧ m.readLE u8 8 = 1 ∧ m.readLE (u8 + 8) 8 = 0)
+
 end Fv256.Msa
