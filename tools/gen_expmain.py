@@ -15,7 +15,7 @@ def block_entry(k, names, c, extra_inv_tail):
     refine Fv256.Amd64.ExpLoop1.loop1 s _ {NN} {Z} {EPN} {B8} hn0 (by omega_e) hnw hacc (min {NN} 64) 0 1 {B32} {E(0)} _ (by omega_e) ?inv{k} ?hex{k}
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Fv256.Amd64.ExpSum.expEntry]
       · omega_e
       · decide
       · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32

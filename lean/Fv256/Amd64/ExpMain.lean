@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.ExpProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecF
@@ -21,7 +21,7 @@ namespace Fv256.Amd64.ExpMain
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem exp_summary :
-    Summary Extracted.program Extracted.entry
+    Summary Fv256.ExpProg.program Fv256.Amd64.ExpSum.expEntry
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
         0x100 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x20 ∧ StackWritable s 0xa8 0x20 ∧ s.xmm 15 = 0 ∧
         Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧
@@ -29,7 +29,7 @@ theorem exp_summary :
         ((s.regs 3).toNat + 32 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 3).toNat) ∧
         ((s.regs 1).toNat + 32 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 1).toNat) ∧
         ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 14).toNat + 16) ∧
-        Extracted.program.DataLoaded s.mem)
+        Fv256.ExpProg.program.DataLoaded s.mem)
       (fun s s' => s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
         s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
         s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.expSpec (s.mem.readLE (s.regs 3).toNat 32) (s.mem.readLE (s.regs 1).toNat 32) ∧
@@ -42,7 +42,7 @@ theorem exp_summary :
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
   simp only [regSP] at hacc hlow hnw hdz hdb hde hsp
   janus64_data hdl [hacc]
-  janus64_run [Util.readLE_32] until [Extracted.entry + 0x149]
+  janus64_run [Util.readLE_32] until [Fv256.Amd64.ExpSum.expEntry + 0x149]
   · rename_i g1 e3z e2z e1z
     have hn0 : Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) < 2 ^ 20 := by
       have := Fv256.F.bitLen_le (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) 64 (Fv256.Util.readLE8_lt _ _)
@@ -50,7 +50,7 @@ theorem exp_summary :
     refine Fv256.Amd64.ExpLoop1.loop1 s _ (Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8)) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega) (by omega) hacc (min (Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8)) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega) ?inv ?hex
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Fv256.Amd64.ExpSum.expEntry]
       · omega
       · decide
       · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
@@ -129,7 +129,7 @@ theorem exp_summary :
     refine Fv256.Amd64.ExpLoop1.loop1 s _ (Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8)) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega) (by omega) hacc (min (Fv256.Spec.bitLen (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8)) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega) ?inv_b ?hex_b
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Fv256.Amd64.ExpSum.expEntry]
       · omega
       · decide
       · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
@@ -213,7 +213,7 @@ theorem exp_summary :
     refine Fv256.Amd64.ExpLoop1.loop1 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega_e) ?inv1 ?hex1
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Fv256.Amd64.ExpSum.expEntry]
       · omega_e
       · decide
       · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
@@ -275,11 +275,11 @@ theorem exp_summary :
       simp only [hmin1] at r31 mr1 mb1 hr1 hb1 hw1 r81
       have hretS1 : Arm64.Memory.readLE S1.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
         rw [hfr1.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-      janus64_run [r31, r71, r81, r91, r01, r11, r21, r61, r41, r51, r141, mr1, mb1, mz01, mep1, mn1, mev1] until [Extracted.entry + 0x1f4]
+      janus64_run [r31, r71, r81, r91, r01, r11, r21, r61, r41, r51, r141, mr1, mb1, mz01, mep1, mn1, mev1] until [Fv256.Amd64.ExpSum.expEntry + 0x1f4]
       refine Fv256.Amd64.ExpLoop2.loop2 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) + 65) 128 - 64) 64 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) _ (by omega_e) ?inv2_1 ?hex2_1
       · unfold Fv256.Amd64.ExpLoop2.Inv2
         refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Extracted.entry]
+        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Fv256.Amd64.ExpSum.expEntry]
         · omega_e
         · exact hr1
         · exact hb1
@@ -344,7 +344,7 @@ theorem exp_summary :
     refine Fv256.Amd64.ExpLoop1.loop1 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) + 129) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) + 129) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega_e) ?inv2 ?hex2
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Fv256.Amd64.ExpSum.expEntry]
       · omega_e
       · decide
       · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
@@ -406,11 +406,11 @@ theorem exp_summary :
       simp only [hmin1] at r31 mr1 mb1 hr1 hb1 hw1 r81
       have hretS1 : Arm64.Memory.readLE S1.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
         rw [hfr1.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-      janus64_run [r31, r71, r81, r91, r01, r11, r21, r61, r41, r51, r141, mr1, mb1, mz01, mep1, mn1, mev1] until [Extracted.entry + 0x1f4]
+      janus64_run [r31, r71, r81, r91, r01, r11, r21, r61, r41, r51, r141, mr1, mb1, mz01, mep1, mn1, mev1] until [Fv256.Amd64.ExpSum.expEntry + 0x1f4]
       refine Fv256.Amd64.ExpLoop2.loop2 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) + 129) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) + 129) 128 - 64) 64 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) _ (by omega_e) ?inv2_2 ?hex2_2
       · unfold Fv256.Amd64.ExpLoop2.Inv2
         refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Extracted.entry]
+        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Fv256.Amd64.ExpSum.expEntry]
         · omega_e
         · exact hr1
         · exact hb1
@@ -443,11 +443,11 @@ theorem exp_summary :
         simp only [hmin2] at r32 mr2 mb2 hr2 hb2 hw2 r82
         have hretS2 : Arm64.Memory.readLE S2.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
           rw [hfr2.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-        janus64_run [r32, r72, r82, r02, r12, r22, r62, r42, r52, r142, mr2, mb2, mz02, mep2, mn2, mev2] until [Extracted.entry + 0x262]
+        janus64_run [r32, r72, r82, r02, r12, r22, r62, r42, r52, r142, mr2, mb2, mz02, mep2, mn2, mev2] until [Fv256.Amd64.ExpSum.expEntry + 0x262]
         refine Fv256.Amd64.ExpLoop3.loop3 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) + 129) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) + 129) 192 - 128) 128 (Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).1 (Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) _ (by omega_e) ?inv3_2 ?hex3_2
         · unfold Fv256.Amd64.ExpLoop3.Inv3
           refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-          · simp [setRegF, Fv256.Amd64.ExpLoop3.head3, Extracted.entry]
+          · simp [setRegF, Fv256.Amd64.ExpLoop3.head3, Fv256.Amd64.ExpSum.expEntry]
           · omega_e
           · exact hr2
           · exact hb2
@@ -512,7 +512,7 @@ theorem exp_summary :
     refine Fv256.Amd64.ExpLoop1.loop1 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) 64) 0 1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8) _ (by omega_e) ?inv3 ?hex3
     · unfold Fv256.Amd64.ExpLoop1.Inv1
       refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Extracted.entry]
+      · simp [setRegF, Fv256.Amd64.ExpLoop1.head1, Fv256.Amd64.ExpSum.expEntry]
       · omega_e
       · decide
       · have := Janus.Arm64.Memory.readLE_lt s.mem (BitVec.toNat (s.regs 3)) 32
@@ -574,11 +574,11 @@ theorem exp_summary :
       simp only [hmin1] at r31 mr1 mb1 hr1 hb1 hw1 r81
       have hretS1 : Arm64.Memory.readLE S1.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
         rw [hfr1.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-      janus64_run [r31, r71, r81, r91, r01, r11, r21, r61, r41, r51, r141, mr1, mb1, mz01, mep1, mn1, mev1] until [Extracted.entry + 0x1f4]
+      janus64_run [r31, r71, r81, r91, r01, r11, r21, r61, r41, r51, r141, mr1, mb1, mz01, mep1, mn1, mev1] until [Fv256.Amd64.ExpSum.expEntry + 0x1f4]
       refine Fv256.Amd64.ExpLoop2.loop2 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) 128 - 64) 64 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1 (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8) _ (by omega_e) ?inv2_3 ?hex2_3
       · unfold Fv256.Amd64.ExpLoop2.Inv2
         refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Extracted.entry]
+        · simp [setRegF, Fv256.Amd64.ExpLoop2.head2, Fv256.Amd64.ExpSum.expEntry]
         · omega_e
         · exact hr1
         · exact hb1
@@ -611,11 +611,11 @@ theorem exp_summary :
         simp only [hmin2] at r32 mr2 mb2 hr2 hb2 hw2 r82
         have hretS2 : Arm64.Memory.readLE S2.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
           rw [hfr2.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-        janus64_run [r32, r72, r82, r02, r12, r22, r62, r42, r52, r142, mr2, mb2, mz02, mep2, mn2, mev2] until [Extracted.entry + 0x262]
+        janus64_run [r32, r72, r82, r02, r12, r22, r62, r42, r52, r142, mr2, mb2, mz02, mep2, mn2, mev2] until [Fv256.Amd64.ExpSum.expEntry + 0x262]
         refine Fv256.Amd64.ExpLoop3.loop3 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) 192 - 128) 128 (Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).1 (Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8) _ (by omega_e) ?inv3_3 ?hex3_3
         · unfold Fv256.Amd64.ExpLoop3.Inv3
           refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-          · simp [setRegF, Fv256.Amd64.ExpLoop3.head3, Extracted.entry]
+          · simp [setRegF, Fv256.Amd64.ExpLoop3.head3, Fv256.Amd64.ExpSum.expEntry]
           · omega_e
           · exact hr2
           · exact hb2
@@ -648,11 +648,11 @@ theorem exp_summary :
           simp only [hmin3] at r33 mr3 mb3 hr3 hb3 hw3 r83
           have hretS3 : Arm64.Memory.readLE S3.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47 := by
             rw [hfr3.readLE _ _ (by simp [Outside] <;> omega_e)]; exact hra2
-          janus64_run [r33, r73, r83, r03, r13, r23, r63, r43, r53, r143, mr3, mb3, mz03, mep3, mn3, mev3] until [Extracted.entry + 0x2cc]
+          janus64_run [r33, r73, r83, r03, r13, r23, r63, r43, r53, r143, mr3, mb3, mz03, mep3, mn3, mev3] until [Fv256.Amd64.ExpSum.expEntry + 0x2cc]
           refine Fv256.Amd64.ExpLoop4.loop4 s _ (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) (BitVec.toNat (s.regs 0)) (BitVec.toNat (s.regs 1)) (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 8) hn0 (by omega_e) hnw hacc (min (63 - Janus.Arm64.clzNat 64 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) + 193) 256 - 192) 192 (Fv256.F.expIter 64 ((Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).1, (Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8))).1 (Fv256.F.expIter 64 ((Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).1, (Fv256.F.expIter 64 ((Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).1, (Fv256.F.expIter 64 (1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 3)) 32), (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1)) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 8) 8))).2.1, (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 16) 8))).2.1 (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 1) + 24) 8) _ (by omega_e) ?inv4_3 ?hex4_3
           · unfold Fv256.Amd64.ExpLoop4.Inv4
             refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-            · simp [setRegF, Fv256.Amd64.ExpLoop4.head4, Extracted.entry]
+            · simp [setRegF, Fv256.Amd64.ExpLoop4.head4, Fv256.Amd64.ExpSum.expEntry]
             · omega_e
             · exact hr3
             · exact hb3
