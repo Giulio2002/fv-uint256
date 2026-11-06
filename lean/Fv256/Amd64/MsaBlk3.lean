@@ -301,5 +301,3 @@ theorem blk3f (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
         exact hF2.writeLE_inRanges _ ⟨rr, List.mem_append_left _ hrr, by omega, by omega⟩
 
 end Fv256.Amd64.Msa
-
-end Fv256.Amd64.Msa

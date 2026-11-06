@@ -325,5 +325,3 @@ theorem blk1 (impl : List Amd64.Segment) (R : RtInv) (ret : Nat)
         (by rw [Nat.mod_eq_of_lt (Memory.readLE_lt _ _ _), show z.toNat + (len.toNat - len0) = z.toNat + 8 by omega])
 
 end Fv256.Amd64.Msa
-
-end Fv256.Amd64.Msa
