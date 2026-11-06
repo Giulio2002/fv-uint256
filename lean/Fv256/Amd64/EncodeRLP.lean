@@ -74,7 +74,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     have c1 := Util.clz_bl 64 _ x1
     have c2 := Util.clz_bl 64 _ x2
     have c3 := Util.clz_bl 64 _ x3
-    janus64_run until [Extracted.entry + 0x166, Extracted.entry + 0x1a6, Extracted.entry + 0xc9] calls [hnew.pos, hw]
+    janus64_run until [Extracted.entry + 0xa0]
     all_goals trace_state
     all_goals sorry
 
