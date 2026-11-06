@@ -61,18 +61,19 @@ def gen():
         y3=random.choice([2**63,2**63+1,2**64-1,2**63+2**32-1,2**63+2**32])
         m=(y3<<192)+random.choice([0,1,2**64,2**128,random.getrandbits(192)]); m>>=random.randint(0,60)
     return m
-random.seed(int(sys.argv[1]) if len(sys.argv)>1 else 1)
-n=0;bad=0
-for it in range(int(sys.argv[2]) if len(sys.argv)>2 else 20000):
-    m=gen()
-    if m>=2**256 or m<2**192: continue
-    n+=1
-    if model(m)!=recip(m): print("MODEL MISMATCH",hex(m)); bad+=1
-    lg=m.bit_length()-1
-    if m!=2**lg: 
-        try: stages_ok(m)
-        except AssertionError: print("STAGE FAIL",hex(m)); bad+=1
-    ex=(2**512-1)//m; mu=model(m)
-    if not (ex-3<=mu<=ex): print("WEAK FAIL",hex(m)); bad+=1
-    if m>=2**193 and not(ex-1<=mu<=ex): print("OK FAIL",hex(m)); bad+=1
-print(n,bad)
+if __name__=="__main__":
+    random.seed(int(sys.argv[1]) if len(sys.argv)>1 else 1)
+    n=0;bad=0
+    for it in range(int(sys.argv[2]) if len(sys.argv)>2 else 20000):
+        m=gen()
+        if m>=2**256 or m<2**192: continue
+        n+=1
+        if model(m)!=recip(m): print("MODEL MISMATCH",hex(m)); bad+=1
+        lg=m.bit_length()-1
+        if m!=2**lg: 
+            try: stages_ok(m)
+            except AssertionError: print("STAGE FAIL",hex(m)); bad+=1
+        ex=(2**512-1)//m; mu=model(m)
+        if not (ex-3<=mu<=ex): print("WEAK FAIL",hex(m)); bad+=1
+        if m>=2**193 and not(ex-1<=mu<=ex): print("OK FAIL",hex(m)); bad+=1
+    print(n,bad)

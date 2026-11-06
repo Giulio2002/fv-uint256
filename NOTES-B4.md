@@ -26,3 +26,20 @@
 - Plan for whoever continues: (1) arm64 liveness tool (like tools/x86live.py) + `gseg.py`-style skeleton using `janus_run` on arm64 (check whether gen_segment.py
   arm64 mode landed on fv/wf); cuts at stage boundaries (about 8-12 segments of 40-60 instructions); (2) SegCompose from fv/wg lean/Fv256/Arm64/SegCompose.lean;
   (3) per-stage carry-chain lemmas as janus_carry equalities to recipR1.. (reuse RecipArith4/5 ideas); (4) Extracted theorem + witness + verify.
+
+## arm64 progress (session 2)
+- tools/arm64live.py: aarch64 liveness (regs, [sp,#d] 8-byte slots, NZCV) over build/recip-arm64.dis (regenerate: objdump -D -b binary -m aarch64
+  --adjust-vma=0xb8d80 build/recip-arm64.bin). `python3 tools/arm64live.py build/recip-arm64.dis [hexaddr ...]`. Flags-dead cut points have small live sets at:
+  b8e08 (3 regs+7 slots), b8e88 (6+6), b8eec (7+6), b8ff0 (5+6), b9004..b9008 (5+8), b91f0 (9+9), b9224 (7+9), b93e0 (10+8), b9410 (3+7), b9454 (5+3), b948c, b94fc.
+- tools/arm64emu.py: python emulator of the body b8e08..b94fc (start state: y words at sp+32.., s-index 255-clz at sp+176); `run(m)` returns
+  addr -> (regs, mem, flags) BEFORE that instruction; verified: final mu words at sp+280.. equal wip-b4/model.py `model(m)` (5 random m).
+  Use it to name values at cut points exactly like tools/gnum.py did on amd64 (matching a register to R1/R2/R3/r4pre words).
+- Stage map (from emu matching): R1 in x0 after guard csel b8e84 (cut b8e88); R2 = (x7 lo, x0 hi) after csels b8ee4/b8ee8 (cut b8eec); R3 words appear in x1,x2 (+ third) around
+  b8ff4..b9000 and are spilled to sp+136,128 (+144) (cut b9004); R3^2 words in x4..x9,x14/x16 (b900c..b90d4: squares + y spills at sp+232..184); r4pre words are
+  produced b91ec..b9230 (spilled [104],[96],[88],[80],x4 = limbs 0..4); product r4pre*y accumulates b9240..b93dc; compare with 2^574 via sbcs chain b93e4..b940c
+  (mov x0,#0x4000000000000000 at b9404), cond = neg/ngc at b9410; decrement b9414..b9438, csel b9440..b9450; shift tail (adds doubling b9454..b9464, lt csels,
+  lsr/lsl/csel) b9468..b94f8 writes mu to sp+280..312; pow2 branch 0xb9508 (mu = [-1,-1,-1,-1, -1>>p]); m3==0 -> 0xb9528.
+- Differences to amd64: the Lsh call can probably be run INLINE (77 instructions, n=clz<64 prunes the branches) instead of via a summary: no arm64 Lsh library summary exists;
+  results are written to the caller-frame slots sp+280..312 (sp = entry sp - 0x110), no result pointer. Prologue: sp' = sp-0x110, x29/x30 saved at [sp'-8].
+- NEXT (not started): arm64 analog of gseg.py (a64seg.py): parse the janus_run state print for arm64 (`setReg`/`regs` function + `writeLE` chain), L<cut> live defs from arm64live,
+  segments through Fv256.Arm64.SegCompose (fv/wg lean/Fv256/Arm64/SegCompose.lean: seg_trans on ReachesRet), arithmetic lemmas with UtilAM (awc_fst, awc_c, sbc_num) + janus_carry.
