@@ -36,7 +36,8 @@ theorem pd_init (s : State) (hpc : s.rip = BitVec.ofNat 64 pdE) (zp : Nat) (e0 :
         S'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
         S'.mem.readLE ((s.regs 4).toNat - 80) 32 = s.mem.readLE zp 32 ∧
         S'.mem.readLE ((s.regs 4).toNat - 48) 32 = 10 ^ 19 ∧
-        (∀ p, p < 133 → S'.mem.readLE ((s.regs 4).toNat - 169 - p) 1 = 48) ∧ TabsOK S'.mem) := by
+        (∀ p, p < 133 → S'.mem.readLE ((s.regs 4).toNat - 169 - p) 1 = 48) ∧ TabsOK S'.mem ∧
+        S'.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8) := by
   have hc : pdE + 0x400 < 2 ^ 47 := by decide
   obtain ⟨hzn, hza⟩ := hz
   obtain ⟨hwb, hwn, hwa⟩ := hw
@@ -68,7 +69,7 @@ theorem pd_init (s : State) (hpc : s.rip = BitVec.ofNat 64 pdE) (zp : Nat) (e0 :
   have hx0 : (s.xmm 15).toNat = 0 := by rw [hx15]; rfl
   have hr := (s.regs 4).isLt
   have hr0 : 0x300 ≤ (s.regs 4).toNat := by omega
-  refine ReachesRet.done (by rfl) ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ReachesRet.done (by rfl) ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · simp [setRegF]
   · simp [setRegF]
   · simp [setRegF]; rw [Fv256.E.bv_sub_lit _ 320 (by omega)]
@@ -141,4 +142,6 @@ theorem pd_init (s : State) (hpc : s.rip = BitVec.ofNat 64 pdE) (zp : Nat) (e0 :
       simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
       subst hr
       exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
+  · dsimp only
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
 end Fv256.Amd64.Pd

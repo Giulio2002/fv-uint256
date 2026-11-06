@@ -69,4 +69,27 @@ theorem zeros_read_loaded {M : Memory} (hd : Fv256.PrettyProg.program.DataLoaded
   rw [b0, ← zeros_tab i hi]
   exact (getElem!_pos smallsDat.bytes i (by rw [smalls_len]; omega)).symm
 
+
+abbrev zeroDat : Janus.DataSegment := Fv256.PrettyProg.data[1]
+set_option maxRecDepth 100000 in
+theorem zeroDat_base : zeroDat.base = 5134938 := by decide
+set_option maxRecDepth 100000 in
+theorem zeroDat_len : zeroDat.bytes.length = 256 := by decide
+theorem zeroDat_mem : zeroDat ∈ Fv256.PrettyProg.program.data := List.getElem_mem (by set_option maxRecDepth 100000 in decide)
+set_option maxRecDepth 100000 in
+theorem zeroDat_b0 : zeroDat.bytes[0]! = 48 := by decide +kernel
+
+theorem zeroStr_read {M : Memory} (hd : Fv256.PrettyProg.program.DataLoaded M) :
+    M.readLE 5134938 1 = 48 ∧ M.accessible 5134938 1 false = true := by
+  have b0 := DataLoaded.byte hd zeroDat_mem 0 (by rw [zeroDat_len]; omega)
+  rw [zeroDat_base] at b0
+  refine ⟨?_, ?_⟩
+  · rw [Nat.add_zero] at b0
+    rw [b0]
+    have := zeroDat_b0
+    simpa [getElem!_pos zeroDat.bytes 0 (by rw [zeroDat_len]; omega)] using this
+  · have := DataLoaded.accessible hd zeroDat_mem
+    rw [zeroDat_base, zeroDat_len] at this
+    exact accessible_sub this (Or.inl rfl) (by omega) (by omega)
+
 end Fv256.Amd64.Pd

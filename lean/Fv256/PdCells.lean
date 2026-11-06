@@ -105,3 +105,29 @@ theorem cOf_mono (a b : Nat) (h : a ≤ b) : cOf a ≤ cOf b := by
   split <;> split <;> omega
 
 end Fv256.E
+
+namespace Fv256.E
+
+open Janus.Spec in
+/-- The `plen z` bytes ending at `top` (cell `plen z - 1` first) are the pretty-printed decimal string. -/
+theorem strBytes_pretty (m : Janus.Arm64.Memory) (top sep z : Nat) (htop : plen z ≤ top + 1)
+    (h : OutIs m top sep z (plen z)) (hp : plen z ≤ 133) :
+    strBytes m (top + 1 - plen z) (plen z) = prettyBytes sep z := by
+  apply List.ext_getElem
+  · simp [strBytes, prettyBytes_length]
+  · intro i h1 h2
+    have hi : i < plen z := by simpa [strBytes] using h1
+    have e := prettyBytes_getD sep z i hi
+    simp only [strBytes, List.getElem_map, List.getElem_range]
+    have := h (plen z - 1 - i) (by omega)
+    unfold pout at this
+    rw [if_pos (by omega)] at this
+    rw [show top - (plen z - 1 - i) = top + 1 - plen z + i by omega, Janus.Arm64.Memory.readLE_one] at this
+    have e3 : ∀ hh : i < (prettyBytes sep z).length, (prettyBytes sep z)[i]'hh = pcell sep z (plen z - 1 - i) := fun hh => by
+      have := e
+      rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hh] at this
+      simpa using this
+    rw [e3]
+    rw [this]
+
+end Fv256.E
