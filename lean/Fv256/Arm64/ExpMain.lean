@@ -13,6 +13,7 @@ import Fv256.ExpMath
 import Fv256.ExpFinal
 import Fv256.ExpPro
 import Fv256.UtilF
+import Fv256.Arm64.ExpEntry
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
@@ -380,7 +381,7 @@ theorem after1 (s : State) (n z ep base0 r b w e1 e2 e3 : Nat) (S : State)
 
 
 /-- the state at the head of loop 1, as produced by the prologue (`nreg`/`nmem` are the computed bit length, in a register and in its stack slot) -/
-def S0 (s : State) (nreg : BitVec 64) (nmem : Nat) : State :=
+def S0 (s : State) (nreg : BitVec 64) (nmem : Nat) (fl : Flags) : State :=
   { regs :=
       setReg (setReg (setReg (setReg (setReg (setReg (setReg (setReg (setReg s.regs 1 0#64) 3 nreg) 4
         (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1)) 8))) 5
@@ -388,7 +389,7 @@ def S0 (s : State) (nreg : BitVec 64) (nmem : Nat) : State :=
         (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 1) + 24) 8))) 16
         (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8))) 17 (s.sp - 32#64)) 27 1009776#64) 29 (s.sp - 168#64),
     sp := s.sp - 160#64, pc := 775096#64,
-    flags := (addSub (s.sp - 32#64) (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)) true).snd,
+    flags := fl,
     mem :=
       (((((((((((((s.mem.writeLE (BitVec.toNat s.sp - 160) 8 (BitVec.toNat (s.regs 30))).writeLE (BitVec.toNat s.sp - 168) 8
         (BitVec.toNat (s.regs 29))).writeLE (BitVec.toNat s.sp - 104) 8 1).writeLE (BitVec.toNat s.sp - 96) 8 0).writeLE
@@ -404,14 +405,14 @@ def S0 (s : State) (nreg : BitVec 64) (nmem : Nat) : State :=
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem inv_start (s : State) (n : Nat) (nreg : BitVec 64) (nmem : Nat)
+theorem inv_start (s : State) (n : Nat) (nreg : BitVec 64) (nmem : Nat) (fl : Flags)
     (hnreg : nreg = BitVec.ofNat 64 n) (hnmem : nmem % 18446744073709551616 = n) (hn : n < 2 ^ 20)
     (hal : s.sp.toNat % 16 = 0) (hsp : 336 ≤ s.sp.toNat) (hspb : s.sp.toNat + 40 ≤ 2 ^ 48)
     (hxb : (s.regs 1).toNat + 32 ≤ 2 ^ 48) (hdx : Apart (s.regs 1).toNat 32 (s.sp.toNat - 168) 208)
     (hdz : Apart (s.regs 0).toNat 32 (s.sp.toNat - 168) 208)
     (hyb : (s.regs 2).toNat + 32 ≤ 2 ^ 48) (hdy : Apart (s.regs 2).toNat 32 (s.sp.toNat - 168) 208) :
     Fv256.Arm64.ExpLoop1.Inv1 s n (s.regs 0).toNat (s.regs 2).toNat (s.mem.readLE (s.regs 1).toNat 8) 0 1
-      (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 8) (S0 s nreg nmem) := by
+      (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 8) (S0 s nreg nmem fl) := by
   unfold Fv256.Arm64.ExpLoop1.Inv1 S0
   have hx0 := Util.readLE8_lt s.mem (s.regs 1).toNat
   have hxd0 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 8)
@@ -463,5 +464,185 @@ theorem inv_start (s : State) (n : Nat) (nreg : BitVec 64) (nmem : Nat)
   · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
     exact Nat.mod_eq_of_lt (by have := (s.regs 29).isLt; simpa using this)
   · janus_frame
+
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- Everything after the prologue: from the head of loop 1 with `n` the bit length of the exponent. -/
+theorem run_from_S0 (s : State) (n : Nat) (nreg : BitVec 64) (nmem : Nat) (fl : Flags)
+    (hnreg : nreg = BitVec.ofNat 64 n) (hnmem : nmem % 18446744073709551616 = n)
+    (hbl : Fv256.Spec.bitLen (s.mem.readLE (s.regs 2).toNat 32) = n)
+    (hev : s.mem.readLE (s.regs 1).toNat 8 % 2 = 0 → n ≤ 8)
+    (h30a : (s.regs 30).toNat % 4 = 0) (h30b : (s.regs 30).toNat < 2 ^ 56)
+    (hal : s.sp.toNat % 16 = 0) (hsp : 336 ≤ s.sp.toNat) (hspb : s.sp.toNat + 40 ≤ 2 ^ 48)
+    (hwin : s.mem.accessible (s.sp.toNat - 168) (168 + 40) true = true)
+    (hzb : (s.regs 0).toNat + 32 ≤ 2 ^ 48) (hza : s.mem.accessible (s.regs 0).toNat 32 true = true)
+    (hdz : Apart (s.regs 0).toNat 32 (s.sp.toNat - 168) 208)
+    (hxb : (s.regs 1).toNat + 32 ≤ 2 ^ 48) (hdx : Apart (s.regs 1).toNat 32 (s.sp.toNat - 168) 208)
+    (hyb : (s.regs 2).toNat + 32 ≤ 2 ^ 48) (hya : s.mem.accessible (s.regs 2).toNat 32 false = true)
+    (hdy : Apart (s.regs 2).toNat 32 (s.sp.toNat - 168) 208) :
+    ReachesRet Fv256.Arm64.ExpProg.program (s.regs 30) (S0 s nreg nmem fl) (PostE s) := by
+  have he0 := Util.readLE8_lt s.mem (s.regs 2).toNat
+  have he1 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 8)
+  have he2 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 16)
+  have he3 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 24)
+  have hE : s.mem.readLE (s.regs 2).toNat 32 = s.mem.readLE (s.regs 2).toNat 8 + 2 ^ 64 * s.mem.readLE ((s.regs 2).toNat + 8) 8
+      + 2 ^ 128 * s.mem.readLE ((s.regs 2).toNat + 16) 8 + 2 ^ 192 * s.mem.readLE ((s.regs 2).toNat + 24) 8 := by
+    rw [Util.readLE_32]
+  have hB := Janus.Arm64.Memory.readLE_lt s.mem (s.regs 1).toNat 32
+  simp only [Nat.reducePow] at hB
+  have hEl := Janus.Arm64.Memory.readLE_lt s.mem (s.regs 2).toNat 32
+  simp only [Nat.reducePow] at hEl
+  have hn256 : n ≤ 256 := by rw [← hbl]; exact Fv256.F.bitLen_le _ 256 (by simpa using hEl)
+  have hnlt : n < 2 ^ 20 := by omega
+  have hEn : s.mem.readLE (s.regs 2).toNat 8 + 2 ^ 64 * s.mem.readLE ((s.regs 2).toNat + 8) 8
+      + 2 ^ 128 * s.mem.readLE ((s.regs 2).toNat + 16) 8 + 2 ^ 192 * s.mem.readLE ((s.regs 2).toNat + 24) 8 < 2 ^ n := by
+    rw [← hE, ← hbl]; exact Fv256.F.bitLen_lt _
+  have htot := Fv256.F.exp_total (s.mem.readLE (s.regs 1).toNat 32) _ _ _ _ n hB he0 he1 he2 he3 hn256 hEn
+  have hr : chain1 n (Fv256.F.expIter (min n 64) (1, s.mem.readLE (s.regs 1).toNat 32, s.mem.readLE (s.regs 2).toNat 8)).1
+      (Fv256.F.expIter (min n 64) (1, s.mem.readLE (s.regs 1).toNat 32, s.mem.readLE (s.regs 2).toNat 8)).2.1
+      (s.mem.readLE ((s.regs 2).toNat + 8) 8) (s.mem.readLE ((s.regs 2).toNat + 16) 8) (s.mem.readLE ((s.regs 2).toNat + 24) 8)
+      = Fv256.F.expSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) := by
+    have hs1 := Fv256.Arm64.ExpEntry.expIter_lt (min n 64) 1 _ (s.mem.readLE (s.regs 2).toNat 8) (by decide) hB
+    have hs2 := Fv256.Arm64.ExpEntry.expIter_lt (min n 128 - min n 64) _ _ (s.mem.readLE ((s.regs 2).toNat + 8) 8) hs1.1 hs1.2
+    have hs3 := Fv256.Arm64.ExpEntry.expIter_lt (min n 192 - min n 128) _ _ (s.mem.readLE ((s.regs 2).toNat + 16) 8) hs2.1 hs2.2
+    have hs4 := Fv256.Arm64.ExpEntry.expIter_lt (min n 256 - min n 192) _ _ (s.mem.readLE ((s.regs 2).toNat + 24) 8) hs3.1 hs3.2
+    have hfin : (chain1 n (Fv256.F.expIter (min n 64) (1, s.mem.readLE (s.regs 1).toNat 32, s.mem.readLE (s.regs 2).toNat 8)).1
+      (Fv256.F.expIter (min n 64) (1, s.mem.readLE (s.regs 1).toNat 32, s.mem.readLE (s.regs 2).toNat 8)).2.1
+      (s.mem.readLE ((s.regs 2).toNat + 8) 8) (s.mem.readLE ((s.regs 2).toNat + 16) 8) (s.mem.readLE ((s.regs 2).toNat + 24) 8)) % 2 ^ 256
+        = (s.mem.readLE (s.regs 1).toNat 32 ^ (s.mem.readLE (s.regs 2).toNat 8 + 2 ^ 64 * s.mem.readLE ((s.regs 2).toNat + 8) 8
+      + 2 ^ 128 * s.mem.readLE ((s.regs 2).toNat + 16) 8 + 2 ^ 192 * s.mem.readLE ((s.regs 2).toNat + 24) 8)) % 2 ^ 256 := htot
+    unfold Fv256.F.expSpec
+    rw [hE, ← hfin]
+    exact (Nat.mod_eq_of_lt hs4.1).symm
+  have hk0 : 0 + min n 64 = min n 64 := Nat.zero_add _
+  have key := Fv256.Arm64.ExpLoop1.loop1 s (PostE s) n (s.regs 0).toNat (s.regs 2).toNat (s.mem.readLE (s.regs 1).toNat 8)
+    hnlt hal hsp hspb hwin (min n 64) 0 1 (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 8)
+  apply key (S0 s nreg nmem fl) hk0
+  · exact inv_start s n nreg nmem fl hnreg hnmem hnlt hal hsp hspb hxb hdx hdz hyb hdy
+  · intro S' hI
+    exact after1 s n (s.regs 0).toNat (s.regs 2).toNat (s.mem.readLE (s.regs 1).toNat 8) _ _ _
+      (s.mem.readLE ((s.regs 2).toNat + 8) 8) (s.mem.readLE ((s.regs 2).toNat + 16) 8) (s.mem.readLE ((s.regs 2).toNat + 24) 8)
+      S' rfl rfl hn256 h30a h30b hal hsp hspb hwin hzb hza hdz hyb hya hdy hI rfl he1 rfl he2 rfl he3 hev hr
+
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem exp_summary :
+    Summary Fv256.Arm64.ExpProg.program Fv256.Arm64.ExpSum.expEntry
+      (fun s => (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 56 ∧ GuardOK s 32 ∧ StackOK s 168 40 ∧ 336 ≤ s.sp.toNat ∧
+        Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 168) 208 ∧
+        (s.regs 0).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 32 true = true ∧
+        (s.regs 1).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 1).toNat 32 false = true ∧
+        (s.regs 2).toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 2).toNat 32 false = true ∧
+        Apart (s.regs 0).toNat 32 (s.sp.toNat - 168) 208 ∧ Apart (s.regs 1).toNat 32 (s.sp.toNat - 168) 208 ∧
+        Apart (s.regs 2).toNat 32 (s.sp.toNat - 168) 208 ∧
+        Fv256.Arm64.ExpProg.program.DataLoaded s.mem)
+      PostE := by
+  intro s hpc ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, ⟨hsal, hsb, hsc, hsw⟩, hsp, hdg, hzb, hza, hxb, hxa, hyb, hya, hdz, hdx, hdy, hdl⟩
+  have hal := hsal
+  have hspb := hsc
+  have hwin := hsw
+  have hx0 := Util.readLE8_lt s.mem (s.regs 1).toNat
+  have hx1 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 8)
+  have hx2 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 16)
+  have hx3 := Util.readLE8_lt s.mem ((s.regs 1).toNat + 24)
+  have he0 := Util.readLE8_lt s.mem (s.regs 2).toNat
+  have he1 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 8)
+  have he2 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 16)
+  have he3 := Util.readLE8_lt s.mem ((s.regs 2).toNat + 24)
+  have hE : s.mem.readLE (s.regs 2).toNat 32 = s.mem.readLE (s.regs 2).toNat 8 + 2 ^ 64 * s.mem.readLE ((s.regs 2).toNat + 8) 8
+      + 2 ^ 128 * s.mem.readLE ((s.regs 2).toNat + 16) 8 + 2 ^ 192 * s.mem.readLE ((s.regs 2).toNat + 24) 8 := by
+    rw [Util.readLE_32]
+  have hBs : s.mem.readLE (s.regs 1).toNat 32 = s.mem.readLE (s.regs 1).toNat 8 + 2 ^ 64 * s.mem.readLE ((s.regs 1).toNat + 8) 8
+      + 2 ^ 128 * s.mem.readLE ((s.regs 1).toNat + 16) 8 + 2 ^ 192 * s.mem.readLE ((s.regs 1).toNat + 24) 8 := by
+    rw [Util.readLE_32]
+  have cl0 := Fv256.Arm64.ExpEntry.clz_le _ he0
+  have cl1 := Fv256.Arm64.ExpEntry.clz_le _ he1
+  have cl2 := Fv256.Arm64.ExpEntry.clz_le _ he2
+  have cl3 := Fv256.Arm64.ExpEntry.clz_le _ he3
+  janus_data hdl [hsw]
+  janus_run [Util.readLE_32] until [Fv256.Arm64.ExpSum.expEntry + 0x118]
+  · -- limb 0, odd base
+    refine run_from_S0 s (64 - Janus.Arm64.clzNat 64 (s.mem.readLE (s.regs 2).toNat 8)) _ _ _ (Fv256.Arm64.ExpEntry.nreg0 _ cl0) ?nm ?bl (Fv256.Arm64.ExpEntry.hev_odd _ _ hbr) h30a h30b hal hsp hspb hwin hzb hza hdz hxb hdx hyb hya hdy
+    case nm => exact Fv256.Arm64.ExpEntry.nm0a _ cl0
+    case bl => rw [hE]; exact Fv256.Arm64.ExpEntry.bl0 _ _ _ _ he0 (by janus_assumption) (by janus_assumption) (by janus_assumption)
+  · -- limb 0, even base, n ≤ 8
+    refine run_from_S0 s (64 - Janus.Arm64.clzNat 64 (s.mem.readLE (s.regs 2).toNat 8)) _ _ _ (Fv256.Arm64.ExpEntry.nreg0 _ cl0) ?nm ?bl ?hv h30a h30b hal hsp hspb hwin hzb hza hdz hxb hdx hyb hya hdy
+    case nm => exact Fv256.Arm64.ExpEntry.nm0c _ cl0
+    case bl => rw [hE]; exact Fv256.Arm64.ExpEntry.bl0 _ _ _ _ he0 (by janus_assumption) (by janus_assumption) (by janus_assumption)
+    case hv => intro _; omega
+  · -- limb 0, even base, large exponent
+    unfold PostE
+    simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+    have hB0 : s.mem.readLE (s.regs 1).toNat 32 % 2 = 0 := by
+      have := Fv256.Arm64.ExpEntry.even_lsb _ (by janus_assumption)
+      rw [hBs]; omega
+    have h0 : 0 = Fv256.F.expSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) := by
+      apply Fv256.Arm64.ExpEntry.early _ _ hB0
+      rw [hE, Fv256.Arm64.ExpEntry.bl0 _ _ _ _ he0 (by janus_assumption) (by janus_assumption) (by janus_assumption)]; omega
+    refine ⟨trivial, trivial, trivial, trivial, trivial, trivial, trivial, ?_, ?_⟩
+    · rw [Util.readLE_32]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      simp only [Nat.zero_mod, Nat.mul_zero, Nat.add_zero]
+      exact h0
+    · janus_frame
+  · -- limb 1, odd base
+    refine run_from_S0 s (64 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 2).toNat + 8) 8) + 64) _ _ _ (Fv256.Arm64.ExpEntry.nreg _ 64 cl1 (by omega)) ?nm ?bl (Fv256.Arm64.ExpEntry.hev_odd _ _ hbr) h30a h30b hal hsp hspb hwin hzb hza hdz hxb hdx hyb hya hdy
+    case nm => exact Fv256.Arm64.ExpEntry.nmK _ 64 cl1 (by omega)
+    case bl => rw [hE]; exact Fv256.Arm64.ExpEntry.bl1 _ _ _ _ he0 he1 (by janus_assumption) (by janus_assumption) (by janus_assumption)
+  · -- limb 1, even base, large exponent
+    unfold PostE
+    simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+    have hB0 : s.mem.readLE (s.regs 1).toNat 32 % 2 = 0 := by
+      have := Fv256.Arm64.ExpEntry.even_lsb _ (by janus_assumption)
+      rw [hBs]; omega
+    have h0 : 0 = Fv256.F.expSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) := by
+      apply Fv256.Arm64.ExpEntry.early _ _ hB0
+      rw [hE, Fv256.Arm64.ExpEntry.bl1 _ _ _ _ he0 he1 (by janus_assumption) (by janus_assumption) (by janus_assumption)]; omega
+    refine ⟨trivial, trivial, trivial, trivial, trivial, trivial, trivial, ?_, ?_⟩
+    · rw [Util.readLE_32]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      simp only [Nat.zero_mod, Nat.mul_zero, Nat.add_zero]
+      exact h0
+    · janus_frame
+  · -- limb 2, odd base
+    refine run_from_S0 s (64 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 2).toNat + 16) 8) + 128) _ _ _ (Fv256.Arm64.ExpEntry.nreg _ 128 cl2 (by omega)) ?nm ?bl (Fv256.Arm64.ExpEntry.hev_odd _ _ hbr) h30a h30b hal hsp hspb hwin hzb hza hdz hxb hdx hyb hya hdy
+    case nm => exact Fv256.Arm64.ExpEntry.nmK _ 128 cl2 (by omega)
+    case bl => rw [hE]; exact Fv256.Arm64.ExpEntry.bl2 _ _ _ _ he0 he1 he2 (by janus_assumption) (by janus_assumption)
+  · -- limb 2, even base, large exponent
+    unfold PostE
+    simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+    have hB0 : s.mem.readLE (s.regs 1).toNat 32 % 2 = 0 := by
+      have := Fv256.Arm64.ExpEntry.even_lsb _ (by janus_assumption)
+      rw [hBs]; omega
+    have h0 : 0 = Fv256.F.expSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) := by
+      apply Fv256.Arm64.ExpEntry.early _ _ hB0
+      rw [hE, Fv256.Arm64.ExpEntry.bl2 _ _ _ _ he0 he1 he2 (by janus_assumption) (by janus_assumption)]; omega
+    refine ⟨trivial, trivial, trivial, trivial, trivial, trivial, trivial, ?_, ?_⟩
+    · rw [Util.readLE_32]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      simp only [Nat.zero_mod, Nat.mul_zero, Nat.add_zero]
+      exact h0
+    · janus_frame
+  · -- limb 3, odd base
+    refine run_from_S0 s (64 - Janus.Arm64.clzNat 64 (s.mem.readLE ((s.regs 2).toNat + 24) 8) + 192) _ _ _ (Fv256.Arm64.ExpEntry.nreg _ 192 cl3 (by omega)) ?nm ?bl (Fv256.Arm64.ExpEntry.hev_odd _ _ hbr) h30a h30b hal hsp hspb hwin hzb hza hdz hxb hdx hyb hya hdy
+    case nm => exact Fv256.Arm64.ExpEntry.nmK _ 192 cl3 (by omega)
+    case bl => rw [hE]; exact Fv256.Arm64.ExpEntry.bl3 _ _ _ _ he0 he1 he2 he3 (by janus_assumption)
+  · -- limb 3, even base, large exponent
+    unfold PostE
+    simp (config := { decide := true }) only [setReg_apply, ↓reduceIte]
+    have hB0 : s.mem.readLE (s.regs 1).toNat 32 % 2 = 0 := by
+      have := Fv256.Arm64.ExpEntry.even_lsb _ (by janus_assumption)
+      rw [hBs]; omega
+    have h0 : 0 = Fv256.F.expSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32) := by
+      apply Fv256.Arm64.ExpEntry.early _ _ hB0
+      rw [hE, Fv256.Arm64.ExpEntry.bl3 _ _ _ _ he0 he1 he2 he3 (by janus_assumption)]; omega
+    refine ⟨trivial, trivial, trivial, trivial, trivial, trivial, trivial, ?_, ?_⟩
+    · rw [Util.readLE_32]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+      simp only [Nat.zero_mod, Nat.mul_zero, Nat.add_zero]
+      exact h0
+    · janus_frame
 
 end Fv256.Arm64.ExpMain
