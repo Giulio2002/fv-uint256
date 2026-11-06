@@ -37,10 +37,7 @@ theorem sum2 (s : State) (y3 : Nat) (x14crax x14crcx x14crdx x14crbx x14crsi x14
     (hb : x14cm218 < 2 ^ 64) :
     ∃ x160rcx x1f3rax x1f3r10 x1f3mb0, L1f3 s S x1f3rax x160rcx x14crsi x14crdi x14cr8 x14cr9 x1f3r10 x1f3mb0 x14cm208 x14cm210 x14cm218 x14cm220 ∧ RecRegs s S ∧ RecMem s S.mem y3 ∧
       x160rcx = (x14crcx % 64 + 18446744073709551615) % 18446744073709551616 ∧ x1f3mb0 = x1f3rax ∧
-      ((x1f3rax + 18446744073709551616 * x1f3r10 + 2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128 =
-          (2 * (r1c x14crax x14crdx * 18446744073709551616)) % 2 ^ 128 ∨
-       (x1f3rax + 18446744073709551616 * x1f3r10 = 2 ^ 128 - 1 ∧ x14crbx = 0 ∧
-          (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128 = (2 * (r1c x14crax x14crdx * 18446744073709551616)) % 2 ^ 128)) := by
+      x1f3rax + 18446744073709551616 * x1f3r10 = (if ((2 * (r1c x14crax x14crdx * 18446744073709551616) + 2 ^ 128 - (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128) % 2 ^ 128 = 0 ∧ x14crbx = 0) then 2 ^ 128 - 1 else (2 * (r1c x14crax x14crdx * 18446744073709551616) + 2 ^ 128 - (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128) % 2 ^ 128) := by
   unfold PC_14c_1f3 at h
   obtain ⟨x160rax, x160rcx, x1c1rax, x1c1rdx, x1c1r10, x1d0r10, x1d0r11, x1f3rax, x1f3r10, x1f3mb0, hLz, h_x160rax, h_x160rcx, h_x1c1rax, h_x1c1rdx, h_x1c1r10, h_x1d0r10, h_x1d0r11, h_x1f3rax, h_x1f3r10, h_x1f3mb0, hRz, hMz⟩ := h
   obtain ⟨hax, hbx, hdx, hsi, hm220, hdi, h8, h9, hcx, hY, h63, hlt⟩ := hst
@@ -82,19 +79,27 @@ theorem sum2 (s : State) (y3 : Nat) (x14crax x14crcx x14crdx x14crbx x14crsi x14
     split
     · simp
     · simp [Nat.mod_eq_of_lt hlo]
-  · by_cases hc : x14crbx ||| (x1d0r11 ||| x1d0r10) = 0
+  · have hs0 : (x1d0r11 + 2 ^ 64 * x1d0r10 + 2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128 = (2 * (r1c x14crax x14crdx * 2 ^ 64)) % 2 ^ 128 := hsub
+    by_cases hc : x14crbx ||| (x1d0r11 ||| x1d0r10) = 0
     · obtain ⟨h1, h2, h3⟩ := hzero.1 hc
       rw [if_pos hc] at h_x1f3rax h_x1f3r10
-      right
       have e1 : x1f3rax = 2 ^ 64 - 1 := by rw [h_x1f3rax]; decide
       have e2 : x1f3r10 = 2 ^ 64 - 1 := by rw [h_x1f3r10]; decide
-      refine ⟨by rw [e1, e2], h1, ?_⟩
-      rw [h2, h3] at hsub
-      simpa using hsub
+      rw [h2, h3] at hs0
+      have hraw : (2 * (r1c x14crax x14crdx * 18446744073709551616) + 2 ^ 128 - (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128) % 2 ^ 128 = 0 := by
+        omega
+      rw [if_pos ⟨hraw, h1⟩, e1, e2]
     · rw [if_neg hc] at h_x1f3rax h_x1f3r10
-      left
-      rw [h_x1f3rax, h_x1f3r10]
-      simp only [BitVec.toNat_ofNat, Nat.mod_eq_of_lt hlo, Nat.mod_eq_of_lt hhi]
-      exact hsub
+      have hR2 : x1f3rax + 18446744073709551616 * x1f3r10 = x1d0r11 + 2 ^ 64 * x1d0r10 := by
+        rw [h_x1f3rax, h_x1f3r10]
+        simp only [BitVec.toNat_ofNat, Nat.mod_eq_of_lt hlo, Nat.mod_eq_of_lt hhi]
+      have hnz : ¬ ((2 * (r1c x14crax x14crdx * 18446744073709551616) + 2 ^ 128 - (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128) % 2 ^ 128 = 0 ∧ x14crbx = 0) := by
+        rintro ⟨h0, h1⟩
+        apply hc
+        have hlo0 : x1d0r11 = 0 := by omega
+        have hhi0 : x1d0r10 = 0 := by omega
+        exact hzero.2 ⟨h1, hlo0, hhi0⟩
+      rw [if_neg hnz, hR2]
+      omega
 
 end Fv256.Amd64.RecipSeg

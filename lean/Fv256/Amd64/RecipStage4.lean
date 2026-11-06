@@ -2,6 +2,7 @@ import Fv256.Amd64.RecipArith4
 import Fv256.Amd64.RecipArith4p
 import Fv256.Amd64.RecipArith4q
 import Fv256.Amd64.RecipArith4s
+import Fv256.Amd64.RecipStage5Lem
 import Fv256.Amd64.RecipG.C_43c_502
 import Fv256.Amd64.RecipG.C_502_660
 import Fv256.Amd64.RecipG.C_660_7ae
@@ -10,8 +11,6 @@ import Fv256.Amd64.RecipG.G_7ae_801
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.RecipSeg
-
-theorem lohi (lo hi P : Nat) (h0 : lo < 2 ^ 64) (h : lo + 2 ^ 64 * hi = P) : lo = P % 2 ^ 64 ∧ hi = P / 2 ^ 64 := by omega
 
 /-- the seven-word sum of stage 4 in terms of the squaring words `w_i` and `y_j` -/
 def stage4T (w0 w1 w2 w3 w4 w5 y0 y1 y2 y3 : Nat) : Nat :=

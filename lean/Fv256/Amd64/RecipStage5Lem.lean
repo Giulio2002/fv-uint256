@@ -1,5 +1,8 @@
 namespace Fv256.Amd64.RecipSeg
 
+theorem lohi (lo hi P : Nat) (h0 : lo < 2 ^ 64) (h : lo + 2 ^ 64 * hi = P) : lo = P % 2 ^ 64 ∧ hi = P / 2 ^ 64 := by omega
+
+
 theorem msb_iff (x : Nat) (hx : x < 2 ^ 64) : ((BitVec.ofNat 64 x).msb = true) ↔ 2 ^ 63 ≤ x := by
   rw [BitVec.msb_eq_decide]
   simp only [BitVec.toNat_ofNat, Nat.mod_eq_of_lt hx, decide_eq_true_eq]

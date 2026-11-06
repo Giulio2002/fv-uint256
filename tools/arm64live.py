@@ -70,6 +70,7 @@ def successors(ins, idx):
         t = int(m.group(1), 16)
         for k, x in enumerate(ins):
             if x[0] == t: tgt = k
+    if tgt is not None and ins[tgt][0] >= 0xb9534: tgt = None   # panic/morestack stubs: infeasible paths, nothing live
     if mn == 'b': return [tgt] if tgt is not None else []
     if mn == 'bl':
         t = int(m.group(1), 16) if m else 0

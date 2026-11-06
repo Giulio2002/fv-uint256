@@ -17,10 +17,7 @@ theorem stage2 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry
     ReachesRet Fv256.RecipProg.program (BitVec.ofNat 64 (recEntry + 0x1f3)) S (fun S' =>
       ∃ x160rcx x1f3rax x1f3r10 x1f3mb0, L1f3 s S' x1f3rax x160rcx x14crsi x14crdi x14cr8 x14cr9 x1f3r10 x1f3mb0 x14cm208 x14cm210 x14cm218 x14cm220 ∧ RecRegs s S' ∧ RecMem s S'.mem y3 ∧
       x160rcx = (x14crcx % 64 + 18446744073709551615) % 18446744073709551616 ∧ x1f3mb0 = x1f3rax ∧
-      ((x1f3rax + 18446744073709551616 * x1f3r10 + 2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128 =
-          (2 * (r1c x14crax x14crdx * 18446744073709551616)) % 2 ^ 128 ∨
-       (x1f3rax + 18446744073709551616 * x1f3r10 = 2 ^ 128 - 1 ∧ x14crbx = 0 ∧
-          (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128 = (2 * (r1c x14crax x14crdx * 18446744073709551616)) % 2 ^ 128))) := by
+      x1f3rax + 18446744073709551616 * x1f3r10 = (if ((2 * (r1c x14crax x14crdx * 18446744073709551616) + 2 ^ 128 - (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128) % 2 ^ 128 = 0 ∧ x14crbx = 0) then 2 ^ 128 - 1 else (2 * (r1c x14crax x14crdx * 18446744073709551616) + 2 ^ 128 - (2 * stage2e (r1c x14crax x14crdx) x14cm218 y3) % 2 ^ 128) % 2 ^ 128)) := by
   refine Fv256.SegCompose.seg_mono (c_14c_1f3 (y3 := y3) s S hpc hs hR hM x14crax x14crcx x14crdx x14crbx x14crsi x14crdi x14cr8 x14cr9 x14cm208 x14cm210 x14cm218 x14cm220 hL) ?_
   intro S1 hq1
   exact sum2 s y3 x14crax x14crcx x14crdx x14crbx x14crsi x14crdi x14cr8 x14cr9 x14cm208 x14cm210 x14cm218 x14cm220 S1 hq1 hst (hL.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1)
