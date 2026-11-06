@@ -166,4 +166,127 @@ theorem correctness (impl : List Segment) (R : RtInv) (z : BitVec 64)
     first | exact hl3 h | (rw [hF2'.accessible, hMF.accessible]; exact hl3 h)
   · exact hMF2
 
+
+namespace Witness
+
+open Janus.Contracts.Toy Janus.Contracts.LiveStub
+
+def tys : Tys := []
+def okW : Nat → List Nat → Prop := fun a args => a = cvAddr ∧ ∃ p, args = [p, 2]
+def RW : RtInv := toyR tys okW
+
+def implAt : List Segment := [convTstringSeg cvAddr 16]
+def linked : Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
+theorem linked_eq : Extracted.program.link implAt = linked := rfl
+
+theorem hok : ∀ args, okW cvAddr args → ∃ p, args = [p, 2] := fun args h => h.2
+
+/-- the runtime serves no `slicebytetostring` request (the `z = 10` call never makes one) -/
+theorem hc0 : RtLiveContract (Extracted.program.link implAt) ssAddr 4096 RW
+    (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive := by
+  intro L b s hpc hpre
+  obtain ⟨-, -, -, -, -, hokx, -⟩ := hpre
+  exfalso
+  have : ssAddr = cvAddr := hokx.1
+  revert this
+  decide
+
+set_option maxHeartbeats 4000000 in
+theorem hc2 : RtLiveContract (Extracted.program.link implAt) cvAddr 4096 RW convTstringSpec convTstringLive := by
+  rw [linked_eq]
+  janus_live_convtstring 2 16 hok
+
+def ret : Nat := 0x1000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x200000
+def zp : Nat := 0x30800
+def dsegs : List DataSegment := Extracted.data
+
+def bytes (a : Nat) : Byte :=
+  if a = zp then 10 else
+  if a = BUMP + 3 then 0x10 else
+  match dsegs.find? (fun d => decide (d.base ≤ a ∧ a < d.base + d.bytes.length)) with
+  | some d => BitVec.ofNat 8 (d.bytes.getD (a - d.base) 0)
+  | none => 0
+
+def dregs : List Region := dsegs.map (fun d => ⟨d.base, d.bytes.length, false⟩)
+
+def arg : BitVec 64 := BitVec.ofNat 64 zp
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then arg else if i = 28 then BitVec.ofNat 64 g0
+      else if i = 30 then BitVec.ofNat 64 ret else 0,
+    sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩,
+    mem := ⟨bytes, [⟨sp0 - 4640, 4640 + 8, true⟩, ⟨g0, 0x100, false⟩, ⟨zp, 0x100, false⟩,
+      ⟨BUMP, 8, true⟩, ⟨WBUF, 64, true⟩, ⟨HEAP, HSIZE, true⟩] ++ dregs⟩ }
+
+theorem hret : RetAddr linked ret := RetAddr.of_check (by decide)
+
+theorem setup : CallSetup (linked.withExit ret) Extracted.entry [arg] s0 :=
+  ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | r <;> simp [s0] at h ⊢ <;> omega⟩
+
+set_option maxRecDepth 100000 in
+theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
+  unfold Program.DataLoaded
+  sorry
+
+theorem hz : val256 s0.mem arg.toNat = 10 := by
+  unfold val256 s0 arg zp
+  sorry
+
+set_option maxRecDepth 100000 in
+theorem pre : GuardOK s0 (4096 + 32) ∧ Outside ((s0.regs 28).toNat + 16) 8 RW.rt ∧ StackOK s0 4640 8 ∧ Extracted.program.DataLoaded s0.mem ∧
+        Outside (s0.sp.toNat - 4640) (4640 + 8) RW.rt ∧ Outside 989280 256 RW.rt ∧ Outside 1002589 256 RW.rt ∧ Outside 960826 256 RW.rt ∧
+        Ptr32 s0.mem arg false ∧ (arg.toNat + 32 ≤ s0.sp.toNat - 4640 ∨ s0.sp.toNat + 8 ≤ arg.toNat) ∧
+        ((s0.regs 28).toNat + 16 + 8 ≤ s0.sp.toNat - 4640 ∨ s0.sp.toNat + 8 ≤ (s0.regs 28).toNat + 16) ∧
+        (2 ^ 64 ≤ val256 s0.mem arg.toNat →
+          HL RW [0, s0.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s0.mem arg.toNat)), decLen (val256 s0.mem arg.toNat)]
+            (s0.regs 28).toNat (s0.sp.toNat - 32 - 384) (rtView RW.rt s0.mem)) ∧
+        (100 ≤ val256 s0.mem arg.toNat → val256 s0.mem arg.toNat < 2 ^ 64 →
+          HL RW [0, s0.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s0.mem arg.toNat)), decLen (val256 s0.mem arg.toNat)]
+            (s0.regs 28).toNat (s0.sp.toNat - 32 - 384 - 96) (rtView RW.rt s0.mem)) ∧
+        (∀ (M : Janus.Arm64.Memory) (p l : Nat),
+          MemFrame s0.mem M (RW.rt ++ [(s0.sp.toNat - 4640, s0.sp.toNat + 8)]) →
+          (val256 s0.mem arg.toNat < 100 → MemFrame s0.mem M [(s0.sp.toNat - 4640, s0.sp.toNat + 8)]) →
+          StrOut M p l (decBytes (val256 s0.mem arg.toNat)) →
+          DecAt RW.rt 989280 1002589 960826 p l →
+          ∃ (L : List (Nat × Nat)) (b : Nat),
+            LiveAt RW cvAddr [p, l] L b (convTstringLive.cost [p, l] M) (s0.regs 28).toNat M
+              [(s0.sp.toNat - 32 - 4096, s0.sp.toNat - 32 - 8), (s0.sp.toNat - 32 + 8, s0.sp.toNat - 32 + 8 + 8 * 2)] ∧
+            (InRanges p l RW.rt → InRanges p l L))
+    := by
+  sorry
+
+/-- The preconditions, the `slicebytetostring` and `convTstring` live contracts (toy runtime serving only the `convTstring` request
+of the witness) and the second-call hypothesis are jointly satisfiable (`z = 10`: the `v < 100` path; the `v >= 100` path is not witnessed). -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (ret : Nat) (s : State) (z : BitVec 64),
+    RtLiveContract (Extracted.program.link impl) ssAddr 4096 R
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive ∧
+    RtLiveContract (Extracted.program.link impl) cvAddr 4096 R convTstringSpec convTstringLive ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (GuardOK s (4096 + 32) ∧ Outside ((s.regs 28).toNat + 16) 8 R.rt ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4640) (4640 + 8) R.rt ∧ Outside 989280 256 R.rt ∧ Outside 1002589 256 R.rt ∧ Outside 960826 256 R.rt ∧
+        Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
+        ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
+        (2 ^ 64 ≤ val256 s.mem z.toNat →
+          HL R [0, s.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 32 - 384) (rtView R.rt s.mem)) ∧
+        (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
+          HL R [0, s.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 32 - 384 - 96) (rtView R.rt s.mem)) ∧
+        (∀ (M : Janus.Arm64.Memory) (p l : Nat),
+          MemFrame s.mem M (R.rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
+          (val256 s.mem z.toNat < 100 → MemFrame s.mem M [(s.sp.toNat - 4640, s.sp.toNat + 8)]) →
+          StrOut M p l (decBytes (val256 s.mem z.toNat)) →
+          DecAt R.rt 989280 1002589 960826 p l →
+          ∃ (L : List (Nat × Nat)) (b : Nat),
+            LiveAt R cvAddr [p, l] L b (convTstringLive.cost [p, l] M) (s.regs 28).toNat M
+              [(s.sp.toNat - 32 - 4096, s.sp.toNat - 32 - 8), (s.sp.toNat - 32 + 8, s.sp.toNat - 32 + 8 + 8 * 2)] ∧
+            (InRanges p l R.rt → InRanges p l L))) := by
+  sorry
+
+end Witness
+
 end Fv256.Arm64.Value
