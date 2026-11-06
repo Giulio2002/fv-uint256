@@ -43,7 +43,7 @@ theorem umul_summary :
       have := Nat.mul_lt_mul'' hx hy
       omega
     all_goals (simp only [Nat.reducePow, BitVec.toNat_mul, BitVec.toNat_ofNat, Util.readLE8_mod])
-    all_goals (first | janus_carry | (trace_state; sorry))
+    all_goals janus_carry
   · janus_frame
 
 end Fv256.Amd64.UmulSum

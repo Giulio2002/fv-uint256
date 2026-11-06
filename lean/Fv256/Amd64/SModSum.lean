@@ -66,6 +66,6 @@ theorem smod_summary :
     rw [Fv256.B.smodSpec]
     simp only [Fv256.Spec.abs, Fv256.Spec.neg, Fv256.Spec.W, Nat.reducePow]
     simp (disch := omega) only [if_pos, if_neg, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right]
-    first | omega | (trace_state; sorry))
+    omega)
 
 end Fv256.Amd64.SModSum
