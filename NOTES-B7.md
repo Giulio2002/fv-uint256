@@ -43,3 +43,14 @@ SfdFdD (fd_post_call), SfdFdE (fd_round), SfdFdF (fd_nil, fd_loop, fd_sum).
 Lessons: never `omega` in contexts holding many hypotheses or after `.trans`/`.mono` without explicit intermediate `have` types (hangs 20+ min); use `exact` with structured Outside conjunctions and small standalone lemmas (out_sub, win_sub, toInt_small, toInt_nonpos).
 To derive hpw: PwSum from pw_sum (FV-I4) + the six runtime contracts (pw_sum ... hif hnew hmg hmv hwb1 hwb2).
 TODO: SfdTop (plus skip, zero-skip + decoderune, cmpstring, call fd_sum), Extracted-level correctness + witness, ONE verify.
+
+## Update 4 (end of this session): SfdTopSpec committed; Keep threaded through the fd proof
+- Arm64/SfdTopSpec.lean: arm64 port of FV-I3's SfdTopSpec (TopPre/TopPost/SfdSummary; TopPost preserves [sp-8, sp+8)). FdPost now has `Keep s s'` (same words), FdInv/MidInv/M2Inv carry it; whole fd chain rebuilt clean.
+- GAP FOUND (both ISAs): TopPre has no fact about the bytes of the 78-digit rodata string that SetFromDecimal compares against with runtime.cmpstring
+  (arm64: ADRP+ADD $2315 at 0xb8a34, i.e. page 0xb8000+0x3c000... recompute from `go tool objdump`), nor accessibility/disjointness of it. A library-level (Extracted-free) proof needs
+  `SfdCfg.maxStr`, `∀ k<78, m.readLE (maxStr+k) 1 = maxDigit k`, `accessible maxStr 78 false`, `Outside maxStr 78 [(lo,hi),(z..)]` in TopPre (discharged from the extraction's data at the Extracted level).
+  cmpstring: Janus.Contracts.Cmpstring.CmpstringContract (hypothesis, like pw's contracts); UtilI.strCmp_eq_one_iff gives lexGt.
+- SfdTop proof plan (not started): entry+stack check+spill (frame 80, FP at sp-8, z at sp+8, pS at sp+16); '+' skip (CMPW 43, SUB, NEG/ASR63/AND1, ADD); zero loop (decoderune_sum for bytes >= 0x80, mask trick via
+  UtilI.mask_keep, i = first non-'0' byte or last index); branches CMP $78; cmpstring call (contract) then fd_sum call (hpw) at 0xb8a70/0xb8a98; error returns load from ErrBig256Range (0x1b5bc0-ish) and io.EOF via fd.
+  Result must match decParse (startPos/plusEnd/zerosFrom in SpecI); fromDecimal's FdPost gives fromDec b n p; TopPost wants decParse.
+- Then Extracted-level correctness + Witness (lib_summary / codeIn_of_sub, cfg from the extraction), discharge hpw from pw_sum, ONE verify on 77fb30cc.
