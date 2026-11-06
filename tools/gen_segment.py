@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """gen_segment.py TRACE.out [--lean OUT.lean --module NS --prog PROGRAM --entry ENTRYEXPR --cut CUTEXPR --pre PREABBREV [--imports "import A\nimport B"] [--frame "(lo1, hi1), (lo2, hi2)"] [--isa amd64]]
 (amd64 only for now).  Without --lean it just prints the parsed state.
+Tip: print the cut state un-elided with -Dpp.deepTerms=true -Dpp.proofs=true -Dpp.maxSteps=1000000000 (from FV-B).
 Older description: gen_segment.py TRACE.out OUT.lean-fragment : turn the final state record printed by `janus64_run ... until [pc]` (trace_state of the
 ReachesRet goal) into an existential postcondition: every changed register / stack word gets a variable `v_k` and a fact
 `S'.regs i = BitVec.ofNat 64 v_k` / `S'.mem.readLE addr 8 = v_k % 2^64`, plus `v_k = <small expression over the entry reads>`.
