@@ -45,6 +45,7 @@ z = F.mulmodSpec x y m (0 if m = 0, else x*y mod m); MulModWithReciprocal under 
 - Callee window trick: SetFromDecimal is called with window [lo, sp-16) so that the wrapper's spill slots (z at sp-16, rbp at sp-8, ret at sp) are outside the callee frame.
 - PreC extras vs TopPre: nonzero itab words of io.EOF / ErrBig256Range (so the error branch `test rax,rax` is decidable), R2.priv ranges well-formed, string outside rt or in L, multipliers/ioEOF/errBig outside R.rt.
 - Build env for 77fb30cc: build/mkol77.py ROOT.. (compiles Extracted-free import closure into build/ol77), build/lcx.sh TAG FILE (fd = ex-amd64-FromDecimal; extract with build/ctflags contracts).
+- 2026-11-07: SfdTopSpec b982015 (maxStr rodata facts) adopted: PreC carries accessible/Outside/bytes of the 78-digit string; cfg.maxStr = .rodata#575028b4.
 - TODO: Witness.nonvacuous + final file once SfdSummary is proved (then hsfd is discharged by FV-I3's theorem via CodeIn from a library program, as for the other lib transfers); MustFromDecimal (same call pattern + gopanic), UnmarshalText/JSON, Scan.
 
 ## MustFromDecimal amd64 + environment predicates (2026-11-07)

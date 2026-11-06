@@ -37,6 +37,7 @@ def cfg : SfdCfg where
   newobject := Extracted.program.contractAddr "runtime.newobject"
   wb1 := Extracted.program.contractAddr "runtime.gcWriteBarrier1"
   wb2 := Extracted.program.contractAddr "runtime.gcWriteBarrier2"
+  maxStr := Extracted.dataAddr.«.rodata#575028b4»
 
 abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 
@@ -119,7 +120,7 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
   have hbytes : ∀ k, k < nS.toNat → bytesAt ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4933081) pS.toNat k
       = bytesAt s.mem pS.toNat k := by
     intro k hk
-    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -⟩ := hpreC
+    obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hPS, hPR, -⟩ := hpreC
     unfold bytesAt
     have hk' : pS.toNat + k < pS.toNat + nS.toNat := by omega
     refine Fv256.Amd64.FromDecimalSpec.str_read hlo hhi hM0 hMF hLF (by omega) ?_
@@ -168,7 +169,7 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
         rw [hv] at hv'; cases hv'; rfl
       rw [← this]; exact cval
     · -- io.EOF
-      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, -, hB2, hB3, hInit, -, -, -, -⟩ := hpreC
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, -, hB2, hB3, hInit, -, -, -, -, -, -, -, -⟩ := hpreC
       obtain ⟨hPI1, hPI2, hPI3, hPI4, hPI5⟩ := hPI
       have hio : ∀ a, a = cfg.ioEOF ∨ a = cfg.ioEOF + 8 → ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4933081).readLE a 8
           = s.mem.readLE a 8 := by
@@ -210,7 +211,7 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
       · rw [hP']; exact (Nat.mod_eq_of_lt (Janus.Arm64.Memory.readLE_lt _ _ 8)).symm
       · rw [if_neg (by decide), if_neg (by decide), c3, hio _ (Or.inr rfl)]
     · -- ErrBig256Range
-      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, hInit, -, -, -, -⟩ := hpreC
+      obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hE2, hE3, hInit, -, -, -, -, -, -, -, -⟩ := hpreC
       obtain ⟨hPI1, hPI2, hPI3, hPI4, hPI5⟩ := hPI
       have hio : ∀ a, a = cfg.errBig ∨ a = cfg.errBig + 8 → ((mN.writeLE ((s.regs 4).toNat - 16) 8 zv.toNat).writeLE ((s.regs 4).toNat - 48) 8 4933081).readLE a 8
           = s.mem.readLE a 8 := by
