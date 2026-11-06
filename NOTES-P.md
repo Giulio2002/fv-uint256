@@ -23,3 +23,11 @@ The SAME offsets relative to r hold on arm64 (y r-80, divisor r-48, buf r-320, o
 - Branch conditions: `until [pdK, pdH]` shows the `hbr` hypotheses of both paths; omega needs a fact for the BitVec toInt term (`neg19`).
 - `congr 1; omega` on `BitVec.ofNat 64 (x - 384 + 0x40)` timed out (whnf); use `rw [h, show .. = .. by omega]`.
 - `by_contra` is not available (no Mathlib): use Nat.le_of_not_lt.
+
+## arm64 port plan (drafts in lean/Fv256/Arm64/Pd/draft/*.lean.draft, mechanical sed of Amd64/Pd; NOT compiled)
+- Code: PrettyDec @0xb8600; pdH=+0xfc, continue block +0xe4, udivrem call +0x134, AppendUint call +0x168, inner loop head pdI=+0x190, pdJ=+0x1cc, pad head pdK=+0x1f8, final pdF=+0x234 (slicebytetostring call +0x25c, ret +0x268).
+- Regs: H: x0=19,x2=pos,x4=comma,x3=b+320(y),x6=b+352(div),x8=bufptr; loop: x0=buf,x1=len,x8=j,x9=sep,x10=pos,x11=comma; pad: x3=i,x1=len.
+- b = entry sp - 400; frame offsets = amd64 offsets + 16 (buf b+80, out b+99..b+232, top b+231, y b+320, div b+352, sep b+416); saved x29 at b-8, x30 at b.
+- Tables: digits 989280, smalls 1002589 (inside seg @1002456, +133), zero string 960826. Arm64/Pd/Tabs.lean written (uncompiled).
+- Steps once amd64 77f run ends: rsync, build Arm64.P.Append in build/wsdev3 (WSD=wsdev3), fix Init, then Iter1.. in order.
+- No lsr #32 / rot32_and spots appear in PrettyDec (only used by division/Knuth code already summarised in ChainProg).
