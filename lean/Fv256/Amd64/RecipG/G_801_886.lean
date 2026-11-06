@@ -22,10 +22,10 @@ theorem g_801_886 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x801rcx, hB_x801rcx, hE_x801rdx, hB_x801rdx, hE_x801rbx, hB_x801rbx, hE_x801rsi, hB_x801rsi, hE_x801r8, hB_x801r8, hE_x801r9, hB_x801r9, hE_x801m40, hB_x801m40, hE_x801m48, hB_x801m48, hE_x801m50, hB_x801m50, hE_x801m60, hB_x801m60, hE_x801m208, hB_x801m208, hE_x801m210, hB_x801m210, hE_x801m218, hB_x801m218, hE_x801m220, hB_x801m220⟩ := hL
   janus64_run [Util.readLE_32, hE_x801rcx, hE_x801rdx, hE_x801rbx, hE_x801rsi, hE_x801r8, hE_x801r9, hE_x801m40, hE_x801m48, hE_x801m50, hE_x801m60, hE_x801m208, hE_x801m210, hE_x801m218, hE_x801m220, hsp4, Nat.mod_eq_of_lt hB_x801rcx, Nat.mod_eq_of_lt hB_x801rdx, Nat.mod_eq_of_lt hB_x801rbx, Nat.mod_eq_of_lt hB_x801rsi, Nat.mod_eq_of_lt hB_x801r8, Nat.mod_eq_of_lt hB_x801r9, Nat.mod_eq_of_lt hB_x801m40, Nat.mod_eq_of_lt hB_x801m48, Nat.mod_eq_of_lt hB_x801m50, Nat.mod_eq_of_lt hB_x801m60, Nat.mod_eq_of_lt hB_x801m208, Nat.mod_eq_of_lt hB_x801m210, Nat.mod_eq_of_lt hB_x801m218, Nat.mod_eq_of_lt hB_x801m220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_801_886
   refine ⟨x801r8 % 18446744073709551616, x801rdx % 18446744073709551616, (x801m208 * x801rbx / 18446744073709551616) % 18446744073709551616, x801m210 % 18446744073709551616, (x801m208 * x801rdx / 18446744073709551616) % 18446744073709551616, (x801m208 * x801r8) % 18446744073709551616, (x801m208 * x801r8 / 18446744073709551616) % 18446744073709551616, (x801m208 * x801r9 / 18446744073709551616) % 18446744073709551616, (x801m208 * x801rbx) % 18446744073709551616, (x801m208 * x801rsi / 18446744073709551616) % 18446744073709551616, (x801m208 * x801rsi) % 18446744073709551616, (x801m208 * x801rdx) % 18446744073709551616, (x801m210 * x801rdx) % 18446744073709551616, (x801m210 * x801rdx / 18446744073709551616) % 18446744073709551616, (x801m208 * x801r9) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩

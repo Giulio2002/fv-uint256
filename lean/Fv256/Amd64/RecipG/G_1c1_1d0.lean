@@ -22,10 +22,10 @@ theorem g_1c1_1d0 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x1c1rax, hB_x1c1rax, hE_x1c1rcx, hB_x1c1rcx, hE_x1c1rdx, hB_x1c1rdx, hE_x1c1rbx, hB_x1c1rbx, hE_x1c1rsi, hB_x1c1rsi, hE_x1c1rdi, hB_x1c1rdi, hE_x1c1r8, hB_x1c1r8, hE_x1c1r9, hB_x1c1r9, hE_x1c1r10, hB_x1c1r10, hE_x1c1m208, hB_x1c1m208, hE_x1c1m210, hB_x1c1m210, hE_x1c1m218, hB_x1c1m218, hE_x1c1m220, hB_x1c1m220⟩ := hL
   janus64_run [Util.readLE_32, hE_x1c1rax, hE_x1c1rcx, hE_x1c1rdx, hE_x1c1rbx, hE_x1c1rsi, hE_x1c1rdi, hE_x1c1r8, hE_x1c1r9, hE_x1c1r10, hE_x1c1m208, hE_x1c1m210, hE_x1c1m218, hE_x1c1m220, hsp4, Nat.mod_eq_of_lt hB_x1c1rax, Nat.mod_eq_of_lt hB_x1c1rcx, Nat.mod_eq_of_lt hB_x1c1rdx, Nat.mod_eq_of_lt hB_x1c1rbx, Nat.mod_eq_of_lt hB_x1c1rsi, Nat.mod_eq_of_lt hB_x1c1rdi, Nat.mod_eq_of_lt hB_x1c1r8, Nat.mod_eq_of_lt hB_x1c1r9, Nat.mod_eq_of_lt hB_x1c1r10, Nat.mod_eq_of_lt hB_x1c1m208, Nat.mod_eq_of_lt hB_x1c1m210, Nat.mod_eq_of_lt hB_x1c1m218, Nat.mod_eq_of_lt hB_x1c1m220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_1c1_1d0
   refine ⟨((x1c1r10 % 18446744073709551616 + 18446744073709551616 - x1c1rdx % 18446744073709551616 - (decide (0 < x1c1rax)).toNat) % 18446744073709551616 + (x1c1r10 % 18446744073709551616 + 18446744073709551616 - x1c1rdx % 18446744073709551616 - (decide (0 < x1c1rax)).toNat) % 18446744073709551616 + ((18446744073709551616 - x1c1rax) % 18446744073709551616 + (18446744073709551616 - x1c1rax) % 18446744073709551616) / 18446744073709551616) % 18446744073709551616, ((18446744073709551616 - x1c1rax % 18446744073709551616) % 18446744073709551616 + (18446744073709551616 - x1c1rax % 18446744073709551616) % 18446744073709551616) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_⟩

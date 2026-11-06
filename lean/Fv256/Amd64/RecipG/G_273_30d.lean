@@ -22,7 +22,7 @@ theorem g_273_30d {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x273rax, hB_x273rax, hE_x273rcx, hB_x273rcx, hE_x273rbx, hB_x273rbx, hE_x273rsi, hB_x273rsi, hE_x273rdi, hB_x273rdi, hE_x273r8, hB_x273r8, hE_x273r10, hB_x273r10, hE_x273r11, hB_x273r11, hE_x273r12, hB_x273r12, hE_x273r13, hB_x273r13, hE_x273r15, hB_x273r15, hE_x273mb0, hB_x273mb0, hE_x273mb8, hB_x273mb8, hE_x273m100, hB_x273m100, hE_x273m208, hB_x273m208, hE_x273m210, hB_x273m210, hE_x273m218, hB_x273m218, hE_x273m220, hB_x273m220⟩ := hL
   janus64_run [Util.readLE_32, hE_x273rax, hE_x273rcx, hE_x273rbx, hE_x273rsi, hE_x273rdi, hE_x273r8, hE_x273r10, hE_x273r11, hE_x273r12, hE_x273r13, hE_x273r15, hE_x273mb0, hE_x273mb8, hE_x273m100, hE_x273m208, hE_x273m210, hE_x273m218, hE_x273m220, hsp4, Nat.mod_eq_of_lt hB_x273rax, Nat.mod_eq_of_lt hB_x273rcx, Nat.mod_eq_of_lt hB_x273rbx, Nat.mod_eq_of_lt hB_x273rsi, Nat.mod_eq_of_lt hB_x273rdi, Nat.mod_eq_of_lt hB_x273r8, Nat.mod_eq_of_lt hB_x273r10, Nat.mod_eq_of_lt hB_x273r11, Nat.mod_eq_of_lt hB_x273r12, Nat.mod_eq_of_lt hB_x273r13, Nat.mod_eq_of_lt hB_x273r15, Nat.mod_eq_of_lt hB_x273mb0, Nat.mod_eq_of_lt hB_x273mb8, Nat.mod_eq_of_lt hB_x273m100, Nat.mod_eq_of_lt hB_x273m208, Nat.mod_eq_of_lt hB_x273m210, Nat.mod_eq_of_lt hB_x273m218, Nat.mod_eq_of_lt hB_x273m220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [← BitVec.ofNat_add])
   all_goals (
   unfold P_273_30d

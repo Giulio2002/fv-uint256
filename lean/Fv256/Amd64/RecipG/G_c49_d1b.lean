@@ -22,10 +22,10 @@ theorem g_c49_d1b {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_xc49rcx, hB_xc49rcx, hE_xc49rdx, hB_xc49rdx, hE_xc49rbx, hB_xc49rbx, hE_xc49rsi, hB_xc49rsi, hE_xc49r9, hB_xc49r9, hE_xc49r11, hB_xc49r11, hE_xc49m78, hB_xc49m78, hE_xc49m80, hB_xc49m80, hE_xc49m88, hB_xc49m88, hE_xc49m90, hB_xc49m90⟩ := hL
   janus64_run [Util.readLE_32, hE_xc49rcx, hE_xc49rdx, hE_xc49rbx, hE_xc49rsi, hE_xc49r9, hE_xc49r11, hE_xc49m78, hE_xc49m80, hE_xc49m88, hE_xc49m90, hsp4, Nat.mod_eq_of_lt hB_xc49rcx, Nat.mod_eq_of_lt hB_xc49rdx, Nat.mod_eq_of_lt hB_xc49rbx, Nat.mod_eq_of_lt hB_xc49rsi, Nat.mod_eq_of_lt hB_xc49r9, Nat.mod_eq_of_lt hB_xc49r11, Nat.mod_eq_of_lt hB_xc49m78, Nat.mod_eq_of_lt hB_xc49m80, Nat.mod_eq_of_lt hB_xc49m88, Nat.mod_eq_of_lt hB_xc49m90]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_c49_d1b
   refine ⟨((if ¬xc49rcx = 0 ∧ (BitVec.ofNat 64 xc49rcx).msb = false then BitVec.ofNat 64 xc49rdx ||| BitVec.ofNat 64 xc49rbx &&& if (18446744073709551616 - (xc49rcx - 64)) % 18446744073709551616 < 64 then 18446744073709551615#64 else 0#64 else BitVec.ofNat 64 xc49rdx).toNat) % 18446744073709551616, ((if ¬xc49rcx = 0 ∧ (BitVec.ofNat 64 xc49rcx).msb = false then (BitVec.ofNat 64 xc49rsi &&& if (18446744073709551616 - (xc49rcx - 64)) % 18446744073709551616 < 64 then 18446744073709551615#64 else 0#64) ||| BitVec.ofNat 64 xc49rbx else BitVec.ofNat 64 xc49m78).toNat) % 18446744073709551616, ((if ¬xc49rcx = 0 ∧ (BitVec.ofNat 64 xc49rcx).msb = false then (BitVec.ofNat 64 xc49r9 &&& if (18446744073709551616 - (xc49rcx - 64)) % 18446744073709551616 < 64 then 18446744073709551615#64 else 0#64) ||| BitVec.ofNat 64 xc49rsi else BitVec.ofNat 64 xc49m80).toNat) % 18446744073709551616, ((if ¬xc49rcx = 0 ∧ (BitVec.ofNat 64 xc49rcx).msb = false then (BitVec.ofNat 64 xc49r11 &&& if (18446744073709551616 - (xc49rcx - 64)) % 18446744073709551616 < 64 then 18446744073709551615#64 else 0#64) ||| BitVec.ofNat 64 xc49m88 else BitVec.ofNat 64 xc49m88).toNat) % 18446744073709551616, ((if ¬xc49rcx = 0 ∧ (BitVec.ofNat 64 xc49rcx).msb = false then BitVec.ofNat 64 xc49r11 else BitVec.ofNat 64 xc49m90).toNat) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩

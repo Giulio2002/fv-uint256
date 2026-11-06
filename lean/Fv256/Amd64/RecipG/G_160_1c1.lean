@@ -22,7 +22,7 @@ theorem g_160_1c1 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x160rax, hB_x160rax, hE_x160rcx, hB_x160rcx, hE_x160rbx, hB_x160rbx, hE_x160rsi, hB_x160rsi, hE_x160rdi, hB_x160rdi, hE_x160r8, hB_x160r8, hE_x160r9, hB_x160r9, hE_x160m208, hB_x160m208, hE_x160m210, hB_x160m210, hE_x160m218, hB_x160m218, hE_x160m220, hB_x160m220⟩ := hL
   janus64_run [Util.readLE_32, hE_x160rax, hE_x160rcx, hE_x160rbx, hE_x160rsi, hE_x160rdi, hE_x160r8, hE_x160r9, hE_x160m208, hE_x160m210, hE_x160m218, hE_x160m220, hsp4, Nat.mod_eq_of_lt hB_x160rax, Nat.mod_eq_of_lt hB_x160rcx, Nat.mod_eq_of_lt hB_x160rbx, Nat.mod_eq_of_lt hB_x160rsi, Nat.mod_eq_of_lt hB_x160rdi, Nat.mod_eq_of_lt hB_x160r8, Nat.mod_eq_of_lt hB_x160r9, Nat.mod_eq_of_lt hB_x160m208, Nat.mod_eq_of_lt hB_x160m210, Nat.mod_eq_of_lt hB_x160m218, Nat.mod_eq_of_lt hB_x160m220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [← BitVec.ofNat_add])
   all_goals (
   unfold P_160_1c1
