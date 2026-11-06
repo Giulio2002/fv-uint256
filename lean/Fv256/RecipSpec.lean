@@ -14,4 +14,9 @@ def recipExact (m : Nat) : Nat := (2 ^ 512 - 1) / m
 (the Newton refinement of the library may end one unit low). -/
 def RecipOK (m mu : Nat) : Prop := recipExact m - 1 ≤ mu ∧ mu ≤ recipExact m
 
+/-- the weaker window provable for every `m` with `2^192 ≤ m` (`ex - 3 ≤ mu ≤ ex`); `MulModWithReciprocal` is specified under this one -/
+def RecipWeak (m mu : Nat) : Prop := recipExact m - 3 ≤ mu ∧ mu ≤ recipExact m
+
+theorem RecipOK.weak {m mu : Nat} (h : RecipOK m mu) : RecipWeak m mu := ⟨by have := h.1; omega, h.2⟩
+
 end Fv256.F

@@ -9,9 +9,9 @@ import Fv256.SpecF
 
 namespace Fv256.F
 
-/-- the Barrett quotient estimate is never too large and at most 3 too small -/
-theorem barrett_bounds (x m mu : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (hm2 : m < 2 ^ 256) (hmu : RecipOK m mu) :
-    (x / 2 ^ 192 * mu / 2 ^ 320) * m ≤ x ∧ x < (x / 2 ^ 192 * mu / 2 ^ 320 + 4) * m := by
+/-- the Barrett quotient estimate is never too large and at most 5 too small (for any `mu` in the `RecipWeak` window) -/
+theorem barrett_bounds (x m mu : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (hm2 : m < 2 ^ 256) (hmu : RecipWeak m mu) :
+    (x / 2 ^ 192 * mu / 2 ^ 320) * m ≤ x ∧ x < (x / 2 ^ 192 * mu / 2 ^ 320 + 6) * m := by
   obtain ⟨hlo, hhi⟩ := hmu
   unfold recipExact at hlo hhi
   have hm0 : 0 < m := by omega
@@ -38,14 +38,14 @@ theorem barrett_bounds (x m mu : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (
     have h2 : (2 ^ 512 - 1) / m * m ≤ 2 ^ 512 - 1 := Nat.div_mul_le_self _ _
     have : 0 < 2 ^ 512 := Nat.two_pow_pos _
     omega
-  have hmu2 : M * N ≤ (mu + 2) * m := by
+  have hmu2 : M * N ≤ (mu + 4) * m := by
     have h1 : (2 ^ 512 - 1) / m * m + m > 2 ^ 512 - 1 := by
       have := Nat.lt_div_mul_add (a := 2 ^ 512 - 1) (b := m) hm0
       omega
-    have h2 : (2 ^ 512 - 1) / m ≤ mu + 1 := by omega
-    have h3 : (2 ^ 512 - 1) / m * m ≤ (mu + 1) * m := Nat.mul_le_mul_right m h2
-    have : (mu + 1) * m = mu * m + m := by rw [Nat.add_mul, Nat.one_mul]
-    have h4 : (mu + 2) * m = mu * m + 2 * m := by rw [Nat.add_mul]
+    have h2 : (2 ^ 512 - 1) / m ≤ mu + 3 := by omega
+    have h3 : (2 ^ 512 - 1) / m * m ≤ (mu + 3) * m := Nat.mul_le_mul_right m h2
+    have : (mu + 3) * m = mu * m + 3 * m := by rw [Nat.add_mul]
+    have h4 : (mu + 4) * m = mu * m + 4 * m := by rw [Nat.add_mul]
     omega
   have hN0 : 0 < N := by rw [hN]; exact Nat.two_pow_pos _
   constructor
@@ -68,22 +68,21 @@ theorem barrett_bounds (x m mu : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (
       have := Nat.mul_lt_mul_of_pos_right h1 hm0
       omega
     -- q1 * (M*N) ≤ q1 * ((mu+2) m)
-    have h3 : q1 * (M * N) ≤ q1 * mu * m + q1 * (2 * m) := by
-      calc q1 * (M * N) ≤ q1 * ((mu + 2) * m) := Nat.mul_le_mul_left _ hmu2
-        _ = q1 * mu * m + q1 * (2 * m) := by rw [Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
-    have h4 : q1 * (2 * m) < 2 * m * N := by
+    have h3 : q1 * (M * N) ≤ q1 * mu * m + q1 * (4 * m) := by
+      calc q1 * (M * N) ≤ q1 * ((mu + 4) * m) := Nat.mul_le_mul_left _ hmu2
+        _ = q1 * mu * m + q1 * (4 * m) := by rw [Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
+    have h4 : q1 * (4 * m) < 4 * m * N := by
       rw [Nat.mul_comm q1]
       exact Nat.mul_lt_mul_of_pos_left hq1lt (by omega)
-    -- (qh + 1) * N * m + 2 * m * N > q1 * M * N
-    have h5 : (q1 * M) * N < ((qh + 1) * m + 2 * m) * N := by
+    have h5 : (q1 * M) * N < ((qh + 1) * m + 4 * m) * N := by
       have e1 : (q1 * M) * N = q1 * (M * N) := Nat.mul_assoc _ _ _
-      have e2 : ((qh + 1) * m + 2 * m) * N = (qh + 1) * N * m + 2 * m * N := by
+      have e2 : ((qh + 1) * m + 4 * m) * N = (qh + 1) * N * m + 4 * m * N := by
         rw [Nat.add_mul, Nat.mul_right_comm]
       rw [e1, e2]; omega
     have h6 := Nat.lt_of_mul_lt_mul_right h5
     have : M ≤ m := hm1
-    have h7 : (qh + 4) * m = (qh + 1) * m + 2 * m + m := by
-      rw [show qh + 4 = (qh + 1) + 2 + 1 by omega, Nat.add_mul, Nat.add_mul, Nat.one_mul]
+    have h7 : (qh + 6) * m = (qh + 1) * m + 4 * m + m := by
+      rw [show qh + 6 = (qh + 1) + 4 + 1 by omega, Nat.add_mul, Nat.add_mul, Nat.one_mul]
     omega
 
 /-- the 320-bit remainder after `r1 - r2` and the borrow correction -/
@@ -138,5 +137,38 @@ theorem trunc_est (P T N : Nat) (hN : 0 < N) (h1 : T ≤ P) (h2 : P < T + N) :
     have : N * (T / N + 2) ≤ N * (P / N) := Nat.mul_le_mul_left N hc'
     rw [Nat.mul_add] at this
     omega
+
+/-- the whole estimate chain: if the code's quotient `q` is the exact Barrett value or one less, the remainder is correct -/
+theorem reduce_value (x m mu q : Nat) (hx : x < 2 ^ 512) (hm1 : 2 ^ 192 ≤ m) (hm2 : m < 2 ^ 256) (hmu : RecipWeak m mu)
+    (hq1 : x / 2 ^ 192 * mu / 2 ^ 320 ≤ q + 1) (hq2 : q ≤ x / 2 ^ 192 * mu / 2 ^ 320) :
+    reduceR x m q < 2 ^ 320 ∧ reduceR x m q % m = x % m := by
+  obtain ⟨b1, b2⟩ := barrett_bounds x m mu hx hm1 hm2 hmu
+  refine reduceR_spec x m q 7 hx hm1 hm2 (by decide) ?_ ?_
+  · exact Nat.le_trans (Nat.mul_le_mul_right m hq2) b1
+  · have : (x / 2 ^ 192 * mu / 2 ^ 320 + 6) * m ≤ (q + 7) * m := Nat.mul_le_mul_right m (by omega)
+    omega
+
+/-- the final `while r ≥ m: r -= m` loop computes `r mod m` -/
+theorem drain_mod (m : Nat) (hm : 0 < m) : ∀ (n r : Nat), r < n * m + m → ∃ k, r - k * m < m ∧ (r - k * m) = r % m := by
+  intro n
+  induction n with
+  | zero => intro r hr; exact ⟨0, by simpa using hr, by simp; exact (Nat.mod_eq_of_lt (by simpa using hr)).symm⟩
+  | succ n ih =>
+    intro r hr
+    by_cases h : r < m
+    · exact ⟨0, by simpa using h, by simp; exact (Nat.mod_eq_of_lt h).symm⟩
+    · have h' : r - m < n * m + m := by
+        have : (n + 1) * m = n * m + m := by rw [Nat.add_mul, Nat.one_mul]
+        omega
+      obtain ⟨k, hk1, hk2⟩ := ih (r - m) h'
+      refine ⟨k + 1, ?_, ?_⟩
+      · have : (k + 1) * m = k * m + m := by rw [Nat.add_mul, Nat.one_mul]
+        omega
+      · have e : r % m = (r - m) % m := by
+          have : r = (r - m) + m := by omega
+          conv => lhs; rw [this]
+          rw [Nat.add_mod_right]
+        have : (k + 1) * m = k * m + m := by rw [Nat.add_mul, Nat.one_mul]
+        omega
 
 end Fv256.F

@@ -31,4 +31,9 @@ def expSpec (b e : Nat) : Nat := b ^ e % 2 ^ 256
 /-- `z.Sqrt(x)` is `z` iff `z` is the integer square root: `z² ≤ x < (z+1)²`. -/
 def IsSqrt (x z : Nat) : Prop := z * z ≤ x ∧ x < (z + 1) * (z + 1)
 
+/-- precondition on the reciprocal argument of `MulModWithReciprocal(x, y, m, mu)`: when `m` has four words (`m[3] ≠ 0`, i.e. `2^192 ≤ m`),
+`mu` is within the provable window `⌊(2^512-1)/m⌋ - 3 ≤ mu ≤ ⌊(2^512-1)/m⌋` (`RecipWeak`); for shorter `m` the argument is unused.
+The documented result is `x * y mod m`, and `0` when `m = 0` (`mulmodSpec`), exactly. -/
+def MuOK (m mu : Nat) : Prop := 2 ^ 192 ≤ m → RecipWeak m mu
+
 end Fv256.F
