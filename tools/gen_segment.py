@@ -14,7 +14,7 @@ ap.add_argument('--imports',default=''); ap.add_argument('--frame',default=''); 
 args=ap.parse_args()
 if args.isa!='amd64': sys.exit('only amd64 is supported')
 t=open(args.trace).read()
-i=t.index('⊢ ReachesRet')
+import re as _re; i=_re.search('⊢ Reaches(Ret)?',t).start()
 g=re.sub(r'\s+',' ',t[i:])
 def grp(e,start=0):
     assert e[start]=='('
