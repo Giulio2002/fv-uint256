@@ -159,7 +159,8 @@ theorem fd_post_call (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
       have a2 := hzS (strconvErrSyntax, strconvErrSyntax + 16) (by simp [staticRanges])
       simp only [outside_cons, outside_nil, and_true, Nat.add_sub_cancel_left] at a1 a2 ⊢
       exact ⟨a1, a2⟩
-    have hpD' : pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat := hpz
+    have hpD' : pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat := hpz.resolve_left (by omega)
+    have hpW' : pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat := hpW.resolve_left (by omega)
     refine ReachesRet.done hpc'' ?_
     unfold FdPost Fv256.C.Kept
     refine ⟨⟨hpc'', ?_, u5, ?_, ?_, ?_, ?_⟩, Or.inr (Or.inr ⟨clo, nS.toNat - 19 * i - clo, hfd, q, t, ?_, ?_, ?_, ?_⟩)⟩
@@ -180,7 +181,7 @@ theorem fd_post_call (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
         rw [hpn']; rw [hln'] at hk
         refine hFs1.readLE _ _ ?_
         simp only [outside_cons, outside_nil, and_true]
-        exact ⟨out_sub _ _ _ _ _ _ hpW (by omega) (by omega), out_sub _ _ _ _ _ _ hpD' (by omega) (by omega)⟩
+        exact ⟨out_sub _ _ _ _ _ _ hpW' (by omega) (by omega), out_sub _ _ _ _ _ _ hpD' (by omega) (by omega)⟩
     · have hFB1 : MemFrame s.mem S1.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) :=
         hFs1.mono (by
           intro a n h

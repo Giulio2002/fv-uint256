@@ -68,11 +68,14 @@ def Env (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi
   R.inv b L (s.regs 14).toNat (view R.rt L s.mem) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) [(lo, hi)])
 
-/-- the state-independent runtime-model facts -/
+/-- the state-independent runtime-model facts.  ISA note: unlike arm64, amd64's `toError` needs neither `8 ≤ R2.depth` nor the
+model law `hT` (its ifaceeq `CallerOK` follows from the stack window, and the type-descriptor facts stay in `StaticOK`); only the
+`(T, T+48)` entry of the static ranges is excluded from the Outside-`R2.priv` requirement (`type_desc` puts the descriptor inside
+`R2.priv`; see `SfdWitMod.mod_contra_old` and `Sat.modEnv_sat`). -/
 def Mod (R : RtInv) (R2 : IfaceModel) (T : Nat) (L : List (Nat × Nat)) : Prop :=
   R2.Laws ∧ R2.depth ≤ 4096 ∧ R2.IsType T ∧ (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧ (∀ r ∈ R.rt, 0 < r.1) ∧
-  (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R2.priv) ∧
+  (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges C T, r ≠ (T, T + 48) → Outside r.1 (r.2 - r.1) R2.priv) ∧
   R.ok C.newobject [C.numErrType] ∧ R.ok C.wb1 [1] ∧ R.ok C.wb2 [2]
 
 /-- the facts about a 1..19-byte chunk `(sp, sl)` that `strconv.ParseUint` may copy for its error value -/
@@ -125,8 +128,8 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   Buffer s z 32 true ∧ (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧ (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
   Outside z.toNat 32 R2.priv ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
   ((s.regs 14).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 14).toNat + 16) ∧
-  Buffer s pS nS.toNat false ∧ (pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
-  (pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
+  Buffer s pS nS.toNat false ∧ (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
+  (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
   ChunkAll C R R2 L b pS.toNat nS.toNat lo hi s.mem
 
 open Fv256.C in
