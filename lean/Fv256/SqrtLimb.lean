@@ -52,4 +52,32 @@ theorem add_shr (a0 a1 a2 a3 b0 b1 b2 b3 : Nat)
   rw [shr_top _ h3]
   omega
 
+
+theorem dec_toNat (n : Nat) (h : n < 2 * 2 ^ 64) : (decide (18446744073709551616 ≤ n)).toNat = n / 18446744073709551616 := by
+  by_cases hc : 18446744073709551616 ≤ n
+  · simp only [hc, decide_true, Bool.toNat_true]; omega
+  · simp only [hc, decide_false, Bool.toNat_false]; omega
+
+/-- `add_shr` in the exact form the executor produces (carries as `decide`) -/
+theorem add_shr' (a0 a1 a2 a3 b0 b1 b2 b3 : Nat)
+    (ha0 : a0 < 2 ^ 64) (ha1 : a1 < 2 ^ 64) (ha2 : a2 < 2 ^ 64) (ha3 : a3 < 2 ^ 64)
+    (hb0 : b0 < 2 ^ 64) (hb1 : b1 < 2 ^ 64) (hb2 : b2 < 2 ^ 64) (hb3 : b3 < 2 ^ 64)
+    (hlt : (a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2 + 2 ^ 192 * a3) + (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3) < 2 ^ 256) :
+    ((BitVec.ofNat 64 (a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat) <<< 63) |||
+        ((BitVec.ofNat 64 a0 + BitVec.ofNat 64 b0) >>> 1)).toNat +
+      18446744073709551616 * ((BitVec.ofNat 64 (a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat) <<< 63) |||
+        (BitVec.ofNat 64 (a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat) >>> 1)).toNat +
+      340282366920938463463374607431768211456 * ((BitVec.ofNat 64 (b3 + a3 + (decide (18446744073709551616 ≤ a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat)).toNat) <<< 63) |||
+        (BitVec.ofNat 64 (a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat) >>> 1)).toNat +
+      6277101735386680763835789423207666416102355444464034512896 * (BitVec.ofNat 64 (b3 + a3 + (decide (18446744073709551616 ≤ a2 + b2 + (decide (18446744073709551616 ≤ a1 + b1 + (decide (18446744073709551616 ≤ a0 + b0)).toNat)).toNat)).toNat) >>> 1).toNat
+    = ((a0 + 2 ^ 64 * a1 + 2 ^ 128 * a2 + 2 ^ 192 * a3) + (b0 + 2 ^ 64 * b1 + 2 ^ 128 * b2 + 2 ^ 192 * b3)) / 2 := by
+  have c1 : (decide (18446744073709551616 ≤ a0 + b0)).toNat = (a0 + b0) / 18446744073709551616 := dec_toNat _ (by omega)
+  have c2 : (decide (18446744073709551616 ≤ a1 + b1 + (a0 + b0) / 18446744073709551616)).toNat =
+      (a1 + b1 + (a0 + b0) / 18446744073709551616) / 18446744073709551616 := dec_toNat _ (by omega)
+  have c3 : (decide (18446744073709551616 ≤ a2 + b2 + (a1 + b1 + (a0 + b0) / 18446744073709551616) / 18446744073709551616)).toNat =
+      (a2 + b2 + (a1 + b1 + (a0 + b0) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616 := dec_toNat _ (by omega)
+  rw [c1, c2, c3]
+  have := add_shr a0 a1 a2 a3 b0 b1 b2 b3 ha0 ha1 ha2 ha3 hb0 hb1 hb2 hb3 hlt
+  simpa using this
+
 end Fv256.SqrtLimb
