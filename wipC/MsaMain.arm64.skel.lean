@@ -80,6 +80,14 @@ set_option maxHeartbeats 4000000 in
 theorem model_gr : RtLiveContract linked grA 4096 R growsliceSpec growsliceLive := by
   janus_live_growslice (u8A, 1, 0) 1 0 1 16 8 hok_gr
 
+-- DESIGN FINDING (witness drafting): the statement above (and the amd64/arm64 block lemmas) assume
+-- `Outside u8T 256 R.rt` (used to read the element type's size/ptrdata through the frame, `hOutU` in blk0). The generic
+-- toy runtime `toyR tys ok` owns the type descriptors: `R.rt = [heap, bump, wbuf] ++ [(u8A, u8A + 16)]` (see `rt_eq` in
+-- Push.lean), so that hypothesis is FALSE for the witness runtime and the witness could not be built. Fix before writing
+-- the witness: drop `Outside u8T 256 R.rt` and read the descriptor from the runtime invariant instead
+-- (`R.inv` / `rtView` keeps the descriptor words; cf. how Push.lean's `correctness` obtains `typSize` for growslice), or
+-- weaken it to `Apart u8T 16 (sp - 4232) 4272` plus the descriptor facts as explicit hypotheses
+-- `readLE s.mem u8T 8 = 1 ∧ readLE s.mem (u8T + 8) 8 = 0` (true of the real runtime; the witness checks them by `decide`).
 -- GROWTH-PATH WITNESS (pending, per main): a second witness with len = 24, cap = 24 (one growslice call, for the last limb
 -- only: len + 8 > cap at block 3) and the stub parameters fixed to that single request
 -- `growslice(p, 32, 24, 8, u8)`: `ok := fun a args => a = grA ∧ args = [p0, 32, 24, 8, u8A]`,
