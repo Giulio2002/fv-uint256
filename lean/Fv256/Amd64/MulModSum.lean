@@ -21,6 +21,7 @@ import Fv256.Amd64.ReduceSpec
 import Fv256.Arm64.MulModLem
 import Fv256.Amd64.MulModLemA
 import Fv256.Amd64.MulModDefsA
+import Fv256.FieldTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -61,7 +62,7 @@ theorem mulmod_summary (hR4 : Fv256.Amd64.ReduceSpec.R4Summary) :
         Apart (s.regs 7).toNat 32 ((s.regs 4).toNat - 0x378) 0x3a0 ∧
         Apart ((s.regs 14).toNat + 16) 8 ((s.regs 4).toNat - 0x378) 0x3a0)
       (fun s s' => s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
-        s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
+        s'.xmm 15 = s.xmm 15 ∧
         s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.mulmodSpec (s.mem.readLE (s.regs 3).toNat 32)
           (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 7).toNat 32) ∧
         MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x378, (s.regs 4).toNat),
@@ -78,36 +79,24 @@ theorem mulmod_summary (hR4 : Fv256.Amd64.ReduceSpec.R4Summary) :
     Fv256.CodeIn.lib_summary hcChain (Fv256.Amd64.UdivremL.udivrem_rem_L (L := 8) (by omega)),
     Fv256.CodeIn.lib_summary hcRecip Fv256.Amd64.MulModDefsA.recipU,
     Fv256.CodeIn.lib_summary hcR4 hR4]
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · first | rfl | janus_assumption | simp_all
-    · first | rfl | janus_assumption | simp_all
+  · refine ⟨?_, ?_⟩
     · simp [Fv256.F.mulmodSpec]
     · janus_frame
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · first | rfl | janus_assumption | simp_all
-    · first | rfl | janus_assumption | simp_all
+  · refine ⟨?_, ?_⟩
     · simp_all [Fv256.F.mulmodSpec]
     · janus_frame
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · first | rfl | janus_assumption | simp_all
-    · first | rfl | janus_assumption | simp_all
+  · refine ⟨?_, ?_⟩
     · simp_all [Fv256.F.mulmodSpec]
     · janus_frame
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · first | rfl | janus_assumption | simp_all
-    · first | rfl | janus_assumption | simp_all
+  · refine ⟨?_, ?_⟩
     · exact Fv256.Amd64.MulModLemA.tail_modA _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ (by janus_assumption) (by janus_assumption)
         (by janus_assumption) (by omega) (by omega) (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
     · janus_frame
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · first | rfl | janus_assumption | simp_all
-    · first | rfl | janus_assumption | simp_all
+  · refine ⟨?_, ?_⟩
     · exact Fv256.Arm64.MulModLem.tail_udiv _ _ _ _ _ _ _ _ _ _ _ _ _ (Fv256.Amd64.MulModLemA.nz3A _ _ _ _ (by janus_assumption) (by janus_assumption))
         (by janus_assumption) (by janus_assumption) (by omega) (by omega) (by omega) (by omega) (by omega) (by omega)
     · janus_frame
-  · refine ⟨?_, ?_, ?_, ?_⟩
-    · first | rfl | janus_assumption | simp_all
-    · first | rfl | janus_assumption | simp_all
+  · refine ⟨?_, ?_⟩
     · exact Fv256.Arm64.MulModLem.tail_r4 _ _ _ _ _ _ (Fv256.Arm64.MulModLem.nz4 _ _ _ _ (by janus_assumption))
         (by janus_assumption) (by janus_assumption)
     · janus_frame

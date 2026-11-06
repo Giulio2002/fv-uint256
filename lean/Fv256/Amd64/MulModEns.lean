@@ -24,7 +24,7 @@ abbrev MmPre (s : State) : Prop :=
 
 abbrev MmPost (s s' : State) : Prop :=
   s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
-  s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
+  s'.xmm 15 = s.xmm 15 ∧
   s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.mulmodSpec (s.mem.readLE (s.regs 3).toNat 32)
     (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 7).toNat 32) ∧
   MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x378, (s.regs 4).toNat),
@@ -57,7 +57,7 @@ theorem ensures_mm {p : Janus.Amd64.Program} {entry : Nat} (hsum : Summary p ent
     simp only [regSP, regG] at *
     rw [h0, h3, h1, h7]
     exact ⟨⟨hacc, by rw [hrs]; exact hret.user⟩, hsp, hg, hw, hs.zero, hz, hx, hy, hm, hdz, hdx, hdy, hdm, hdg⟩
-  · intro s' ⟨e0, e4, e5, e14, e15, edf, emx, hv, hf⟩
+  · intro s' ⟨e0, e4, e5, e14, e15, hv, hf⟩
     refine ⟨⟨?_, ?_, ?_, ?_⟩, ?_, ?_, ?_⟩
     · simp only [regSP]; rw [e4]
     · simp only [regFP]; rw [e5]

@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.MulModRecProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -18,58 +18,62 @@ import Fv256.Amd64.UdivremL
 import Fv256.Amd64.ReduceSpec
 import Fv256.Arm64.MulModLem
 import Fv256.Amd64.MulModLemA
+import Fv256.FieldTac
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.MulModRecSum
 
+abbrev mulmodrecEntry : Nat := segAddr Fv256.MulModRecProg.program "github.com/holiman/uint256.(*Int).MulModWithReciprocal"
+
 set_option maxRecDepth 100000 in
-theorem hcUmulProg : Janus.Contracts.EqHashModel.CodeIn64 Fv256.UmulProg.program Extracted.program :=
+theorem hcUmulProg : Janus.Contracts.EqHashModel.CodeIn64 Fv256.UmulProg.program Fv256.MulModRecProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 100000 in
-theorem hcMod : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Extracted.program :=
+theorem hcMod : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ModProg.program Fv256.MulModRecProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 100000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Fv256.MulModRecProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 100000 in
-theorem hcR4 : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ReduceProg.program Extracted.program :=
+theorem hcR4 : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ReduceProg.program Fv256.MulModRecProg.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem correctness_param (hR4 : Fv256.Amd64.ReduceSpec.R4Summary) (z x y m mu : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x, y, m, mu]
-      (fun s => StackGuardOK s 0x298 ∧ 0x2f0 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x2e8 0x30 ∧
-        Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 false ∧ Buffer s mu 40 false ∧
-        Apart z.toNat 32 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
-        Apart x.toNat 32 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
-        Apart y.toNat 32 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
-        Apart m.toNat 32 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
-        Apart mu.toNat 40 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
-        Fv256.F.MuOK (valueAt s m 32) (s.mem.readLE mu.toNat 40) ∧
-        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x2e8) 0x318)
-      (fun s s' => s'.regs 0 = z ∧
-        valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s x 32) (valueAt s y 32) (valueAt s m 32) ∧
-        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x2e8, (s.regs regSP).toNat),
-          ((s.regs regSP).toNat + 8, (s.regs regSP).toNat + 0x30)]) := by
-  intro ret hret s hs ⟨hg, hsp, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩, ⟨huw, hu⟩, hdz, hdx, hdy, hdm, hdu, hmu, hdg⟩
-  janus64_intro hs
+theorem mulmodrec_summary (hR4 : Fv256.Amd64.ReduceSpec.R4Summary) :
+    Summary Fv256.MulModRecProg.program mulmodrecEntry
+      (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
+        0x2f0 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x298 ∧ StackWritable s 0x2e8 0x30 ∧ s.xmm 15 = 0 ∧
+        Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧ Buffer s (s.regs 7) 32 false ∧ Buffer s (s.regs 6) 40 false ∧
+        Apart (s.regs 0).toNat 32 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
+        Apart (s.regs 3).toNat 32 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
+        Apart (s.regs 1).toNat 32 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
+        Apart (s.regs 7).toNat 32 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
+        Apart (s.regs 6).toNat 40 ((s.regs 4).toNat - 0x2e8) 0x318 ∧
+        Fv256.F.MuOK (s.mem.readLE (s.regs 7).toNat 32) (s.mem.readLE (s.regs 6).toNat 40) ∧
+        Apart ((s.regs 14).toNat + 16) 8 ((s.regs 4).toNat - 0x2e8) 0x318)
+      (fun s s' => s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
+        s'.xmm 15 = s.xmm 15 ∧
+        s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.mulmodSpec (s.mem.readLE (s.regs 3).toNat 32)
+          (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 7).toNat 32) ∧
+        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0x2e8, (s.regs 4).toNat),
+          ((s.regs 4).toNat + 8, (s.regs 4).toNat + 0x30)]) := by
+  intro s hpc ⟨⟨hra1, hra2⟩, hsp, hg, ⟨hlow, hnw, hacc⟩, hx15, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, ⟨hmw, hm⟩, ⟨huw, hu⟩, hdz, hdx, hdy, hdm, hdu, hmu, hdg⟩
   have hgl := hg.load
   have hgb := hg.below
   have hnw2 := hg.noWrap
   have hgr := hg.readable
   simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
   simp only [regSP] at hacc hlow hnw hdz hdx hdy hdm hdu hsp
-  simp only [valueAt] at hmu ⊢
   unfold Fv256.F.MuOK at hmu
   rw [Util.readLE_32] at hmu
-  have hmu2 : Arm64.Memory.readLE s.mem (m.toNat + 24) 8 ≠ 0 →
-      Fv256.F.RecipWeak (Arm64.Memory.readLE s.mem m.toNat 8 + 2 ^ 64 * Arm64.Memory.readLE s.mem (m.toNat + 8) 8 +
-        2 ^ 128 * Arm64.Memory.readLE s.mem (m.toNat + 16) 8 + 2 ^ 192 * Arm64.Memory.readLE s.mem (m.toNat + 24) 8) (Arm64.Memory.readLE s.mem mu.toNat 40) := by
+  have hmu2 : Arm64.Memory.readLE s.mem ((s.regs 7).toNat + 24) 8 ≠ 0 →
+      Fv256.F.RecipWeak (Arm64.Memory.readLE s.mem (s.regs 7).toNat 8 + 2 ^ 64 * Arm64.Memory.readLE s.mem ((s.regs 7).toNat + 8) 8 +
+        2 ^ 128 * Arm64.Memory.readLE s.mem ((s.regs 7).toNat + 16) 8 + 2 ^ 192 * Arm64.Memory.readLE s.mem ((s.regs 7).toNat + 24) 8) (Arm64.Memory.readLE s.mem (s.regs 6).toNat 40) := by
     intro hd
     exact hmu (Fv256.Arm64.MulModLem.ge192' _ _ _ _ hd)
   janus64_run [hmu2, Fv256.Amd64.MulModLemA.copy40x, Fv256.Arm64.MulModLem.ge192, Util.readLE_32, Nat.or_eq_zero_iff, Fv256.B.wv4_eq, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.F.wv_zero4, Fv256.F.wv_zero4', false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcUmulProg Fv256.Amd64.UmulSum.umul_summary,

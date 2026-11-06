@@ -6,12 +6,30 @@ import Fv256.Arm64.MulModDefs
 import Fv256.Arm64.ReduceSpec
 import Fv256.Arm64.MulModRecSum
 import Fv256.Arm64.MulModRecCorr
+import Fv256.Arm64.R4Sum
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 set_option exponentiation.threshold 600
 
-namespace Fv256.Arm64.MulModRecCorr.Witness
+namespace Fv256.Arm64.MulModWithReciprocal
+
+theorem correctness (z x y m mu : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, y, m, mu]
+      (fun s => GuardOK s 720 ∧ s.sp.toNat % 16 = 0 ∧ 760 ≤ s.sp.toNat ∧ s.sp.toNat + 48 ≤ 2 ^ 48 ∧
+        s.mem.accessible (s.sp.toNat - 760) (760 + 48) true = true ∧
+        Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 760) 808 ∧
+        Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧ Ptr32 s.mem m false ∧ (mu.toNat + 40 ≤ 2 ^ 48 ∧ s.mem.accessible mu.toNat 40 false = true) ∧
+        Apart z.toNat 32 (s.sp.toNat - 760) 808 ∧ Apart x.toNat 32 (s.sp.toNat - 760) 808 ∧
+        Apart y.toNat 32 (s.sp.toNat - 760) 808 ∧ Apart m.toNat 32 (s.sp.toNat - 760) 808 ∧
+        Apart mu.toNat 40 (s.sp.toNat - 760) 808 ∧
+        Fv256.F.MuOK (val256 s.mem m.toNat) (s.mem.readLE mu.toNat 40))
+      (fun s s' => s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Fv256.F.mulmodSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem m.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 760, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 48)])  :=
+  Fv256.Arm64.MulModRecCorr.correctness_param Fv256.Arm64.R4Seg.r4_summary z x y m mu
+
+namespace Witness
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -73,4 +91,6 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y m mu : BitVec 64), RetAd
         Fv256.F.MuOK (val256 s.mem m.toNat) (s.mem.readLE mu.toNat 40)) :=
   ⟨ret, s0, z, x, y, m, mu, hret, setup, hpre⟩
 
-end Fv256.Arm64.MulModRecCorr.Witness
+end Witness
+
+end Fv256.Arm64.MulModWithReciprocal
