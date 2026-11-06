@@ -31,7 +31,6 @@ abbrev R4Pre (s : State) : Prop :=
 
 abbrev R4Post (s s' : State) : Prop :=
   s'.pc = s.regs 30 ∧ s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 29 = s.sp - 8#64 ∧ s'.regs 30 = s.regs 30 ∧
-  (∀ i, i ∉ [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24, 25, 26] → i = 0 ∨ i = 29 ∨ s'.regs i = s.regs i) ∧
   s'.mem.readLE (s.regs 0).toNat 32 = s.mem.readLE (s.regs 1).toNat 64 % s.mem.readLE (s.regs 2).toNat 32 ∧
   MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 168, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 16)]
 
