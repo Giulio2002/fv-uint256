@@ -311,7 +311,8 @@ elab "te_flags" : tactic => withMainContext do
         let b ← Meta.ppExpr (ty.getArg! 1)
         let rs ← Meta.ppExpr (ty.getArg! 2)
         let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
-        h.putStrLn s!"FRAME {ty.getAppFn.constName!} from={(toString a).take 120} to={(toString b).take 40} rs={(toString rs).take 300}"
+        let clean := fun (x : String) => (((x.replace "\n" " ").replace "    " " ").replace "  " " ").replace "  " " "
+        h.putStrLn s!"FRAME {ty.getAppFn.constName!} from={(clean (toString a)).take 700} TO={clean (toString b)} rs={(clean (toString rs)).take 400}"
         h.flush
     for n in names do
       let str ← withMainContext do
