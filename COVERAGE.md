@@ -6,7 +6,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 
 | Symbol | Owner | arm64 | amd64 | Notes |
 |---|---|---|---|---|
-| `uint256.Reciprocal` | FV-F | todo | todo | |
+| `uint256.Reciprocal` | FV-B | todo (FV-B5) | verified (+ witness) | amd64 (FV-B3, fv/wb-master, Janus 655a23fa, correctness + Witness.nonvacuous in one run, 1985 s cold incl. the ~60-module Recip chain; kernel replay passed; axioms Classical.choice, Quot.sound, propext; no runtime contracts). Spec: m < 2^192 => mu = 0; 2^192 <= m => RecipWeak (ex-3 <= mu <= ex); 2^193 <= m => RecipOK (ex-1 <= mu <= ex), ex = (2^512-1)/m, mu the 5-limb result at rsp0+8; frame [sp-0x240, sp+0x30). Library form: recip_summary over RecipProg, math via recip_chain. F-F1b stays an open question (COVERAGE-B.md). arm64 in progress (FV-B5) |
 | `uint256.FromBig` | FV-C | verified | verified | lean/Fv256/{Arm64,Amd64}/FromBig.lean; runtime.newobject contract + SetFromBig as callee summary; `Witness`: toy allocator + concrete call, `example := correctness ...` fires (hnew and precondition jointly satisfiable) |
 | `uint256.FromDecimal` | FV-E | todo | todo | |
 | `uint256.FromHex` | FV-C | verified | verified | lean/Fv256/{Arm64,Amd64}/FromHex.lean (FV-C; runtime.newobject contract); verify time arm64 209 s, amd64 114 s on Janus c7950624 |

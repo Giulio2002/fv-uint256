@@ -16,6 +16,7 @@ def live(addr):
     r, m, f = live_at(INS, addr, END)
     regs = sorted([x for x in r if x not in FIXED], key=lambda x: RIDX[x])
     slots = sorted([d for (k, d) in m if k == 'm'])
+    if addr == END: slots = slots + [0x240, 0x248, 0x250, 0x258, 0x260]
     return regs, slots, f
 def vname(cut, kind, key):
     return ('x%x%s' % (cut, key)) if kind == 'r' else ('x%xm%x' % (cut, key))
@@ -241,8 +242,12 @@ def emit_seg(A, B, trace_text):
                 W = wrap_mod(v); kind = 'nat'
                 fact = 'first | with_reducible rfl | (simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Nat.reducePow, Nat.mod_mod]; done)'
             new_vars.append(n); wit.append(W); args.append(n); eqs.append((n, W))
-            leaves.append(fact)
-            leaves.append('first | exact Nat.mod_lt _ (by decide) | exact BitVec.isLt _ | (split <;> decide)')
+            if kind == 'natb':
+                leaves.append('simp only [setRegF, ↓reduceIte, Nat.reduceEqDiff]; split <;> rfl')
+                leaves.append('split <;> decide')
+            else:
+                leaves.append(fact)
+                leaves.append('first | exact Nat.mod_lt _ (by decide) | exact BitVec.isLt _')
         else:
             old = nameA[it]
             args.append(old)
