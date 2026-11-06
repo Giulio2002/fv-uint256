@@ -1,6 +1,8 @@
 import Extracted
 import Fv256.SpecF
+import Fv256.CodeIn
 import Fv256.Amd64.ExpMain
+import Fv256.Amd64.EnsuresOfW
 
 /-!
 # `(*uint256.Int).Exp(base, exponent *Int) *Int` (amd64): `z = base ** exponent mod 2^256`
@@ -25,11 +27,42 @@ abbrev Pre (z b e : BitVec 64) : State → Prop :=
         ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0xa8 ∨ (s.regs regSP).toNat + 0x20 ≤ (s.regs regG).toNat + 16) ∧
         Extracted.program.DataLoaded s.mem
 
+set_option maxRecDepth 100000 in
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ExpProg.program Extracted.program :=
+  Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
+
+theorem hdata : Extracted.program.data = Fv256.ExpProg.program.data := rfl
+
+theorem hdl (m : Janus.Arm64.Memory) : Extracted.program.DataLoaded m ↔ Fv256.ExpProg.program.DataLoaded m := by
+  unfold Amd64.Program.DataLoaded; rw [hdata]
+
+theorem hentry : Fv256.Amd64.ExpSum.expEntry = Extracted.entry := rfl
+
+theorem hsumE :
+    Summary Extracted.program Extracted.entry
+      (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
+        0x100 ≤ (s.regs 4).toNat ∧ StackGuardOK s 0x20 ∧ StackWritable s 0xa8 0x20 ∧ s.xmm 15 = 0 ∧
+        Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧
+        ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 0).toNat) ∧
+        ((s.regs 3).toNat + 32 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 3).toNat) ∧
+        ((s.regs 1).toNat + 32 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 1).toNat) ∧
+        ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 0xa8 ∨ (s.regs 4).toNat + 0x20 ≤ (s.regs 14).toNat + 16) ∧
+        Extracted.program.DataLoaded s.mem)
+      (fun s s' => s'.regs 0 = s.regs 0 ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
+        s'.xmm 15 = s.xmm 15 ∧ s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
+        s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.expSpec (s.mem.readLE (s.regs 3).toNat 32) (s.mem.readLE (s.regs 1).toNat 32) ∧
+        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), ((s.regs 4).toNat - 0xa8, (s.regs 4).toNat + 0x20)]) := by
+  have h1 := Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.ExpMain.exp_summary
+  rw [hentry] at h1
+  intro s hpc hpre
+  obtain ⟨a, b, c, d, e, f, g, h, i, j, k, l, hl⟩ := hpre
+  exact h1 s hpc ⟨a, b, c, d, e, f, g, h, i, j, k, l, (hdl _).1 hl⟩
+
 theorem correctness (z b e : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, b, e] (Pre z b e)
       (fun s s' => s'.regs 0 = z ∧ valueAt s' z 32 = Fv256.F.expSpec (valueAt s b 32) (valueAt s e 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0xa8, (s.regs regSP).toNat + 0x20)]) :=
-  Fv256.Amd64.EnsuresOfW.ensures3w 0x100 0xa8 0x20 0x20 (by decide) (by decide) Fv256.F.expSpec Fv256.Amd64.ExpMain.exp_summary z b e
+  Fv256.Amd64.EnsuresOfW.ensures3w 0x100 0xa8 0x20 0x20 (by decide) (by decide) Fv256.F.expSpec hsumE z b e
 
 namespace Witness
 

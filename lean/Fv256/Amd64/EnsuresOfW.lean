@@ -62,7 +62,7 @@ theorem ensures3w {p : Janus.Amd64.Program} {entry : Nat} (lo b g u : Nat) (hlo 
 theorem ensures4w {p : Janus.Amd64.Program} {entry : Nat} (lo b g u : Nat) (hu : 8 ≤ u) (f : Nat → Nat → Nat → Nat)
     (hsum : Summary p entry
       (fun s => (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) ∧
-        lo ≤ (s.regs 4).toNat ∧ StackGuardOK s g ∧ StackWritable s b u ∧ p.DataLoaded s.mem ∧
+        lo ≤ (s.regs 4).toNat ∧ StackGuardOK s g ∧ StackWritable s b u ∧ p.DataLoaded s.mem ∧ s.xmm 15 = 0 ∧
         Buffer s (s.regs 0) 32 true ∧ Buffer s (s.regs 3) 32 false ∧ Buffer s (s.regs 1) 32 false ∧ Buffer s (s.regs 7) 32 false ∧
         ((s.regs 0).toNat + 32 ≤ (s.regs 4).toNat - b ∨ (s.regs 4).toNat + u ≤ (s.regs 0).toNat) ∧
         ((s.regs 3).toNat + 32 ≤ (s.regs 4).toNat - b ∨ (s.regs 4).toNat + u ≤ (s.regs 3).toNat) ∧
@@ -104,7 +104,7 @@ theorem ensures4w {p : Janus.Amd64.Program} {entry : Nat} (lo b g u : Nat) (hu :
   refine Summary.returns hsum hret hs.rip (by simp only [retAddrOf, hrs]) ?_ ?_
   · simp only [regSP, regG] at *
     rw [h0, h3, h1, h7]
-    exact ⟨⟨hacc, by rw [hrs]; exact hret.user⟩, hsp, hg, hw, hdl, hz, hx, hy, hm, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hdg, hdgz⟩
+    exact ⟨⟨hacc, by rw [hrs]; exact hret.user⟩, hsp, hg, hw, hdl, hs.zero, hz, hx, hy, hm, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hdg, hdgz⟩
   · intro s' ⟨e0, e4, e5, e14, e15, edf, emx, hv, hf⟩
     refine ⟨⟨?_, ?_, ?_, ?_⟩, ?_, ?_, ?_⟩
     · simp only [regSP]; rw [e4]
