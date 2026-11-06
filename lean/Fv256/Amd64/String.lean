@@ -3,13 +3,7 @@ import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.StrE
-import Fv256.Amd64.DecA
-import Fv256.Amd64.DecT
-import Fv256.Amd64.DecInit
-import Fv256.Amd64.DecIter
-import Fv256.Amd64.DecLoop
-import Fv256.Amd64.StrconvFormatUint
-import Fv256.Amd64.DecSummary
+import Fv256.Amd64.DecExt
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 open Fv256.E
@@ -45,7 +39,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   have hg2 := hg.readable
   obtain ⟨hwb, hwn, hwa⟩ := hw
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hg3 hg1 hg2 hwb hwn hwa hal hout hzd hgd
-  janus64_run [hdE] calls [dec_summary impl rt H z hc]
+  janus64_run [hdE] calls [dec_summary_ext impl rt H z hc]
   rename_i ha h4 h5 h14 hx hstr hfrm
   simp (disch := omega) only [valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint] at hstr
   refine ⟨by simpa [valueAt] using hstr, ?_⟩

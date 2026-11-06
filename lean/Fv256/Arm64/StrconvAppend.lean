@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.UtilE64
@@ -12,13 +12,13 @@ open Fv256.E
 
 namespace Fv256.Arm64.Dec
 
-abbrev au : Nat := segAddr Extracted.program "internal/strconv.AppendUint"
+abbrev au : Nat := segAddr Fv256.Arm64.DecProg.program "internal/strconv.AppendUint"
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 100000 in
 /-- `strconv.AppendUint(dst, i, 10)` when the result fits in `cap(dst)` (no `growslice`): appends the decimal digits of `i` (arm64). -/
 theorem append_summary :
-    Summary Extracted.program au
+    Summary Fv256.Arm64.DecProg.program au
       (fun s => s.regs 4 = 10#64 ∧ GuardOK s 128 ∧ s.sp.toNat % 16 = 0 ∧ 152 ≤ s.sp.toNat ∧ s.sp.toNat + 32 < 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 152) (152 + 32) true = true ∧ TabsOK s.mem ∧
         (s.regs 1).toNat + decLen (s.regs 3).toNat ≤ (s.regs 2).toNat ∧

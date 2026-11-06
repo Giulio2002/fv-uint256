@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.DecProg
 import Fv256.SpecE
 import Fv256.UtilE
 import Fv256.StrE
@@ -12,8 +12,8 @@ open Fv256.E
 
 namespace Fv256.Arm64.Dec
 
-abbrev fu : Nat := segAddr Extracted.program "internal/strconv.FormatUint"
-abbrev ssAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"
+abbrev fu : Nat := segAddr Fv256.Arm64.DecProg.program "internal/strconv.FormatUint"
+abbrev ssAddrL : Nat := Fv256.Arm64.DecProg.program.contractAddr "runtime.slicebytetostring"
 
 theorem steps_link64 {p : Janus.Program} (impl : List Segment) {s s' : State} {k : Nat}
     (h : Janus.Program.Steps p s k s') : Janus.Program.Steps (p.link impl) s k s' := by
@@ -43,8 +43,8 @@ set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 /-- Summary of `internal/strconv.FormatUint(u, 10)` (arm64): the result string holds the decimal digits of `u`. -/
 theorem formatUint_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
-    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H slicebytetostringSpec) :
-    Summary (Extracted.program.link impl) fu
+    (hc : RtContract (Fv256.Arm64.DecProg.program.link impl) ssAddrL rt 4096 H slicebytetostringSpec) :
+    Summary (Fv256.Arm64.DecProg.program.link impl) fu
       (fun s => s.regs 1 = 10#64 ∧ GuardOK s 96 ∧
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4192 ∨ s.sp.toNat ≤ (s.regs 28).toNat + 16) ∧ s.sp.toNat % 16 = 0 ∧ 4192 ≤ s.sp.toNat ∧ s.sp.toNat < 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 4192) 4192 true = true ∧ TabsOK s.mem ∧
