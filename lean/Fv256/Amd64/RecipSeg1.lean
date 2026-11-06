@@ -140,4 +140,15 @@ theorem seg1 (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry + 0xe7)) (hs
   · simp [setRegF, hr14]
   · simp [hx]
 
+/-- segments 0 and 1 composed: entry .. `recEntry + 0x14c` -/
+theorem seg01 (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hs : RecPre s)
+    (hm3 : s.mem.readLE ((s.regs 0).toNat + 24) 8 ≠ 0)
+    (hnp : ¬ ((BitVec.ofNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8) - 1#64 &&&
+            BitVec.ofNat 64 (s.mem.readLE ((s.regs 0).toNat + 24) 8) |||
+          (BitVec.ofNat 64 (s.mem.readLE (s.regs 0).toNat 8) |||
+              BitVec.ofNat 64 (s.mem.readLE ((s.regs 0).toNat + 8) 8) |||
+            BitVec.ofNat 64 (s.mem.readLE ((s.regs 0).toNat + 16) 8))).toNat = 0)) :
+    ReachesRet Fv256.RecipProg.program (BitVec.ofNat 64 (recEntry + 0x14c)) s (RecQ1 s) :=
+  Fv256.SegCompose.seg_trans (seg0 s hpc hs hm3 hnp) (fun S' hpc' hq => seg1 s S' hpc' hs hq)
+
 end Fv256.Amd64.RecipSeg
