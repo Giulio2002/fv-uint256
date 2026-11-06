@@ -47,7 +47,7 @@ theorem correctness (z x y m : BitVec 64) :
         ((s.regs 28).toNat + 24 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 28).toNat + 16))
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.addmodSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem m.toNat) ∧
-        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)]) := by
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]) := by
   refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ addmod_ext ?_ ?_
   · intro ret hret s hsu ⟨hg, hsal, hsb, hsc, hsw, hdata, hgw, ⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, ⟨hm, hm'⟩, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩
     have h30 : s.regs 30 = BitVec.ofNat 64 ret := by

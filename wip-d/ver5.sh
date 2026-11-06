@@ -9,7 +9,7 @@ rm -rf $snap; mkdir -p $snap/lean
 cp -a $R/lean/.lake $snap/lean/.lake
 [ -n "${OVERLAY:-}" ] && cp -a $OVERLAY/. $snap/lean/
 export LEAN_NUM_THREADS=8 JANUS_JOBS=2 JANUS_CACHE_DIR=/srv/janus-ops/jcache-shared PATH=$PATH:/usr/local/go/bin
-J=/srv/janus-wd2-pin/bin/janus
+J=/srv/janus-fvA-pin77f/bin/janus
 mkdir -p wip-d/logs
 s=$(date +%s)
 HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- timeout 7200 memcap $J verify build/ex-$isa-$fn --proof $snap/lean/Fv256/$D/$fn.lean --proof-root $snap/lean --full-errors --keep-workspace --theorem Fv256.$D.$fn.correctness ${WIT---theorem Fv256.$D.$fn.Witness.nonvacuous}  > wip-d/logs/$isa-$fn.log 2>&1
