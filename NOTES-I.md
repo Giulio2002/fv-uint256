@@ -1,4 +1,4 @@
-# NOTES-I (FV-I, SetFromDecimal amd64) — state at hand-off
+# NOTES-I (FV-I, then FV-I2: SetFromDecimal amd64)
 
 Branch fv/wi (worktree /srv/fv-uint256-wi). Janus pin 655a23fa (`/srv/janus-wi-pin3/bin/janus`, lean/lakefile.toml, lake-manifest.json,
 build/vfy.sh uses it + /srv/janus-ops/jcache-shared). Dev workspace: build/ws (package override -> build/kept/janus, a COPY of a kept
@@ -25,3 +25,22 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
   Print the main goal with `trace_state` at "all_goals refine te_post_intro" (use build/scratch/ScrTe1.lean).
 ## Remaining chain after te_sum: drop hte from pw_sum -> fromDecimal chunk loop (mul_sum) -> prefix/cmpstring -> witness -> first full janus verify of SetFromDecimal amd64.
 ## Rules learnt: no pkill -f/pgrep -f in the same shell (kills your own shell); heavy queue waits are 15-25 min; marks go to build/out/marks.txt (stderr is buffered by lake).
+
+## FV-I2 session log (2026-11-06)
+* te_sum1 (write-barrier branch) restructured with extraction-free lemmas in SfdTeLem.lean (all compile in seconds):
+  te_base1 (F case: newobject frame + wb2 + stores + wb1), te_f0..te_f5 (field reads through the two barrier LiveFrames),
+  te_copy1 (copied bytes), inv_slot1/outside_of_apart3 (invariant after a store into a barrier slot), win_a/win_k (window apartness
+  without omega). Generic helpers (inRanges_fields, frame_writeLE_rt, ...) moved from SfdTePre to SfdTeLem; SfdTePre imports SfdTeLem.
+* LESSON: `omega` on goals about q/t in this context is catastrophic (c11 hung >10 min): pass explicit disjunction facts
+  (hS6t', hS2t', hA3, hWt, win_a hAw hlow ..) instead of `(by te_omega)`. `clear * - h` is Mathlib, not available.
+* LESSON: te_sum1 needs set_option maxHeartbeats 64000000 (16M was exhausted by the prefix alone; the symptom is a `whnf` timeout
+  at the last case).
+* Dev loop for te_sum1 alone: the generator in this log: take SfdToErrorX.lean, keep te_body macro + te_sum1, add `te_mark` elab
+  (appends to build/out/marks.txt) -> lean/Fv256/Amd64/ScrTe1.lean (delete it before any janus verify!). Run via
+  `DEPS="Fv256.SpecI" HEAVY=1 MEM=30G TMO=3000 build/devbg.sh Fv256/Amd64/ScrTe1.lean qN.out` after copying SfdTePre/SfdTeLem into build/ws and
+  `lake build Fv256.Amd64.SfdTePre` there. Under load: prefix ~10 min, whole run 16-30 min.
+* SfdPw.lean: hte replaced by the six contract hypotheses (hif hnew hmg hmv hwb1 hwb2); `have hte := te_sum ...` inside. NOT yet compiled.
+* Next: fd loop (SfdFd): head = fromDecimal+0xa0 (0x4b4840), regs DX=i CX=remaining SI=len(bs) BX=ptr, stack: z @0x98(SP), bs.ptr @0xa0(SP),
+  multipliers copy @0x60(SP); per iteration pw_sum (ParseUint) then (i>0) Mul(base,base,mult_i) + inline 4-limb add; z_i = decSum b lo_i (n-lo_i),
+  step = decSum_split; no-overflow from FdPre's last conjunct. Then SetFromDecimal top (prefix '+', zero-skip loop with decoderune (rune >= 128 so
+  never '0'), len compare, runtime.cmpstring contract (CmpstringContract64) against twoPow256Sub1, call fromDecimal).

@@ -44,9 +44,6 @@ def PwPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
       MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)])))
 
 
-theorem reach_name {p : Janus.Amd64.Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
-    (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl
-
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 20000 in
 theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
