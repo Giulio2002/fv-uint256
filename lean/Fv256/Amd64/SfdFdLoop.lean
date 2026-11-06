@@ -436,6 +436,7 @@ theorem fd_round (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
               have e3 : (s.regs 4).toNat - 88 + 24 = (s.regs 4).toNat - 64 := by omega
               rw [e1, e2, e3] at hp4; exact hp4.symm
             janus64_run [hS4reg4, hs4n, hs4g, hs4x, hs4d, hy3, hx4, hx6, hS4acc] until [fd + 0x1da, fd + 0x1c6]
+            all_goals janus64_run [hS4reg4, hs4n, hs4g, hs4x, hs4d, hy3, hx4, hx6, hS4acc] until [head]
             all_goals trace_state
             all_goals sorry
       · have hz3c : s'.regs 3 = 5184000#64 := by rw [hz3]; rfl
