@@ -28,7 +28,10 @@ theorem fd_eof (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
   all_goals (
     have hn0 : (0#64 : BitVec 64).toNat = 0 := rfl
     unfold FdPost
-    refine ⟨rfl, ?_, ?_, ?_, Or.inl ⟨?_, ?_, ?_, ?_, ?_, ?_⟩⟩
+    refine ⟨rfl, ?_, ?_, ?_, ?keep, Or.inl ⟨?_, ?_, ?_, ?_, ?_, ?_⟩⟩
+    case keep =>
+      unfold Keep
+      refine ⟨?_, ?_⟩ <;> (dsimp only; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint])
     · simp [setReg_apply]
     · simp [setReg_apply]
     · simp [setReg_apply]

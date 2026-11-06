@@ -19,7 +19,7 @@ theorem fd_to_mul (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat
         S3.flags = S.flags ∧
         S3.mem = ((((S.mem.writeLE (s.sp.toNat - 88) 8 0).writeLE (s.sp.toNat - 80) 8 0).writeLE (s.sp.toNat - 72) 8 0).writeLE
           (s.sp.toNat - 64) 8 0).writeLE (s.sp.toNat - 88) 8 d) := by
-  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM
+  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall, hK⟩ := hM
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hspS : S.sp.toNat = s.sp.toNat - 160 := by rw [rsp]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega

@@ -22,7 +22,7 @@ theorem fd_midK (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     (S : State) (i d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s i d S) (hi0 : i ≠ 0) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s i) := by
   have hM' := hM
-  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM'
+  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall, hK⟩ := hM'
   refine Fv256.Arm64.SegCompose.seg_trans (fd_to_mul impl R R2 T b L lo hi z pS nS s hn78 hlo hhi S i d hM hi0) ?_
   intro S3 hpc3 hq3
   obtain ⟨q0, q1, q2, q30, qsp, q29, q28, q18, qfl, qmem⟩ := hq3
@@ -117,7 +117,7 @@ theorem fd_midK (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
         (by intro a n h; simp only [outside_cons, outside_nil, and_true] at h ⊢; omega)
     have hzo : z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat := hzlh
     unfold M2Inv
-    refine ⟨g1, hi5, hrem, g5, g2, ?r4, ?fl, ?sp, ?r29, ?r28, ?r18, ?mlen, hFs4, ?x30, ?x29, ?xz, ?xp, ?tab, ?val, ?env, ?fb, ?hall⟩
+    refine ⟨g1, hi5, hrem, g5, g2, ?r4, ?fl, ?sp, ?r29, ?r28, ?r18, ?mlen, hFs4, ?x30, ?x29, ?xz, ?xp, ?tab, ?val, ?env, ?fb, ?hall, ?keep⟩
     case r4 => rw [g4, hle]
     case fl => rw [gfl, hle]
     case sp => rw [gsp, p1, qsp]
@@ -137,6 +137,11 @@ theorem fd_midK (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
       · rw [g28, p28, q28, r28]
     case fb => rw [hfb]; exact fb_good _ _ _ hi5 hrem (by rw [chunk_hi]; exact hdig)
     case hall => have := hdig; rw [chunk_lo_eq] at this; exact allDec_join this hall
+    case keep =>
+      unfold Keep
+      refine ⟨?_, ?_⟩
+      · rw [hrd4 (s.sp.toNat - 8) (by omega) (by omega)]; exact hK.1
+      · rw [hrd4 s.sp.toNat (by omega) (by omega)]; exact hK.2
     case val =>
       have hv1 : Janus.Spec.val256 S''.mem z.toNat = accV (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat i := by
         rw [← mval]; unfold Janus.Spec.val256

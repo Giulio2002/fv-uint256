@@ -22,7 +22,7 @@ theorem fd_nil (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hex : i = 5 ∨ nS.toNat ≤ 19 * i) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (s.regs 30) S (FdPost R R2 T b L lo hi z pS nS s) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv0, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
-  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2', m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI
+  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2', m3, m4, mtab, mval, hEnvS, hfb, hall, hK⟩ := hI
   have hEnv' := hEnvS
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hspS : S.sp.toNat = s.sp.toNat - 160 := by rw [rsp]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
@@ -57,7 +57,7 @@ theorem fd_nil (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
         have e2 : min nS.toNat (19 * 5) = nS.toNat := by omega
         rw [e1, e2]
       unfold FdPost
-      refine ⟨rfl, ?_, ?_, ?_, Or.inr (Or.inl ⟨_, hfd, ?_, ?_, ?_, ?_, ?_⟩)⟩
+      refine ⟨rfl, ?_, ?_, ?_, hK, Or.inr (Or.inl ⟨_, hfd, ?_, ?_, ?_, ?_, ?_⟩)⟩
       · simp [setReg_apply]; rw [m2']; exact (bvo _).symm
       · simp [setReg_apply, r28]
       · simp [setReg_apply, r18]
@@ -80,7 +80,7 @@ theorem fd_nil (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
         have e2 : min nS.toNat (19 * i) = nS.toNat := by omega
         rw [e1, e2]
       unfold FdPost
-      refine ⟨rfl, ?_, ?_, ?_, Or.inr (Or.inl ⟨_, hfd, ?_, ?_, ?_, ?_, ?_⟩)⟩
+      refine ⟨rfl, ?_, ?_, ?_, hK, Or.inr (Or.inl ⟨_, hfd, ?_, ?_, ?_, ?_, ?_⟩)⟩
       · simp [setReg_apply]; rw [m2']; exact (bvo _).symm
       · simp [setReg_apply, r28]
       · simp [setReg_apply, r18]

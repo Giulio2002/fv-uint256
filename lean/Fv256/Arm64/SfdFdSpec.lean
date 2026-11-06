@@ -57,9 +57,14 @@ def FdPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
   (allDec (bytesAt s.mem pS.toNat) 0 nS.toNat → decSum (bytesAt s.mem pS.toNat) 0 nS.toNat < 2 ^ 256)
 
 open Fv256.C in
+/-- the two words at `sp - 8` and `sp` (the caller's saved FP/LR) are unchanged -/
+def Keep (s0 S : State) : Prop :=
+  S.mem.readLE (s0.sp.toNat - 8) 8 = s0.mem.readLE (s0.sp.toNat - 8) 8 ∧ S.mem.readLE s0.sp.toNat 8 = s0.mem.readLE s0.sp.toNat 8
+
+open Fv256.C in
 def FdPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS nS : BitVec 64)
     (s s' : State) : Prop :=
-  s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
+  s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧ Keep s s' ∧
   ((fromDec (bytesAt s.mem pS.toNat) nS.toNat 0 = .eof ∧
       (s'.regs 0).toNat = s.mem.readLE ioEOF 8 ∧ (s'.regs 1).toNat = s.mem.readLE (ioEOF + 8) 8 ∧
       Janus.Spec.val256 s'.mem z.toNat = 0 ∧ Env R R2 T b L lo hi s' ∧ MemFrame s.mem s'.mem [(lo, hi), (z.toNat, z.toNat + 32)]) ∨

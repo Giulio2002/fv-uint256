@@ -47,7 +47,7 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (s.regs 30) S' (FdPost R R2 T b L lo hi z pS nS s) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv0, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
   have hI' := hI
-  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2', m3, m4, mtab, mval, hEnvS, hfb, hall⟩ := hI'
+  obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2', m3, m4, mtab, mval, hEnvS, hfb, hall, hK⟩ := hI'
   obtain ⟨c1, c2, c3, c4, c5, c6⟩ := hS1
   obtain ⟨k1, k29, k28, k18, kfp, klr, hcase⟩ := hpost
   have hspS : S.sp.toNat = s.sp.toNat - 160 := by rw [rsp]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
@@ -117,7 +117,7 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
     have hmod : (256:Nat) ^ 8 = 2 ^ 64 := rfl
     refine hcont S2 (S'.regs 0).toNat ?_
     unfold MidInv
-    refine ⟨q1, hi5, hrem, (S'.regs 0).isLt, ?a0, ?a1, ?a4, ?afl, ?asp, ?a29, ?a28, ?a18, ?mi, ?mlen, ?mrem, ?mW, ?frm, ?x30, ?x29, ?xz, ?xp, ?tab, ?val, ?env, hfb, (hclo ▸ hdig), ?hd, hall⟩
+    refine ⟨q1, hi5, hrem, (S'.regs 0).isLt, ?a0, ?a1, ?a4, ?afl, ?asp, ?a29, ?a28, ?a18, ?mi, ?mlen, ?mrem, ?mW, ?frm, ?x30, ?x29, ?xz, ?xp, ?tab, ?val, ?env, hfb, (hclo ▸ hdig), ?hd, hall, ?keepM⟩
     case a0 => rw [q4]; exact bvo _
     case a1 => rw [q5]; exact hz1
     case a4 => rw [q6, hle]
@@ -127,6 +127,11 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
     case a28 => rw [q7, k28, c4, r28]
     case a18 => rw [q9, k18, c5, r18]
     case hd => rw [hdv, hclo]
+    case keepM =>
+      unfold Keep
+      refine ⟨?_, ?_⟩
+      · rw [hrS' (s.sp.toNat - 8) (by omega), hS1rd _ (by omega)]; exact hK.1
+      · rw [hrS' s.sp.toNat (by omega), hS1rd _ (by omega)]; exact hK.2
     case mi =>
       rw [hrS' _ (by omega), c1]
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
@@ -224,7 +229,13 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
       simp only [outside_cons, outside_nil, and_true, Nat.add_sub_cancel_left] at a1 a2 ⊢
       exact ⟨a1, a2⟩
     unfold FdPost
-    refine ⟨?_, ?_, ?_, ?_, Or.inr (Or.inr ⟨clo, nS.toNat - 19 * i - clo, hfd, q, t, ?_, ?_, ?_, ?_⟩)⟩
+    refine ⟨?_, ?_, ?_, ?_, ?keepE, Or.inr (Or.inr ⟨clo, nS.toNat - 19 * i - clo, hfd, q, t, ?_, ?_, ?_, ?_⟩)⟩
+    case keepE =>
+      unfold Keep
+      have hq2' : S''.mem = S'.mem := by rw [umem, q2]
+      refine ⟨?_, ?_⟩
+      · rw [hq2', hfrE.readLE (s.sp.toNat - 8) 8 (hOut _ _ (by omega) (by omega) (by omega)), hS1rd (s.sp.toNat - 8) (by omega)]; exact hK.1
+      · rw [hq2', hfrE.readLE s.sp.toNat 8 (hOut _ _ (by omega) (by omega) (by omega)), hS1rd s.sp.toNat (by omega)]; exact hK.2
     · rw [u1, q3, k1, c2, rsp]; bv_omega
     · rw [u29]
     · rw [u28, q7, k28, c4, r28]

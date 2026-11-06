@@ -24,7 +24,7 @@ def MidInv (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   firstBad (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat 0 5 0 = firstBad (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat 0 (5 - i) i ∧
   allDec (Fv256.C.bytesAt s0.mem pS.toNat) (chunkBounds nS.toNat 0 i).1 (nS.toNat - 19 * i) ∧
   d = decSum (Fv256.C.bytesAt s0.mem pS.toNat) (chunkBounds nS.toNat 0 i).1 (nS.toNat - 19 * i - (chunkBounds nS.toNat 0 i).1) ∧
-  allDec (Fv256.C.bytesAt s0.mem pS.toNat) (nS.toNat - 19 * i) nS.toNat
+  allDec (Fv256.C.bytesAt s0.mem pS.toNat) (nS.toNat - 19 * i) nS.toNat ∧ Keep s0 S
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
@@ -39,7 +39,7 @@ theorem fd_mid0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     (hMod : Mod R R2 T L) (hfin : allDec (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat → decSum (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat < 2 ^ 256)
     (S : State) (d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s 0 d S) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s 0) := by
-  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM
+  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall, hK⟩ := hM
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hspS : S.sp.toNat = s.sp.toNat - 160 := by rw [rsp]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
@@ -62,7 +62,7 @@ theorem fd_mid0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     have hspn : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
       simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
     unfold M2Inv
-    refine ⟨by first | rfl | simp [m2, fd], by omega, by omega, ?a5, ?a1, ?a4, ?afl, ?asp, ?a29, ?a28, ?a18, ?alen, ?afr, ?x30, ?x29, ?xz, ?xp, ?tab, ?val, ?env, ?fb, ?hall⟩
+    refine ⟨by first | rfl | simp [m2, fd], by omega, by omega, ?a5, ?a1, ?a4, ?afl, ?asp, ?a29, ?a28, ?a18, ?alen, ?afr, ?x30, ?x29, ?xz, ?xp, ?tab, ?val, ?env, ?fb, ?hall, ?keep⟩
     case a5 => simp [setReg_apply]
     case a1 => simp [setReg_apply]
     case a4 => simp [setReg_apply]; simpa using r4
@@ -103,6 +103,9 @@ theorem fd_mid0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
           | refine MemFrame.writeLE ?_ _ (r := (z.toNat, z.toNat + 32)) (by simp) (by omega) (by omega)
     case fb => rw [hfb]; exact fb_good _ _ _ hi5 hrem (by rw [chunk_hi]; exact hdig)
     case hall =>
-      have := hdig; rw [chunk_lo_eq] at this; simpa using this)
+      have := hdig; rw [chunk_lo_eq] at this; simpa using this
+    case keep =>
+      unfold Keep
+      refine ⟨?_, ?_⟩ <;> (simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]; first | exact hK.1 | exact hK.2))
 
 end Fv256.Arm64.SfdFd

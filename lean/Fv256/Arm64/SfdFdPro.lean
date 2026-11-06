@@ -21,7 +21,7 @@ def FdInv (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
   Janus.Spec.val256 S.mem z.toNat = accV (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat i ∧
   Env R R2 T b L lo hi S ∧
   firstBad (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat 0 5 0 = firstBad (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat 0 (5 - i) i ∧
-  allDec (Fv256.C.bytesAt s0.mem pS.toNat) (nS.toNat - 19 * i) nS.toNat
+  allDec (Fv256.C.bytesAt s0.mem pS.toNat) (nS.toNat - 19 * i) nS.toNat ∧ Keep s0 S
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
@@ -48,7 +48,7 @@ theorem fd_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
     unfold FdInv
     have hsp16 : (s.sp - 160#64).toNat = s.sp.toNat - 160 := by
       simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
-    refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, ?mf, ?m1, ?m2, ?m3, ?m4, ?tab, ?val, ?env, ?fb, ?ad⟩
+    refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, ?mf, ?m1, ?m2, ?m3, ?m4, ?tab, ?val, ?env, ?fb, ?ad, ?keep⟩
     case r0 => simp [setReg_apply, h0]
     case r1 => simp [setReg_apply, h1]
     case r3 => simp [setReg_apply]
@@ -106,6 +106,9 @@ theorem fd_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (
           | refine MemFrame.writeLE ?_ _ (r := (lo, hi)) (by simp) (by omega) (by omega)
           | refine MemFrame.writeLE ?_ _ (r := (z.toNat, z.toNat + 32)) (by simp) (by omega) (by omega)
     case fb => rfl
-    case ad => intro k hk1 hk2; omega)
+    case ad => intro k hk1 hk2; omega
+    case keep =>
+      unfold Keep
+      refine ⟨?_, ?_⟩ <;> simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint])
 
 end Fv256.Arm64.SfdFd

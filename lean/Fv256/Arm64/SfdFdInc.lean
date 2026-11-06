@@ -22,7 +22,7 @@ def M2Inv (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
   Janus.Spec.val256 S.mem z.toNat = accV (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat (i + 1) ∧
   Env R R2 T b L lo hi S ∧
   firstBad (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat 0 5 0 = firstBad (Fv256.C.bytesAt s0.mem pS.toNat) nS.toNat 0 (5 - (i + 1)) (i + 1) ∧
-  allDec (Fv256.C.bytesAt s0.mem pS.toNat) (nS.toNat - 19 * (i + 1)) nS.toNat
+  allDec (Fv256.C.bytesAt s0.mem pS.toNat) (nS.toNat - 19 * (i + 1)) nS.toNat ∧ Keep s0 S
 
 theorem Env.congr {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {s s' : State}
     (h : Env R R2 T b L lo hi s) (hsp : s'.sp = s.sp) (hm : s'.mem = s.mem) (h28 : s'.regs 28 = s.regs 28) :
@@ -39,7 +39,7 @@ theorem fd_incr (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     (hM : M2Inv R R2 T b L lo hi z pS nS s i S) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 head) S
       (FdInv R R2 T b L lo hi z pS nS s (i + 1)) := by
-  obtain ⟨hpc, hi5, hrem, r5, r1, r4, hfl, rsp, r29, r28, r18, mlen, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hall⟩ := hM
+  obtain ⟨hpc, hi5, hrem, r5, r1, r4, hfl, rsp, r29, r28, r18, mlen, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hall, hK⟩ := hM
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hspS : S.sp.toNat = s.sp.toNat - 160 := by rw [rsp]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
@@ -70,7 +70,7 @@ theorem fd_incr (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     all_goals (
       refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [head]) ?_
       unfold FdInv
-      refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, hfr, m1, m2', m3, m4, mtab, mval, ?env, hfb, hall⟩
+      refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, hfr, m1, m2', m3, m4, mtab, mval, ?env, hfb, hall, hK⟩
       case env => exact Env.congr hEnv rsp.symm rfl (by simp [setReg_apply])
       case r0 => simp [setReg_apply]
       case r1 =>
@@ -88,7 +88,7 @@ theorem fd_incr (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     all_goals (
       refine Janus.Tactic.ReachesRet.done (by first | rfl | decide | simp [head]) ?_
       unfold FdInv
-      refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, hfr, m1, m2', m3, m4, mtab, mval, ?env, hfb, hall⟩
+      refine ⟨by first | rfl | simp [head], by omega, ?r0, ?r1, ?r3, ?r2, ?r4, ?rsp, ?r29, ?r28, ?r18, hfr, m1, m2', m3, m4, mtab, mval, ?env, hfb, hall, hK⟩
       case env => exact Env.congr hEnv rsp.symm rfl (by simp [setReg_apply])
       case r0 => simp [setReg_apply]
       case r1 =>
