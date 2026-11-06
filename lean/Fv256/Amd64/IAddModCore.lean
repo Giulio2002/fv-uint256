@@ -4,7 +4,7 @@ import Fv256.SpecF
 import Fv256.CodeIn
 import Fv256.AddModProg
 import Fv256.Amd64.AddModSpecS
-import Fv256.SqrtTac
+import Fv256.GrabTac
 
 /-!
 # `(*uint256.Int).IAddMod(x, m *Int) *Int` (amd64): in place, `z = (z + x) mod m`   (core: conditional on the callee summary)

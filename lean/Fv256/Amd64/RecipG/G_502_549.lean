@@ -22,10 +22,10 @@ theorem g_502_549 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEn
     rw [hr4]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   obtain ⟨hE_x502rcx, hB_x502rcx, hE_x502rbx, hB_x502rbx, hE_x502rsi, hB_x502rsi, hE_x502rdi, hB_x502rdi, hE_x502r8, hB_x502r8, hE_x502r9, hB_x502r9, hE_x502r10, hB_x502r10, hE_x502m68, hB_x502m68, hE_x502m70, hB_x502m70, hE_x502m98, hB_x502m98, hE_x502ma0, hB_x502ma0, hE_x502ma8, hB_x502ma8, hE_x502m208, hB_x502m208, hE_x502m210, hB_x502m210, hE_x502m218, hB_x502m218, hE_x502m220, hB_x502m220⟩ := hL
   janus64_run [Util.readLE_32, hE_x502rcx, hE_x502rbx, hE_x502rsi, hE_x502rdi, hE_x502r8, hE_x502r9, hE_x502r10, hE_x502m68, hE_x502m70, hE_x502m98, hE_x502ma0, hE_x502ma8, hE_x502m208, hE_x502m210, hE_x502m218, hE_x502m220, hsp4, Nat.mod_eq_of_lt hB_x502rcx, Nat.mod_eq_of_lt hB_x502rbx, Nat.mod_eq_of_lt hB_x502rsi, Nat.mod_eq_of_lt hB_x502rdi, Nat.mod_eq_of_lt hB_x502r8, Nat.mod_eq_of_lt hB_x502r9, Nat.mod_eq_of_lt hB_x502r10, Nat.mod_eq_of_lt hB_x502m68, Nat.mod_eq_of_lt hB_x502m70, Nat.mod_eq_of_lt hB_x502m98, Nat.mod_eq_of_lt hB_x502ma0, Nat.mod_eq_of_lt hB_x502ma8, Nat.mod_eq_of_lt hB_x502m208, Nat.mod_eq_of_lt hB_x502m210, Nat.mod_eq_of_lt hB_x502m218, Nat.mod_eq_of_lt hB_x502m220]
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (try simp only [subFlags_fst_ofNat, zero_sub64])
   all_goals (try simp only [← BitVec.ofNat_add])
-  all_goals (try janus_carry_simp)
+  all_goals (try fv_carry_simp_v1)
   all_goals (
   unfold P_502_549
   refine ⟨x502r8 % 18446744073709551616, x502m210 % 18446744073709551616, (x502m208 * x502r8) % 18446744073709551616, (x502m208 * x502r9 / 18446744073709551616) % 18446744073709551616, (x502m208 * x502r9) % 18446744073709551616, (x502m208 * x502r8 / 18446744073709551616) % 18446744073709551616, (x502m208 * x502rbx) % 18446744073709551616, (x502m208 * x502rbx / 18446744073709551616) % 18446744073709551616, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
