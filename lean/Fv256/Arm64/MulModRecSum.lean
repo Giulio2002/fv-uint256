@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Arm64.MulModRecProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -7,7 +7,6 @@ import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.SpecF
 import Fv256.UtilF
-import Fv256.Arm64.SummaryEnsures
 import Fv256.Arm64.CodeIn
 import Fv256.Arm64.UmulProg
 import Fv256.Arm64.UmulSum
@@ -26,20 +25,22 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.MulModRecSum
 
+abbrev mulmodrecEntry : Nat := segAddr Fv256.Arm64.MulModRecProg.program "github.com/holiman/uint256.(*Int).MulModWithReciprocal"
+
 set_option maxRecDepth 200000 in
-theorem hcUmul : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.UmulProg.program Extracted.program :=
+theorem hcUmul : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.UmulProg.program Fv256.Arm64.MulModRecProg.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 200000 in
-theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Extracted.program :=
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ChainProg.program Fv256.Arm64.MulModRecProg.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 200000 in
-theorem hcMod : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ModProg.program Extracted.program :=
+theorem hcMod : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ModProg.program Fv256.Arm64.MulModRecProg.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxRecDepth 200000 in
-theorem hcR4 : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ReduceProg.program Extracted.program :=
+theorem hcR4 : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ReduceProg.program Fv256.Arm64.MulModRecProg.program :=
   Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
 
 def pre (s : State) : Prop :=
@@ -55,7 +56,7 @@ def pre (s : State) : Prop :=
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem mulmodrec_summary (hR4 : Fv256.Arm64.ReduceSpec.R4Summary) :
-    Summary Extracted.program Extracted.entry pre
+    Summary Fv256.Arm64.MulModRecProg.program mulmodrecEntry pre
     (fun s s' => s'.sp = s.sp ∧ s'.regs 0 = s.regs 0 ∧ s'.regs 18 = s.regs 18 ∧ s'.regs 28 = s.regs 28 ∧
         s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
         s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.mulmodSpec (s.mem.readLE (s.regs 1).toNat 32)

@@ -3,6 +3,8 @@ import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecF
 import Fv256.Arm64.SummaryEnsures
+import Fv256.Arm64.CodeIn
+import Fv256.Arm64.MulModRecProg
 import Fv256.Arm64.MulModDefs
 import Fv256.Arm64.ReduceSpec
 import Fv256.Arm64.MulModRecSum
@@ -11,6 +13,13 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 open Fv256.Arm64.MulModRecSum
 
 namespace Fv256.Arm64.MulModRecCorr
+
+set_option maxRecDepth 200000 in
+theorem hcSelf : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.MulModRecProg.program Extracted.program :=
+  Fv256.Arm64.CodeIn.codeIn_of_sub _ _ (by decide) (by decide) (by decide)
+
+set_option maxRecDepth 200000 in
+theorem entry_eq : Fv256.Arm64.MulModRecSum.mulmodrecEntry = Extracted.entry := by decide
 
 theorem correctness_param (hR4 : Fv256.Arm64.ReduceSpec.R4Summary)
     (z x y m mu : BitVec 64) :
@@ -26,7 +35,7 @@ theorem correctness_param (hR4 : Fv256.Arm64.ReduceSpec.R4Summary)
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.mulmodSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem m.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 760, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 48)]) := by
-  refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ (Fv256.Arm64.MulModRecSum.mulmodrec_summary hR4) ?_ ?_
+  refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ (entry_eq ▸ Janus.Contracts.EqHashModel.Summary.of_codeIn hcSelf (Fv256.Arm64.MulModRecSum.mulmodrec_summary hR4)) ?_ ?_
   · intro ret hret s hsu ⟨hg, hsal, hsb, hsc, hsw, hgs, ⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, ⟨hm, hm'⟩, ⟨hq', hq⟩, hzs, hxs, hys, hms, hus, hmu⟩
     have h30 : s.regs 30 = BitVec.ofNat 64 ret := by
       have := hsu.lr; exact this
