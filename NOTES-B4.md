@@ -43,3 +43,17 @@
   results are written to the caller-frame slots sp+280..312 (sp = entry sp - 0x110), no result pointer. Prologue: sp' = sp-0x110, x29/x30 saved at [sp'-8].
 - NEXT (not started): arm64 analog of gseg.py (a64seg.py): parse the janus_run state print for arm64 (`setReg`/`regs` function + `writeLE` chain), L<cut> live defs from arm64live,
   segments through Fv256.Arm64.SegCompose (fv/wg lean/Fv256/Arm64/SegCompose.lean: seg_trans on ReachesRet), arithmetic lemmas with UtilAM (awc_fst, awc_c, sbc_num) + janus_carry.
+
+## arm64 progress (session 3): first janus_run skeleton
+- wip-b4/arm64_skel_seg0.lean: skeleton `seg0` (entry .. b8e08, i.e. through the inline `bl Lsh`) over Fv256.Arm64.RecipProg.program with precondition
+  RecPre (lr%4=0, lr<2^56, GuardOK s 0x90, StackOK s 0x118 0x30, x28 apart from window, x0 32 readable bytes apart from window).
+  Compile: LEAN_PATH=<framework lib>:build/ol655 lean -Dpp.deepTerms=true (framework = /srv/janus-ops/jcache-shared/v1/framework/3f949a7d48d2680d5332b3c9/.lake/build/lib/lean);
+  lean/Fv256/Arm64/RecipProg.olean must be in build/ol655 (build/lc.sh <abs path>). State printing works (setReg chain over `s.regs`, `sp`, `flags := addSub ..`, `mem := ((s.mem.writeLE ..)`) —
+  easy to parse (cf. tools/gseg.py parse_trace, replace `setRegF`->`setReg`, regs 4 -> `s.sp`).
+- OPEN PROBLEM (first thing to fix): `janus_run until [recEntry+0x6c]` and later FAIL with "stuck after 35 instructions ... s.regs 30": the pow2 path (cbz x4 at +0x68 -> ret at b9524)
+  is NOT pruned by my hypotheses hnp / hnp2 (stated as `¬ (X).toNat = 0` and `¬ X = 0#64` with X = (m3 &&& (m3-1)) ||| (m2 ||| (m1 ||| m0)) in BitVec.ofNat of readLE, matching the
+  printed x4 at +0x68). The `m3 = 0` cbz (hbr : ¬ readLE .. = 0) is pruned fine from hm3. Find the exact shape of the cbz-x4 branch hypothesis (hbr appears in the goal only after the
+  step; try `janus_run until [recEntry+0x68]` then `janus_run until [recEntry+0x6c]` with `trace_state`, or state the hypothesis as `(X).toNat ≠ 0` / `X ≠ 0`, or use `BitVec.toNat` of
+  the stepped x4 as printed with `pp.deepTerms`), or ask the Janus owner: a repro for "branch on cbz of an OR chain with a hypothesis of the same shape not pruned".
+- After that: seg0 postcondition (RecQ0: y words at sp+32..63 = lsh m s, x3 = y3, shift index at sp+176 = 255-clz, regs listed by arm64live at b8e08), then follow the cut list
+  in the previous section. All cuts must be at addresses the emulator names (tools/arm64emu.py).
