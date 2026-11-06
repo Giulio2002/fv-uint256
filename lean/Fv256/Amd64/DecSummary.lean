@@ -9,6 +9,7 @@ import Fv256.Amd64.DecInit
 import Fv256.Amd64.DecIter
 import Fv256.Amd64.DecLoop
 import Fv256.Amd64.StrconvFormatUint
+import Fv256.DecAt
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 open Fv256.E
@@ -64,7 +65,8 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
         s.xmm 15 = 0 ∧ s.df = false ∧ s.mem.readLE (s.regs 4).toNat 8 < 140737488355328)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
         s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
-        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])) := by
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) ∧
+        DecAt rt 5163273 5176582 5134938 (s'.regs 0).toNat (s'.regs 3).toNat) := by
   intro s hpc0 ⟨hz0r, hg, hw, hd, hout, hrt1, hrt2, hal, ⟨hzn, hza⟩, hzd, hgd, hH, hH1, hxx, hdf0, hret47⟩
   have hg_ : StackGuardOK s 0xf8 := ⟨hg.noWrap, hg.readable, by have := hg.below; omega⟩
   have hw_ : StackWritable s 0x318 0x8 := ⟨by have := hw.1; omega, by have := hw.2.1; omega,
@@ -156,7 +158,7 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
     have hX5 : (s.regs 4).toNat - 376 + 86 + (98 - decLen v) + decLen v ≤ 281474976710656 := by omega
     janus64_run [hdE, q2, q13, q4, q5, q14, hdlm, hX9] calls [hc]
     rename_i w9 w8 w7 w6 w5 w4 w3 w2 w1 w0 hleft hright
-    obtain ⟨⟨hr1, hr2, hr3, hr4⟩, -⟩ := hright
+    obtain ⟨⟨hr1, hr2, hr3, hr4⟩, hat⟩ := hright
     have hdig : Spec.strBytes S2.mem ((s.regs 4).toNat - 376 + 86 + (98 - decLen v)) (decLen v) = decBytes v :=
       strBytes_dec _ _ _ (fun k hk => by
         have := qdig k hk
@@ -184,7 +186,19 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
           simp only [outside_append, outside_cons] at h ⊢
           obtain ⟨h1, h2, -⟩ := h
           exact ⟨h1, by omega, by omega, trivial⟩)
-      exact h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+      refine ⟨h1.trans (h2.trans (h3.trans h4 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩, ?_⟩
+      simp only [DecAt]; left
+      simp only [slicebytetostringSpec, argWords64, wordsFrom, arg, List.getD_eq_getElem?_getD, StrAt] at hat
+      have hlen : BitVec.toNat w8 = decLen v := by
+        first | exact hr1 | (rw [hr1]; simp [Spec.strBytes]) | (simp [hr1, Spec.strBytes])
+      have h3' : 2 ≤ decLen v := by
+        rw [decLen_ge _ (by omega), decLen_ge _ (by omega)]
+        have := decLen_pos (v / 10 / 10); omega
+      rcases hat with h | h | h | h
+      · omega
+      · omega
+      · omega
+      · exact h.2.2
   · by_cases hz0 : v = 0
     · have hl0 : s.mem.readLE z.toNat 8 = 0 := by rw [hvl.1] at hz0; omega
       have hl1' : s.mem.readLE (z.toNat + 8) 8 = 0 := by rw [hvl.1] at hz0; omega
@@ -196,10 +210,11 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
       rw [zeroDat_base, zeroDat_len] at hdj
       janus64_run [hdE, hrip.rip, hl0, hl1', hl2', hl3']
       rw [hzv]
-      refine ⟨⟨by simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_⟩
+      refine ⟨⟨by simp [decBytes_lt 0 (by omega)], hzs.2, ?_⟩, ?_, ?_⟩
       · simp only [decBytes_lt 0 (by omega), Spec.strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [Nat.add_zero, ← Janus.Arm64.Memory.readLE_one, hzs.1]
       · exact MemFrame.of_writeLE s.mem _ (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)
+      · simp only [DecAt]; right; right; right; constructor <;> simp [setRegF] <;> omega
     · have hlow : s.mem.readLE (z.toNat + 8) 8 = 0 ∧ s.mem.readLE (z.toNat + 16) 8 = 0 ∧ s.mem.readLE (z.toNat + 24) 8 = 0 := by
         have := hvl.1
         omega
@@ -222,10 +237,10 @@ theorem dec_summary (st : Nat) (impl : List Amd64.Segment) (rt : List (Nat × Na
         simp only [BitVec.or_zero, BitVec.toNat_ofNat] at h
         omega
       janus64_run [hdE, hrip.rip, hlow.1, hlow.2.1, hlow.2.2, hl0, hnzv] calls [hfu]
-      rename_i hqtab hqs hqf
+      rename_i hqtab hqd hqs hqf
       rw [hzv]
       obtain ⟨q1, q2, q3, q4⟩ := hqs
-      refine ⟨⟨q1, q2, q3, q4⟩, ?_⟩
+      refine ⟨⟨q1, q2, q3, q4⟩, ?_, hqd⟩
       have h1 : MemFrame s.mem (((Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE
           ((s.regs 4).toNat - 384) 8 4931476)) (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) := by
         refine MemFrame.trans (rs := rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)])

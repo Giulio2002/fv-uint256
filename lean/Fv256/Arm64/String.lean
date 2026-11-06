@@ -37,7 +37,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   have hdE : decE = 754624 := by unfold decE; decide
   have hcE : decE + 0x5000 < 2 ^ 47 := by decide
   janus_run [hdE] calls [dec_summary_ext impl rt H z hc]
-  rename_i ha hsp hr29 hr28 hr18 hstr hfrm
+  rename_i ha hsp hr29 hr28 hr18 hstr hfrm hdat
   have hr4 := s.sp.isLt
   have hu : (s.regs 29).toNat < 2 ^ 64 := (s.regs 29).isLt
   have hfr1 : MemFrame ((s.mem.writeLE (s.sp.toNat - 32) 8 ret).writeLE (s.sp.toNat - 40) 8 (s.regs 29).toNat) s'.mem

@@ -27,7 +27,8 @@ theorem dec_summary_E (st : Nat) {E : Janus.Program} (hE : Fv256.Arm64.LinkEq.Li
         (s.regs 30).toNat < 2 ^ 48 ∧ (s.regs 30).toNat % 4 = 0)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
         s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
-        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])) := by
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) ∧
+        Fv256.E.DecAt rt 989280 1002589 960826 (s'.regs 0).toNat (s'.regs 1).toNat) := by
   have hP := hE.progEq impl
   rw [hss] at hc
   have hc' := Fv256.Arm64.LinkEq.Summary.of_progEq hP.symm hc

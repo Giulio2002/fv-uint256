@@ -30,7 +30,8 @@ theorem dec_summary_ext (impl : List Segment) (rt : List (Nat × Nat)) (H : RtRe
         (s.regs 30).toNat < 2 ^ 48 ∧ (s.regs 30).toNat % 4 = 0)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
         s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
-        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)])) :=
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8)]) ∧
+        Fv256.E.DecAt rt 989280 1002589 960826 (s'.regs 0).toNat (s'.regs 1).toNat) :=
   dec_summary_E Extracted.dataAddr.«runtime.staticuint64s» hLib (by decide) impl rt H z hc
 
 end Fv256.Arm64.Dec
