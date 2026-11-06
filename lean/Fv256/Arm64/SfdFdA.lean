@@ -13,6 +13,7 @@ def MidInv (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   S.flags = (addSub (nS - BitVec.ofNat 64 (19 * i)) (19#64) true).snd ∧
   S.sp = s0.sp - 160#64 ∧ S.regs 29 = s0.sp - 168#64 ∧ S.regs 28 = s0.regs 28 ∧ S.regs 18 = s0.regs 18 ∧
   S.mem.readLE (s0.sp.toNat - 104) 8 = i ∧ S.mem.readLE (s0.sp.toNat - 96) 8 = nS.toNat - 19 * i ∧
+  S.mem.readLE (s0.sp.toNat - 112) 8 = nS.toNat - 19 * i ∧
   S.mem.readLE (s0.sp.toNat - 56) 8 = s0.mem.readLE (mulTab + 8 * i) 8 ∧
   MemFrame s0.mem S.mem [(lo, hi), (z.toNat, z.toNat + 32)] ∧
   S.mem.readLE (s0.sp.toNat - 160) 8 = (s0.regs 30).toNat ∧ S.mem.readLE (s0.sp.toNat - 168) 8 = (s0.regs 29).toNat ∧
@@ -38,7 +39,7 @@ theorem fd_mid0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
     (hMod : Mod R R2 T L) (hfin : allDec (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat → decSum (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat < 2 ^ 256)
     (S : State) (d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s 0 d S) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s 0) := by
-  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM
+  obtain ⟨hpc, hi5, hrem, hd64, r0, r1, r4, hfl, rsp, r29, r28, r18, mi, mlen, mrem, mW, hfr, m1, m2', m3, m4, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
   have hspS : S.sp.toNat = s.sp.toNat - 160 := by rw [rsp]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
