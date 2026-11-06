@@ -599,4 +599,60 @@ theorem ga_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
   · rw [u0, sp3n] at q4frame
     exact f3.trans q4frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
 
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem gz (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+    (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8))
+    (hm : s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0) :
+    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+  obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
+  refine seg_trans (segA s hpc ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ hnc) ?_
+  intro S1 h1pc q1
+  obtain ⟨r0, r1, r2, r3, r18, r28, r30, r8, sp1, hmem1, hacc1, hx29, hretS, hfr1⟩ := AF_of s S1 hsb hsc q1
+  have sp1n : S1.sp.toNat = s.sp.toNat - 368 := by rw [sp1]; simp [BitVec.toNat_sub]; omega
+  refine seg_mono (segZero S1 (s.regs 30) (s.regs 29) h1pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
+  · omega
+  · omega
+  · rw [r0]; exact hzb
+  · rw [r0, hacc1]; exact hza
+  · rw [r3]; exact hmb
+  · rw [r3, hacc1]; exact hma
+  · rw [r3, hmem1 _ _ (by omega), hmem1 (_ + 8) _ (by omega), hmem1 (_ + 16) _ (by omega), hmem1 (_ + 24) _ (by omega)]; exact hm
+  · rw [r8, r3, hmem1 _ _ (by omega)]
+  · rw [sp1n]; exact hretS
+  · exact h30a
+  · exact h30b
+  · rw [r0, sp1n]; omega
+  · rw [hacc1, sp1n]; exact s.mem.accessible_sub hsw (Or.inl rfl) (by omega) (by omega)
+  · have e : s.sp.toNat - 368 - 8 = s.sp.toNat - 376 := by omega
+    rw [sp1n, e]; exact hx29
+  intro S2 ⟨q2pc, q2sp, q20, q228, q229, q218, q230, q2val, q2frame⟩
+  have sp2 : S2.sp = s.sp := by rw [q2sp, sp1]; exact BitVec.sub_add_cancel _ _
+  refine ⟨q2pc, sp2, ?_, ?_, ?_, q229, q230, ?_, ?_⟩
+  · rw [q20, r0]
+  · rw [q218, r18]
+  · rw [q228, r28]
+  · rw [r0] at q2val
+    have hM : s.mem.readLE (s.regs 3).toNat 32 = 0 := by
+      rw [Util.readLE_32, hm.1, hm.2.1, hm.2.2.1, hm.2.2.2]
+    simp [Fv256.F.addmodSpec, hM, q2val]
+  · rw [r0] at q2frame
+    exact hfr1.trans q2frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem gen_all (s : State) (hpc : s.pc = BitVec.ofNat 64 Extracted.entry)
+    (hpre : Fv256.Arm64.AddModSeg.PreS s) (hnc : ¬ (s.mem.readLE ((s.regs 3).toNat + 24) 8 ≠ 0 ∧ s.mem.readLE ((s.regs 1).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8 ∧ s.mem.readLE ((s.regs 2).toNat + 24) 8 ≤ s.mem.readLE ((s.regs 3).toNat + 24) 8)) :
+    ReachesRet Extracted.program (s.regs 30) s (Post s) := by
+  by_cases hm0 : (s.mem.readLE (s.regs 3).toNat 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 8) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 16) 8 = 0 ∧ s.mem.readLE ((s.regs 3).toNat + 24) 8 = 0)
+  · exact gz s hpc hpre hnc hm0
+  · by_cases hz : s.regs 3 = s.regs 0
+    · by_cases hov : 2 ^ 256 ≤ s.mem.readLE (s.regs 1).toNat 32 + s.mem.readLE (s.regs 2).toNat 32
+      · exact ga_ov s hpc hpre hnc hz hm0 hov
+      · exact ga_nov s hpc hpre hnc hz hm0 (Nat.lt_of_not_le hov)
+    · by_cases hov : 2 ^ 256 ≤ s.mem.readLE (s.regs 1).toNat 32 + s.mem.readLE (s.regs 2).toNat 32
+      · exact gb_ov s hpc hpre hnc hz hm0 hov
+      · exact gb_nov s hpc hpre hnc hz hm0 (Nat.lt_of_not_le hov)
+
 end Fv256.Arm64.AddModComp2
