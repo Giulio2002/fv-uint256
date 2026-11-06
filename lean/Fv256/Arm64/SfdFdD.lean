@@ -111,10 +111,6 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
       hF1.trans hFo1 (by intro a n h; simp only [outside_cons, outside_nil, and_true] at h ⊢; omega)
     have hFs' : MemFrame s.mem S'.mem [(lo, hi), (z.toNat, z.toNat + 32)] :=
       hFs1.trans hFo2 (by intro a n h; simp only [outside_cons, outside_nil, and_true] at h ⊢; omega)
-    have hrdo : ∀ a, (s.sp.toNat - 112 ≤ a) → (a + 8 ≤ s.sp.toNat - 112 ∨ s.sp.toNat - 48 ≤ a ∨ True) →
-        S'.mem.readLE a 8 = S1.mem.readLE a 8 := by
-      intro a h1 _
-      sorry
     have hrS' : ∀ a, s.sp.toNat - 112 ≤ a → S2.mem.readLE a 8 = S1.mem.readLE a 8 := by
       intro a h
       rw [q2]; exact hFo.readLE a 8 (by simp only [outside_cons, outside_nil, and_true]; omega)
@@ -168,7 +164,6 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
       · rw [q3, hr_sp]; refine ⟨by omega, by omega, by omega⟩
       · rw [q7, k28, c4, r28]
       · rw [q2]; exact hFS'
-    all_goals sorry
   · -- error
     have hr_sp : S'.sp.toNat = s.sp.toNat - 160 := by rw [k1]; exact hsp1
     have hEnvS' := hEnvS
