@@ -151,7 +151,7 @@ Status values (per ISA): `todo`, `verified`, `partial` (verified for the stated 
 | `(*uint256.Int).IRsh` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/IRsh.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 98 s / amd64 146 s) |
 | `(*uint256.Int).ISRsh` | FV-D | verified + witness | verified + witness | lean/Fv256/{Arm64,Amd64}/ISRsh.lean (FV-D, fv/wd, master 48f3f44, Janus 6365855c, correctness + Witness.nonvacuous in one run; arm64 97 s / amd64 261 s) |
 | `(*uint256.Int).IExp` | FV-H | verified (+ witness) | verified (+ witness) | Janus 655a23fa, correctness + Witness.nonvacuous in one run: amd64 11m47s cold (wrapper over ExpMain.exp_summary, fv/wh 5e04256); arm64 8m07s (fv/wh 2c803db) |
-| `(*uint256.Int).ISqrt` | FV-D (amd64) / FV-H (arm64) | todo | todo | new in master 48f3f44 |
+| `(*uint256.Int).ISqrt` | FV-D (amd64) / FV-H (arm64) | todo | verified (+ witness) | amd64 (FV-D, fv/wd, Janus 655a23fa, correctness + Witness.nonvacuous in one run, 272 s warm): wrapper over SqrtLib.sqrt_summary with alias z = x. arm64 todo (FV-H) |
 
 ## Exported variables (data, no code to verify)
 
