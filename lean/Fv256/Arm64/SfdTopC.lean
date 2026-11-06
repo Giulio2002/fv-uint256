@@ -18,6 +18,15 @@ def FdCtx (ret : Nat) (S : State) : Prop :=
       S.regs 1 = pS + BitVec.ofNat 64 k) ∧
     S.regs 2 = BitVec.ofNat 64 (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
 
+/-- at the `cmpstring` call: what the continuation needs -/
+def CmpCtx (S : State) : Prop :=
+  TopSt R R2 T b L lo hi z pS s S ∧ S.regs 30 = BitVec.ofNat 64 0xb8a44 ∧
+    S.mem.readLE (S.sp.toNat + 56) 8 = 78 ∧
+    S.mem.readLE (S.sp.toNat + 64) 8 = pS.toNat + startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat ∧
+    S.regs 0 = pS + BitVec.ofNat 64 (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ∧
+    S.regs 1 = 78#64 ∧ S.regs 2 = BitVec.ofNat 64 cfg.maxStr ∧ S.regs 3 = 78#64 ∧
+    nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 78
+
 end Defs
 
 theorem bytes_congr (m m' : Janus.Arm64.Memory) (p n : Nat) (h : ∀ j, j < n → m'.readLE (p + j) 1 = m.readLE (p + j) 1) :
@@ -332,5 +341,162 @@ theorem top_fin (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
       · simp only [outside_cons, outside_nil, outside_append, and_true] at h ⊢
         obtain ⟨⟨h1, h2⟩, h3, h4⟩ := h
         exact h3
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- return `ErrBig256Range` (two words loaded from the package variable), pop the frame -/
+theorem top_err (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre cfg R R2 T b L lo hi z pS nS s)
+    (S : State) (pcE : Nat) (hE : pcE = 0xb8a4c ∨ pcE = 0xb8a80) (hpc : S.pc = BitVec.ofNat 64 pcE)
+    (hSt : TopSt R R2 T b L lo hi z pS s S) :
+    ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (s.regs 30) S
+      (fun S2 => S2.sp = s.sp ∧ S2.regs 29 = s.regs 29 ∧ S2.regs 28 = S.regs 28 ∧ S2.regs 18 = S.regs 18 ∧
+        (S2.regs 0).toNat = S.mem.readLE cfg.errBig 8 ∧ (S2.regs 1).toNat = S.mem.readLE (cfg.errBig + 8) 8 ∧
+        S2.mem = S.mem) := by
+  obtain ⟨hl1, hl2, h0', h1', h2', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hMaxA, hMaxO, hMaxR, hMaxB, hErrA, hErrO, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA⟩ := hpre
+  obtain ⟨t1, t2, t3, t4, tmf, tm1, tm2, tm3, tm4, tm5, tm6, tEnv⟩ := hSt
+  have hEnv0 := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
+  have hspS : S.sp.toNat = s.sp.toNat - 80 := by
+    rw [t1]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := s.sp.isLt; simp only [Nat.reducePow] at this; omega
+  have hacc : S.mem.accessible (S.sp.toNat - 8) 16 false = true := by
+    rw [tmf.accessible, hspS]
+    exact Arm64.Memory.accessible_mono _ (Arm64.Memory.accessible_weaken _ e5) (by omega) (by omega)
+  have hE16 : S.mem.accessible cfg.errBig 16 false = true := by rw [tmf.accessible]; exact hErrA
+  have hx29 : S.mem.readLE (S.sp.toNat - 8) 8 = (s.regs 29).toNat := by
+    rw [show S.sp.toNat - 8 = s.sp.toNat - 88 by omega]; exact tm2
+  have hx30 : S.mem.readLE S.sp.toNat 8 = (s.regs 30).toNat := by
+    rw [show S.sp.toNat = s.sp.toNat - 80 by omega]; exact tm1
+  have hret : BitVec.ofNat 64 (S.mem.readLE S.sp.toNat 8) = s.regs 30 := by
+    rw [hx30]; exact (BitVec.ofNat_toNat _ _).trans (BitVec.setWidth_eq _)
+  have h29 : BitVec.ofNat 64 (S.mem.readLE (S.sp.toNat - 8) 8) = s.regs 29 := by
+    rw [hx29]; exact (BitVec.ofNat_toNat _ _).trans (BitVec.setWidth_eq _)
+  have hret' : BitVec.ofNat 64 (S.mem.readLE (s.sp.toNat - 80) 8) = s.regs 30 := by
+    rw [tm1]; exact (BitVec.ofNat_toNat _ _).trans (BitVec.setWidth_eq _)
+  have h29' : BitVec.ofNat 64 (S.mem.readLE (s.sp.toNat - 88) 8) = s.regs 29 := by
+    rw [tm2]; exact (BitVec.ofNat_toNat _ _).trans (BitVec.setWidth_eq _)
+  have hspV : S.sp + 80#64 = s.sp := by rw [t1]; bv_omega
+  have hal : S.sp.toNat % 16 = 0 := by omega
+  have hEB : cfg.errBig = 0x1b5b60 := rfl
+  rcases hE with rfl | rfl
+  · janus_run [hpc, hret, h29, hret', h29', hacc, hx29, hx30, hspV, hal, hl2, hl1, hE16, hEB]
+  · janus_run [hpc, hret, h29, hret', h29', hacc, hx29, hx30, hspV, hal, hl2, hl1, hE16, hEB]
+
+open Fv256.Arm64.SegCompose in
+/-- `ErrBig256Range`: the documented result when the number is too large -/
+theorem top_range (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre cfg R R2 T b L lo hi z pS nS s)
+    (S : State) (pcE : Nat) (hE : pcE = 0xb8a4c ∨ pcE = 0xb8a80) (hpc : S.pc = BitVec.ofNat 64 pcE)
+    (hSt : TopSt R R2 T b L lo hi z pS s S)
+    (hres : decParse (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = .range) :
+    ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (s.regs 30) S (TopPost cfg R R2 T b L lo hi z pS nS s) := by
+  have hpre' := hpre
+  refine seg_mono (top_err impl R R2 T b L lo hi z pS nS s hpre S pcE hE hpc hSt) ?_
+  intro S2 hS2
+  obtain ⟨q1, q2, q3, q4, q5, q6, q7⟩ := hS2
+  obtain ⟨hl1, hl2, h0', h1', h2', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hMaxA, hMaxO, hMaxR, hMaxB, hErrA, hErrO, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA⟩ := hpre
+  obtain ⟨t1, t2, t3, t4, tmf, tm1, tm2, tm3, tm4, tm5, tm6, tEnv⟩ := hSt
+  have hO1 : Outside cfg.errBig 8 [(lo, hi)] := by
+    have := hErrO; simp only [outside_cons, outside_nil, and_true] at this ⊢; omega
+  have hO2 : Outside (cfg.errBig + 8) 8 [(lo, hi)] := by
+    have := hErrO; simp only [outside_cons, outside_nil, and_true] at this ⊢; omega
+  have hspS : S.sp.toNat = s.sp.toNat - 80 := by
+    rw [t1]; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; have := s.sp.isLt; simp only [Nat.reducePow] at this; omega
+  have hEnv0 := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
+  refine ⟨q1, q2, q3.trans t3, q4.trans t4, by rw [q7]; exact tm5, by rw [q7]; exact tm6,
+    Or.inr (Or.inr (Or.inl ⟨hres, ?_, ?_, ?_, ?_, ?_⟩))⟩
+  · rw [q5, tmf.readLE _ _ hO1]
+  · rw [q6, tmf.readLE _ _ hO2]
+  · unfold Janus.Spec.val256
+    rw [q7, tmf.readLE _ _ (by have := hzlh; simp only [outside_cons, outside_nil, and_true]; omega)]
+  · refine Fv256.Arm64.SfdEnv.Env.frame hMod.1 tEnv ⟨by rw [q1]; omega, by rw [q1]; omega, by rw [q1]; omega⟩ q3
+      (by rw [q7]; exact MemFrame.refl _ _) hzR hzP hzS (by rw [t3]; exact hzg)
+  · rw [q7]; exact tmf.mono (fun a n h => by simp only [outside_cons, outside_nil, and_true] at h ⊢; exact h.1)
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- more than 78 digits: the error exit -/
+theorem top_c2 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre cfg R R2 T b L lo hi z pS nS s)
+    (S : State) (hpc : S.pc = BitVec.ofNat 64 0xb8a18) (hM : TopMid R R2 T b L lo hi z pS nS s S)
+    (hgt : 78 < nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) :
+    ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (BitVec.ofNat 64 0xb8a80) S
+      (TopSt R R2 T b L lo hi z pS s) := by
+  obtain ⟨hSt, h0, ⟨k, hk1, hk2, h1⟩, h2⟩ := hM
+  obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, hpB, _⟩ := hpre
+  have hmI := ofNat_toInt (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
+  janus_run [hpc, h2, hmI] until [0xb8a80]
+  all_goals exact hSt
+
+theorem c3a_post (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre cfg R R2 T b L lo hi z pS nS s)
+    (S S' : State) (k : Nat) (hSt : TopSt R R2 T b L lo hi z pS s S)
+    (hkq : k = startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
+    (heq : nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 78)
+    (hsp : S'.sp = S.sp) (h29 : S'.regs 29 = S.regs 29) (h28 : S'.regs 28 = S.regs 28) (h18 : S'.regs 18 = S.regs 18)
+    (r0 : S'.regs 0 = pS + BitVec.ofNat 64 k) (r1 : S'.regs 1 = 78#64) (r2 : S'.regs 2 = BitVec.ofNat 64 cfg.maxStr)
+    (r3 : S'.regs 3 = 78#64) (r30 : S'.regs 30 = BitVec.ofNat 64 0xb8a44)
+    (hmem : S'.mem = (S.mem.writeLE (BitVec.toNat S.sp + 64) 8 (pS.toNat + k)).writeLE (BitVec.toNat S.sp + 56) 8 78) :
+    Janus.Contracts.Cmpstring.CmpstringPre 16 S' ∧ CmpCtx R R2 T b L lo hi z pS nS s S' := by
+  obtain ⟨hl1, hl2, h0', h1', h2', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hMaxA, hMaxO, hMaxR, hMaxB, hErrA, hErrO, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA⟩ := hpre
+  have hEnv0 := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
+  have hnS := nS.isLt
+  have hq := Fv256.TopMath.startPos_spec' (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hspS := topSt_sp hSt (by omega)
+  have hmf : MemFrame S.mem S'.mem [(lo, hi)] := by
+    rw [hmem]
+    repeat' first
+      | exact MemFrame.refl _ _
+      | refine MemFrame.writeLE ?_ _ (r := (lo, hi)) (by simp) (by omega) (by omega)
+  have hSt' : TopSt R R2 T b L lo hi z pS s S' := by
+    refine topSt_step hMod.1 hSt (by omega) hsp h29 h28 h18 hmf (by omega) ?_ ?_ ?_ ?_ ?_ ?_ <;>
+      (rw [hmem]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint])
+  have hspS' : S'.sp.toNat = s.sp.toNat - 80 := by rw [hsp]; exact hspS
+  have hpk : pS.toNat + k < 2 ^ 64 := by omega
+  have hP := add_toNat pS k hpk
+  refine ⟨⟨⟨by rw [r30]; decide, by rw [r30]; decide, by omega, by omega, by omega, by omega, ?_⟩, Or.inr ⟨?_, ?_⟩, Or.inr ⟨?_, ?_⟩⟩,
+    hSt', r30, ?_, ?_, by rw [r0, hkq], r1, r2, r3, heq⟩
+  · rw [hmf.accessible, topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ e5 (by omega) (by omega)
+  · rw [r0, hP, r1, hmf.accessible, topSt_acc hSt]
+    simp only [BitVec.toNat_ofNat, Nat.reducePow]
+    exact Arm64.Memory.accessible_mono _ hpA (by omega) (by omega)
+  · rw [r0, hP, r1]; simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
+  · rw [r2, r3, hmf.accessible, topSt_acc hSt]
+    simp only [BitVec.toNat_ofNat, Nat.reducePow]
+    exact hMaxA
+  · rw [r2, r3]; simp only [BitVec.toNat_ofNat, Nat.reducePow]
+    have : cfg.maxStr = 0xf490b := rfl
+    omega
+  · rw [hmem, hsp]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+  · rw [hmem, hsp]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    rw [show (256:Nat) ^ 8 = 2 ^ 64 from rfl, hkq]; exact Nat.mod_eq_of_lt (by rw [← hkq]; omega)
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+/-- exactly 78 digits: spill and call `runtime.cmpstring` -/
+theorem top_c3a (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre cfg R R2 T b L lo hi z pS nS s)
+    (S : State) (hpc : S.pc = BitVec.ofNat 64 0xb8a18) (hM : TopMid R R2 T b L lo hi z pS nS s S)
+    (heq : nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 78) :
+    ReachesRet (Fv256.Arm64.SfdProg.program.link impl) (BitVec.ofNat 64 0x11cc0) S
+      (fun S' => Janus.Contracts.Cmpstring.CmpstringPre 16 S' ∧ CmpCtx R R2 T b L lo hi z pS nS s S') := by
+  have hpre' := hpre
+  obtain ⟨hSt, h0, ⟨k, hk1, hk2, h1⟩, h2⟩ := hM
+  obtain ⟨hl1, hl2, h0', h1', h2', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hMaxA, hMaxO, hMaxR, hMaxB, hErrA, hErrO, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA⟩ := hpre
+  have hEnv0 := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
+  have hnS := nS.isLt
+  have hq := Fv256.TopMath.startPos_spec' (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hspS := topSt_sp hSt (by omega)
+  have hkq : k = startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat := hk2 (by omega)
+  have hmI := ofNat_toInt (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
+  have hwacc : S.mem.accessible (S.sp.toNat + 56) 16 true = true := by
+    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ e5 (by omega) (by omega)
+  janus_run [hpc, h2, hmI, heq, hwacc] until [0x11cc0]
+  all_goals (
+    apply c3a_post R R2 T b L lo hi z pS nS s hpre' S _ k hSt hkq heq <;>
+      first | rfl | simp [setReg_apply])
 
 end Fv256.Arm64.SfdTop
