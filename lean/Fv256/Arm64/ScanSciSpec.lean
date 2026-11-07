@@ -205,4 +205,56 @@ theorem idxE_some {b : Nat → Nat} {n i : Nat} (h : Fv256.ScanSpec.idxE b n = s
     have := hk3 j hj
     simp [hj'] at this
 
+section cases
+open Fv256.ScanSpec
+
+theorem sci_zero (b : Nat → Nat) : sciParse b 0 = Res.ok 0 := by
+  unfold sciParse; simp
+
+theorem sci_none {b : Nat → Nat} {n : Nat} (hn : n ≠ 0) (h : idxE b n = none) : sciParse b n = decParse b n := by
+  unfold sciParse; simp [hn, h]
+
+theorem sci_mant_eof {b : Nat → Nat} {n i : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.eof) :
+    sciParse b n = Res.eof := by
+  unfold sciParse; simp [hn, h, hr]
+
+theorem sci_mant_range {b : Nat → Nat} {n i : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.range) :
+    sciParse b n = Res.range := by
+  unfold sciParse; simp [hn, h, hr]
+
+theorem sci_mant_syn {b : Nat → Nat} {n i lo len : Nat} (hn : n ≠ 0) (h : idxE b n = some i)
+    (hr : decParse b i = Res.syntax lo len) : sciParse b n = Res.syntax lo len := by
+  unfold sciParse; simp [hn, h, hr]
+
+theorem sci_e0 {b : Nat → Nat} {n i v : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.ok v)
+    (h1 : n - (i + 1) = 1) (h2 : b (i + 1) = 48) : sciParse b n = Res.ok v := by
+  unfold sciParse; simp [hn, h, hr, h1, h2]
+  rfl
+
+theorem sci_exp_ok {b : Nat → Nat} {n i v e : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.ok v)
+    (h0 : ¬ (n - (i + 1) = 1 ∧ b (i + 1) = 48)) (he : decParse (fun k => b (i + 1 + k)) (n - (i + 1)) = Res.ok e) :
+    sciParse b n = (if 77 < e ∨ 2 ^ 256 ≤ v * 10 ^ e then Res.range else Res.ok (v * 10 ^ e)) := by
+  unfold sciParse; simp only [hn, ite_false, h, hr, h0, he]
+  rfl
+
+theorem sci_exp_eof {b : Nat → Nat} {n i v : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.ok v)
+    (h0 : ¬ (n - (i + 1) = 1 ∧ b (i + 1) = 48)) (he : decParse (fun k => b (i + 1 + k)) (n - (i + 1)) = Res.eof) :
+    sciParse b n = Res.eof := by
+  unfold sciParse; simp only [hn, ite_false, h, hr, h0, he]
+  rfl
+
+theorem sci_exp_range {b : Nat → Nat} {n i v : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.ok v)
+    (h0 : ¬ (n - (i + 1) = 1 ∧ b (i + 1) = 48)) (he : decParse (fun k => b (i + 1 + k)) (n - (i + 1)) = Res.range) :
+    sciParse b n = Res.range := by
+  unfold sciParse; simp only [hn, ite_false, h, hr, h0, he]
+  rfl
+
+theorem sci_exp_syn {b : Nat → Nat} {n i v lo len : Nat} (hn : n ≠ 0) (h : idxE b n = some i) (hr : decParse b i = Res.ok v)
+    (h0 : ¬ (n - (i + 1) = 1 ∧ b (i + 1) = 48)) (he : decParse (fun k => b (i + 1 + k)) (n - (i + 1)) = Res.syntax lo len) :
+    sciParse b n = Res.syntax (i + 1 + lo) len := by
+  unfold sciParse; simp only [hn, ite_false, h, hr, h0, he]
+  rfl
+
+end cases
+
 end Fv256.Arm64.ScanSciSpec
