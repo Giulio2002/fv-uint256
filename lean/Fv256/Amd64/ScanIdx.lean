@@ -43,4 +43,26 @@ theorem idxE_byte (b : Nat → Nat) (n i : Nat) (h : idxE b n = some i) : i < n 
   have hp := List.find?_some h
   exact ⟨List.mem_range.1 hm, by simpa using hp⟩
 
+theorem sciParse_some_nonok (b : Nat → Nat) (n i : Nat) (hn : n ≠ 0) (hi : idxE b n = some i)
+    (hr : ∀ v, decParse b i ≠ Res.ok v) : sciParse b n = decParse b i := by
+  unfold sciParse
+  rw [if_neg hn, hi]
+  dsimp only
+  split
+  · rename_i v hv; exact absurd hv (hr v)
+  · rfl
+
+theorem sciParse_some_ok (b : Nat → Nat) (n i v : Nat) (hn : n ≠ 0) (hi : idxE b n = some i)
+    (hr : decParse b i = Res.ok v) :
+    sciParse b n = (if n - (i + 1) = 1 ∧ b (i + 1) = 48 then Res.ok v else
+      match decParse (fun k => b (i + 1 + k)) (n - (i + 1)) with
+      | Res.ok e => if 77 < e ∨ 2 ^ 256 ≤ v * 10 ^ e then Res.range else Res.ok (v * 10 ^ e)
+      | Res.syntax lo len => Res.syntax (i + 1 + lo) len
+      | r => r) := by
+  unfold sciParse
+  rw [if_neg hn, hi]
+  dsimp only
+  rw [hr]
+  rfl
+
 end Fv256.Amd64.ScanIdx

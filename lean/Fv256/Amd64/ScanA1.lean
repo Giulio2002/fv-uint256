@@ -24,7 +24,7 @@ theorem sci_ibs (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
   have e1 : lo ≤ (s.regs 4).toNat := hEnv.1
   have e2 : (s.regs 4).toNat + 8 ≤ hi := hEnv.2.1
   janus64_run [hn0] until [ibsEntry]
-  refine ReachesRet.call (hibs p n 101) rfl ?_ (fun S' hr hq => ?_)
+  refine ReachesRet.call_regions (hibs p n 101) rfl ?_ (fun S' hr hq hreg => ?_)
   · obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
     refine Fv256.Amd64.ScanIbsCall.pre_of_bv s.mem p n _ (sp := (s.regs 4).toNat) (v5 := (s.regs 5).toNat) (dst := dst.toNat)
       (ra := 4930611) (lo := lo) (hi := hi) rfl ?_ (by omega) (by omega) e4 (by omega) e3 e5 hav hpg hpw ?_
@@ -48,7 +48,7 @@ theorem sci_ibs (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
       simp only [show (4 = 5) = False from by decide, if_false, if_true, hsp]
       rw [Janus.Arm64.Memory.readLE_writeLE_self]
       first | rfl | decide
-    · refine Fv256.Amd64.ScanIbsCall.cont (lo := lo) (hi := hi) ?_ ?_ ?_ ?_ ?_ hq' hq'.2.2.2.2.1 hq'.2.2.2.2.2 e1 hhi hlo ?_
+    · refine Fv256.Amd64.ScanIbsCall.cont (lo := lo) (hi := hi) ?_ ?_ ?_ ?_ ?_ hq' hreg hq'.2.2.2.2.1 hq'.2.2.2.2.2 e1 hhi hlo ?_
       · simp [setRegF_apply]
       · simp [setRegF_apply]
       · rfl

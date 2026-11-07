@@ -311,11 +311,13 @@ theorem scanStr_top {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × 
 
 /-- the `TopPre` of the `SetFromDecimal(dst, p, n')` calls made directly from the frame of `scanScientificFromString` (the tail call
 and the call on the mantissa): the call state `S3` is the state `S` after the `IndexByteString` call plus the pushed return address `ra` -/
-theorem call_pre1 {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi ra : Nat}
-    {dst p n n' : BitVec 64} {s S S3 : State}
+theorem ra_lt (m : Janus.Arm64.Memory) (a ra : Nat) (h : ra < 2 ^ 47) : (m.writeLE a 8 ra).readLE a 8 < 2 ^ 47 := by
+  rw [Janus.Arm64.Memory.readLE_writeLE_self]; exact Nat.lt_of_le_of_lt (Nat.mod_le _ _) h
+
+theorem call_pre1 {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {dst p n n' : BitVec 64} {s S3 : State}
     (hret0 : RetOK s) (hp : TopPre0 C R R2 T b L lo hi dst p n s) (hlo : lo + 4920 ≤ (s.regs 4).toNat)
-    (kmf : MemFrame s.mem S.mem [(lo, hi)]) (hra : ra < 2 ^ 47)
-    (hmem : S3.mem = S.mem.writeLE ((s.regs 4).toNat - 120) 8 ra)
+    (hF1 : MemFrame s.mem S3.mem [(lo, hi)]) (hret : S3.mem.readLE ((s.regs 4).toNat - 120) 8 < 2 ^ 47)
     (h4 : S3.regs 4 = s.regs 4 - 120#64) (h0 : S3.regs 0 = dst) (h3 : S3.regs 3 = p) (h1 : S3.regs 1 = n')
     (h14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false) (hn' : n'.toNat ≤ n.toNat) :
     TopPre C R R2 T b L lo ((s.regs 4).toNat - 88) dst p n' S3 := by
@@ -326,18 +328,16 @@ theorem call_pre1 {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Na
   have hsp := (s.regs 4).isLt
   have hs4 : (S3.regs 4).toNat = (s.regs 4).toNat - 120 := by
     rw [h4, BitVec.toNat_sub]; simp only [BitVec.toNat_ofNat]; omega
-  have hF1 : MemFrame s.mem S3.mem [(lo, hi)] := by
-    rw [hmem]; exact kmf.writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)
   have hF2 : MemFrame s.mem S3.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] :=
     hF1.mono (fun a n h => by simp only [outside_cons, outside_nil, and_true] at h ⊢; exact h.1)
   have hE3 : Env C R R2 T b L lo ((s.regs 4).toNat - 88) S3 :=
     env_sub C hMod hEnv hF1 h14 (by omega) (by omega) (by omega) (by omega)
   refine ⟨?_, toppre_sub C hp (by omega) hF2 hE3 h0 h3 h1 (by omega) (by omega) (Nat.le_refl _) (by omega) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_⟩
   · unfold RetOK
-    rw [hs4, hF1.accessible, hmem, Janus.Arm64.Memory.readLE_writeLE_self]
+    rw [hs4, hF1.accessible]
     refine ⟨?_, ?_, hx15, hdf⟩
     · exact Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inl rfl) (by omega) (by omega)
-    · exact Nat.lt_of_le_of_lt (Nat.mod_le _ _) hra
+    · exact hret
   · intro a k h
     simp only [outside_cons, outside_nil, and_true] at h ⊢
     omega
@@ -389,6 +389,81 @@ theorem top_acc {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)
   · exact cMF.accessible a k w
   · exact cMF.accessible a k w
 
+theorem outside_of_all {a n : Nat} : ∀ rs : List (Nat × Nat), (∀ r ∈ rs, a + n ≤ r.1 ∨ r.2 ≤ a) → Outside a n rs := by
+  intro rs
+  induction rs with
+  | nil => intros; trivial
+  | cons r rs ih =>
+    intro h
+    obtain ⟨x, y⟩ := r
+    simp only [outside_cons]
+    exact ⟨h (x, y) (List.mem_cons_self ..), ih (fun r hr => h r (List.mem_cons_of_mem _ hr))⟩
+
+/-- the read-only data stays loaded across a memory frame on writable ranges that keeps the regions -/
+theorem dl_frame {P : Janus.Amd64.Program} {m m' : Janus.Arm64.Memory} {rs : List (Nat × Nat)}
+    (h : P.DataLoaded m) (hr : m'.regions = m.regions) (hf : MemFrame m m' rs)
+    (hrs : ∀ r ∈ rs, r.1 ≤ r.2) (hw : ∀ r ∈ rs, m.accessible r.1 (r.2 - r.1) true = true) : P.DataLoaded m' := by
+  intro d hd
+  obtain ⟨hreg, hb⟩ := h d hd
+  refine ⟨by rw [show m'.regions = m.regions from hr]; exact hreg, fun i hi => ?_⟩
+  obtain ⟨k, hk, rfl⟩ := List.getElem_of_mem hd
+  have hout : Outside (P.data[k].base + i) 1 rs := by
+    refine outside_of_all rs (fun r hr' => ?_)
+    have hdis := Janus.Amd64.Tactic.disjoint_of_dataLoaded h k hk (hw r hr')
+    have hle := hrs r hr'
+    omega
+  have := hf.readLE (P.data[k].base + i) 1 hout
+  simp only [Janus.Arm64.Memory.readLE_one] at this
+  rw [show (m'.bytes (P.data[k].base + i)).toNat = (m.bytes (P.data[k].base + i)).toNat from this]
+  exact hb i hi
+
+/-- the state `S4` at the instruction after the mantissa call returned `ok v` (`sp` = the entry `RSP` of `scanScientificFromString`;
+the frame is at `sp - 112`, the call window is `[lo, sp - 88)`) -/
+def Inv4 (P : Janus.Amd64.Program) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
+    (dst p n : BitVec 64) (i v : Nat) (s S4 : State) : Prop :=
+  S4.regs 4 = s.regs 4 - 112#64 ∧ S4.regs 5 = s.regs 4 - 8#64 ∧ S4.regs 14 = s.regs 14 ∧ S4.xmm 15 = 0 ∧ S4.df = s.df ∧
+  S4.fsBase = s.fsBase ∧ MemFrame s.mem S4.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] ∧
+  Env C R R2 T b L lo ((s.regs 4).toNat - 88) S4 ∧
+  S4.mem.readLE ((s.regs 4).toNat - 80) 8 = i ∧ S4.mem.readLE ((s.regs 4).toNat + 8) 8 = dst.toNat ∧
+  S4.mem.readLE ((s.regs 4).toNat + 16) 8 = p.toNat ∧ S4.mem.readLE ((s.regs 4).toNat + 24) 8 = n.toNat ∧
+  S4.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+  S4.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
+  idxE (bytesAt s.mem p.toNat) n.toNat = some i ∧ i < n.toNat ∧ decParse (bytesAt s.mem p.toNat) i = .ok v ∧
+  Janus.Spec.val256 S4.mem dst.toNat = v ∧ P.DataLoaded S4.mem
+
+theorem topPost_split {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z p n : BitVec 64} {S3 S' : State} (hpost : TopPost C R R2 T b L lo hi z p n S3 S') :
+    (∃ v, decParse (bytesAt S3.mem p.toNat) n.toNat = .ok v ∧ S'.regs 0 = 0 ∧ S'.regs 3 = 0 ∧
+      Janus.Spec.val256 S'.mem z.toNat = v ∧ Env C R R2 T b L lo hi S' ∧ MemFrame S3.mem S'.mem [(lo, hi), (z.toNat, z.toNat + 32)]) ∨
+    ((∀ v, decParse (bytesAt S3.mem p.toNat) n.toNat ≠ .ok v) ∧ TopPost C R R2 T b L lo hi z p n S3 S') := by
+  by_cases hex : ∃ v, decParse (bytesAt S3.mem p.toNat) n.toNat = .ok v
+  · left
+    obtain ⟨v, hv⟩ := hex
+    obtain ⟨-, hcases⟩ := hpost
+    rcases hcases with ⟨v', hv', c0, c3, cval, cEnv, cMF⟩ | ⟨hv', c0, c3, cval, cEnv, cMF⟩ | ⟨hv', c0, c3, cval, cEnv, cMF⟩ | ⟨l2, m2, hv', q, t, c0, c3, cTe, cMF⟩
+    · exact ⟨v', hv', c0, c3, cval, cEnv, cMF⟩
+    · rw [hv] at hv'; simp at hv'
+    · rw [hv] at hv'; simp at hv'
+    · rw [hv] at hv'; simp at hv'
+  · right
+    exact ⟨fun v hv => hex ⟨v, hv⟩, hpost⟩
+
+/-- after a non-`ok` `SetFromDecimal` the error word in `RAX` is non-zero (initialised sentinel errors, non-zero itab) -/
+theorem nz_of_nonok {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat}
+    {dst p n z p' n' : BitVec 64} {s S3 S' : State}
+    (hp : TopPre0 C R R2 T b L lo hi dst p n s) (hinit : Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem)
+    (hF : MemFrame s.mem S3.mem [(lo, hi), (dst.toNat, dst.toNat + 32)])
+    (hpost : TopPost C R R2 T b L lo hi3 z p' n' S3 S') (hnok : ∀ v, decParse (bytesAt S3.mem p'.toNat) n'.toNat ≠ .ok v)
+    (hne : (BitVec.ofNat 64 C.numErrItab).toNat ≠ 0) : (S'.regs 0).toNat ≠ 0 := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, hE2, -, hB2, -⟩ := hp
+  obtain ⟨i1, i2, i3, i4, -⟩ := hinit
+  obtain ⟨-, hcases⟩ := hpost
+  rcases hcases with ⟨v', hv', c0, c3, cval, cEnv, cMF⟩ | ⟨hv', c0, c3, cval, cEnv, cMF⟩ | ⟨hv', c0, c3, cval, cEnv, cMF⟩ | ⟨l2, m2, hv', q, t, c0, c3, cTe, cMF⟩
+  · exact absurd hv' (hnok v')
+  · rw [c0, hF.readLE _ _ (by simp only [outside_cons, outside_nil, and_true] at hE2 ⊢; omega)]; exact i1
+  · rw [c0, hF.readLE _ _ (by simp only [outside_cons, outside_nil, and_true] at hB2 ⊢; omega)]; exact i3
+  · rw [c0]; exact hne
+
 /-! projections of `TopPre0` -/
 section proj
 variable {C : SfdCfg} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {z p n : BitVec 64} {s : State}
@@ -411,6 +486,15 @@ theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.pz (h : TopPre0 C R R2 T b L lo hi
   exact h1
 theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.chunk (h : TopPre0 C R R2 T b L lo hi z p n s) : ChunkAll C R R2 L b p.toNat n.toNat lo hi s.mem := by
   obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, h1⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.zacc (h : TopPre0 C R R2 T b L lo hi z p n s) : s.mem.accessible z.toNat 32 true = true := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, ⟨-, h1⟩, -⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.zbuf (h : TopPre0 C R R2 T b L lo hi z p n s) : z.toNat + 32 ≤ 2 ^ 48 := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, ⟨h1, -⟩, -⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.zwin (h : TopPre0 C R R2 T b L lo hi z p n s) : z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, h1, -⟩ := h
   exact h1
 end proj
 

@@ -1,0 +1,4 @@
+Invalid: Fv256.Amd64.Scan.correctness depends on disallowed axioms: sorryAx.
+  Stage: axiom audit
+  Next: The proof (or a lemma it uses) contains sorry or an elaboration error; complete it.
+ENDMARK rc=1

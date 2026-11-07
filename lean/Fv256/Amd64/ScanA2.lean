@@ -19,7 +19,7 @@ theorem sci_none (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (hK : Fv256.Amd64.ScanIbsCall.PostK s S lo hi dst p n)
     (hidx : Fv256.IndexByte.indexOfNat (Fv256.IndexByte.bytesOf s.mem p.toNat) n.toNat 101 = 2 ^ 64 - 1) :
     ReachesRet (Extracted.program.link impl) (retAddrOf s) S (SciPost cfg R R2 b L lo hi dst p n s) := by
-  obtain ⟨hret0, hT, hlo, hav, hpg, htls, hout⟩ := hpre
+  obtain ⟨hret0, hT, hlo, hav, hpg, htls, hout, hinit⟩ := hpre
   have hpw : p.toNat + n.toNat ≤ 2 ^ 48 := hT.pw
   have hEnv : Env cfg R R2 T b L lo hi s := hT.env
   have hlo4 : lo + 4800 ≤ (s.regs 4).toNat := hT.lo4
@@ -33,7 +33,7 @@ theorem sci_none (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
   have hEnv0 : Hid (Env cfg R R2 T b L lo hi s) := hEnv
   have hret00 : Hid (RetOK s) := hret0
   clear hT hEnv hret0
-  obtain ⟨k4, k5, kfs, kdf, kmf, kidx, kdst, kp, kn, kret, krbp⟩ := hK
+  obtain ⟨k4, k5, kfs, kdf, kmf, kidx, kdst, kp, kn, kret, krbp, kreg⟩ := hK
   have hsp := (s.regs 4).isLt
   rw [hidx] at kidx
   janus64_run [kidx, kdst, kp, kn] until [sci + 0x57]
@@ -55,7 +55,7 @@ theorem sci_none (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
   have hF2 : MemFrame s.mem (S.mem.writeLE ((s.regs 4).toNat - 120) 8 4931000) [(lo, hi), (dst.toNat, dst.toNat + 32)] :=
     hF1.mono (fun a n h => by simp only [outside_cons, outside_nil, and_true] at h ⊢; exact h.1)
   refine ReachesRet.call (hsfd b L lo ((s.regs 4).toNat - 88) dst p n) rfl ?_ (fun S' hr hq => ?_)
-  · exact call_pre1 cfg hret0 hT hlo kmf (by omega) rfl (by simp [setRegF_apply]) (by simp [setRegF_apply]) (by simp [setRegF_apply])
+  · exact call_pre1 cfg hret0 hT hlo hF1 (ScanSfd.ra_lt _ _ _ (by omega)) (by simp [setRegF_apply]) (by simp [setRegF_apply]) (by simp [setRegF_apply])
       (by simp [setRegF_apply]) (by simp [setRegF_apply]) (by simp [setXmmF_apply]) hret0.2.2.2 (Nat.le_refl _)
   · obtain ⟨k1, k2, k3, k4, k5', k6, k7⟩ := hq.1
     have hq2 := hq

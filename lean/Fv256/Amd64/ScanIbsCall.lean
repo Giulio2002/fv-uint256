@@ -83,12 +83,12 @@ def PostK (s S : Janus.Amd64.State) (lo hi : Nat) (dst p n : BitVec 64) : Prop :
   S.mem.readLE ((s.regs 4).toNat - 88) 8 = indexOfNat (bytesOf s.mem p.toNat) n.toNat 101 ∧
   S.mem.readLE ((s.regs 4).toNat + 8) 8 = dst.toNat ∧ S.mem.readLE ((s.regs 4).toNat + 16) 8 = p.toNat ∧
   S.mem.readLE ((s.regs 4).toNat + 24) 8 = n.toNat ∧ S.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
-  S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat
+  S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧ S.mem.regions = s.mem.regions
 
 theorem cont {s S3 S' : Janus.Amd64.State} {lo hi : Nat} {dst p n : BitVec 64}
     (h4 : S3.regs 4 = s.regs 4 - 120#64) (h5 : S3.regs 5 = s.regs 4 - 8#64) (hfs3 : S3.fsBase = s.fsBase) (hdf3 : S3.df = s.df)
     (hm : S3.mem = callMem s.mem (s.regs 4).toNat (s.regs 5).toNat dst.toNat p.toNat n.toNat 4930611)
-    (hpost : IbsPostA p n 101 S3 S') (hfs : S'.fsBase = S3.fsBase) (hdf : S'.df = S3.df)
+    (hpost : IbsPostA p n 101 S3 S') (hreg : S'.mem.regions = S3.mem.regions) (hfs : S'.fsBase = S3.fsBase) (hdf : S'.df = S3.df)
     (e1 : lo ≤ (s.regs 4).toNat) (hhi : (s.regs 4).toNat + 32 ≤ hi) (hlo : lo + 4920 ≤ (s.regs 4).toNat)
     (hpW : n.toNat = 0 ∨ p.toNat + n.toNat ≤ lo ∨ hi ≤ p.toNat) : PostK s S' lo hi dst p n := by
   obtain ⟨hv1, hv2, hv3, hv4, -, -⟩ := hpost
@@ -120,7 +120,7 @@ theorem cont {s S3 S' : Janus.Amd64.State} {lo hi : Nat} {dst p n : BitVec 64}
     unfold bytesOf
     rw [hm]; unfold callMem
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
-  refine ⟨?_, ?_, hfs.trans hfs3, hdf.trans hdf3, hmf, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, hfs.trans hfs3, hdf.trans hdf3, hmf, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · rw [hv2, h4]; apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_add, BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
   · rw [hv3, h5]
   · have := hv1; rw [hs4] at this
@@ -140,5 +140,7 @@ theorem cont {s S3 S' : Janus.Amd64.State} {lo hi : Nat} {dst p n : BitVec 64}
   · rw [o4 _ (by omega), hm]; unfold callMem
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
     exact Nat.mod_eq_of_lt (s.regs 5).isLt
+  · rw [hreg, hm]; unfold callMem
+    simp only [Janus.Arm64.Memory.regions_writeLE]
 
 end Fv256.Amd64.ScanIbsCall
