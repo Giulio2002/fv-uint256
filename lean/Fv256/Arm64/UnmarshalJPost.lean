@@ -61,4 +61,23 @@ theorem hexPart_frame {z : BitVec 64} {m m' : Janus.Arm64.Memory} {p n lo hi : N
   rw [(hr e).2] at c1
   exact ⟨c0, c1⟩
 
+theorem not_q_short {m : Janus.Arm64.Memory} {p n : Nat} (h : (n : Int) < 2) : ¬ Quoted m p n := by
+  intro hh; have := hh.1; omega
+
+theorem not_q_b0 {m : Janus.Arm64.Memory} {p n : Nat} (h : ¬ Bw m p = 34) : ¬ Quoted m p n := by
+  rw [bw_eq] at h; exact fun hh => h hh.2.1
+
+theorem not_q_last {m : Janus.Arm64.Memory} {p n : Nat} (h1 : ¬ (n : Int) < 2) (h : ¬ Bw m (p + (n - 1)) = 34) :
+    ¬ Quoted m p n := by
+  rw [bw_eq] at h
+  intro hh
+  have e : p + n - 1 = p + (n - 1) := by omega
+  exact h (by rw [← e]; exact hh.2.2)
+
+theorem q_of {m : Janus.Arm64.Memory} {p n : Nat} (h1 : ¬ (n : Int) < 2) (h2 : Bw m p = 34) (h3 : Bw m (p + (n - 1)) = 34) :
+    Quoted m p n := by
+  rw [bw_eq] at h2 h3
+  have e : p + n - 1 = p + (n - 1) := by omega
+  exact ⟨by omega, h2, by rw [e]; exact h3⟩
+
 end Fv256.Arm64.UnmarshalJPost
