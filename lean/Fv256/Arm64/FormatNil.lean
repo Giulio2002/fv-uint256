@@ -1,5 +1,6 @@
 import Extracted
 import Fv256.SpecFormat
+import Fv256.GrabRetA64
 
 /-!
 # `(*uint256.Int).Format`, path (i): the nil receiver (arm64)
@@ -15,6 +16,8 @@ set_option linter.unusedSimpArgs false
 set_option linter.unnecessarySimpa false
 set_option linter.janusRenameI false
 set_option linter.unusedVariables false
+
+open Fv256.GrabRetA64
 
 namespace Fv256.Arm64.FormatNil
 
@@ -133,7 +136,7 @@ theorem tail (impl : List Segment) (R : IfaceModel) (rt : List (Nat × Nat)) (st
   have hr8 : S1.mem.readLE (S0.sp.toNat - 8) 8 = S0.mem.readLE (S0.sp.toNat - 8) 8 :=
     mfr.readLE _ _ (hT.of_sub (by omega) (by omega))
   janus_run [hr0, hr8, hra4, hra48, e1, e2, e3, e4, e4', Janus.Spec.strBytes_writeLE] calls [hFp]
-  rename_i junk f v m ex ep hfr hkeep hR
+  fv_ret_names_a64 junk f v m ex ep hkeep hpr hfr hR
   unfold NilQ
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
   · simp

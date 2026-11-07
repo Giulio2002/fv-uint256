@@ -47,12 +47,12 @@ theorem sw_big (impl : List Segment) (rt : List (Nat × Nat)) (stack fW fP fF fW
     (hpre : FPre rt stack z tab data fW fP fF fWr S0) (hi : FInv rt stack z tab data ch32 S0 S)
     (hlt : ch32 < 2 ^ 32) (h1 : ch32 ≠ 100) (h2 : ch32 ≠ 115) (h3 : ch32 ≠ 118) (h4 : ch32 ≠ 120) :
     ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (Extracted.entry + 0x204)) S
-      (fun S' => FInv rt stack z tab data ch32 S0 S') := by
+      (fun S' => FInv rt stack z tab data ch32 S0 S' ∧ S'.mem = S.mem) := by
   obtain ⟨-, -, -, -, -, -, -, hwa⟩ := finv_tab hpre hi
   have hi' := hi
   obtain ⟨i4, i29, i28, i18, -, i88, i96, i104, i112⟩ := hi
   obtain ⟨h0, h1, h2, h29, hal, hst, hwb, hwn, hwa0, hout, hs96, hs104, hfW, hfP, hfF, hfWr, htb, hta0, hF, hP', hW', hWr', hto, htd, hzp, hzo, hzd⟩ := hpre
   janus_run [i112, hwa, i4, addSub, addWithCarry, BitVec.msb_eq_decide, sext_trunc ch32 hlt] until [Extracted.entry + 0x204]
-  all_goals exact ReachesRet.done (by simp [Extracted.entry]) (finv_of hi' (by simp [i4]) (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) rfl)
+  all_goals exact ReachesRet.done (by simp [Extracted.entry]) ⟨finv_of hi' (by simp [i4]) (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) rfl, rfl⟩
 
 end Fv256.Arm64.FormatFast

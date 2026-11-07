@@ -2,9 +2,10 @@ import Extracted
 import Fv256.FormatFastDefsA64
 import Fv256.FormatFastFactsA64
 import Fv256.IntoBigCommon
+import Fv256.GrabRetA64
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.ICall
-open Fv256.FormatFastA64 Fv256.IntoBig
+open Fv256.FormatFastA64 Fv256.IntoBig Fv256.GrabRetA64
 
 namespace Fv256.Arm64.FormatFast
 
@@ -41,7 +42,7 @@ theorem big_b (impl : List Segment) (rtF : List (Nat × Nat)) (stack : Nat) (RBf
     split <;> omega
   have hEx : ∃ P_1, P = P_1 ∧ BigObj S1.mem P_1 v := ⟨P, rfl, hBO⟩
   janus_run [hEx, hch, hmodP, hmodC, hBO, hsp, hs48, hs96, hs104, hs112, hwa, hr0, hr8] calls [hBf]
-  rename_i junk f v' m ex ep hk1 hk2 hR hb1
-  exact ⟨by first | exact hk1 | exact hk2, _, _, _, hR⟩
+  fv_ret_names_a64 junk f v' m ex ep hk1 hpr hfr hR
+  exact ⟨hfr, _, _, _, hR⟩
 
 end Fv256.Arm64.FormatFast

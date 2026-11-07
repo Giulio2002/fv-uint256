@@ -31,7 +31,10 @@ s=s.replace(old3, old3+"""    · have hl : BitVec.toNat w7 = nib + 2 := by have 
       · exact absurd rfl hb
       · exact hin
 """)
-s=s.replace('h_data0','h_data4').replace('h_ddisj0_0','h_ddisj0_4')
+s=s.replace('h_data0','h_data7').replace('h_ddisj0_0','h_ddisj0_7')
+s=s.replace('  janus_data hd [hwa]\n','  janus_data hd [hwa]\n  fm_clear_ddisj 7\n')
+assert 'fm_clear_ddisj 7' in s
+s=s.replace('import ','import Fv256.FmTac\nimport ',1)
 s=s.replace('namespace Fv256.Arm64.Hex','namespace Fv256.Arm64.FM.Hex').replace('end Fv256.Arm64.Hex','end Fv256.Arm64.FM.Hex')
 open(sys.argv[2],'w').write(s)
 PY

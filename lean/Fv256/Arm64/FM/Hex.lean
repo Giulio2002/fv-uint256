@@ -1,3 +1,4 @@
+import Fv256.FmTac
 import Extracted
 import Fv256.Spec
 import Fv256.SpecC
@@ -304,11 +305,12 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   obtain ⟨hg1, hg2, hg3⟩ := hg
   obtain ⟨hal, hsp, hspa, hwa⟩ := hst
   janus_data hd [hwa]
+  fm_clear_ddisj 7
   have htab : ∀ c, c < 16 → s.mem.readLE (968614 + c) 1 = hexChar c := by
     intro c hc
     have hc16 : c = 0 ∨ c = 1 ∨ c = 2 ∨ c = 3 ∨ c = 4 ∨ c = 5 ∨ c = 6 ∨ c = 7 ∨ c = 8 ∨ c = 9 ∨ c = 10 ∨ c = 11 ∨ c = 12 ∨ c = 13 ∨ c = 14 ∨ c = 15 := by omega
     rcases hc16 with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> (rw [h_rodata _ _ (by decide)]; decide)
-  have hloop := hexloop impl rt H z ret hret hc s h_lr hg1 hza hzn hzd hsp hspa hal hwa hout hH h_data4 h_ddisj0_4 htab
+  have hloop := hexloop impl rt H z ret hret hc s h_lr hg1 hza hzn hzd hsp hspa hal hwa hout hH h_data7 h_ddisj0_7 htab
   have x0 := Util.readLE8_lt s.mem z.toNat
   have x1 := Util.readLE8_lt s.mem (z.toNat + 8)
   have x2 := Util.readLE8_lt s.mem (z.toNat + 16)

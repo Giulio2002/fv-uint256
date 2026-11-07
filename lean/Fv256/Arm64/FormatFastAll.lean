@@ -14,11 +14,11 @@ namespace Fv256.Arm64.FormatFast
 caller (`PC` = the return address, with exactly one `Write` made, whose argument bytes are `fastBytes v ch` -- the call-site property
 `FastWP data (fastBytes v ch)` of `hWr` -- after all four queries answered plain and `ch ∈ {d,v,s,x}`), or `Format+0x204` (the big path),
 with the answers (`NotPlain`) that sent it there. -/
-theorem fast_arm64_core (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (stack fW fP fF fWr : Nat)
+theorem fast_arm64_core (impl : List Segment) (R2 : RtInv) (rt : List (Nat × Nat)) (H : RtReady) (stack fW fP fF fWr : Nat)
     (RW RP RF RWr : Res) (z tab data : BitVec 64) (hI : ImplApart Extracted.program impl)
-    (hW : ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True))
-    (hP : ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True))
-    (hF : ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True))
+    (hW : ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True) (RtPreserves R2))
+    (hP : ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True) (RtPreserves R2))
+    (hF : ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True) (RtPreserves R2))
     (S0 : State)
     (hWr : ICallContract (Extracted.program.link impl) fWr 4 stack 120 rt (fun _ => []) RWr
       (FastWP data (Fv256.FormatSpec.fastBytes (val256 S0.mem z.toNat) ((S0.regs 3).toNat % 2 ^ 32))))
@@ -30,6 +30,7 @@ theorem fast_arm64_core (impl : List Segment) (rt : List (Nat × Nat)) (H : RtRe
     (hrt32 : ∀ r ∈ rt, 32 ≤ r.1)
     (hpc : S0.pc = BitVec.ofNat 64 (Extracted.entry + 0x44))
     (hpre : FPre rt stack z tab data fW fP fF fWr S0)
+    (hwR : Outside (S0.sp.toNat - stack) (stack + 0x78) R2.rt)
     (h4608 : 4608 ≤ stack)
     (hdl : Extracted.program.DataLoaded S0.mem) (hdrt : ∀ d ∈ Extracted.program.data, Outside d.base d.bytes.length rt)
     (ht1 : Outside 989280 256 rt) (ht2 : Outside 1002589 256 rt) (ht3 : Outside 968614 256 rt)
@@ -59,9 +60,9 @@ theorem fast_arm64_core (impl : List Segment) (rt : List (Nat × Nat)) (H : RtRe
           (∃ r3 j1, PlainHist RW RP RF data fW fP fF r3 j1) ∧
           ((S0.regs 3).toNat % 2 ^ 32 = 100 ∨ (S0.regs 3).toNat % 2 ^ 32 = 115 ∨ (S0.regs 3).toNat % 2 ^ 32 = 118 ∨
             (S0.regs 3).toNat % 2 ^ 32 = 120)),
-       (Extracted.entry + 0x204, fun S' => FInv rt stack z tab data ((S0.regs 3).toNat % 2 ^ 32) S0 S' ∧
+       (Extracted.entry + 0x204, fun S' => FInv rt stack z tab data ((S0.regs 3).toNat % 2 ^ 32) S0 S' ∧ RPres R2 S0 S' ∧
           NotPlain RW RP RF data fW fP fF (S0.regs 3) ((S0.regs 3).toNat % 2 ^ 32))] := by
-  have h0 := (pre_fast impl rt stack fW fP fF fWr RW RP RF z tab data hW hP hF S0 hpc hpre).regions
+  have h0 := (pre_fast impl R2 rt stack fW fP fF fWr RW RP RF z tab data hW hP hF S0 hpc hpre hwR).regions
   refine RT.trans h0 ?_
   intro t ht S1 hr1 hq1
   simp only [List.map, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false] at ht
@@ -104,17 +105,17 @@ theorem fast_arm64_core (impl : List Segment) (rt : List (Nat × Nat)) (H : RtRe
     refine RT.widen (RT.of_reachesRet k) ?_
     intro t ht; simp only [List.mem_singleton] at ht; subst ht
     exact ⟨_, List.mem_cons_self .., rfl, fun _ h => h⟩
-  · obtain ⟨⟨hi1, hnp⟩, hreg1⟩ := hq1
-    exact RT.here _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)) hr1 ⟨hi1, hnp⟩
+  · obtain ⟨⟨hi1, hk1, hnp⟩, hreg1⟩ := hq1
+    exact RT.here _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)) hr1 ⟨hi1, hk1, hnp⟩
 
 
 /-- `fast_arm64_core` with the memory regions of the final state equal to the start state's at both exits (needed to carry
 `DataLoaded` into the big path and the caller) -/
-theorem fast_arm64 (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (stack fW fP fF fWr : Nat)
+theorem fast_arm64 (impl : List Segment) (R2 : RtInv) (rt : List (Nat × Nat)) (H : RtReady) (stack fW fP fF fWr : Nat)
     (RW RP RF RWr : Res) (z tab data : BitVec 64) (hI : ImplApart Extracted.program impl)
-    (hW : ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True))
-    (hP : ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True))
-    (hF : ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True))
+    (hW : ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True) (RtPreserves R2))
+    (hP : ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True) (RtPreserves R2))
+    (hF : ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True) (RtPreserves R2))
     (S0 : State)
     (hWr : ICallContract (Extracted.program.link impl) fWr 4 stack 120 rt (fun _ => []) RWr
       (FastWP data (Fv256.FormatSpec.fastBytes (val256 S0.mem z.toNat) ((S0.regs 3).toNat % 2 ^ 32))))
@@ -126,6 +127,7 @@ theorem fast_arm64 (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) 
     (hrt32 : ∀ r ∈ rt, 32 ≤ r.1)
     (hpc : S0.pc = BitVec.ofNat 64 (Extracted.entry + 0x44))
     (hpre : FPre rt stack z tab data fW fP fF fWr S0)
+    (hwR : Outside (S0.sp.toNat - stack) (stack + 0x78) R2.rt)
     (h4608 : 4608 ≤ stack)
     (hdl : Extracted.program.DataLoaded S0.mem) (hdrt : ∀ d ∈ Extracted.program.data, Outside d.base d.bytes.length rt)
     (ht1 : Outside 989280 256 rt) (ht2 : Outside 1002589 256 rt) (ht3 : Outside 968614 256 rt)
@@ -155,9 +157,9 @@ theorem fast_arm64 (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) 
           (∃ r3 j1, PlainHist RW RP RF data fW fP fF r3 j1) ∧
           ((S0.regs 3).toNat % 2 ^ 32 = 100 ∨ (S0.regs 3).toNat % 2 ^ 32 = 115 ∨ (S0.regs 3).toNat % 2 ^ 32 = 118 ∨
             (S0.regs 3).toNat % 2 ^ 32 = 120)) ∧ S'.mem.regions = S0.mem.regions),
-       (Extracted.entry + 0x204, fun S' => (FInv rt stack z tab data ((S0.regs 3).toNat % 2 ^ 32) S0 S' ∧
+       (Extracted.entry + 0x204, fun S' => (FInv rt stack z tab data ((S0.regs 3).toNat % 2 ^ 32) S0 S' ∧ RPres R2 S0 S' ∧
           NotPlain RW RP RF data fW fP fF (S0.regs 3) ((S0.regs 3).toNat % 2 ^ 32)) ∧ S'.mem.regions = S0.mem.regions)] := by
-  have h := (fast_arm64_core impl rt H stack fW fP fF fWr RW RP RF RWr z tab data hI hW hP hF S0 hWr hc hcH hc2 hrt32 hpc hpre h4608 hdl hdrt ht1 ht2 ht3 hg hgo hgd hH1 hH2 hHst hHx hHstx hret).regions
+  have h := (fast_arm64_core impl R2 rt H stack fW fP fF fWr RW RP RF RWr z tab data hI hW hP hF S0 hWr hc hcH hc2 hrt32 hpc hpre hwR h4608 hdl hdrt ht1 ht2 ht3 hg hgo hgd hH1 hH2 hHst hHx hHstx hret).regions
   exact h
 
 end Fv256.Arm64.FormatFast

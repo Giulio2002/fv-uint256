@@ -80,6 +80,35 @@ def FInv (rt : List (Nat × Nat)) (stack : Nat) (z tab data : BitVec 64) (ch32 :
   S.mem.readLE (S0.sp.toNat + 104) 8 = data.toNat ∧ S.mem.readLE (S0.sp.toNat + 112) 4 = ch32
 
 
+/-- the runtime invariant of `R2` survives from `S` to `S'` (for every budget and live set), the goroutine register being `S.regs 28` -/
+def RPres (R2 : Janus.Contracts.RtInv) (S S' : State) : Prop :=
+  ∀ b L, R2.inv b L (S.regs 28).toNat (Janus.Contracts.view R2.rt L S.mem) →
+    R2.inv b L (S.regs 28).toNat (Janus.Contracts.view R2.rt L S'.mem)
+
+theorem RPres.refl (R2 : Janus.Contracts.RtInv) (S : State) : RPres R2 S S := fun _ _ h => h
+
+theorem RPres.trans {R2 : Janus.Contracts.RtInv} {S1 S2 S3 : State} (h12 : RPres R2 S1 S2) (h23 : RPres R2 S2 S3)
+    (e : S2.regs 28 = S1.regs 28) : RPres R2 S1 S3 := by
+  intro b L h
+  have := h12 b L h
+  rw [← e] at this ⊢
+  exact h23 b L this
+
+theorem RPres.of_mem {R2 : Janus.Contracts.RtInv} {S S' : State} (hm : S'.mem = S.mem) : RPres R2 S S' := by
+  intro b L h; rw [hm]; exact h
+
+/-- the `preserves` fact of an icall (call state `sc`, same goroutine and same view as `S`), as `RPres` -/
+theorem rpres_call {R2 : Janus.Contracts.RtInv} {S S' sc : State} {m : Memory}
+    (hpr : Janus.Contracts.ICall.RtPreserves R2 sc m) (hsc28 : sc.regs 28 = S.regs 28)
+    (hv : ∀ L, Janus.Contracts.view R2.rt L sc.mem = Janus.Contracts.view R2.rt L S.mem)
+    (hm : S'.mem = m) : RPres R2 S S' := by
+  intro b L h
+  rw [hm]
+  have := hpr b L (by rw [hsc28, hv]; exact h)
+  rw [hsc28] at this
+  exact this
+
+
 theorem rr_mono {p : Janus.Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
     (h : Janus.Tactic.ReachesRet p ret S Q) (hQ : ∀ S', Q S' → Q' S') : Janus.Tactic.ReachesRet p ret S Q' := by
   obtain ⟨k, s', hs, hr, hq⟩ := h
