@@ -265,3 +265,18 @@ theorem frame_call {rt : List (Nat × Nat)} {stack : Nat} {S0 S : State} {m : Me
       refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
   exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
 end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the read-only data stays loaded across a memory frame that leaves the data ranges alone and keeps the regions -/
+theorem dataLoaded_frame {p : Janus.Amd64.Program} {m m' : Janus.Arm64.Memory} {rs : List (Nat × Nat)} (h : p.DataLoaded m)
+    (hr : m'.regions = m.regions) (hfr : MemFrame m m' rs) (ho : ∀ d ∈ p.data, Outside d.base d.bytes.length rs) :
+    p.DataLoaded m' := by
+  intro d hd
+  obtain ⟨h1, h2⟩ := h d hd
+  refine ⟨by rw [hr]; exact h1, fun i hi => ?_⟩
+  have e := hfr.readLE (d.base + i) 1 ((ho d hd).of_sub (by omega) (by omega))
+  rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at e
+  rw [e]; exact h2 i hi
+end Fv256.FormatFast
