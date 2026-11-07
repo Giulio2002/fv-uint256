@@ -4,7 +4,7 @@ defaultTargets = ["Fv256"]
 
 [[require]]
 name = "janus"
-git = "/srv/janus"
+git = "/srv/janus-fvA-pin77f"
 rev = "77fb30cccd11fd24ce73df73601a06f515d2b60f"
 
 # Fv256.lean imports the modules that do not depend on an extraction (specifications and

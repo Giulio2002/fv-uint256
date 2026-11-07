@@ -1,7 +1,7 @@
 {"version": "1.2.0",
  "packagesDir": ".lake/packages",
  "packages":
- [{"url": "/srv/janus",
+ [{"url": "/srv/janus-fvA-pin77f",
    "type": "git",
    "subDir": null,
    "scope": "",
