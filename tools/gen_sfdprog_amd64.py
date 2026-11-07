@@ -56,6 +56,9 @@ alias = [("cfgIoEOF","io.EOF"),("cfgErrBig","github.com/holiman/uint256.ErrBig25
  ("cfgNumErrType","type:strconv.NumError#3eb4e62e"),("cfgNumErrItab","go:itab.*strconv.NumError,error"),("cfgErrItab","go:itab.internal/strconv.Error,error"),
  ("cfgSynConst",".rodata#9967e7a3"),("cfgErrSyntax","strconv.ErrSyntax"),("cfgWbFlag","runtime.writeBarrier"),("cfgFnStr",".rodata#3d2a826c"),("cfgMaxStr",".rodata#575028b4")]
 dd = dict((m.group(1), m.group(2)) for m in re.finditer(r'def dataAddr\.«([^»]+)» : Nat := (0x[0-9a-f]+)', t0))
+con = dict(re.findall(r'\("(runtime\.[A-Za-z0-9]+)", (0x[0-9a-f]+)\)', t0))
+for a, n in [("cfgMallocgc","runtime.mallocgc"),("cfgMemmove","runtime.memmove"),("cfgNewobject","runtime.newobject"),("cfgWb1","runtime.gcWriteBarrier1"),("cfgWb2","runtime.gcWriteBarrier2")]:
+    L.append("def %s : Nat := %s" % (a, con[n]))
 for a, n in alias:
     L.append("def %s : Nat := %s" % (a, dd[n]))
 L.append("")

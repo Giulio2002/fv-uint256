@@ -317,6 +317,11 @@ def dataAddr.«github.com/holiman/uint256.multipliers» : Nat := 0x5b8580
 def dataAddr.«runtime.writeBarrier» : Nat := 0x5def20
 
 /-- ASCII-named literal copies of the addresses the statement (`SfdTopCfg.extCfg`) mentions (the auditor rejects non-ASCII names) -/
+def cfgMallocgc : Nat := 0x4784a0
+def cfgMemmove : Nat := 0x47fde0
+def cfgNewobject : Nat := 0x41d9c0
+def cfgWb1 : Nat := 0x47f680
+def cfgWb2 : Nat := 0x47f6a0
 def cfgIoEOF : Nat := 0x5b7c50
 def cfgErrBig : Nat := 0x5b7ba0
 def cfgMulTab : Nat := 0x5b8580
