@@ -62,3 +62,8 @@ Hash and lemma names to follow from FV-X; the consumer's hibs must use the amend
 Decisions (main): slicebytetostring via the LIVE contract (RtLiveContract64 .. slicebytetostringLive) over the SAME allocator model R as SFD (copy FV-J2: fv/wj
 Amd64/UnmarshalDec.lean `dec_call_pre`, `SbPost`; SbtsFacts.lean `loc`); pin the consumer to u14 head 72b96825. Pre = plain conjunction def (like PreU) with an early satisfiability lemma.
 MulOverflow: library programs + retargeted cases generated (Amd64|Arm64/MoLib/{A..E,Top}.lean, mo_summary); builds queued: build/mo.sh (amd64) then build/mo64.sh.
+
+## MulOverflow library summaries: DONE both ISAs (lake build, axioms propext/choice/Quot.sound, no sorry)
+Fv256.Amd64.MoLib.mo_summary (over Fv256.MulOverflowProg.program, entry 0x4b7360) and Fv256.Arm64.MoLib.mo_summary (over Fv256.Arm64.MulOverflowProg.program, entry 0xbadb0).
+Pre = `∃ ret, RetAddr .. ∧ CallSetup (program.withExit ret) entry [z,x,y] s ∧ <MulOverflow Ensures pre>`, Post = `ABIReturn s s' ∧ <Ensures post>`. Transfer with Fv256.CodeIn.lib_summary (CodeIn proof as in Amd64/Exp.lean).
+Case proofs are mechanical sed-retargets of MoCases (not janus verify runs).
