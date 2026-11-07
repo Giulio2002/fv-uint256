@@ -116,4 +116,28 @@ theorem args_zero (p n : BitVec 64) (i : Nat) (hi : i + 1 = n.toNat) :
   refine ⟨h1, ?_⟩
   rw [h1]; have := mask_zero (BitVec.ofNat 64 (i + 1)); simp at this ⊢
 
+/-- reads above the callee window and apart from the callee's receiver `z` are unchanged by a `SetFromDecimal(z, ..)` call -/
+theorem top_keep2 {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat}
+    {dst p n z p' n' : BitVec 64} {s S3 S' : State}
+    (hp : TopPre0 C R R2 T b L lo hi dst p n s)
+    (hpost : TopPost C R R2 T b L lo hi3 z p' n' S3 S') (hlh : lo ≤ hi3) (a k : Nat) (h1 : hi3 ≤ a) (h2 : a + k ≤ hi)
+    (hz : z.toNat + 32 ≤ a ∨ a + k ≤ z.toNat) :
+    S'.mem.readLE a k = S3.mem.readLE a k := by
+  obtain ⟨-, -, -, -, hEnv, -, -, -, -, -, -, -, -, -, -, -, -, hzW, -⟩ := hp
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, -⟩ := hEnv
+  obtain ⟨-, hcases⟩ := hpost
+  have ho1 : Outside a k [(lo, hi3), (z.toNat, z.toNat + 32)] := by
+    simp only [outside_cons, outside_nil, and_true]
+    omega
+  have ho2 : Outside a k (R.rt ++ R2.priv ++ [(lo, hi3), (z.toNat, z.toNat + 32)]) := by
+    simp only [outside_append, outside_cons, outside_nil, and_true]
+    refine ⟨⟨?_, ?_⟩, by omega, by omega⟩
+    · exact Outside.of_sub e9 (by omega) (by omega)
+    · exact Outside.of_sub e10 (by omega) (by omega)
+  rcases hcases with ⟨v, hv, c0, c3, cval, cEnv, cMF⟩ | ⟨hv, c0, c3, cval, cEnv, cMF⟩ | ⟨hv, c0, c3, cval, cEnv, cMF⟩ | ⟨l2, m2, hv, q, t, c0, c3, cTe, cMF⟩
+  · exact cMF.readLE a k ho1
+  · exact cMF.readLE a k ho1
+  · exact cMF.readLE a k ho1
+  · exact cMF.readLE a k ho2
+
 end Fv256.Amd64.ScanSfd2
