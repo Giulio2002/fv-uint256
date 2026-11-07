@@ -373,11 +373,29 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4144 24 ∧ Extracted.progr
   · simp only [rt, outside_cons, outside_nil]; decide
   · simp only [rt, outside_cons, outside_nil]; decide
 
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): `s0`'s memory, at the allocator's entry, `RSP` at the call
+frame (`s0`'s `RSP` less 48), `RAX` the type descriptor. -/
+def csNew : Janus.Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 cA, regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 4 then s0.regs 4 - 48#64 else s0.regs i }
+
+theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr]; rfl
+
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectPre64 4096 csNew ∧ Ready64 H rt [(csNew.regs 0).toNat] csNew := by
+  have ht : (csNew.regs 0).toNat = intType := by
+    have : intType = tyA := by unfold tyA; decide
+    rw [this]; decide
+  refine ⟨⟨by decide, by decide, by decide⟩, ?_⟩
+  show H [(csNew.regs 0).toNat] _ _ (rtView rt s0.mem)
+  rw [ht]; exact hH
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
 theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (ret : Nat) (s : State),
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    (∃ s_c : Janus.Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
+      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [hp, len] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -395,7 +413,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
           s'.regs 0 = 0 ∧ s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
           s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
         Janus.MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24)]) :=
-  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre,
+  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, hret, setup, pre,
     correctness impl rt H hpp 4 hnew ret hret s0 setup pre⟩
 
 end Witness

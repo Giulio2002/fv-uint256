@@ -171,4 +171,18 @@ theorem preW : StackGuardOK s0 0x198 ∧ StackWritable s0 4256 0x28 ∧ Extracte
   · simp only [outside_cons, outside_nil, and_true, rtW]; decide
   · exact ⟨heapReadyW, intTy, rfl, ⟨(intTy, intTy + 16), by simp [rtW], Nat.le_refl _, Nat.le_refl _⟩, typSizeW⟩
 
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): `s0`'s memory at the allocator's entry, `RSP` at the call frame
+(`s0`'s `RSP` less `0xa0`), `RAX` the `uint256.Int` type descriptor. -/
+def csNewW : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 cA, regs := fun i => if i = 0 then BitVec.ofNat 64 intTy else if i = 4 then s0.regs 4 - 0xa0#64 else s0.regs i }
+
+theorem csNewW_rip : csNewW.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := rfl
+
+set_option maxRecDepth 100000 in
+theorem csNewW_pre : NewobjectPre64 4096 csNewW ∧ Ready64 HW rtW [(csNewW.regs 0).toNat] csNewW := by
+  have ht : (csNewW.regs 0).toNat = intTy := by decide
+  refine ⟨⟨by decide, by decide, by decide⟩, ?_⟩
+  show HW [(csNewW.regs 0).toNat] _ _ (rtView rtW s0.mem)
+  rw [ht]; exact preW.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2
+
 end Fv256.Amd64.DivModW

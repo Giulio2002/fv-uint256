@@ -6,6 +6,7 @@ import Fv256.Amd64.ErlpCases
 import Fv256.Amd64.ErlpEJ
 import Fv256.Amd64.ErlpWit
 import Fv256.Amd64.ErlpInhabit
+import Fv256.Amd64.CallSites.Base
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janus.Contracts.ICall Fv256.Rlp
 
@@ -89,16 +90,58 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
 
 namespace Witness
 
+open Fv256.Inhab
+
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): `s0`'s memory at the allocator's entry, `RSP` at the call frame
+(`s0`'s `RSP` less 56), `RAX` the `big.Int` type descriptor. -/
+def csNew : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 cA, regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 4 then s0.regs 4 - 56#64 else s0.regs i }
+
+theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr]; rfl
+
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectPre64 4096 csNew ∧ Ready64 H rt [(csNew.regs 0).toNat] csNew := by
+  have ht : (csNew.regs 0).toNat = tyA := by decide
+  refine ⟨⟨by decide, by decide, by decide⟩, ?_⟩
+  show H [(csNew.regs 0).toNat] _ _ (rtView rt s0.mem)
+  rw [ht]; exact hH tyA (Or.inl rfl)
+
+/-- The call state of the writer (U-WITNESS-CALLSITE): at `A0`, with `RAX = w`, the encoding of `*z` (`0x80` for `z`'s zero cell)
+at `0x2000`, flat memory, `RSP = 2^40`. -/
+def csW : Amd64.State := callSt64At (BitVec.ofNat 64 A0) wA 1 0x2000 0 1 (strMem [0x80] 0x2000)
+
+theorem csW_pre : ICallPre64 4 stack 56 rt
+    (fun sc => sc.regs 0 = wA ∧ StrOut sc.mem (sc.regs 3).toNat (sc.regs 1).toNat (rlpBytes (rlpVal sc.mem zA.toNat)) ∧
+      (sc.regs 7).toNat = (sc.regs 1).toNat) csW := by
+  have h0 : rlpBytes (rlpVal (strMem [0x80] 0x2000) zA.toNat) = [0x80] := by
+    have : (strMem [0x80] 0x2000).readLE zA.toNat 32 = 0 := readLE_strMem_far _ _ _ _ (by simp [zA, zp])
+    simp [rlpVal, rlpBytes, this, zA, zp]
+  have hret : (strMem [0x80] 0x2000).readLE (2 ^ 40) 8 < 2 ^ 47 := by
+    rw [readLE_strMem_far _ _ _ _ (by simp)]; omega
+  refine callSt64At_pre (by rfl) hret (by decide) (by omega) (by omega) ?_ ?_
+  · simp only [rt, outside_cons, outside_nil]; decide
+  · refine ⟨rfl, ?_, rfl⟩
+    simp only [csW, callSt64At_mem, callSt64At_r3, callSt64At_r1]
+    rw [h0]
+    exact strOut_strMem [0x80] (by simp) 0x2000 (by simp)
+
 /-- **Non-vacuity**: the toy allocator, the toy writer (`(len, nil)`), and a concrete call state (`*z = 0x011234`, 17 bits: the
 multi-byte path) meet every hypothesis of `correctness`, contracts included. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64) (ret : Nat) (s : State),
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
+      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
     ICallContract64 (Extracted.program.link impl) fn 4 stack 56 rt (fun _ => []) R
       (fun sc => sc.regs 0 = w ∧
         StrOut sc.mem (sc.regs 3).toNat (sc.regs 1).toNat (rlpBytes (rlpVal sc.mem z.toNat)) ∧
         (sc.regs 7).toNat = (sc.regs 1).toNat) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 fn ∧
+      ICallPre64 4 stack 56 rt
+        (fun sc => sc.regs 0 = w ∧
+          StrOut sc.mem (sc.regs 3).toNat (sc.regs 1).toNat (rlpBytes (rlpVal sc.mem z.toNat)) ∧
+          (sc.regs 7).toNat = (sc.regs 1).toNat) s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, w] s ∧
     (4104 ≤ stack ∧ fn < 2 ^ 47 ∧
@@ -114,7 +157,8 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (∃ ptr len cap n e1 e2, R w ptr len cap n e1 e2 ∧ s'.regs 0 = e1 ∧ s'.regs 3 = e2) ∧
         (z ≠ 0 → s'.mem.readLE z.toNat 32 = s.mem.readLE z.toNat 32) ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 56 - stack, (s.regs 4).toNat + 32)]) := by
-  refine ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, ?w1, hret, setup, pre,
+  refine ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, ?w1,
+    ⟨csW, rfl, csW_pre⟩, hret, setup, pre,
     correctness impl rt H A0 stack R0 zA tabA wA hnew ?w1 retA hret s0 setup pre⟩
   case w1 => exact hw zA wA
 

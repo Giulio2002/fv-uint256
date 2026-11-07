@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -300,6 +301,44 @@ theorem pre : StackGuardOK s0 4168 ∧ StackWritable s0 4168 8 ∧ (s0.regs 4).t
   · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
   · unfold Janus.Spec.Disjoint; decide
 
+open Fv256.CallSites
+
+/-- The call states of the runtime stubs (U-WITNESS-CALLSITE): `s0`'s memory at the stub's entry, `RSP` at the call frame
+(`s0`'s `RSP` less 32); `RAX` is the type descriptor for `runtime.newobject`. -/
+def csNew : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 newA, regs := fun i => if i = 0 then BitVec.ofNat 64 bigType else if i = 4 then s0.regs 4 - 32#64 else s0.regs i }
+def csW1 : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 w1A, regs := fun i => if i = 4 then s0.regs 4 - 32#64 else s0.regs i }
+def csW2 : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 w2A, regs := fun i => if i = 4 then s0.regs 4 - 32#64 else s0.regs i }
+
+theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr_new]; rfl
+theorem csW1_rip : csW1.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") := by rw [addr_w1]; rfl
+theorem csW2_rip : csW2.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") := by rw [addr_w2]; rfl
+
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectPre64 4096 csNew ∧ StackRoom64 csNew 4096 1 ∧
+    LiveAt R (Extracted.program.contractAddr "runtime.newobject") [(csNew.regs 0).toNat] [] 0x400 (newobjectRound64 csNew)
+      (csNew.regs 14).toNat csNew.mem (liveWin64 csNew 4096 1) := by
+  refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, ?_⟩, ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · simp only [calleeStack64, outside_cons, outside_nil]; rw [rt_eq]; decide
+  · rw [addr_new]; exact Or.inl ⟨rfl, Or.inl rfl⟩
+  · simp only [liveWin64, calleeStack64]; apply liveSep_two <;> (rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)
+
+set_option maxRecDepth 100000 in
+theorem csW1_pre : CallOK64 csW1 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+    R.inv 0x400 [] (csW1.regs 14).toNat (view R.rt [] csW1.mem) ∧ LiveSep [] [((csW1.regs 4).toNat - 4096, (csW1.regs 4).toNat + 8)] ∧
+    LiveSep [((csW1.regs 4).toNat - 4096, (csW1.regs 4).toNat + 8)] R.rt :=
+  ⟨by decide, by rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩), inv0, liveSep_nil _,
+    liveSep_one (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
+
+set_option maxRecDepth 100000 in
+theorem csW2_pre : CallOK64 csW2 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+    R.inv 0x400 [] (csW2.regs 14).toNat (view R.rt [] csW2.mem) ∧ LiveSep [] [((csW2.regs 4).toNat - 4096, (csW2.regs 4).toNat + 8)] ∧
+    LiveSep [((csW2.regs 4).toNat - 4096, (csW2.regs 4).toNat + 8)] R.rt :=
+  ⟨by decide, by rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩), inv0, liveSep_nil _,
+    liveSep_one (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget and a call of `ToBig` on a
 non-nil receiver satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : BitVec 64) (ret : Nat) (s : State),
@@ -310,6 +349,18 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : 
       (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
     WbLiveContract64 (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
+      NewobjectPre64 4096 s_c ∧ StackRoom64 s_c 4096 1 ∧
+      LiveAt R (Extracted.program.contractAddr "runtime.newobject") [(s_c.regs 0).toNat] L b (newobjectRound64 s_c)
+        (s_c.regs 14).toNat s_c.mem (liveWin64 s_c 4096 1)) ∧
+    (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧
+      CallOK64 s_c 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+      R.inv b L (s_c.regs 14).toNat (view R.rt L s_c.mem) ∧ LiveSep L [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] ∧
+      LiveSep [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] R.rt) ∧
+    (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧
+      CallOK64 s_c 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+      R.inv b L (s_c.regs 14).toNat (view R.rt L s_c.mem) ∧ LiveSep L [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] ∧
+      LiveSep [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] R.rt) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s 4168 ∧ StackWritable s 4168 8 ∧ (s.regs 4).toNat % 8 = 0 ∧
@@ -329,7 +380,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : 
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → s'.regs 0 = 0) ∧
         (z.toNat ≠ 0 → ∃ P : Nat, (s'.regs 0).toNat = P ∧ BigObj s'.mem P (val256 s.mem z.toNat)) ∧
         MemFrame s.mem s'.mem (R.rt ++ [((s.regs 4).toNat - 4168, (s.regs 4).toNat)]) := by
-  refine ⟨implAt, R, 0x400, zV, ret, s0, implOK, ?w1, ?w2, ?w3, hret, setup, pre,
+  refine ⟨implAt, R, 0x400, zV, ret, s0, implOK, ?w1, ?w2, ?w3, ⟨[], 0x400, csNew, csNew_rip, csNew_pre⟩, ⟨[], 0x400, csW1, csW1_rip, csW1_pre⟩, ⟨[], 0x400, csW2, csW2_rip, csW2_pre⟩, hret, setup, pre,
     correctness implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
   case w1 => exact by rw [addr_new]; exact model_new
   case w2 => exact by rw [addr_w1]; exact model_wb1

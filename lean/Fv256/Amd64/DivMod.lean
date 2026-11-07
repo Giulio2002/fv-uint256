@@ -159,6 +159,8 @@ open Fv256.Amd64.DivModW
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
     (ret : Nat) (s : Amd64.State),
     NewobjectContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
+      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, x, y, m] s ∧
     (StackGuardOK s 0x198 ∧ StackWritable s 4256 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -180,7 +182,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
           s'.mem.readLE m' 32 = Fv256.B.modSpec (valueAt s x 32) (valueAt s y 32) ∧
           MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
             ((s.regs 4).toNat - 4256, (s.regs 4).toNat + 0x28)]))) :=
-  ⟨impl, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW,
+  ⟨impl, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, ⟨csNewW, csNewW_rip, csNewW_pre⟩, hretW, setupW, preW,
     correctness impl rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
 
 end Witness

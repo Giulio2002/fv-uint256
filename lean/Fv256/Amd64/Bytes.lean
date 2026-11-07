@@ -225,11 +225,29 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4192 24 ∧ Extracted.progr
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, hH⟩
 
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): `s0`'s memory, at the allocator's entry, `RSP` at the call
+frame (`s0`'s `RSP` less 96), `RAX` the type descriptor. -/
+def csNew : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 cA, regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 4 then s0.regs 4 - 96#64 else s0.regs i }
+
+theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr]; rfl
+
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectPre64 4096 csNew ∧ Ready64 H rt [(csNew.regs 0).toNat] csNew := by
+  have ht : (csNew.regs 0).toNat = intType := by
+    have : intType = tyA := by unfold tyA; decide
+    rw [this]; decide
+  refine ⟨⟨by decide, by decide, by decide⟩, ?_⟩
+  show H [(csNew.regs 0).toNat] _ _ (rtView rt s0.mem)
+  rw [ht]; exact hH
+
 /-- The preconditions and the allocator contract are jointly satisfiable: a concrete call state (with the toy allocator linked at
 the `runtime.newobject` address) meets every hypothesis of `correctness`. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
+      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 4192 24 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -242,7 +260,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         (s'.regs 3).toNat = Spec.byteLen (valueAt s z 32) ∧ (s'.regs 1).toNat = Spec.byteLen (valueAt s z 32) ∧
         Spec.fromBE (fun i => s'.mem.readLE (ptr + (if Spec.byteLen (valueAt s z 32) = 0 then 0 else 32 - Spec.byteLen (valueAt s z 32)) + i) 1) (Spec.byteLen (valueAt s z 32)) = valueAt s z 32 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 24)]) :=
-  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre,
+  ⟨impl, rt, H, ret, s0, arg, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, hret, setup, pre,
     correctness impl rt H arg hnew ret hret s0 setup pre⟩
 
 
