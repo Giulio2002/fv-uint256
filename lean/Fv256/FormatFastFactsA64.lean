@@ -96,4 +96,96 @@ theorem lsb0_xor_false (x : BitVec 64) : (BitVec.getLsbD (x ^^^ 1#64) 0 == false
   have := Nat.mod_two_eq_zero_or_one x.toNat
   cases hx : x[0] <;> simp_all <;> omega
 
+/-- the read-only data stays loaded across a memory frame that leaves the data ranges alone and keeps the regions -/
+theorem dataLoaded_frame {p : Janus.Program} {m m' : Memory} {rs : List (Nat × Nat)} (h : p.DataLoaded m)
+    (hr : m'.regions = m.regions) (hfr : MemFrame m m' rs) (ho : ∀ d ∈ p.data, Outside d.base d.bytes.length rs) :
+    p.DataLoaded m' := by
+  intro d hd
+  obtain ⟨h1, h2⟩ := h d hd
+  refine ⟨by rw [hr]; exact h1, fun i hi => ?_⟩
+  have e := hfr.readLE (d.base + i) 1 ((ho d hd).of_sub (by omega) (by omega))
+  rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at e
+  rw [e]; exact h2 i hi
+
+/-- A writable range is disjoint from every read-only data object (`Program.DataLoaded`, arm64). -/
+theorem dataLoaded_disjoint {p : Janus.Program} {m : Memory} (h : p.DataLoaded m) {d : Janus.DataSegment}
+    (hd : d ∈ p.data) {a n : Nat} (hw : m.accessible a n true = true) :
+    a + n ≤ d.base ∨ d.base + d.bytes.length ≤ a := by
+  obtain ⟨hreg, _⟩ := h d hd
+  simp only [List.any_eq_true, Bool.and_eq_true, decide_eq_true_eq, Bool.not_eq_true'] at hreg
+  obtain ⟨r, hr, ⟨⟨⟨hb, he⟩, _⟩, hro⟩⟩ := hreg
+  simp only [Janus.Arm64.Memory.accessible, Bool.and_eq_true, Bool.not_true, Bool.false_or,
+    List.all_eq_true, Bool.or_eq_true, decide_eq_true_eq] at hw
+  rcases hw.2 r hr with (h1 | h1) | h1
+  · rw [hro] at h1; cases h1
+  · omega
+  · omega
+
+/-- the invariant survives a summary call whose frame is the single window `[S0.sp - k, S0.sp - 8)` (`k ≤ stack`) -/
+theorem finv_call1 {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {k : Nat} (hi : FInv rt stack z tab data ch S0 S) (hst : 8 ≤ stack)
+    (hout : Outside (S0.sp.toNat - stack) (stack + 0x78) rt) (hk : k ≤ stack)
+    (hfr : MemFrame S.mem m (rt ++ [(S0.sp.toNat - k, S0.sp.toNat - 8)]))
+    (hsp : S'.sp = S.sp) (h29 : S'.regs 29 = S.regs 29) (h28 : S'.regs 28 = S.regs 28) (h18 : S'.regs 18 = S.regs 18)
+    (hm : S'.mem = m) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a29, a28, a18, afr, r88, r96, r104, r112⟩ := hi
+  have h2 : MemFrame S.mem m (FL rt S0.sp.toNat stack) :=
+    MemFrame.mono hfr (fun a n' h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, h4, -⟩ := h
+      refine ⟨h1, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a k', S0.sp.toNat + 88 ≤ a → a + k' ≤ S0.sp.toNat + 116 → m.readLE a k' = S.mem.readLE a k' := by
+    intro a k' h1 h2
+    exact hfr.readLE a k' (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, trivial⟩)
+  refine ⟨hsp.trans a4, h29.trans a29, h28.trans a28, h18.trans a18, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans h2 fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r88
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r96
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r104
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r112
+
+/-- `finv_call` for a callee window `[S0.sp - k, S0.sp - 8)` with `k ≤ stack` -/
+theorem finv_call_k {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {e k : Nat} (hi : FInv rt stack z tab data ch S0 S) (hst : 8 ≤ stack)
+    (hout : Outside (S0.sp.toNat - stack) (stack + 0x78) rt) (hk : k ≤ stack) (he : e ≤ S0.sp.toNat + 40)
+    (hfr : MemFrame S.mem m (rt ++ [(S0.sp.toNat - k, S0.sp.toNat - 8), (S0.sp.toNat + 8, e)]))
+    (hsp : S'.sp = S.sp) (h29 : S'.regs 29 = S.regs 29) (h28 : S'.regs 28 = S.regs 28) (h18 : S'.regs 18 = S.regs 18)
+    (hm : S'.mem = m) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a29, a28, a18, afr, r88, r96, r104, r112⟩ := hi
+  have h2 : MemFrame S.mem m (FL rt S0.sp.toNat stack) :=
+    MemFrame.mono hfr (fun a n' h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, h4, -⟩ := h
+      refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a k', S0.sp.toNat + 88 ≤ a → a + k' ≤ S0.sp.toNat + 116 → m.readLE a k' = S.mem.readLE a k' := by
+    intro a k' h1 h2
+    exact hfr.readLE a k' (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, by omega, trivial⟩)
+  refine ⟨hsp.trans a4, h29.trans a29, h28.trans a28, h18.trans a18, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans h2 fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r88
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r96
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r104
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r112
+
+/-- the saved slots `[r - 8, r + 8)` (`x29` at `r - 8`, `x30` at `r`) are outside the frame list -/
+theorem out_fl_save {rt : List (Nat × Nat)} {r stack a n : Nat} (ho : Outside a n rt)
+    (h1 : r - 8 ≤ a) (h2 : a + n ≤ r + 8) (hst : 8 ≤ stack) : Outside a n (FL rt r stack) := by
+  simp only [FL, outside_append, outside_cons, outside_nil]
+  refine ⟨ho, ?_, ?_, ?_, trivial⟩ <;> omega
+
+theorem frame_call {rt : List (Nat × Nat)} {stack : Nat} {S0 S : State} {m : Memory} {e : Nat}
+    (afr : MemFrame S0.mem S.mem (FL rt S0.sp.toNat stack)) (he : e ≤ S0.sp.toNat + 40)
+    (hfr : MemFrame S.mem m (rt ++ [(S0.sp.toNat - stack, S0.sp.toNat - 8), (S0.sp.toNat + 8, e)])) :
+    MemFrame S0.mem m (FL rt S0.sp.toNat stack) := by
+  have h2 : MemFrame S.mem m (FL rt S0.sp.toNat stack) :=
+    MemFrame.mono hfr (fun a n' h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, h4, -⟩ := h
+      refine ⟨h1, h2, ?_, trivial⟩ <;> omega)
+  exact afr.trans h2 fun a n h => ⟨h, h⟩
+
 end Fv256.FormatFastA64

@@ -174,4 +174,10 @@ def NotPlain (RW RP RF : Res) (data : BitVec 64) (fW fP fF : Nat) (r3 : BitVec 6
     FRes RF data fF 0x23 (fun j => j.toNat % 2 ≠ 0)) ∨
   (∃ j1, PlainHist RW RP RF data fW fP fF r3 j1 ∧ ch ≠ 100 ∧ ch ≠ 115 ∧ ch ≠ 118 ∧ ch ≠ 120)
 
+/-- the call-site property of the fast path's `Write(p []byte)` call: the receiver data word, the slice `(ptr, len, cap)` whose
+first `len` bytes are readable and equal `bs`, and `len ≤ cap` -/
+def FastWP (data : BitVec 64) (bs : List Nat) (sc : State) : Prop :=
+  sc.regs 0 = data ∧ Janus.Contracts.StrOut sc.mem (sc.regs 1).toNat (sc.regs 2).toNat bs ∧
+    (sc.regs 2).toNat ≤ (sc.regs 3).toNat
+
 end Fv256.FormatFastA64
