@@ -1,0 +1,60 @@
+          dczid := s.dczid, vregs := vr, tpidr := s.tpidr, fpcr := s.fpcr, fpsr := s.fpsr, excl := s.excl,
+          exclPass := s.exclPass }.regs
+      regLR
+hfr1 :
+  MemFrame
+    ((((m'.writeLE (BitVec.toNat s.sp - 40) 8 834784).writeLE (BitVec.toNat s.sp - 32) 8 (BitVec.toNat (r 0))).writeLE
+          (BitVec.toNat s.sp - 24) 8 834784).writeLE
+      (BitVec.toNat s.sp - 16) 8 1005904)
+    m1
+    (R.rt ++
+      [(BitVec.toNat s.sp - 112 - 4096, BitVec.toNat s.sp - 112 - 8),
+        (BitVec.toNat s.sp - 112 + 8, BitVec.toNat s.sp - 112 + 8 + 8 * 5)])
+hpost :
+  ErrorfPost { tErr := tErr, iErr := iErr, tInt := tInt, iWrap := iWrap } R
+    ((((m'.writeLE (BitVec.toNat s.sp - 40) 8 834784).writeLE (BitVec.toNat s.sp - 32) 8 (BitVec.toNat (r 0))).writeLE
+          (BitVec.toNat s.sp - 24) 8 834784).writeLE
+      (BitVec.toNat s.sp - 16) 8 1005904)
+    978128 26 (BitVec.toNat s.sp - 56)
+    [(BitVec.toNat s.sp - 112 - 4096, BitVec.toNat s.sp - 112 - 8),
+      (BitVec.toNat s.sp - 112 + 8, BitVec.toNat s.sp - 112 + 8 + 8 * 5)]
+    L bud
+    (BitVec.toNat
+      (Map.keepABI
+        (setReg
+          (setReg
+            (setReg
+              (setReg (setReg (setReg (setReg s.regs 0 len) 1 857856#64) 3 (BitVec.ofNat 64 e)) 16
+                (BitVec.ofNat 64 (s.mem.readLE (BitVec.toNat (s.regs 28) + 16) 8)))
+              27 1792880#64)
+            29 (s.sp - 120#64))
+          30 750932#64)
+        r 28))
+    (BitVec.toNat (r2 0)) (BitVec.toNat (r2 1)) m1
+⊢ 1005904 % 256 ^ 8 = c32Addr
+lean/Fv256/Arm64/MarshalSSZIntoMain.lean:459:15: warning: This simp argument is unused:
+  val256
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Util.readLE_32]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/MarshalSSZIntoMain.lean:557:102: warning: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/MarshalSSZIntoMain.lean:595:14: warning: This simp argument is unused:
+  HEAP
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ev, evData, Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBufferLength»,
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBufferLength→data», textAddr, BUMP, CELL, g0, TD, ID, TAB]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Invalid: 2 of 2 theorem(s) failed.
+  Stage: verify
+  Next: See the FAIL blocks above (each theorem is checked on its own; the others are unaffected).
+ENDMARK rc=1 secs=664
