@@ -1,4 +1,5 @@
 import Janus
+import Fv256.SpecC
 
 /-!
 # `(*uint256.Int).Format`, fast path (ii): shared definitions (amd64 and arm64, Extracted-free)
@@ -399,4 +400,24 @@ theorem hexoff (n : Nat) (h1 : 3 ≤ n) (h2 : n ≤ 66) :
   obtain ⟨k, hk⟩ : ∃ k : Fin 64, k.val + 3 = n := ⟨⟨n - 3, by omega⟩, by simp; omega⟩
   subst hk
   exact key k
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem strBytes_drop2 (m : Janus.Arm64.Memory) (p n : Nat) :
+    Janus.Spec.strBytes m (p + 2) n = (Janus.Spec.strBytes m p (n + 2)).drop 2 := by
+  apply List.ext_getElem
+  · simp [Janus.Spec.strBytes]
+  · intro i h1 h2
+    simp only [Janus.Spec.strBytes, List.getElem_drop, List.getElem_map, List.getElem_range]
+    congr 2
+    omega
+
+theorem hexDigits_le64 (v n : Nat) (hv : v < 2 ^ 256) (h : Fv256.C.hexDigits v n) : n ≤ 64 := by
+  obtain ⟨h1, h2, h3⟩ := h
+  refine Decidable.byContradiction fun hn => ?_
+  have : 16 ^ 64 ≤ 16 ^ (n - 1) := Nat.pow_le_pow_right (by omega) (by omega)
+  have e : (16 : Nat) ^ 64 = 2 ^ 256 := by decide
+  rcases h3 with h3 | h3
+  · omega
+  · omega
 end Fv256.FormatFast

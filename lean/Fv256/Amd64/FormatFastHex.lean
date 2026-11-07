@@ -32,6 +32,7 @@ theorem hex_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRea
     ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (Extracted.entry + 0x185)) S
       (fun S' => FInvD rt stack z tab data ch32 S0 S' ∧
         Fv256.Hex.HexOut (S0.mem.readLE z.toNat 32) S'.mem (S'.regs 0).toNat (S'.regs 3).toNat ∧
+        InRanges (S'.regs 0).toNat (S'.regs 3).toNat rt ∧
         S'.mem.regions = S0.mem.regions ∧ Extracted.program.DataLoaded S'.mem) := by
   obtain ⟨ht18, ht20, ht28, ht30, hta, hzr, hza, hwa⟩ := finv_tab hpre hi
   have hi' := hi
@@ -53,12 +54,12 @@ theorem hex_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRea
       H [0, (S0.regs 4).toNat - 8 - 112 + 38 + (64 - n), n + 2] (S0.regs 14).toNat ((S0.regs 4).toNat - 8 - 112) (rtView rt S.mem) :=
     hHx S.mem ifr
   janus64_run [i50, hwa, hdlS, hgaS, hHS, hvS, hgS, valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint] until [Extracted.entry + 0x185] calls [hex_summary impl rt H z hI hc]
-  rename_i hrip h4 h5 h14 hx hHO hfrD
+  rename_i hrip h4 h5 h14 hx hIn hHO hfrD
   have h8 : 8 ≤ (S0.regs 4).toNat := by omega
   have hfin : FInvD rt stack z tab data ch32 S0 s' :=
     finvD_call1 hi'.toD hwb0 hout0 h4208 hfrD (by simp [setRegF_apply, h4, i4, sub_add8])
       (by simp [setRegF_apply, h5]) (by simp [setRegF_apply, h14]) (by simp [hx]) rfl
-  refine ReachesRet.done ?_ ⟨hfin, hHO, hrg1.trans hreg, ?_⟩
+  refine ReachesRet.done ?_ ⟨hfin, hHO, hIn, hrg1.trans hreg, ?_⟩
   · rw [hrip]
     simp (disch := omega) only [retAddrOf, setRegF_apply, ite_true, sub8_toNat _ h8, Janus.Arm64.Memory.readLE_writeLE_self]
     simp [Extracted.entry]

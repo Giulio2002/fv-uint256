@@ -129,7 +129,7 @@ def HexL (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z :
         S.mem.readLE ((s.regs 4).toNat - 74 + 2 + p) 1 = hexChar (dig (s.mem.readLE z.toNat 32) p)) →
       Reaches (((Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).Hex"]).link impl).withExit ret) S
         (IsReturn fun s' => ABIReturn s s' ∧
-          HexOut (valueAt s z 32) s'.mem (s'.regs 0).toNat (s'.regs 3).toNat ∧
+          HexOut (valueAt s z 32) s'.mem (s'.regs 0).toNat (s'.regs 3).toNat ∧ InRanges (s'.regs 0).toNat (s'.regs 3).toNat rt ∧
             MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 8)]))
 
 set_option maxRecDepth 20000 in
@@ -193,7 +193,14 @@ theorem hexbase (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRead
     simp only [outside_append, outside_cons, outside_nil] at h ⊢
     obtain ⟨h1, h2, -⟩ := h
     exact ⟨h1, by omega, by omega, trivial⟩)
-  refine ⟨by rw [hx], ⟨nib, hdn, ?_⟩, hch.trans hcall fun a n h => ⟨h, h⟩⟩
+  refine ⟨by rw [hx], ⟨nib, hdn, ?_⟩, ?_, hch.trans hcall fun a n h => ⟨h, h⟩⟩
+  case refine_2 =>
+    have hl : BitVec.toNat w8 = nib + 2 := by have := hR.1.1; simpa [Spec.strBytes] using this
+    rcases hR.2 with h | ⟨h, -⟩ | ⟨h, hb, -⟩ | ⟨-, -, hin⟩
+    · omega
+    · omega
+    · exact absurd rfl hb
+    · exact hin
   show StrOut w2 w9.toNat w8.toNat _
   have hacc : ∀ a n, w2.accessible a n false = s.mem.accessible a n false := fun a n => by
     rw [hLeft.accessible]; simp only [Janus.Arm64.Memory.accessible_writeLE]; exact hfr.accessible a n false
@@ -333,7 +340,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         ((s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 4208 ∨ (s.regs 4).toNat + 8 ≤ (s.regs 14).toNat + 16) ∧
         (∀ n, hexDigits (valueAt s z 32) n → H [0, (s.regs 4).toNat - 112 + 38 + (64 - n), n + 2]
           (s.regs 14).toNat ((s.regs 4).toNat - 112) (rtView rt s.mem)))
-      (fun s s' => HexOut (valueAt s z 32) s'.mem (s'.regs 0).toNat (s'.regs 3).toNat ∧
+      (fun s s' => HexOut (valueAt s z 32) s'.mem (s'.regs 0).toNat (s'.regs 3).toNat ∧ InRanges (s'.regs 0).toNat (s'.regs 3).toNat rt ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 8)])) := by
   rintro ret hret s hs ⟨hg, hw, hd, hx15, hout, hout2, hal, ⟨hzn, hza⟩, hzd, hgd, hH⟩
   janus64_intro hs
