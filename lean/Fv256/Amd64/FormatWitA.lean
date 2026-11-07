@@ -17,6 +17,10 @@ namespace Fv256.Amd64.FormatWitA
 abbrev ssAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"
 abbrev stAddr : Nat := Extracted.program.contractAddr "runtime.stringtoslicebyte"
 
+/-- type pins for the witnesses' existential variables (the printed statement has no binder types) -/
+def pinT (_z _tab _data _ch : BitVec 64) (_ret : Nat) (_s : State) (_rt : List (Nat × Nat)) (_impl : List Amd64.Segment) (_R : Janus.Spec.Type.IfaceModel)
+    (_H : Janus.Contracts.RtReady) (_R2 : Janus.Contracts.RtInv) (_RW _RP _RF _RWr _RFp _RBf : Janus.Contracts.ICall.Res) : Prop := True
+
 def hA : Nat := 0x600000
 def hB : Nat := 0x610000
 def rtT : List (Nat × Nat) := [(hA, hA + 8), (hB, hB + 8)]
@@ -300,8 +304,13 @@ theorem stub_bf (nargs stack above : Nat) (rt : List (Nat × Nat)) (P : State �
 
 
 open Janus.Contracts.Toy Janus.Contracts.LiveSatAmd64 Janus.Contracts.LiveStubAmd64 in
-/-- the requests the witness runtime serves: none (the fast path allocates nothing) -/
-def okR : Nat → List Nat → Prop := fun _ _ => False
+/-- the requests the witness runtime serves: `IntoBig`'s (the big path's allocations) -/
+def okR : Nat → List Nat → Prop := fun a args =>
+  (a = newA ∧ (args = [Fv256.Amd64.IntoBig.bigType] ∨ args = [Fv256.Amd64.IntoBig.arrType])) ∨ (a = w1A ∧ args = [1]) ∨ (a = w2A ∧ args = [2])
+
+theorem addr_new : Extracted.program.contractAddr "runtime.newobject" = newA := by decide
+theorem addr_w1 : Extracted.program.contractAddr "runtime.gcWriteBarrier1" = w1A := by decide
+theorem addr_w2 : Extracted.program.contractAddr "runtime.gcWriteBarrier2" = w2A := by decide
 
 open Janus.Contracts.Toy Janus.Contracts.LiveSatAmd64 Janus.Contracts.LiveStubAmd64 in
 def R2 : RtInv := toyR [] okR
