@@ -50,10 +50,10 @@ theorem scratch (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
   intro ret hret s hs hpre
   janus64_intro hs
   obtain ⟨hpreU, hdl⟩ := hpre
-  have hEnv := hpreU.env
+  have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
-  have hlo4 := hpreU.lo4
-  have hhi4 := hpreU.hi4
+  have hlo4 := hpreU.toS.lo4
+  have hhi4 := hpreU.toS.hi4
   janus64_data hdl [e5]
   have hbD : (s.regs 4).toNat - 40 = 0 ∨ ((s.regs 4).toNat - 40 ≤ 281474976710624 ∧
       s.mem.accessible ((s.regs 4).toNat - 40) 32 true = true) :=
@@ -61,14 +61,14 @@ theorem scratch (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
   have hbH : (s.regs 4).toNat - 72 = 0 ∨ ((s.regs 4).toNat - 72 ≤ 281474976710624 ∧
       s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true) :=
     Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
-  obtain ⟨hib1, hib2⟩ := hpreU.ibuf
-  have hiw := hpreU.iwin
-  have hokD := hpreU.okD
-  have hokH := hpreU.okH
-  have hcost := hpreU.cost
-  have hr3 := hpreU.r3
-  have hr1 := hpreU.r1
-  have hr0 := hpreU.r0
+  obtain ⟨hib1, hib2⟩ := hpreU.toS.ibuf
+  have hiw := hpreU.toS.iwin
+  have hokD := hpreU.toS.okD
+  have hokH := hpreU.toS.okH
+  have hcost := hpreU.toS.cost
+  have hr3 := hpreU.toS.r3
+  have hr1 := hpreU.toS.r1
+  have hr0 := hpreU.toS.r0
   have hdA : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 40 ∨ (s.regs 4).toNat - 40 + 32 ≤ pI.toNat := by omega
   have hdH : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 72 ∨ (s.regs 4).toNat - 72 + 32 ≤ pI.toNat := by omega
   have hdS1 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 - 4096 ∨ (s.regs 4).toNat - 104 ≤ pI.toNat := by omega

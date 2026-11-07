@@ -41,7 +41,7 @@ theorem Mod.extL {R : RtInv} {R2 : IfaceModel} {T : Nat} {L L' : List (Nat × Na
 
 /-- entry precondition of `UnmarshalText`/`UnmarshalJSON`: receiver `z` in `RAX`, input slice `(pI, nI)` in `RBX`/`RCX`.
 `[lo, hi)` is the absolute stack window.  `sb` is the address of `runtime.slicebytetostring`, `st` that of `runtime.staticuint64s`. -/
-structure PreU (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
+structure PreUS (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (z pI nI : BitVec 64) (s : State) : Prop where
   ret : RetOK s
   r0 : s.regs 0 = z
@@ -83,6 +83,53 @@ structure PreU (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List
     blockSize sl true + blockSize 48 false ≤ b - roundupsize nI.toNat true
 
 
+/-- the entry precondition as a plain conjunction (no consumer structure in the statement) -/
+def PreU (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
+    (z pI nI : BitVec 64) (s : State) : Prop :=
+  (RetOK s) ∧
+  (s.regs 0 = z) ∧
+  (s.regs 3 = pI) ∧
+  (s.regs 1 = nI) ∧
+  (Mod C R R2 T L) ∧
+  (Env C R R2 T b L lo hi s) ∧
+  (lo + 4904 ≤ (s.regs 4).toNat) ∧
+  ((s.regs 4).toNat + 24 ≤ hi) ∧
+  (R.ok sb [(s.regs 4).toNat - 72, pI.toNat, nI.toNat]) ∧
+  (R.ok sb [(s.regs 4).toNat - 40, pI.toNat, nI.toNat]) ∧
+  (roundupsize nI.toNat true ≤ b) ∧
+  (Outside st 2048 [(lo, hi)]) ∧
+  (Outside st 2048 R.rt) ∧
+  (Outside st 2048 R2.priv) ∧
+  (MultOK C z.toNat lo hi s.mem) ∧
+  (Outside C.mulTab 40 R.rt) ∧
+  (∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt) ∧
+  (s.mem.accessible C.ioEOF 16 false = true) ∧
+  (Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+  (Outside C.ioEOF 16 R.rt) ∧
+  (s.mem.accessible C.errBig 16 false = true) ∧
+  (Outside C.errBig 16 [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+  (Outside C.errBig 16 R.rt) ∧
+  (Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem) ∧
+  (s.mem.accessible C.maxStr 78 false = true) ∧
+  (Outside C.maxStr 78 [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+  (Outside C.maxStr 78 R.rt) ∧
+  (∀ k, k < 78 → s.mem.readLE (C.maxStr + k) 1 = maxDigit k) ∧
+  (Buffer s z 32 true) ∧
+  (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧
+  (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
+  (Outside z.toNat 32 R2.priv) ∧
+  (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
+  ((s.regs 14).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 14).toNat + 16) ∧
+  (Buffer s pI nI.toNat false) ∧
+  (pI.toNat + nI.toNat ≤ lo ∨ hi ≤ pI.toNat) ∧
+  (∀ sl, 1 ≤ sl → sl ≤ 19 → sl ≤ nI.toNat → R.ok C.mallocgc [sl, 0, 0] ∧ (∀ q p, R.ok C.memmove [q, p, sl]) ∧     blockSize sl true + blockSize 48 false ≤ b - roundupsize nI.toNat true)
+
+theorem PreU.toS {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s : State} (h : PreU C sb st R R2 T b L lo hi z pI nI s) :
+    PreUS C sb st R R2 T b L lo hi z pI nI s := by
+  obtain ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
+  exact ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
+
 /-- `TopPre` of the `SetFromDecimal` call, from the state `S3` at the call (return address pushed at `sp - 104`).  The string is
 the copy `(pS, nI)`; `L'`/`b'` the live set and budget after the copy; the window of the callee is `[lo, hi3)`. -/
 theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L L' : List (Nat × Nat)} {lo hi hi3 : Nat}
@@ -102,7 +149,7 @@ theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L
     (hb' : b' = b - roundupsize nI.toNat true)
     (hInv : R.inv b' L' (S3.regs 14).toNat (view R.rt L' S3.mem)) :
     TopPre C R R2 T b' L' lo hi3 z pS nI S3 := by
-  have hp := hpre
+  have hp := hpre.toS
   obtain ⟨hRet, -, -, -, hMod, hEnv, hlo, hhi, -, -, hcost, -, -, -, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
     hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hchunk⟩ := hp
   have hEnv' := hEnv
