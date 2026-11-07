@@ -80,3 +80,16 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
   Zero loop: decoderune_sum (SfdDecode, verified) used when byte>=0x80: rune>=128 so never '0'. Characterise i by startPos_spec/startPos_lead + uniqueness (no zerosFrom induction needed).
   Then CMPQ CX,78: <78 -> fromDecimal; ==78 -> runtime.cmpstring vs maxStr (.rodata#575028b4) then JLE -> fromDecimal else ErrBig256Range; >78 -> ErrBig256Range. Need a shift lemma fromDec b n p = fromDec (fun k => b (p+k)) (n-p) 0 (and syntax lo shift) -- NOT YET WRITTEN.
   Probe file Amd64/SfdTop1.lean (probe1, with sorry) shows the 6 first-stage paths.
+
+## FV-I5 update (2026-11-07): TOP LEVEL front half DONE; Mod fix; remaining = back half
+* Mod FIXED (bd5cf1e): old Mod+Env was contradictory on amd64 too (SfdModTest.lean regression; `mod_contra_old` in SfdWitMod.lean). New Mod excludes (T,T+48) from Outside-priv; Sat.modEnv_sat (SfdWitMod.lean, Extracted-free) proves new Mod+Env satisfiable. nS=0 guards in TopPre/FdPre.
+* Top-level files (Amd64/): SfdTopA (TopSt, PostA, top_pro: entry+'+' skip to sfd+0x3a), SfdTopB (TopMid/LoopInv/TailInv defs, top_b0/b1/b2, top_tail), SfdTopC (top_ls, top_lb, top_lend, top_ld [decoderune call via ReachesRet.call decoderune_sum]),
+  SfdTopD (top_loop induction, top_front: entry -> B0 = sfd+0x57 with TopMid). ALL SORRY-FREE and building (each < 2 min).
+  Math: Fv256/SfdTopMath.lean + DecCongr.lean copied from fv/wb7 (startPos_a/b/nz/end, fromDec_shift, decParse_lt/eq/gt78/big, dec_of_fd, shiftRes).
+* sfd addresses: fromDecimal call at sfd+0xcd (0x4b46cd) from the ==78 path and sfd+0xcc ... ; call sites: <78: sfd+0xcc (0x4b46ec `CALL fromDecimal` -> ret sfd+0xd1 =0x4b46f1: ADDQ $0x38,SP; POPQ BP; RET);
+  ==78: sfd+0x5f spills, cmpstring call sfd+0x80 (0x4b46a0), JLE sfd+0x88->sfd+0x9e reload AX/BX/CX from 0x48/0x30/0x28(SP) then CALL fd (0x4b46cd), epilogue 0x4b46d2; >78 / cmpstring>0: ErrBig256Range loaded from errBig (+8), ADDQ 0x38,SP; POPQ BP; RET.
+  Spill slots (SP1 = sp0-64): 0x28(SP1)=sp0-24 (len1), 0x30(SP1)=sp0-16 (base1), 0x20(SP1)=sp0-32 (zero-loop DX spill), 0x48(SP1)=sp0+8 (z), 0x50(SP1)=sp0+16 (pS).
+* REMAINING (back half), port arm64 /srv/fv-uint256-wB7/lean/Fv256/Arm64/SfdTopC.lean+D.lean (fdpre_of, call_post, top_c1/c2/c3a/c3_gt/c3_le, top_fin, top_err, sfd_sum):
+  fd window for the call: [lo, sp0-40) (rsp_fd = sp0-72; fd needs lo+4432 <= rsp_fd, rsp_fd+32 <= hi'); FdPre from TopMid via Env.shrink/Env.frame0; ChunkAll via chunkAll_hi/chunkAll_frame (copy);
+  results map FdPost -> TopPost with dec_of_fd + TeObj.congr_src; cmpstring: CmpstringContract64 (Janus.Contracts.CmpstringAmd64) on maxStr; hfin from lexGt_iff (SpecI) for n'=78.
+  Then: SfdSummary theorem (extCfg) = sfd_sum taking the six runtime contracts + CmpstringContract64; then Extracted-level correctness + Witness (nonvacuous) + janus verify on 77fb30cc.
