@@ -3,6 +3,7 @@ import Fv256.Arm64.FromDecimal
 import Fv256.Arm64.SfdTopD
 import Fv256.Arm64.SfdLink
 import Fv256.Arm64.SummaryEnsures
+import Fv256.Arm64.FdWitC
 
 /-!
 # `FromDecimal` (arm64): the Extracted-level theorem (SetFromDecimal discharged from the library program `SfdProg`)
@@ -105,5 +106,26 @@ theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T
   have hnew'' : NewobjectLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R := NewobjectLiveContract.of_codeIn hc4 hnew
   exact Fv256.Arm64.FromDecimal.correctness_cond impl R R2 T b L lo hi pS nS hnew'' hsfd
+
+namespace Witness
+set_option maxRecDepth 100000 in
+/-- non-vacuity: a concrete runtime (stub contracts), a 48-digit decimal string, and a call state with `Pre`, `DataLoaded` of the real data -/
+theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (pS nS : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
+    Fv256.Arm64.FromDecimal.Pre R R2 T b L lo hi pS nS s :=
+  Fv256.Arm64.FdWit.nonvacuous_core
+
+end Witness
 
 end Fv256.Arm64.FromDecimalMain

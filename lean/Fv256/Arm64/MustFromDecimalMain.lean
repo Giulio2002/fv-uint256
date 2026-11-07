@@ -3,6 +3,7 @@ import Fv256.Arm64.MustFromDecimal
 import Fv256.Arm64.SfdTopD
 import Fv256.Arm64.SfdLink
 import Fv256.Arm64.SummaryEnsures
+import Fv256.Arm64.MFdWitC
 
 /-!
 # `MustFromDecimal` (arm64): the Extracted-level theorem (SetFromDecimal discharged from the library program `SfdProg`)
@@ -108,5 +109,26 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Segment) (R
   have hnew'' : NewobjectLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R := NewobjectLiveContract.of_codeIn hc4 hnew
   exact Fv256.Arm64.MustFromDecimal.correctness_cond P impl R R2 T b L lo hi pS nS hnew'' hsfd
+
+namespace Witness
+set_option maxRecDepth 100000 in
+/-- non-vacuity: stub runtime contracts, a 48-digit decimal string, a call state with `Pre` (incl. `DataLoaded` of the real data and `PanicInit`) -/
+theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (pS nS : BitVec 64) (P : Janus.Spec.PanicRuntime) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
+    (Fv256.Arm64.MFdWit.pinPanicRuntime P ∧ Fv256.Arm64.MustFromDecimal.Pre R R2 T b L lo hi pS nS s) :=
+  Fv256.Arm64.MFdWit.nonvacuous_core
+
+end Witness
 
 end Fv256.Arm64.MustFromDecimalMain

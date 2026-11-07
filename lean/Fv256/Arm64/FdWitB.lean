@@ -4,34 +4,34 @@ import Fv256.Arm64.FdWitA
 /-!
 # Witness for `SetFromDecimal` (arm64), part B: the `runtime.ifaceeq` and `runtime.cmpstring` contracts
 
-The model implementations of `Janus.Contracts.IfaceSat` (`ifaceeq`, for the interface model `R0`) and
+The model implementations of `Janus.Contracts.IfaceSat` (`ifaceeq`, for the interface model `R3 TW`) and
 `Janus.Contracts.CmpstringSat` (a byte loop) at the contract addresses of `Extracted.program`, in the closed program
 `Extracted.program.ofImpl implA`; the proofs are those of the Janus satisfiability files (the code is position independent).
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Map Janus.Spec.Type Janus.Contracts
-  Janus.Contracts.Iface Janus.Contracts.IfaceModel Janus.Contracts.Cmpstring Janus.Contracts.IfaceSat
+  Janus.Contracts.Iface Janus.Contracts.IfaceModel Janus.Contracts.Cmpstring Janus.Contracts.IfaceSat Fv256.Arm64.WitModel
 
 namespace Fv256.Arm64.FdWit
 
 set_option maxRecDepth 100000
 
-theorem model_if : Ifaceeq (Extracted.program.ofImpl implA) ifA R0 := by
+theorem model_if : Ifaceeq (Extracted.program.ofImpl implA) ifA (R3 TW) := by
   intro s hpc hpre
-  obtain ⟨⟨⟨he1, he2, hd⟩, ⟨hg1, hg2, hg3⟩, ⟨hl1, hl2, hal, hd1, hd2, hd3, hst⟩, hout⟩, hok⟩ := hpre
+  obtain ⟨⟨⟨he1, he2, he3, he4⟩, ⟨hg1, hg2, hg3⟩, ⟨hl1, hl2, hal, hd1, hd2, hd3, hst⟩, hout⟩, hok⟩ := hpre
   by_cases h0 : (s.regs 0).toNat = 0
   · janus_run
-    refine rtReturn_of R0 3 [] s _ _ rfl rfl (by simp [setReg]) (by simp [setReg]) (by simp [setReg])
-      rfl rfl rfl rfl rfl rfl (MemFrame.refl _ _) ⟨he1, he2, hd⟩ ?_
+    refine rtReturn_of (R3 TW) 3 [] s _ _ rfl rfl (by simp [setReg]) (by simp [setReg]) (by simp [setReg])
+      rfl rfl rfl rfl rfl rfl (MemFrame.refl _ _) ⟨he1, he2, he3, he4⟩ ?_
     simp [setReg, ifaceEqual, h0]
   · obtain ⟨-, -, ht0, hok⟩ := hok h0
     obtain ⟨-, ht, hx, hy⟩ := hok ht0
     janus_run
     all_goals
-      refine rtReturn_of R0 3 [] s _ _ rfl rfl (by simp [setReg]) (by simp [setReg]) (by simp [setReg])
-        rfl rfl rfl rfl rfl rfl (MemFrame.refl _ _) ⟨he1, he2, hd⟩ ?_
+      refine rtReturn_of (R3 TW) 3 [] s _ _ rfl rfl (by simp [setReg]) (by simp [setReg]) (by simp [setReg])
+        rfl rfl rfl rfl rfl rfl (MemFrame.refl _ _) ⟨he1, he2, he3, he4⟩ ?_
       simp only [ifaceEqual, ht]
-      rw [efaceEqual_R0 (g := s.regs 28) ⟨he1, he2, hd⟩]
+      rw [efaceEqual_R3 (g := s.regs 28) ⟨he1, he2, he3, he4⟩ _ _ (by decide)]
       simp only [setReg_apply, reduceIte, Nat.reduceEqDiff]
       split
       · rename_i heq; simp [heq]

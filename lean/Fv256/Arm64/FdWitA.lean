@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.WitModel
 
 /-!
 # Witness for `SetFromDecimal` (arm64), part A: the runtime stand-in and the allocation/copy contracts
@@ -22,6 +23,9 @@ def w1A : Nat := janus_eval% (Extracted.program.contractAddr "runtime.gcWriteBar
 def w2A : Nat := janus_eval% (Extracted.program.contractAddr "runtime.gcWriteBarrier2")
 def ifA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.ifaceeq")
 def cmA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.cmpstring")
+
+/-- the type word of `go:itab.internal/strconv.Error,error` (the binary's data names it) -/
+def TW : Nat := 0xcfc80
 
 def pSA : Nat := 0x301000
 def nSA : Nat := 48
