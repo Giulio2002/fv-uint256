@@ -66,10 +66,10 @@ def ScanPre (tyS tyB avx sb st errTy : Nat) (R : RtInv) (R2 : IfaceModel) (T b :
     (dst tw dw : BitVec 64) (s : State) : Prop :=
   s.regs 0 = dst ∧ s.regs 3 = tw ∧ s.regs 1 = dw ∧ lo + 4992 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 32 ≤ hi ∧
   ((tw = 0 ∧ Buffer s dst 32 true ∧ (dst.toNat + 32 ≤ lo ∨ hi ≤ dst.toNat) ∧ s.mem.accessible lo (hi - lo) true = true) ∨
-   (tw.toNat = tyS ∧ Buffer s dw 16 false ∧ s.mem.accessible avx 1 false = true ∧ TlsG s ∧
+   (tw.toNat = tyS ∧ Buffer s dw 16 false ∧ s.mem.accessible avx 1 false = true ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)]) ∧
       TopPre0 C R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
       Fv256.IndexByte.PageReadable s.mem (hdrP s dw).toNat (hdrN s dw).toNat) ∨
-   (tw.toNat = tyB ∧ Buffer s dw 24 false ∧ s.mem.accessible avx 1 false = true ∧ TlsG s ∧
+   (tw.toNat = tyB ∧ Buffer s dw 24 false ∧ s.mem.accessible avx 1 false = true ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)]) ∧
       PreB C sb st R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
       PagesB R st lo hi s.mem) ∨
    (tw ≠ 0 ∧ tw.toNat ≠ tyS ∧ tw.toNat ≠ tyB ∧ s.mem.accessible (tw.toNat + 16) 4 false = true ∧
@@ -106,7 +106,7 @@ def ScanStrPost (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst
 def SciPre (avx : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64)
     (s : State) : Prop :=
   RetOK s ∧ TopPre0 C R R2 T b L lo hi dst p n s ∧ lo + 4920 ≤ (s.regs 4).toNat ∧ s.mem.accessible avx 1 false = true ∧
-  Fv256.IndexByte.PageReadable s.mem p.toNat n.toNat ∧ TlsG s
+  Fv256.IndexByte.PageReadable s.mem p.toNat n.toNat ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)])
 
 /-- postcondition of `scanScientificFromString` -/
 def SciPost (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64)
