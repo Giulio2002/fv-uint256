@@ -214,4 +214,60 @@ theorem hex_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : Li
     · rw [c0, hio _ _ (Outside.of_sub t7 (by omega) (by omega)) (by simp only [outside_cons, outside_nil, and_true]; omega)]
     · rw [c3, hio _ _ (Outside.of_sub t7 (by omega) (by omega)) (by simp only [outside_cons, outside_nil, and_true]; omega)]
 
+/-- the instance of the `fromHex` summary for the copy -/
+theorem hex_inst {P : Janus.Amd64.Program} {entry : Nat} {R : RtInv} {b : Nat} {L : List (Nat × Nat)} {z pI nI r0 r1 : BitVec 64}
+    {s : State} {M0 m : Janus.Arm64.Memory} {st : Nat}
+    (_hP : SbPost R st b L s pI nI r0 r1 M0 m ((s.regs 4).toNat - 72))
+    (hhex : ∀ (z hp len : BitVec 64), Summary P entry (FromHexPre z hp len) (FromHexPost z hp len)) :
+    Summary P entry (FromHexPre z r0 nI) (FromHexPost z r0 nI) := hhex z r0 nI
+
+/-- the byte-compare facts of the engine's branches, as `IsHex` / its negation -/
+theorem hb_eq (x c : Nat) (hx : x < 256) (hc : c < 256) :
+    (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 x))) - BitVec.ofNat 8 c = 0#8) ↔ x = c := by
+  have h1 : BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 x))) = BitVec.ofNat 8 x := by
+    apply BitVec.eq_of_toNat_eq
+    simp [BitVec.toNat_setWidth, BitVec.toNat_ofNat]
+  rw [h1]
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simp [BitVec.toNat_sub, BitVec.toNat_ofNat] at this
+    omega
+  · rintro rfl
+    simp
+
+/-- `input` starts with `0x` or `0X` -/
+abbrev IsHex (m : Janus.Arm64.Memory) (p n : Nat) : Prop :=
+  2 ≤ n ∧ m.readLE p 1 = 48 ∧ (m.readLE (p + 1) 1 = 120 ∨ m.readLE (p + 1) 1 = 88)
+
+abbrev Bw (m : Janus.Arm64.Memory) (p : Nat) : BitVec 8 :=
+  BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (m.readLE (p + 1) 1))))
+
+theorem not_hex_short {m : Janus.Arm64.Memory} {p n : Nat} (h : (n : Int) < 2) : ¬ IsHex m p n := by
+  intro hh; have := hh.1; omega
+
+theorem not_hex_b0 {m : Janus.Arm64.Memory} {p n : Nat} (h : ¬ m.readLE p 1 = 48) : ¬ IsHex m p n :=
+  fun hh => h hh.2.1
+
+theorem not_hex_b1 {m : Janus.Arm64.Memory} {p n : Nat} (hx : ¬ (Bw m p - 120#8 = 0#8)) (hy : ¬ (Bw m p - 88#8 = 0#8)) :
+    ¬ IsHex m p n := by
+  intro hh
+  have hl := Janus.Arm64.Memory.readLE_lt m (p + 1) 1
+  simp only [Nat.reducePow, Nat.pow_one] at hl
+  rcases hh.2.2 with h | h
+  · exact hx ((hb_eq _ 120 hl (by decide)).2 h)
+  · exact hy ((hb_eq _ 88 hl (by decide)).2 h)
+
+theorem hex_of_120 {m : Janus.Arm64.Memory} {p n : Nat} (h1 : ¬ (n : Int) < 2) (h2 : m.readLE p 1 = 48)
+    (h3 : Bw m p - 120#8 = 0#8) : IsHex m p n := by
+  have hl := Janus.Arm64.Memory.readLE_lt m (p + 1) 1
+  simp only [Nat.reducePow, Nat.pow_one] at hl
+  exact ⟨by omega, h2, Or.inl ((hb_eq _ 120 hl (by decide)).1 h3)⟩
+
+theorem hex_of_88 {m : Janus.Arm64.Memory} {p n : Nat} (h1 : ¬ (n : Int) < 2) (h2 : m.readLE p 1 = 48)
+    (h3 : Bw m p - 88#8 = 0#8) : IsHex m p n := by
+  have hl := Janus.Arm64.Memory.readLE_lt m (p + 1) 1
+  simp only [Nat.reducePow, Nat.pow_one] at hl
+  exact ⟨by omega, h2, Or.inr ((hb_eq _ 88 hl (by decide)).1 h3)⟩
+
 end Fv256.Amd64.UnmarshalHex
