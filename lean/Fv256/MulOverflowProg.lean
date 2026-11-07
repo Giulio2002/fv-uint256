@@ -38,6 +38,6 @@ def data : List DataSegment := [
 
 def contracts : List (String × Nat) := []
 
-def program : Amd64.Program := { Fv256.UmulProg with segments := Fv256.UmulProg.segments ++ segments, stubs := Fv256.UmulProg.stubs ++ stubs, data := Fv256.UmulProg.data ++ data, contracts := Fv256.UmulProg.contracts ++ contracts }
+def program : Amd64.Program := { Fv256.UmulProg.program with segments := Fv256.UmulProg.program.segments ++ segments, stubs := Fv256.UmulProg.program.stubs ++ stubs, data := Fv256.UmulProg.program.data ++ data, contracts := Fv256.UmulProg.program.contracts ++ contracts }
 
 end Fv256.MulOverflowProg

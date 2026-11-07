@@ -52,4 +52,4 @@ theorem caseB (z y : BitVec 64) :
     · (simp only [Util.readLE_32, Spec.W, Nat.reducePow]; janus_carry)
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
-end Fv256.Amd64.MulOverflow
+end Fv256.Amd64.MoLib

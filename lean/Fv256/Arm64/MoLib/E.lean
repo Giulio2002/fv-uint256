@@ -33,4 +33,4 @@ theorem caseE (z : BitVec 64) :
   · simp only [Spec.mul, Spec.W, Nat.reducePow]; janus_arith
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
-end Fv256.Arm64.MulOverflow
+end Fv256.Arm64.MoLib
