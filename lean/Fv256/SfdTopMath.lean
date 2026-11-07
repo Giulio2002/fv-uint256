@@ -136,7 +136,7 @@ theorem fromDec_shift (b : Nat → Nat) (n p : Nat) (hp : p ≤ n) :
       simp only [Option.map_none, shiftRes]
       rw [Nat.sub_zero, decSum_off b p (n - p)]
     | some r =>
-      simp [shiftRes]
+      simp [shiftRes, Res.syntax]
 
 theorem decParse_lt (b : Nat → Nat) (n : Nat) (h : n - startPos b n < 78) :
     decParse b n = fromDec b n (startPos b n) := by
