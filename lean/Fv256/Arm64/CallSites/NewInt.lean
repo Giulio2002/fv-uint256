@@ -1,6 +1,6 @@
 def wsNew0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else s0.regs i }
-/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): at the allocator's entry, `X0 = Int`'s type descriptor, `SP` = NewInt's
-frame (the argument of `H` in `hH`), `X28`/memory as in `s0`. -/
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): at the allocator's entry, `X0 = Int`'s type descriptor, `SP` = the frame
+of the caller (the argument of `H` in `hH`), `X28`/memory as in `s0`. -/
 def wsNew : State := { wsNew0 with sp := BitVec.ofNat 64 (sp0 - 48), pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") }
 
 set_option maxRecDepth 100000 in
