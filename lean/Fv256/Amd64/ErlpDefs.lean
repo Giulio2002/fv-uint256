@@ -31,4 +31,22 @@ def EJ (z tab w : BitVec 64) (s S : State) (bl : Nat) : Prop :=
     S.mem.regions = s.mem.regions ∧ S.mem.readLE ((s.regs 4).toNat + 16) 8 = tab.toNat ∧
     S.mem.readLE ((s.regs 4).toNat + 24) 8 = w.toNat ∧ S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat
 
+theorem epost_ex {R : Res} {w : BitVec 64} {s' : State} {a b c d e1 e2 : BitVec 64} (hR : R w a b c d e1 e2)
+    (h0 : s'.regs 0 = e1) (h3 : s'.regs 3 = e2) :
+    ∃ ptr len cap n e1 e2, R w ptr len cap n e1 e2 ∧ s'.regs 0 = e1 ∧ s'.regs 3 = e2 :=
+  ⟨_, _, _, _, _, _, hR, h0, h3⟩
+
+theorem epost_of {rt : List (Nat × Nat)} {stack : Nat} {R : Res} {z w : BitVec 64} {s s' : State}
+    (hex : ∃ ptr len cap n e1 e2, R w ptr len cap n e1 e2 ∧ s'.regs 0 = e1 ∧ s'.regs 3 = e2)
+    (hF : MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 56 - stack, (s.regs 4).toNat + 32)]))
+    (hzo : Outside z.toNat 32 rt)
+    (hzd : z.toNat + 32 ≤ (s.regs 4).toNat - 56 - stack ∨ (s.regs 4).toNat + 32 ≤ z.toNat) :
+    EPost rt stack R z w s s' := by
+  have hout : Outside z.toNat 32 (rt ++ [((s.regs 4).toNat - 56 - stack, (s.regs 4).toNat + 32)]) := by
+    simp only [outside_append, outside_cons, outside_nil]
+    refine ⟨hzo, ?_, trivial⟩ <;> omega
+  have h := hF.readLE z.toNat 32 hout
+  unfold EPost
+  exact And.intro hex (And.intro (fun _ => h) hF)
+
 end Fv256.Amd64.EncodeRLP

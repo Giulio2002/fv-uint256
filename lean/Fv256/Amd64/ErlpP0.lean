@@ -52,9 +52,11 @@ theorem erlp_p0 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRead
   janus64_run [rlpVal, hzr, rlpBytes_zero, strBytes_write1] calls [hnew.pos, hw]
   refine ⟨?_, ?_⟩
   · simp only [hx]
-  · refine ⟨?_, ?_, ?_⟩
-    · sorry
-    · exact fun _ => hzr.trans hz0.symm
-    · sorry
+  · apply epost_of (z := z) (hzo := hzo) (hzd := hzd)
+    · apply epost_ex
+      · assumption
+      · rfl
+      · rfl
+    · janus_frame
 
 end Fv256.Amd64.EncodeRLP
