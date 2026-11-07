@@ -112,3 +112,4 @@ UnmarshalText 0x4b1e40: sp=entry rsp; frame sub 0x58 => rsp1=sp-96; spills [sp+8
 - Heavy-job discipline: one at a time; chain with an until-loop on the previous job's ENDMARK.
 - Satisfiability lemma for PreU still TODO (rule from main).
 - PreU is now a plain conjunction def (audit rejects consumer structures in statements); PreUS is the proof-time structure view, PreU.toS converts. InitDone/PanicInit are defs. SfdCfg is the owners' structure (they convert to a tuple def: re-sync then). Sorry-proof audit check of each wrapper statement: TODO once a final theorem exists.
+- adopted fv/wb7 da2b5f8 (SpecI Res abbrev + arm64 SfdTopSpec with accessible guard). amd64 SfdTopSpec still lacks the accessible guard + SfdCfg plain def (FV-I5). NOTE: SpecI change forces recompiling ALL Extracted wrappers (decParse patterns).
