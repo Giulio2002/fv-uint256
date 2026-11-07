@@ -150,7 +150,7 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
     (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 48 ∧
   s.regs 0 = z ∧ s.regs 1 = pS ∧ s.regs 2 = nS ∧ Mod C R R2 T L ∧
-  Env C R R2 T b L lo hi s ∧ lo + 4520 ≤ s.sp.toNat ∧ s.sp.toNat + 32 ≤ hi ∧
+  Env C R R2 T b L lo hi s ∧ lo + 4528 ≤ s.sp.toNat ∧ s.sp.toNat + 32 ≤ hi ∧
   MultOK C z.toNat lo hi s.mem ∧
   s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
   s.mem.accessible C.maxStr 78 false = true ∧ Outside C.maxStr 78 [(lo, hi), (z.toNat, z.toNat + 32)] ∧ Outside C.maxStr 78 R.rt ∧

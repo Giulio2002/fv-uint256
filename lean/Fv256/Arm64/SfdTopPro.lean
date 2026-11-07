@@ -13,7 +13,7 @@ set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem top_pro_probe (impl : List Segment) (s : State) (z pS nS : BitVec 64) (lo hi : Nat)
     (hpc : s.pc = BitVec.ofNat 64 0xb89b0) (h0 : s.regs 0 = z) (h1 : s.regs 1 = pS) (h2 : s.regs 2 = nS)
-    (hlo : lo + 4520 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi) (hhi2 : hi ≤ 2 ^ 48)
+    (hlo : lo + 4528 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi) (hhi2 : hi ≤ 2 ^ 48)
     (hg : s.mem.readLE ((s.regs 28).toNat + 16) 8 < lo) (hga : s.mem.accessible ((s.regs 28).toNat + 16) 8 false = true)
     (hacc : s.mem.accessible (s.sp.toNat - 88) 120 true = true)
     (hpA : s.mem.accessible pS.toNat nS.toNat false = true) (hpB : pS.toNat + nS.toNat ≤ 2 ^ 48)

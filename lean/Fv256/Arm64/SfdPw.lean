@@ -12,7 +12,7 @@ import Fv256.Arm64.SfdParse
 
 STATEMENT ONLY (proof `sorry` until `te_sum` is done): consumers take `pw_sum` as a hypothesis of type `PwSum`.
 Registers: in `X0 = p, X1 = len, X2 = 10, X3 = 64`; out `X0 = n`, `X1, X2 = err` (ok: `X1 = X2 = 0`).
-Window `[lo, hi)`: the function's whole stack window (`Env R R2 T b L lo hi`), `lo + 4280 <= SP`, `SP + 48 <= hi`.
+Window `[lo, hi)`: the function's whole stack window (`Env R R2 T b L lo hi`), `lo + 4288 <= SP`, `SP + 48 <= hi`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I
@@ -27,7 +27,7 @@ def PwPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
     (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 48 ∧
   s.regs 0 = p ∧ s.regs 1 = len ∧ s.regs 2 = 10#64 ∧ s.regs 3 = 64#64 ∧ 1 ≤ len.toNat ∧ len.toNat ≤ 19 ∧
-  Mod R R2 T L ∧ Env R R2 T b L lo hi s ∧ lo + 4280 ≤ s.sp.toNat ∧ s.sp.toNat + 48 ≤ hi ∧
+  Mod R R2 T L ∧ Env R R2 T b L lo hi s ∧ lo + 4288 ≤ s.sp.toNat ∧ s.sp.toNat + 48 ≤ hi ∧
   ChunkOK R R2 L b p len lo hi s.mem
 
 def PwPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (p len : BitVec 64)

@@ -39,7 +39,7 @@ theorem fd_to_pw (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat)
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (hbig : 19 < nS.toNat - 19 * i) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 pw) S
-      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) (pS + (nS - BitVec.ofNat 64 (19 * i + 19))) 19#64 S1 ∧ PwCtx s S i nS 756796 S1) := by
+      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4448) (s.sp.toNat - 112) (pS + (nS - BitVec.ofNat 64 (19 * i + 19))) 19#64 S1 ∧ PwCtx s S i nS 756796 S1) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
   obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall, hK⟩ := hI
   have hS2 : (S.regs 2).toNat = nS.toNat - 19 * i := by
@@ -89,7 +89,7 @@ theorem fd_to_pw (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat)
       · repeat' first
           | exact MemFrame.refl _ _
           | refine MemFrame.writeLE ?_ _ (r := (lo, hi)) (by simp) (by omega) (by omega)
-      · show s.sp.toNat - 4440 ≤ (s.sp - 160#64).toNat
+      · show s.sp.toNat - 4448 ≤ (s.sp - 160#64).toNat
         rw [hspn]; omega
       · show (s.sp - 160#64).toNat + 8 ≤ s.sp.toNat - 112
         rw [hspn]; omega
@@ -105,7 +105,7 @@ theorem fd_to_pw_small (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (hsmall : nS.toNat - 19 * i ≤ 19) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 pw) S
-      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) pS (nS - BitVec.ofNat 64 (19 * i)) S1 ∧ PwCtx s S i nS 756828 S1) := by
+      (fun S1 => PwPre R R2 T b L (s.sp.toNat - 4448) (s.sp.toNat - 112) pS (nS - BitVec.ofNat 64 (19 * i)) S1 ∧ PwCtx s S i nS 756828 S1) := by
   obtain ⟨hl1, hl2, h0, h1, h2, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hz, hzlh, hzR, hzP, hzS, hzg, hpA, hpB, hpC, hpD, hCA, hfin⟩ := hpre
   obtain ⟨hpc, hi5', r0, r1, r3, r2, r4, rsp, r29, r28, r18, hfr, m1, m2, m3, m4, mtab, mval, hEnvS, hfb, hall, hK⟩ := hI
   have hS2 : (S.regs 2).toNat = nS.toNat - 19 * i := by
@@ -158,7 +158,7 @@ theorem fd_to_pw_small (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
       · repeat' first
           | exact MemFrame.refl _ _
           | refine MemFrame.writeLE ?_ _ (r := (lo, hi)) (by simp) (by omega) (by omega)
-      · show s.sp.toNat - 4440 ≤ (s.sp - 160#64).toNat
+      · show s.sp.toNat - 4448 ≤ (s.sp - 160#64).toNat
         rw [hspn]; omega
       · show (s.sp - 160#64).toNat + 8 ≤ s.sp.toNat - 112
         rw [hspn]; omega
