@@ -342,6 +342,18 @@ theorem PreU0m.retOK {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
   obtain ⟨e1, e2, e3, e4, e5, -⟩ := env
   exact ⟨Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inl rfl) (by omega) (by omega), hret, hx, hdf⟩
 
+
+theorem PreU0.toM {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s : State} (h : PreU0 C sb st R R2 T b L lo hi z pI nI s) :
+    PreU0m C sb st R R2 T b L lo hi z pI nI s := by
+  obtain ⟨r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
+  exact ⟨r0, r3, r1, mod, env, lo4, hi4, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
+
+theorem PreU0.okOut {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s : State} (h : PreU0 C sb st R R2 T b L lo hi z pI nI s) : OkOut sb R pI nI s := by
+  obtain ⟨r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
+  exact ⟨okH, okD⟩
+
 /-- keeps a disjunctive hypothesis away from `omega` -/
 def Hide (P : Prop) : Prop := P
 theorem Hide.mk {P : Prop} (h : P) : Hide P := h
