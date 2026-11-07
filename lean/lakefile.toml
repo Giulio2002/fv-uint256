@@ -5,7 +5,7 @@ defaultTargets = ["Fv256"]
 [[require]]
 name = "janus"
 git = "/srv/janus-integ-n10"
-rev = "fbbef399bc2071fe54fd7c41cd40caab02cf3c68"
+rev = "51d592daf75fa9050f55e9cc18d118cce4354a65"
 
 # Fv256.lean imports the modules that do not depend on an extraction (specifications and
 # lemmas), so lake build builds and checks them. Theorem modules import Extracted, which

@@ -32,34 +32,11 @@ def viewS (s : State) (p n : BitVec 64) : State :=
 def hdrP (s : State) (dw : BitVec 64) : BitVec 64 := BitVec.ofNat 64 (s.mem.readLE dw.toNat 8)
 def hdrN (s : State) (dw : BitVec 64) : BitVec 64 := BitVec.ofNat 64 (s.mem.readLE (dw.toNat + 8) 8)
 
-/-- the page-readability facts the SIMD `IndexByteString` needs for every string it can see: the input string, the stack window,
-the runtime's heap ranges (where `slicebytetostring` puts its copy) and the `staticuint64s` table (one-byte copies). -/
-def PagesOK (R : RtInv) (st lo hi : Nat) (m : Janus.Arm64.Memory) (p n : Nat) : Prop :=
-  Fv256.IndexByte.PageReadable m p n ∧ Fv256.IndexByte.PageReadable m lo (hi - lo) ∧
-  (∀ r ∈ R.rt, Fv256.IndexByte.PageReadable m r.1 (r.2 - r.1)) ∧ Fv256.IndexByte.PageReadable m st 2048
-
-open Fv256.C in
-/-- `SfdTopSpec.TopPre` without `RetOK` (the audit forbids assuming a bound on the caller's return address; `RetOK` is re-derived
-at the call) -/
-def TopPreN (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS nS : BitVec 64)
-    (s : State) : Prop :=
-  s.regs 0 = z ∧ s.regs 3 = pS ∧ s.regs 1 = nS ∧ Mod C R R2 T L ∧
-  Env C R R2 T b L lo hi s ∧ lo + 4800 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 32 ≤ hi ∧
-  MultOK C z.toNat lo hi s.mem ∧
-  s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
-  s.mem.accessible C.errBig 16 false = true ∧ Outside C.errBig 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
-  s.mem.accessible C.maxStr 78 false = true ∧ Outside C.maxStr 78 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
-  Outside C.maxStr 78 R.rt ∧ (∀ k, k < 78 → s.mem.readLE (C.maxStr + k) 1 = maxDigit k) ∧
-  Buffer s z 32 true ∧ (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧ (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
-  Outside z.toNat 32 R2.priv ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
-  ((s.regs 14).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 14).toNat + 16) ∧
-  (pS.toNat + nS.toNat ≤ 2 ^ 48 ∧ (nS.toNat = 0 ∨ s.mem.accessible pS.toNat nS.toNat false = true)) ∧ (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
-  (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
-  ChunkAll C R R2 L b pS.toNat nS.toNat lo hi s.mem
-
-theorem TopPreN.toTop {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {z pS nS : BitVec 64}
-    {s : State} (hr : RetOK s) (h : TopPreN C R R2 T b L lo hi z pS nS s) : TopPre C R R2 T b L lo hi z pS nS s := by
-  unfold TopPreN at h; unfold TopPre; exact ⟨hr, h⟩
+/-- the page-readability the SIMD `IndexByteString` needs for the `[]byte` copy: it lives in the runtime's heap ranges, on the
+stack buffer (inside the window) or in the `staticuint64s` table (one-byte strings) -/
+def PagesB (R : RtInv) (st lo hi : Nat) (m : Janus.Arm64.Memory) : Prop :=
+  Fv256.IndexByte.PageReadable m lo (hi - lo) ∧ (∀ r ∈ R.rt, Fv256.IndexByte.PageReadable m r.1 (r.2 - r.1)) ∧
+  Fv256.IndexByte.PageReadable m st 2048
 
 /-- the entry facts of the `[]byte` case: `UnmarshalSpec.PreU` without its hex-path conjunct `okH`, for Scan's frame layout
 (the copy buffer is `sp - 40`, `SetFromDecimal` is called from `sp - 72 - 8 ...`).  Only what Scan's code path needs. -/
@@ -88,17 +65,16 @@ def PreB (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat 
 def ScanPre (tyS tyB avx sb st errTy : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (dst tw dw : BitVec 64) (s : State) : Prop :=
   s.regs 0 = dst ∧ s.regs 3 = tw ∧ s.regs 1 = dw ∧ lo + 4992 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 32 ≤ hi ∧
-  s.mem.accessible avx 1 false = true ∧
-  ((tw = 0 ∧ TopPreN C R R2 T b L lo hi dst 0 0 (viewS s 0 0) ∧ PagesOK R st lo hi s.mem 0 0) ∨
-   (tw.toNat = tyS ∧ Buffer s dw 16 false ∧
-      TopPreN C R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
-      PagesOK R st lo hi s.mem (hdrP s dw).toNat (hdrN s dw).toNat) ∨
-   (tw.toNat = tyB ∧ Buffer s dw 24 false ∧
+  ((tw = 0 ∧ Buffer s dst 32 true ∧ (dst.toNat + 32 ≤ lo ∨ hi ≤ dst.toNat) ∧ s.mem.accessible lo (hi - lo) true = true) ∨
+   (tw.toNat = tyS ∧ Buffer s dw 16 false ∧ s.mem.accessible avx 1 false = true ∧
+      TopPre0 C R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
+      Fv256.IndexByte.PageReadable s.mem (hdrP s dw).toNat (hdrN s dw).toNat) ∨
+   (tw.toNat = tyB ∧ Buffer s dw 24 false ∧ s.mem.accessible avx 1 false = true ∧
       PreB C sb st R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
-      PagesOK R st lo hi s.mem (hdrP s dw).toNat (hdrN s dw).toNat) ∨
+      PagesB R st lo hi s.mem) ∨
    (tw ≠ 0 ∧ tw.toNat ≠ tyS ∧ tw.toNat ≠ tyB ∧ s.mem.accessible (tw.toNat + 16) 4 false = true ∧
-      TopPreN C R R2 T b L lo hi dst 0 0 (viewS s 0 0) ∧ R.ok C.newobject [errTy] ∧ blockSize 16 false ≤ b ∧
-      PagesOK R st lo hi s.mem 0 0))
+      Mod C R R2 T L ∧ Env C R R2 T b L lo hi s ∧ R.ok C.newobject [errTy] ∧ blockSize 16 false ≤ b ∧
+      Outside dst.toNat 32 R.rt))
 
 /-- byte `k` of the message `unsupported type` -/
 def unsupB (k : Nat) : Nat := ("unsupported type".toList.getD k 'a').toNat
