@@ -1,0 +1,1024 @@
+{
+  "schema": 2,
+  "extractorVersion": "0.2.0",
+  "binary": "../harness-amd64",
+  "binarySha256": "17f87e1cbe6ebb329139c3da4708d446ec5647c6b7f39d8ddb306b97306cc6f4",
+  "goVersion": "go1.26.0",
+  "mainModule": "fv-uint256/harness",
+  "goos": "linux",
+  "goarch": "amd64",
+  "goamd64": "v1",
+  "symbolSource": "symtab",
+  "symbol": "github.com/holiman/uint256.(*Int).Scan",
+  "address": "0x4b3ac0",
+  "size": 261,
+  "maxFunctions": 64,
+  "functions": [
+    {
+      "name": "github.com/holiman/uint256.(*Int).Scan",
+      "address": "0x4b3ac0",
+      "size": 261,
+      "words": 0,
+      "bytes": 261
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).scanScientificFromString",
+      "address": "0x4b3be0",
+      "size": 549,
+      "words": 0,
+      "bytes": 549
+    },
+    {
+      "name": "internal/bytealg.IndexByteString.abi0",
+      "address": "0x402bc0",
+      "size": 24,
+      "words": 0,
+      "bytes": 24
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).SetFromDecimal",
+      "address": "0x4b4620",
+      "size": 377,
+      "words": 0,
+      "bytes": 377
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).Exp",
+      "address": "0x4b9f00",
+      "size": 857,
+      "words": 0,
+      "bytes": 857
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).MulOverflow",
+      "address": "0x4b7360",
+      "size": 165,
+      "words": 0,
+      "bytes": 165
+    },
+    {
+      "name": "indexbytebody",
+      "address": "0x402a60",
+      "size": 297,
+      "words": 0,
+      "bytes": 297
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).fromDecimal",
+      "address": "0x4b47a0",
+      "size": 581,
+      "words": 0,
+      "bytes": 581
+    },
+    {
+      "name": "runtime.decoderune",
+      "address": "0x474b60",
+      "size": 399,
+      "words": 0,
+      "bytes": 399
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).squared",
+      "address": "0x4b7420",
+      "size": 156,
+      "words": 0,
+      "bytes": 156
+    },
+    {
+      "name": "github.com/holiman/uint256.(*Int).Mul",
+      "address": "0x4b7240",
+      "size": 221,
+      "words": 0,
+      "bytes": 221
+    },
+    {
+      "name": "github.com/holiman/uint256.umul",
+      "address": "0x4b7020",
+      "size": 527,
+      "words": 0,
+      "bytes": 527
+    },
+    {
+      "name": "strconv.ParseUint",
+      "address": "0x48ce00",
+      "size": 169,
+      "words": 0,
+      "bytes": 169
+    },
+    {
+      "name": "internal/strconv.ParseUint",
+      "address": "0x403740",
+      "size": 746,
+      "words": 0,
+      "bytes": 746
+    },
+    {
+      "name": "strconv.toError",
+      "address": "0x48cec0",
+      "size": 1067,
+      "words": 0,
+      "bytes": 1067
+    },
+    {
+      "name": "internal/strconv.underscoreOK",
+      "address": "0x403d00",
+      "size": 235,
+      "words": 0,
+      "bytes": 235
+    },
+    {
+      "name": "strconv.bitSizeError",
+      "address": "0x48d6c0",
+      "size": 441,
+      "words": 0,
+      "bytes": 441
+    },
+    {
+      "name": "strconv.baseError",
+      "address": "0x48d500",
+      "size": 441,
+      "words": 0,
+      "bytes": 441
+    },
+    {
+      "name": "internal/strconv.FormatInt",
+      "address": "0x407a60",
+      "size": 301,
+      "words": 0,
+      "bytes": 301
+    },
+    {
+      "name": "internal/strconv.formatBase10",
+      "address": "0x4081e0",
+      "size": 466,
+      "words": 0,
+      "bytes": 466
+    },
+    {
+      "name": "internal/strconv.formatBits",
+      "address": "0x407e80",
+      "size": 847,
+      "words": 0,
+      "bytes": 847
+    },
+    {
+      "name": "errors.(*errorString).Error",
+      "address": "0x482b60",
+      "size": 11,
+      "words": 0,
+      "bytes": 11
+    }
+  ],
+  "stubs": [
+    {
+      "name": "runtime.morestack_noctxt.abi0",
+      "address": "0x47dd20",
+      "kind": "morestack"
+    },
+    {
+      "name": "runtime.panicBounds",
+      "address": "0x47fa40",
+      "kind": "panic"
+    },
+    {
+      "name": "runtime.panicdivide",
+      "address": "0x4447e0",
+      "kind": "panic"
+    },
+    {
+      "name": "runtime.panicunsafestringlen",
+      "address": "0x4749a0",
+      "kind": "panic"
+    },
+    {
+      "name": "runtime.gopanic",
+      "address": "0x479540",
+      "kind": "panic"
+    }
+  ],
+  "contractPatterns": [
+    "runtime.cmpstring",
+    "runtime.ifaceeq",
+    "runtime.mallocgc",
+    "runtime.memmove",
+    "runtime.newobject",
+    "runtime.gcWriteBarrier1",
+    "runtime.gcWriteBarrier2",
+    "runtime.gcWriteBarrier3",
+    "runtime.memclrNoHeapPointers",
+    "runtime.slicebytetostring",
+    "runtime.growslice",
+    "runtime.concatstring2"
+  ],
+  "contracts": [
+    {
+      "name": "runtime.slicebytetostring",
+      "address": "0x462fa0"
+    },
+    {
+      "name": "runtime.newobject",
+      "address": "0x41d9c0",
+      "pinned": true
+    },
+    {
+      "name": "runtime.cmpstring",
+      "address": "0x402680"
+    },
+    {
+      "name": "runtime.ifaceeq",
+      "address": "0x412c60",
+      "pinned": true
+    },
+    {
+      "name": "runtime.mallocgc",
+      "address": "0x4784a0",
+      "pinned": true
+    },
+    {
+      "name": "runtime.memmove",
+      "address": "0x47fde0",
+      "pinned": true
+    },
+    {
+      "name": "runtime.gcWriteBarrier2",
+      "address": "0x47f6a0",
+      "pinned": true
+    },
+    {
+      "name": "runtime.gcWriteBarrier1",
+      "address": "0x47f680",
+      "pinned": true
+    },
+    {
+      "name": "runtime.concatstring2",
+      "address": "0x4629e0"
+    },
+    {
+      "name": "runtime.gcWriteBarrier3",
+      "address": "0x47f6c0",
+      "pinned": true
+    },
+    {
+      "name": "runtime.growslice",
+      "address": "0x47b0c0",
+      "pinned": true
+    }
+  ],
+  "unresolvedBranches": [],
+  "dynamicTargets": [
+    {
+      "name": "errors.(*errorString).Error",
+      "address": "0x482b60",
+      "via": "itab",
+      "from": "go:itab.*errors.errorString,error"
+    }
+  ],
+  "data": [
+    {
+      "name": ".rodata+0xa460",
+      "address": "0x4c5460",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "60a083409c421a68c94aff790c288c6b73ab0819069f62eb357bd17911efe82e"
+    },
+    {
+      "name": ".rodata+0xbb00",
+      "address": "0x4c6b00",
+      "size": 384,
+      "section": ".rodata",
+      "sha256": "f3df95bafb9b2f8775ac16f9a876e42f251f924231c5c81af87fdf70969e82c7"
+    },
+    {
+      "name": ".rodata+0x15920",
+      "address": "0x4d0920",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "78ec83dfd6c7973facdc93231c1696f1c7d37d183d328e4cf24d01c95f51bcd8"
+    },
+    {
+      "name": ".rodata+0x1c8a0",
+      "address": "0x4d78a0",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "e58ef914b542ea7e3d904a03ff4a70255529aa3eec92e9bde41c3fba7bc8ac61"
+    },
+    {
+      "name": ".rodata+0x2b568",
+      "address": "0x4e6568",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "7aee6bac163a76d9d1d40a8f924f9834aa9a291f778fc12f861c6fe2c2d21a34"
+    },
+    {
+      "name": ".rodata+0x2c158",
+      "address": "0x4e7158",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "ef97b697c53320139edbb2ddc091a21d8c75390e70adcbc3a4dac85f592c31c1"
+    },
+    {
+      "name": ".rodata+0x2c898",
+      "address": "0x4e7898",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "78a835ec16e0b35039364f338b9c293c52a8e6b7aa38fd7ee5c8133091a1f5b4"
+    },
+    {
+      "name": ".rodata+0x2cfc0",
+      "address": "0x4e7fc0",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "48105b15fc259993ca4fcada85331a820e722fe2b036a37cb000a0cf3c0d6ab6"
+    },
+    {
+      "name": ".rodata+0x305e7",
+      "address": "0x4eb5e7",
+      "size": 31,
+      "section": ".rodata",
+      "sha256": "128262f593768bd7950802ad6b0d36104cd7062b06f8bb9cb8668bcaf9177b5f"
+    },
+    {
+      "name": ".rodata+0x31909",
+      "address": "0x4ec909",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "e5c314b4f6f37f80a734348d0697c6e421e83cfecc681ac16e6077c75ba1b6c8"
+    },
+    {
+      "name": ".rodata+0x32795",
+      "address": "0x4ed795",
+      "size": 41,
+      "section": ".rodata",
+      "sha256": "f0d16435b70d577a9e21fe2012fe7dc0295547aa1c6c04378e0c9c3065e8f522"
+    },
+    {
+      "name": ".rodata+0x349b4",
+      "address": "0x4ef9b4",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "0ab28a2ce352ac6e076c8e622a80a38f496d3507b56472112fc5f52110fd5254"
+    },
+    {
+      "name": ".rodata+0x34d06",
+      "address": "0x4efd06",
+      "size": 256,
+      "section": ".rodata",
+      "sha256": "a05c918347b328cde53af63b2d80027162fe02453d8583f9d1244f9251ef7036"
+    },
+    {
+      "name": ".rodata+0x359e0",
+      "address": "0x4f09e0",
+      "size": 320,
+      "section": ".rodata",
+      "sha256": "2f12d692231e424b4d7a41be6eda0ad3afb88aec7f8a086e6e8cad433077cbd4"
+    },
+    {
+      "name": ".rodata+0x363b0",
+      "address": "0x4f13b0",
+      "size": 32,
+      "section": ".rodata",
+      "sha256": "e273adc4fe83c3366f7aac2f863a4a262c0afbf44458e6cbd354ab7ec3424bfb"
+    },
+    {
+      "name": "go:itab.*errors.errorString,error",
+      "address": "0x4f18c8",
+      "size": 32,
+      "section": ".rodata",
+      "sha256": "54a2f796df8435bbf1890e69c7fa96561cc2d79ad6c63f82e642fb53e8c5c4cf"
+    },
+    {
+      "name": ".rodata+0x36920",
+      "address": "0x4f1920",
+      "size": 32,
+      "section": ".rodata",
+      "sha256": "01d0fabd251fcbbe2b93b4b927b26ad2a1a99077152e45ded1e678afa45dbec5"
+    },
+    {
+      "name": "go:itab.internal/strconv.Error,error",
+      "address": "0x4f19e0",
+      "size": 32,
+      "section": ".rodata",
+      "sha256": "3e592b396b484e4c0d8548970a0195aed41289cb8372d8cd08ca76337938e4e4"
+    },
+    {
+      "name": "go:itab.*strconv.NumError,error",
+      "address": "0x4f1a00",
+      "size": 32,
+      "section": ".rodata",
+      "sha256": "ee79fc782cb6be378264e099a2c4572004706eb4a624bb1a50c9fce4919191be"
+    }
+  ],
+  "dataReferences": [
+    {
+      "from": "0x4b3af4",
+      "target": "0x4c5460",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b3b39",
+      "target": "0x4c6b00",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b3b57",
+      "target": "0x4d0920",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b3b6d",
+      "target": "0x4e7898",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b3b7a",
+      "target": "0x4f18c8",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b3d25",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b3d2c",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b3d74",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b3d7b",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b468f",
+      "target": "0x4ef9b4",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b46aa",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b46b1",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b46d8",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b46df",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b9f1f",
+      "target": "0x4f1920",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x402b16",
+      "target": "0x5df444",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b47e6",
+      "target": "0x5b8580",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4b4810",
+      "target": "0x5b7c50",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x4b4817",
+      "target": "0x5b7c58",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48ce31",
+      "target": "0x4e6568",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4038aa",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4038b1",
+      "target": "0x4f0a08",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4038c0",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4038c7",
+      "target": "0x4f0a20",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4038d6",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4038dd",
+      "target": "0x4f09f0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x40395d",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x403964",
+      "target": "0x4f09e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x403974",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x40397b",
+      "target": "0x4f09e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x40398a",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x403991",
+      "target": "0x4f09f0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4039a0",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4039a7",
+      "target": "0x4f09f0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4039de",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4039e5",
+      "target": "0x4f09f0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48cf06",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48cf19",
+      "target": "0x4f09f0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48cf82",
+      "target": "0x4d78a0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48cf97",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48cfd4",
+      "target": "0x5b7ef0",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48cfdb",
+      "target": "0x5b7ef8",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48cfe6",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48cffe",
+      "target": "0x4f1a00",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d013",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d05a",
+      "target": "0x4f09e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d0c2",
+      "target": "0x4d78a0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d0d7",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d114",
+      "target": "0x5b7ee0",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d11b",
+      "target": "0x5b7ee8",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d126",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d13e",
+      "target": "0x4f1a00",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d153",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d196",
+      "target": "0x4f0a20",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d1b5",
+      "target": "0x4f19e0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d1f0",
+      "target": "0x4f0a08",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d248",
+      "target": "0x4f1a00",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d279",
+      "target": "0x4f1a00",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d772",
+      "target": "0x4e7fc0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d788",
+      "target": "0x4d0920",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d79d",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d7c2",
+      "target": "0x4d78a0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d7d7",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d822",
+      "target": "0x4f18c8",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d5b2",
+      "target": "0x4e7158",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d5c8",
+      "target": "0x4d0920",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d5dd",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d602",
+      "target": "0x4d78a0",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x48d617",
+      "target": "0x5def20",
+      "kind": "rip-mem"
+    },
+    {
+      "from": "0x48d662",
+      "target": "0x4f18c8",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x407a8c",
+      "target": "0x4ec909",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x407a9d",
+      "target": "0x4efd06",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x408271",
+      "target": "0x4efd06",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x4082b7",
+      "target": "0x4efd06",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x408314",
+      "target": "0x4efd06",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x408346",
+      "target": "0x4efd06",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x407f4e",
+      "target": "0x4ec909",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x407f6f",
+      "target": "0x4ec909",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x407fff",
+      "target": "0x4c6b80",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x40810f",
+      "target": "0x4ec909",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x40812c",
+      "target": "0x4ec909",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x408166",
+      "target": "0x4c6b00",
+      "kind": "rip-lea"
+    },
+    {
+      "from": "0x40816d",
+      "target": "0x4f13b0",
+      "kind": "rip-lea"
+    }
+  ],
+  "skippedData": [
+    {
+      "from": "0x4b3d25",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b3d2c",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b3d74",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b3d7b",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b46aa",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b46b1",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b46d8",
+      "target": "0x5b7ba0",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b46df",
+      "target": "0x5b7ba8",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.ErrBig256Range",
+      "reason": "writable"
+    },
+    {
+      "from": "0x402b16",
+      "target": "0x5df444",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "internal/cpu.X86",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b47e6",
+      "target": "0x5b8580",
+      "kind": "rip-lea",
+      "section": ".data",
+      "symbol": "github.com/holiman/uint256.multipliers",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b4810",
+      "target": "0x5b7c50",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "io.EOF",
+      "reason": "writable"
+    },
+    {
+      "from": "0x4b4817",
+      "target": "0x5b7c58",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "io.EOF",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48cf97",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48cfd4",
+      "target": "0x5b7ef0",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "strconv.ErrSyntax",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48cfdb",
+      "target": "0x5b7ef8",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "strconv.ErrSyntax",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48cfe6",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d0d7",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d114",
+      "target": "0x5b7ee0",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "strconv.ErrRange",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d11b",
+      "target": "0x5b7ee8",
+      "kind": "rip-mem",
+      "section": ".data",
+      "symbol": "strconv.ErrRange",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d126",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d79d",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d7d7",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d5dd",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    },
+    {
+      "from": "0x48d617",
+      "target": "0x5def20",
+      "kind": "rip-mem",
+      "section": ".noptrbss",
+      "symbol": "runtime.writeBarrier",
+      "reason": "writable"
+    }
+  ],
+  "extracted": "Extracted.lean",
+  "extractedSha256": "ce1813e6f0da73b175c6fd1ccb4059a0f7d29f3a3322677a3bd375955c9c8184"
+}

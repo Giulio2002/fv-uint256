@@ -63,20 +63,20 @@ theorem tpb (m : Janus.Arm64.Memory) (hdl : Extracted.program.DataLoaded m) :
 set_option maxRecDepth 100000 in
 theorem accE (m : Janus.Arm64.Memory) (hdl : Extracted.program.DataLoaded m) :
     m.accessible 5048608 16 false = true := by
-  have h := accessible_of_dataLoaded hdl 3 (by decide)
-  have e1 : (Extracted.program.data[3]'(by decide)).base = 5048608 := by decide
-  have e2 : (Extracted.program.data[3]'(by decide)).bytes.length = 256 := by decide
+  have h := accessible_of_dataLoaded hdl 2 (by decide)
+  have e1 : (Extracted.program.data[2]'(by decide)).base = 5048608 := by decide
+  have e2 : (Extracted.program.data[2]'(by decide)).bytes.length = 256 := by decide
   rw [e1, e2] at h
   exact Janus.Arm64.Memory.accessible_sub m h (Or.inl rfl) (by decide) (by decide)
 
 set_option maxRecDepth 100000 in
 theorem aprtE (m : Janus.Arm64.Memory) (hdl : Extracted.program.DataLoaded m) {a n : Nat} (hw : m.accessible a n true = true) :
     a + n ≤ 5048608 ∨ 5048608 + 256 ≤ a :=
-  disjoint_of_dataLoaded' hdl 3 (base := 5048608) (len := 256) (by decide) hw
+  disjoint_of_dataLoaded' hdl 2 (base := 5048608) (len := 256) (by decide) hw
 
 set_option maxRecDepth 100000 in
 theorem aprtM (m : Janus.Arm64.Memory) (hdl : Extracted.program.DataLoaded m) {a n : Nat} (hw : m.accessible a n true = true) :
     a + n ≤ 5142680 ∨ 5142680 + 256 ≤ a :=
-  disjoint_of_dataLoaded' hdl 8 (base := 5142680) (len := 256) (by decide) hw
+  disjoint_of_dataLoaded' hdl 6 (base := 5142680) (len := 256) (by decide) hw
 
 end Fv256.Amd64.ScanBData
