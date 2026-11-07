@@ -277,13 +277,15 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
     hret, setup, pre0, hexEnv0⟩
 
 
-def s1 : State := { s0 with regs := fun i => if i = 1 then pHV else if i = 2 then 48#64 else s0.regs i }
+def nU : BitVec 64 := 48#64
+
+def s1 : State := { s0 with regs := fun i => if i = 1 then pHV else if i = 2 then nU else if i = 3 then nU else s0.regs i }
 
 theorem unq1 : ¬ Quoted s1.mem pHV.toNat 48 := by
   unfold Quoted; decide
 
 theorem pre1 : PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R0 TD bW []
-    loW hiW zV pHV 48#64 s1 := by
+    loW hiW zV pHV nU s1 := by
   have h0 := pre0
   obtain ⟨⟨f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24, f25, f26,
     f27, f28, f29, f30, f31, f32, f33, f34, f35⟩, -, -⟩ := h0
@@ -294,7 +296,7 @@ theorem pre1 : PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAd
     fun hq => absurd hq unq1⟩
   exact chunk_gen 48 (by decide) (Or.inl (by decide))
 
-theorem setup1 : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pHV, 48#64, 48#64] s1 :=
+theorem setup1 : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pHV, nU, nU] s1 :=
   ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | _ | _ | _ | r <;> simp [s1, s0] at h ⊢ <;> omega⟩
 
 /-- as `nonvacuous_core`, with the input an UNQUOTED 48-digit string -/
@@ -315,7 +317,7 @@ theorem unquoted_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R2 T b L lo hi z pI nI s ∧
     HexEnv R lo hi z s ∧ ¬ Quoted s.mem pI.toNat nI.toNat :=
-  ⟨implA, R, R0, TD, bW, [], loW, hiW, zV, pHV, 48#64, 48#64, retW, s1, implOK,
+  ⟨implA, R, R0, TD, bW, [], loW, hiW, zV, pHV, nU, nU, retW, s1, implOK,
     by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
     by rw [addr_cm]; exact hcmp, by rw [show Fv256.Arm64.UnmarshalJSON.sbAddr = sbA by decide]; exact model_sb,
