@@ -1,4 +1,5 @@
 import Fv256.Amd64.SfdTeBody
+import Fv256.Amd64.SfdFdRnd -- serialises the three memory-heavy modules (FdRnd 5 GB, TeSum0 5 GB, TeSum1 16 GB)
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64 Fv256.I Fv256.Amd64.SfdEnv
 

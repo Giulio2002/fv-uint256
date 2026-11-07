@@ -1,4 +1,5 @@
 import Fv256.Amd64.SfdTeBody
+import Fv256.Amd64.SfdTeSum0 -- serialise: TeSum1 peaks at 16 GB, never build it beside TeSum0
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64 Fv256.I Fv256.Amd64.SfdEnv
 
