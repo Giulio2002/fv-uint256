@@ -5,7 +5,7 @@ import Fv256.Amd64.SfdWitB
 /-!
 # Witness for `SetFromDecimal` (amd64), part C: a concrete call state
 
-`SetFromDecimal(z, "7")` with the toy runtime `R`, the interface model `R0`, a stack window `[lo, hi)`, and a memory laid out
+`SetFromDecimal(z, a 45-digit decimal string (three chunks: 19 + 19 + 7 digits))` with the toy runtime `R`, the interface model `R0`, a stack window `[lo, hi)`, and a memory laid out
 by hand (`mem0`): the model's metadata, the heap, the binary's static objects the proof reads (at the extraction's own
 addresses, with synthetic contents), the four multiplier objects `10^(19 k)`, `z`, the string.
 -/
@@ -29,12 +29,14 @@ def multW : Nat := 0x501000
 /-- byte `a - base` of the little-endian number `v` -/
 def nb (v base a : Nat) : Nat := v / 256 ^ (a - base) % 256
 
+def strBs : List Nat := "123456789012345678901234567890123456789012345".toList.map Char.toNat
+
 /-- the synthetic contents of `mem0` -/
 def val (a : Nat) : Nat :=
   if 0x10000 ≤ a ∧ a < 0x11000 then (IfaceModel.wmem.bytes a).toNat
   else if a = 0x400003 then 0x10
   else if a = 0x100001 then 0x10
-  else if a = 0x301000 then 0x37
+  else if 0x301000 ≤ a ∧ a < 0x301000 + 45 then strBs.getD (a - 0x301000) 0
   else if a = 0x4d78a0 then 48
   else if a = 0x4d78a8 then 1
   else if a = 0x4f19ea then 1
@@ -46,16 +48,17 @@ def val (a : Nat) : Nat :=
 def mem0 : Memory :=
   ⟨fun a => BitVec.ofNat 8 (val a),
    [⟨0x10000, 0x300, false⟩, ⟨0x10300, 0xd00, true⟩, ⟨loW, hiW - loW, true⟩, ⟨gW, 0x100, false⟩, ⟨zW, 32, true⟩,
-    ⟨0x301000, 1, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
+    ⟨0x301000, 45, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
     ⟨0x4d78a0, 16, false⟩, ⟨0x4ef9b4, 78, false⟩, ⟨0x4f09f0, 8, false⟩, ⟨0x4f19e0, 16, false⟩, ⟨0x5b7ba0, 16, false⟩,
     ⟨0x5b7c50, 16, false⟩, ⟨0x5b7ef0, 16, false⟩, ⟨0x5b8580, 40, false⟩, ⟨0x5def20, 4, false⟩, ⟨multW, 128, false⟩]⟩
 
 def zV : BitVec 64 := BitVec.ofNat 64 zW
 def pSV : BitVec 64 := BitVec.ofNat 64 0x301000
+def nSV : BitVec 64 := BitVec.ofNat 64 45
 def retW : Nat := 0x1000
 
 def s0 : State :=
-  { regs := fun i => if i = 0 then zV else if i = 3 then pSV else if i = 1 then 1#64
+  { regs := fun i => if i = 0 then zV else if i = 3 then pSV else if i = 1 then nSV
       else if i = 4 then BitVec.ofNat 64 spW else if i = 14 then BitVec.ofNat 64 gW else 0,
     rip := BitVec.ofNat 64 Extracted.entry, flags := ⟨none, none, none, none, none, none⟩, xmm := fun _ => 0,
     mem := mem0 }
@@ -149,21 +152,34 @@ theorem maxdig0 : ∀ k, k < 78 → s0.mem.readLE (extCfg.maxStr + k) 1 = Fv256.
     omega
   rw [h1, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt h2
 
-theorem chunk0 : ChunkAll extCfg R R0 [] 0x400 pSV.toNat (1#64).toNat loW hiW s0.mem := by
+theorem chunk_bs : ∀ sl, sl ≤ 19 → blockSize sl true + blockSize 48 false ≤ 0x400 := by decide
+
+theorem chunk0 : ChunkAll extCfg R R0 [] 0x400 pSV.toNat nSV.toNat loW hiW s0.mem := by
   rw [extCfg_lit]
   intro sp sl h1 h2 h3 h4
   have e1 : pSV.toNat = 0x301000 := by decide
-  have e2 : (1#64).toNat = 1 := by decide
+  have e2 : nSV.toNat = 45 := by decide
   rw [e1] at h1 h2; rw [e2] at h2
-  have hsp : sp = 0x301000 := by omega
-  have hsl : sl = 1 := by omega
-  subst hsp hsl
-  refine ⟨Or.inr (Or.inr (Or.inr (Or.inl ⟨rfl, rfl⟩))), fun q => Or.inr (Or.inr (Or.inr (Or.inr ⟨rfl, q, rfl⟩))),
-    by decide, by decide, by decide, by decide, ?_, ?_⟩
-  · left; rw [rt_eq]; apply outside_of_decide; decide
-  · simp only [R0_priv]; apply outside_of_decide; decide
+  have hsp : (BitVec.ofNat 64 sp).toNat = sp := Nat.mod_eq_of_lt (by omega)
+  have hsl : (BitVec.ofNat 64 sl).toNat = sl := Nat.mod_eq_of_lt (by omega)
+  have hacc : s0.mem.accessible 0x301000 45 false = true := by decide
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp only [hsl]; exact Or.inr (Or.inr (Or.inr (Or.inl ⟨rfl, sl, h3, h4, rfl⟩)))
+  · intro q; simp only [hsl, hsp]; exact Or.inr (Or.inr (Or.inr (Or.inr ⟨rfl, q, sp, sl, rfl, h3, h4⟩)))
+  · simp only [hsl]; exact chunk_bs sl h4
+  · simp only [hsp, hsl]; exact Janus.Arm64.Memory.accessible_sub _ hacc (Or.inl rfl) (by omega) (by omega)
+  · simp only [hsp, hsl]; omega
+  · simp only [hsp, hsl]; simp only [loW, hiW]; omega
+  · left; simp only [hsp, hsl, rt_eq]; apply outside_of_decide
+    intro r hr
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl | rfl <;> simp only [HEAP, HEND, HSIZE, BUMP, WBUF] <;> omega
+  · simp only [hsp, hsl]; simp only [R0_priv]; apply outside_of_decide
+    intro r hr
+    simp only [List.mem_singleton] at hr
+    subst hr; simp only [TD]; omega
 
-theorem pre0 : TopPre extCfg R R0 TD 0x400 [] loW hiW zV pSV 1#64 s0 := by
+theorem pre0 : TopPre extCfg R R0 TD 0x400 [] loW hiW zV pSV nSV s0 := by
   have e : extCfg = _ := extCfg_lit
   have hm := maxdig0
   have hc := chunk0
@@ -194,7 +210,7 @@ theorem pre0 : TopPre extCfg R R0 TD 0x400 [] loW hiW zV pSV 1#64 s0 := by
 
 theorem hret : RetAddr (Extracted.program.link implA) retW := RetAddr.of_check (by rw [linked_eq]; decide)
 
-theorem setup : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pSV, 1#64] s0 :=
+theorem setup : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pSV, nSV] s0 :=
   ⟨rfl, by decide, rfl, by decide, by intro i h; match i, h with | 0, _ => rfl | 1, _ => rfl | 2, _ => rfl, rfl⟩
 
 end Fv256.Amd64.SetFromDecimal.Witness

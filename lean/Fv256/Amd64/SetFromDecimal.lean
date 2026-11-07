@@ -66,7 +66,7 @@ namespace Witness
 
 set_option maxRecDepth 100000 in
 /-- The hypotheses of `correctness` hold together: a runtime (`impl`, `R`, `R2`), a budget, a stack window and a call of
-`SetFromDecimal(z, "7")` (non-empty input) satisfying the precondition. -/
+`SetFromDecimal(z, s)` for a 45-digit decimal `s` (three chunks of 19, 19 and 7 digits: the multi-word multiply/accumulate path) satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (z pS nS : BitVec 64) (ret : Nat) (s : State),
     Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
@@ -80,7 +80,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pS, nS] s ∧
     TopPre0 extCfg R R2 T b L lo hi z pS nS s :=
-  ⟨implA, R, R0, TD, 0x400, [], loW, hiW, zV, pSV, 1#64, retW, s0,
+  ⟨implA, R, R0, TD, 0x400, [], loW, hiW, zV, pSV, nSV, retW, s0,
     by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
     by rw [addr_cm]; exact hcmp, hret, setup, pre0.2⟩
