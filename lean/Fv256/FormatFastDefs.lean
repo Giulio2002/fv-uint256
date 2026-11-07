@@ -193,3 +193,75 @@ theorem sub32_eq_zero (n k : Nat) (hn : n < 2 ^ 32) (hk : k < 2 ^ 32) :
     omega
   · intro h; subst h; simp
 end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the invariant survives a summary call whose frame is the single window `[r - 8 - k, r)` (`k ≤ stack`) -/
+theorem finv_call1 {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {rv k : Nat} (hi : FInv rt stack z tab data ch S0 S) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (hout : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt) (hk : k ≤ stack)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (rt ++ [((S0.regs 4).toNat - 8 - k, (S0.regs 4).toNat - 8 + 8)]))
+    (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
+    (hdf : S'.df = S.df) (hfs : S'.fsBase = S.fsBase) (hm : S'.mem = m) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, adf, afs, afr, r50, r58, r60, r68⟩ := hi
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a n, (S0.regs 4).toNat + 0x50 ≤ a → a + n ≤ (S0.regs 4).toNat + 0x6c →
+      m.readLE a n = S.mem.readLE a n := by
+    intro a n h1 h2
+    rw [hfr.readLE a n (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, trivial⟩)]
+    exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)
+  refine ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, hdf.trans adf, hfs.trans afs, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r50
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r58
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the call-site property of the fast path's `Write(p []byte)` call: the receiver data word, the slice `(ptr, len, cap)` whose
+first `len` bytes are readable and equal `bs`, and `len ≤ cap` -/
+def FastWP (data : BitVec 64) (bs : List Nat) (sc : State) : Prop :=
+  sc.regs 0 = data ∧ Janus.Contracts.StrOut sc.mem (sc.regs 3).toNat (sc.regs 1).toNat bs ∧
+    (sc.regs 1).toNat ≤ (sc.regs 7).toNat
+
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+theorem out_fl2 {rt : List (Nat × Nat)} {r stack a n : Nat} (ho : Outside a n rt)
+    (h1 : a + n ≤ r - 8 - stack ∨ r + 32 ≤ a) (h2 : a + n ≤ r + 0x50 ∨ r + 0x6c ≤ a) : Outside a n (FL rt r stack) := by
+  simp only [FL, outside_append, outside_cons, outside_nil]
+  refine ⟨ho, ?_, ?_, trivial⟩ <;> omega
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+theorem frame_call {rt : List (Nat × Nat)} {stack : Nat} {S0 S : State} {m : Memory} {rv e : Nat}
+    (afr : MemFrame S0.mem S.mem (FL rt (S0.regs 4).toNat stack)) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (he : e ≤ (S0.regs 4).toNat + 32)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m
+      (rt ++ [((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat - 8), ((S0.regs 4).toNat - 8 + 8, e)])) :
+    MemFrame S0.mem m (FL rt (S0.regs 4).toNat stack) := by
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
+  exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+end Fv256.FormatFast
