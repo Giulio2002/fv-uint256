@@ -39,3 +39,12 @@ of Hex.lean's hexbase/hexstep is not mine.  Regenerate after touching Arm64/Hex.
 * FInv holds S.sp = S0.sp as an equation; pass it (`i4`) to janus_run, and state spill facts in terms of S0.sp.toNat.
 Fast loop: build/lrea.sh FILE (PRE="mods to lake build first") in the kept workspace (build/ws-Arm64.txt); create the workspace with
 build/vwa.sh FormatFastProbe probe.  Cold Dec chain build in the workspace is ~40 min (once); FM/Hex ~3 min.
+
+## (iii) arm64 big path -- DONE, sorry-free (2026-11-07)
+`Fv256.Arm64.FormatFast.big_path` (lean/Fv256/Arm64/FormatFastBig.lean; BigA = *slot=0 + IntoBig summary (call_pre), BigB = static big.Format call).
+Axioms: propext, Classical.choice, Quot.sound.  Entry: S at Format+0x204 with FPre/FInv of (ii)'s exit 2.
+IntoBig modules: scripts/gen-fm-intobig-arm64.sh -> Arm64/FM/IntoBig*.lean (IntoBig = Format+0x1750, entry literal 0xb5780 as `ibEntry` def).
+ Two differences from the ToBig retarget, both needed: (1) `Extracted.entry` -> a *definition* `Fv256.Arm64.IntoBig.ibEntry`, not a literal;
+ (2) `fm_clear_ddisj 1 2` (lean/Fv256/FmTac.lean) after each `janus_data`: Format's extraction has ~10 data objects, janus_data adds
+ h_ddisj for each x each range and omega splits them (omega took 100-240 s per call in Slow3, whole module timed out).  Keep only 1 2.
+ Build of the whole FM chain to IntoBigT: 17 min cold, peak RSS 5.1 GB (arm64), no heartbeat options of mine.
