@@ -25,7 +25,7 @@ theorem bytes_pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Na
     (hrtA : ∀ r ∈ R.rt, s.mem.accessible r.1 (r.2 - r.1) true = true)
     (hSb : SbPost R stAddr b L s (hdrP s dw) (hdrN s dw) r0 r1 M0 m ((s.regs 4).toNat - 40))
     (hM0c : M0 = ((((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 vt).writeLE ((s.regs 4).toNat + 24) 8 vd).writeLE
-      ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930347)
+      ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930331)
     (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = r1)
     (hr4 : S3.regs 4 = s.regs 4 - 72#64) (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false)
     (hfs : S3.fsBase = s.fsBase)
@@ -86,7 +86,7 @@ theorem bytes_tail (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     (hSb : SbPost R stAddr b L s (hdrP s dw) (hdrN s dw) r0 r1 M0 m ((s.regs 4).toNat - 40))
     (hv5 : v5 = (s.regs 5).toNat)
     (hM0c : M0 = ((((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 vt).writeLE ((s.regs 4).toNat + 24) 8 vd).writeLE
-      ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930347)
+      ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930331)
     (hrip : S3.rip = BitVec.ofNat 64 sci)
     (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = r1)
     (hr4 : S3.regs 4 = s.regs 4 - 72#64) (hr5 : S3.regs 5 = s.regs 4 - 8#64) (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0)
