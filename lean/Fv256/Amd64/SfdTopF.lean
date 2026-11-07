@@ -153,6 +153,50 @@ theorem top_fin (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     · rw [qmem]; exact hval
     · rw [qmem]; exact hfr2
   · -- syntax
-    sorry
+    have hdp2 := hdec _ hfd
+    have hsyn : decParse (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = Res.syntax (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + lo1) len1 := by
+      rw [hdp2]; rfl
+    obtain ⟨hl1, hl2, hl3⟩ := Fv256.I.Fv256.I.decParse_syntax _ _ _ _ hsyn
+    refine fin (fun a n h1 h2 => hfr.readLE a n (hOutF a n h1 h2)) (fun a n w => hfr.accessible a n w) _ ?_
+    intro S2 hpc2 hq
+    obtain ⟨q0, q3, q4, q5, q14, qx, qdf, qfs, qmem⟩ := hq
+    have hk : k = startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat := hk2 (by omega)
+    have h3n : (Sc.regs 3).toNat = pS.toNat + k := by
+      rw [r3]; exact add_toNat _ _ (by simp only [Nat.reducePow]; omega)
+    have hst0 : Outside Fv256.Amd64.SfdEnv.strconvErrSyntax 16 [(lo, hi)] := by
+      have := e14 (Fv256.Amd64.SfdEnv.strconvErrSyntax, Fv256.Amd64.SfdEnv.strconvErrSyntax + 16) (by simp [Fv256.Amd64.SfdEnv.staticRanges])
+      simpa using this
+    refine ⟨kept S2 hpc2 ⟨q0, q3, q4, q5, q14, qx, qdf, qfs, qmem⟩, Or.inr (Or.inr (Or.inr ⟨startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + lo1, len1, hsyn, q, tt, ?_, ?_, ?_, ?_⟩))⟩
+    · exact q0.trans a0
+    · rw [q3, a3]
+    · have e : (Sc.regs 3).toNat + lo1 = pS.toNat + (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + lo1) := by omega
+      rw [e] at hobj
+      have hlen1 : (BitVec.ofNat 64 len1).toNat = len1 := by
+        rw [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by omega)
+      have hsp1 : (BitVec.ofNat 64 (pS.toNat + (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + lo1))).toNat =
+          pS.toNat + (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + lo1) := by
+        rw [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by omega)
+      have hobj2 := TeObj.congr_src hobj (by rw [c14]) (cmf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; have := hst0; simp only [outside_cons, outside_nil, and_true] at this; omega))
+        (cmf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; have := hst0; simp only [outside_cons, outside_nil, and_true] at this; omega))
+        (by
+          intro k' hk'
+          rw [hlen1] at hk'
+          rw [hsp1]
+          exact cmf.readLE _ _ (by
+            simp only [outside_cons, outside_nil, and_true]
+            have := hpW.resolve_left (by omega)
+            omega))
+      exact teobj_of (TeObj.congr_mem hobj2 (by rw [qmem]))
+    · have hFB1 : MemFrame s.mem Sc.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) :=
+        cmf'.mono (by
+          intro a n h
+          simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+          exact h.2)
+      have hFB2 : MemFrame Sc.mem S1.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) :=
+        hfr.mono (by
+          intro a n h
+          simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+          exact ⟨h.1, by omega⟩)
+      rw [qmem]; exact hFB1.trans hFB2 (fun a n h => ⟨h, h⟩)
 
 end Fv256.Amd64.SfdTop
