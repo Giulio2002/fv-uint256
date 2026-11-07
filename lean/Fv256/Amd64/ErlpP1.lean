@@ -5,7 +5,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janu
 namespace Fv256.Amd64.EncodeRLP
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 32000000 in
+set_option maxHeartbeats 1000000 in
 /-- the path `1 ≤ bitlen ≤ 7`: one `newobject([1]byte)`, the byte `z[0]`, the `Write` -/
 theorem erlp_p1 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64) (ret : Nat) (hret : RetAddr (Extracted.program.link impl) ret)
@@ -52,12 +52,8 @@ theorem erlp_p1 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRead
   have hdt := InRanges.disjoint hin htr
   have hdz := InRanges.disjoint hin hzo
   janus_grab 4096 as hfn
-  have hzr := hfn.readLE z.toNat 32 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo, ?_, ?_, trivial⟩ <;> omega)
-  have hzr8 := hfn.readLE z.toNat 8 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo.of_sub (Nat.le_refl _) (by omega), ?_, ?_, trivial⟩ <;> omega)
+  have hzr := hfn.readLE z.toNat 32 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (Nat.le_refl _))
+  have hzr8 := hfn.readLE z.toNat 8 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (off_ok0 _))
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hS8, hS32] at hzr hzr8
   have hza8 : s.mem.accessible z.toNat 8 false = true :=
     Janus.Arm64.Memory.accessible_mono _ hza (Nat.le_refl _) (by omega)

@@ -11,7 +11,6 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janu
 namespace Fv256.Amd64.EncodeRLP
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 32000000 in
 theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64)
     (hnew : NewobjectContract64 (Extracted.program.link impl)

@@ -6,7 +6,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janu
 namespace Fv256.Amd64.EncodeRLP
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 32000000 in
+set_option maxHeartbeats 1000000 in
 /-- the path `8 ≤ bitlen`: one `newobject([33]byte)`, the four `BSWAP` stores, the prefix byte, the `Write` -/
 theorem erlp_pm (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64) (ret : Nat) (hret : RetAddr (Extracted.program.link impl) ret)
@@ -49,51 +49,41 @@ theorem erlp_pm (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRead
   have hdt := InRanges.disjoint hin htr
   have hdz := InRanges.disjoint hin hzo
   janus_grab 4096 as hfn
-  have hzr := hfn.readLE z.toNat 32 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo, ?_, ?_, trivial⟩ <;> omega)
-  have hr0 := hfn.readLE (z.toNat) 8 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo.of_sub (by omega) (by omega), ?_, ?_, trivial⟩ <;> omega)
+  have hzr := hfn.readLE z.toNat 32 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (Nat.le_refl _))
+  have hr0 := hfn.readLE (z.toNat) 8 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (off_ok0 _))
   have hs0 : S.mem.readLE (z.toNat) 8 = s.mem.readLE (z.toNat) 8 :=
-    hfr.readLE _ _ (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)
+    hfr.readLE _ _ (out_z2 hzd hwb (Nat.le_refl _) (off_ok0 _))
   have ha0 := hfn.accessible (z.toNat) 8 false
   have hb0 : s.mem.accessible (z.toNat) 8 false = true :=
-    Janus.Arm64.Memory.accessible_mono _ hza (by omega) (by omega)
+    Janus.Arm64.Memory.accessible_mono _ hza (Nat.le_refl _) (off_ok0 _)
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hs0] at hr0
   simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible, hb0] at ha0
-  have hr1 := hfn.readLE (z.toNat + 8) 8 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo.of_sub (by omega) (by omega), ?_, ?_, trivial⟩ <;> omega)
+  have hr1 := hfn.readLE (z.toNat + 8) 8 (out_z hzo hzd h4104 hwb (le_off _ _) (off_ok _ _ (by decide)))
   have hs1 : S.mem.readLE (z.toNat + 8) 8 = s.mem.readLE (z.toNat + 8) 8 :=
-    hfr.readLE _ _ (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)
+    hfr.readLE _ _ (out_z2 hzd hwb (le_off _ _) (off_ok _ _ (by decide)))
   have ha1 := hfn.accessible (z.toNat + 8) 8 false
   have hb1 : s.mem.accessible (z.toNat + 8) 8 false = true :=
-    Janus.Arm64.Memory.accessible_mono _ hza (by omega) (by omega)
+    Janus.Arm64.Memory.accessible_mono _ hza (le_off _ _) (off_ok _ _ (by decide))
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hs1] at hr1
   simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible, hb1] at ha1
-  have hr2 := hfn.readLE (z.toNat + 16) 8 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo.of_sub (by omega) (by omega), ?_, ?_, trivial⟩ <;> omega)
+  have hr2 := hfn.readLE (z.toNat + 16) 8 (out_z hzo hzd h4104 hwb (le_off _ _) (off_ok _ _ (by decide)))
   have hs2 : S.mem.readLE (z.toNat + 16) 8 = s.mem.readLE (z.toNat + 16) 8 :=
-    hfr.readLE _ _ (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)
+    hfr.readLE _ _ (out_z2 hzd hwb (le_off _ _) (off_ok _ _ (by decide)))
   have ha2 := hfn.accessible (z.toNat + 16) 8 false
   have hb2 : s.mem.accessible (z.toNat + 16) 8 false = true :=
-    Janus.Arm64.Memory.accessible_mono _ hza (by omega) (by omega)
+    Janus.Arm64.Memory.accessible_mono _ hza (le_off _ _) (off_ok _ _ (by decide))
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hs2] at hr2
   simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible, hb2] at ha2
-  have hr3 := hfn.readLE (z.toNat + 24) 8 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo.of_sub (by omega) (by omega), ?_, ?_, trivial⟩ <;> omega)
+  have hr3 := hfn.readLE (z.toNat + 24) 8 (out_z hzo hzd h4104 hwb (le_off _ _) (off_ok _ _ (by decide)))
   have hs3 : S.mem.readLE (z.toNat + 24) 8 = s.mem.readLE (z.toNat + 24) 8 :=
-    hfr.readLE _ _ (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)
+    hfr.readLE _ _ (out_z2 hzd hwb (le_off _ _) (off_ok _ _ (by decide)))
   have ha3 := hfn.accessible (z.toNat + 24) 8 false
   have hb3 : s.mem.accessible (z.toNat + 24) 8 false = true :=
-    Janus.Arm64.Memory.accessible_mono _ hza (by omega) (by omega)
+    Janus.Arm64.Memory.accessible_mono _ hza (le_off _ _) (off_ok _ _ (by decide))
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hs3] at hr3
   simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible, hb3] at ha3
   have hS32 : S.mem.readLE z.toNat 32 = s.mem.readLE z.toNat 32 :=
-    hfr.readLE z.toNat 32 (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)
+    hfr.readLE z.toNat 32 (out_z2 hzd hwb (Nat.le_refl _) (Nat.le_refl _))
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hS32] at hzr
   have hnB := nB_bv bl hb256
   have hlen := pm_len _ bl _ hbl (by omega) hnB.symm.symm (by omega)

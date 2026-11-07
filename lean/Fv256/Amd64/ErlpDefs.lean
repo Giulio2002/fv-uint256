@@ -31,6 +31,25 @@ def EJ (z tab w : BitVec 64) (s S : State) (bl : Nat) : Prop :=
     S.mem.regions = s.mem.regions ∧ S.mem.readLE ((s.regs 4).toNat + 16) 8 = tab.toNat ∧
     S.mem.readLE ((s.regs 4).toNat + 24) 8 = w.toNat ∧ S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat
 
+theorem off_ok (z k : Nat) (hk : k + 8 ≤ 32) : z + k + 8 ≤ z + 32 := by omega
+theorem off_ok0 (z : Nat) : z + 8 ≤ z + 32 := by omega
+theorem le_off (z k : Nat) : z ≤ z + k := Nat.le_add_right z k
+
+/-- a sub-range of `*z` is outside the newobject frame ranges (the callee's window and the spill slot of the return address) -/
+theorem out_z {rt : List (Nat × Nat)} {z a n rsp stack : Nat} (hzo : Outside z 32 rt)
+    (hzd : z + 32 ≤ rsp - 56 - stack ∨ rsp + 32 ≤ z) (h4104 : 4104 ≤ stack) (hwb : 56 + stack ≤ rsp)
+    (h1 : z ≤ a) (h2 : a + n ≤ z + 32) :
+    Outside a n (rt ++ [(rsp - 56 - 4096, rsp - 56), (rsp - 56 + 8, rsp - 56 + 8 + 8)]) := by
+  simp only [outside_append, outside_cons, outside_nil]
+  refine ⟨hzo.of_sub h1 h2, ?_, ?_, trivial⟩ <;> omega
+
+/-- a sub-range of `*z` is outside the join frame ranges -/
+theorem out_z2 {z a n rsp stack : Nat} (hzd : z + 32 ≤ rsp - 56 - stack ∨ rsp + 32 ≤ z) (hwb : 56 + stack ≤ rsp)
+    (h1 : z ≤ a) (h2 : a + n ≤ z + 32) :
+    Outside a n [(rsp - 8, rsp), (rsp + 16, rsp + 32)] := by
+  simp only [outside_cons, outside_nil]
+  refine ⟨?_, ?_, trivial⟩ <;> omega
+
 theorem epost_ex {R : Res} {w : BitVec 64} {s' : State} {a b c d e1 e2 : BitVec 64} (hR : R w a b c d e1 e2)
     (h0 : s'.regs 0 = e1) (h3 : s'.regs 3 = e2) :
     ∃ ptr len cap n e1 e2, R w ptr len cap n e1 e2 ∧ s'.regs 0 = e1 ∧ s'.regs 3 = e2 :=

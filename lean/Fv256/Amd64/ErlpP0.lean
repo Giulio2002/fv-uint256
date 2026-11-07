@@ -5,7 +5,6 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janu
 namespace Fv256.Amd64.EncodeRLP
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 32000000 in
 /-- the path `bitlen = 0` (`z ≠ 0` is impossible here unless `z = 0` in memory): one `newobject([1]byte)`, the byte `0x80`, the `Write` -/
 theorem erlp_p0 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64) (ret : Nat) (hret : RetAddr (Extracted.program.link impl) ret)
@@ -42,9 +41,7 @@ theorem erlp_p0 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRead
   have hdt := InRanges.disjoint hin htr
   have hdz := InRanges.disjoint hin hzo
   janus_grab 4096 as hfn
-  have hzr := hfn.readLE z.toNat 32 (by
-    simp only [outside_append, outside_cons, outside_nil]
-    refine ⟨hzo, ?_, ?_, trivial⟩ <;> omega)
+  have hzr := hfn.readLE z.toNat 32 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (Nat.le_refl _))
   have hz1 : S.mem.readLE z.toNat 32 = 0 := by
     rw [hfr.readLE z.toNat 32 (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)]
     exact hz0
