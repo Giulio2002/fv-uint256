@@ -30,6 +30,10 @@ theorem Mod.priv {R : RtInv} {R2 : IfaceModel} {T : Nat} {L : List (Nat × Nat)}
     ∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt := by
   obtain ⟨m1, m2, m3, m4, -⟩ := h; exact m4
 
+theorem Mod.lpriv {R : RtInv} {R2 : IfaceModel} {T : Nat} {L : List (Nat × Nat)} (h : Mod C R R2 T L) :
+    ∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv := by
+  obtain ⟨m1, m2, m3, m4, m5, -⟩ := h; exact m5
+
 theorem Mod.static {R : RtInv} {R2 : IfaceModel} {T : Nat} {L : List (Nat × Nat)} (h : Mod C R R2 T L) :
     ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) R.rt := by
   obtain ⟨m1, m2, m3, m4, m5, m6, m7, -⟩ := h; exact m7
@@ -57,6 +61,7 @@ structure PreUS (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : Lis
   stWin : Outside st 2048 [(lo, hi)]
   stRt : Outside st 2048 R.rt
   stPriv : Outside st 2048 R2.priv
+  stZ : Outside st 2048 [(z.toNat, z.toNat + 32)]
   mult : MultOK C z.toNat lo hi s.mem
   multRt : Outside C.mulTab 40 R.rt
   multK : ∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt
@@ -100,6 +105,7 @@ def PreU (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat 
   (Outside st 2048 [(lo, hi)]) ∧
   (Outside st 2048 R.rt) ∧
   (Outside st 2048 R2.priv) ∧
+  (Outside st 2048 [(z.toNat, z.toNat + 32)]) ∧
   (MultOK C z.toNat lo hi s.mem) ∧
   (Outside C.mulTab 40 R.rt) ∧
   (∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt) ∧
@@ -127,8 +133,8 @@ def PreU (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat 
 theorem PreU.toS {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
     {z pI nI : BitVec 64} {s : State} (h : PreU C sb st R R2 T b L lo hi z pI nI s) :
     PreUS C sb st R R2 T b L lo hi z pI nI s := by
-  obtain ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
-  exact ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
+  obtain ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
+  exact ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
 
 /-- `TopPre` of the `SetFromDecimal` call, from the state `S3` at the call (return address pushed at `sp - 104`).  The string is
 the copy `(pS, nI)`; `L'`/`b'` the live set and budget after the copy; the window of the callee is `[lo, hi3)`. -/
@@ -150,7 +156,7 @@ theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L
     (hInv : R.inv b' L' (S3.regs 14).toNat (view R.rt L' S3.mem)) :
     TopPre C R R2 T b' L' lo hi3 z pS nI S3 := by
   have hp := hpre.toS
-  obtain ⟨hRet, -, -, -, hMod, hEnv, hlo, hhi, -, -, hcost, -, -, -, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
+  obtain ⟨hRet, -, -, -, hMod, hEnv, hlo, hhi, -, -, hcost, -, -, -, -, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
     hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hchunk⟩ := hp
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
