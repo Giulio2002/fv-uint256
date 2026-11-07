@@ -85,4 +85,26 @@ theorem cmp_after (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Na
   · rw [hS]; simp only [retState64]; rw [hrd _ (by omega) (by omega)]; exact m24
   · rw [hS]; simp only [retState64]; rw [hrd _ (by omega) (by omega)]; exact m16
 
+open Janus.Contracts.Cmpstring in
+theorem cmp_val (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (Sc : State) (hCall : CallSt R R2 T b L lo hi z pS s Sc)
+    (heq : nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 78) :
+    strCmp Sc.mem (pS.toNat + startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) extCfg.maxStr 78 78 = 1 ↔
+      lexGt (fun j => Fv256.C.bytesAt s.mem pS.toNat (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) maxDigit 78 := by
+  obtain ⟨⟨hra1, hra2, hx15, hdf0⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hq := Fv256.TopMath.startPos_spec' (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have cmf := hCall.2.2.2.2.2.2.1
+  rw [Fv256.I.strCmp_eq_one_iff Sc.mem 78]
+  refine Fv256.TopMath.lexGt_congr2 _ _ _ _ 78 (fun j hj => ?_) (fun j hj => ?_)
+  · show Sc.mem.readLE (pS.toNat + startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) 1 =
+      s.mem.readLE (pS.toNat + (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1
+    rw [Nat.add_assoc]
+    exact cmf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; have := hpW.resolve_left (by omega); omega)
+  · rw [← hMaxV j hj]
+    refine cmf.readLE _ _ ?_
+    have := hMaxo
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
+
 end Fv256.Amd64.SfdTop
