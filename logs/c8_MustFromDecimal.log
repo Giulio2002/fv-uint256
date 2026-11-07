@@ -1,0 +1,92 @@
+Fv256/Amd64/MustFromDecimal.lean:134:108: warning: try 'simp' instead of 'simpa'
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+Fv256/Amd64/MustFromDecimal.lean:208:26: warning: `if_true` has been deprecated: Use `ite_true` instead
+Fv256/Amd64/MustFromDecimal.lean:213:12: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/MustFromDecimal.lean:213:32: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/MustFromDecimal.lean:250:26: warning: `if_true` has been deprecated: Use `ite_true` instead
+Fv256/Amd64/MustFromDecimal.lean:255:12: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/MustFromDecimal.lean:255:32: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/MustFromDecimal.lean:285:28: warning: `if_true` has been deprecated: Use `ite_true` instead
+Fv256/Amd64/MustFromDecimal.lean:291:14: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/MustFromDecimal.lean:291:34: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/MustFromDecimal.lean:55:5: warning: Variable name `hif` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hif
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/MustFromDecimal.lean:58:5: warning: Variable name `hmg` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmg
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/MustFromDecimal.lean:60:5: warning: Variable name `hmv` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmv
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/MustFromDecimal.lean:62:5: warning: Variable name `hwb1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/MustFromDecimal.lean:64:5: warning: Variable name `hwb2` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb2
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/MustFromDecimal.lean:133:191: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:133:235: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:134:31: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:135:72: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_of_disjoint
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:210:39: warning: This simp argument is unused:
+  BitVec.toNat_ofNat
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Eface.mk.injEq, Nat.mod_eq_of_lt hw] at *
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:252:39: warning: This simp argument is unused:
+  BitVec.toNat_ofNat
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Eface.mk.injEq, Nat.mod_eq_of_lt hw] at *
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:286:41: warning: This simp argument is unused:
+  BitVec.toNat_ofNat
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Janus.Eface.mk.injEq]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/MustFromDecimal.lean:95:2: warning: positional `rename_i`/`next x`/`case _ x` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+LEANRC=0
+	Command being timed: "build/lcn.sh amfd /srv/fv-uint256-wJ/lean/Fv256/Amd64/MustFromDecimal.lean"
+	User time (seconds): 49.56
+	System time (seconds): 0.58
+	Percent of CPU this job got: 120%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:41.76
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2767736
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 118317
+	Voluntary context switches: 2035
+	Involuntary context switches: 121
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 38272
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
