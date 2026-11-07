@@ -130,7 +130,7 @@ theorem top_pro (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) 
       exact ⟨by simp, 0, Nat.le_refl _, fun h => absurd h (by omega), by simp⟩)
   · have hn' : nS.toNat ≠ 0 := fun h => hn (BitVec.eq_of_toNat_eq h)
     have hpA' : s.mem.accessible pS.toNat 1 false = true :=
-      Arm64.Memory.accessible_mono _ hpA (by omega) (by omega)
+      Arm64.Memory.accessible_mono _ (hpA.resolve_left hn') (by omega) (by omega)
     have hbl := Arm64.Memory.readLE_lt s.mem pS.toNat 1
     by_cases hb : (BitVec.setWidth 32 (BitVec.ofNat 64 (s.mem.readLE pS.toNat 1))).toNat = 43
     · have hb' : s.mem.readLE pS.toNat 1 = 43 := (byte_eq _ (by simpa using hbl)).1 hb

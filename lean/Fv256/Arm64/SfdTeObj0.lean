@@ -6,7 +6,7 @@ import Fv256.Arm64.SfdTeTail0
 # `strconv.toError` (arm64): memory-frame lemmas of the `ErrSyntax` path (extraction-free)
 -/
 
-open Janus Janus.Arm64 Janus.GoABI Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.Arm64.SfdEnv
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.Arm64.SfdEnv
 
 namespace Fv256.Arm64.SfdToError
 
@@ -108,6 +108,11 @@ theorem tm_frame {m0 m4 : Janus.Arm64.Memory} {Lst rt : List (Nat × Nat)} {t fl
   unfold TailMem
   exact (((((hF.writeLE_inRanges _ (h 8 (by omega))).writeLE_inRanges _ (by simpa using h 0 (by omega))).writeLE_inRanges _ (h 16 (by omega))).writeLE_inRanges _ (h 24 (by omega))).writeLE_inRanges _ (h 32 (by omega))).writeLE_inRanges _ (h 40 (by omega))
 
+theorem rr_mono {p : Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
+    (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
+  obtain ⟨k, s', a, b, c⟩ := h
+  exact ⟨k, s', a, b, hQ _ c⟩
+
 /-- reads of an address outside everything the `toError` path writes see the memory `S` at the `ifaceeq` call -/
 theorem te0_lrS {S m' m2 m3 m4 : Janus.Arm64.Memory} {rt priv : List (Nat × Nat)} {r4 depth q bs sl qv x1 x2 : Nat}
     (hfr : MemFrame S m' (priv ++ [(r4 - 96 - depth, r4 - 96 - 8), (r4 - 96 + 8, r4 - 96 + 8 + 24)]))
@@ -159,9 +164,9 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
     (hLF3 : LiveFrame ((m3.writeLE (s.sp.toNat - 40) 8 sl.toNat).writeLE (s.sp.toNat - 24) 8 q.toNat) m4
       (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)]) [])
     (hCop : Mem.Copied (m2.writeLE (s.sp.toNat - 16) 8 q.toNat) m3 q.toNat sp.toNat sl.toNat)
-    (hinvN : R.inv (b - blockSize sl.toNat true - blockSize 48 false)
-      (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true), (t.toNat, t.toNat + blockSize 48 false)]) (s.regs 28).toNat
-      (view R.rt (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true), (t.toNat, t.toNat + blockSize 48 false)]) m4))
+    (hinvN : R.inv (b - blockSize sl.toNat true - 48)
+      (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)] ++ [(t.toNat, t.toNat + 48)]) (s.regs 28).toNat
+      (view R.rt (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)] ++ [(t.toNat, t.toNat + 48)]) m4))
     (hInR : InRanges q.toNat (blockSize sl.toNat true) R.rt) (hInT : InRanges t.toNat (blockSize 48 false) R.rt)
     (hApL : ApartAll q.toNat (blockSize sl.toNat true) L)
     (hApT : ApartAll t.toNat 48 L ∧ Apart t.toNat 48 q.toNat (blockSize sl.toNat true))
@@ -171,6 +176,8 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
     (hSm8 : S.mem.readLE (s.sp.toNat + 8) 8 = fp.toNat)
     (oE : Outside strconvErrSyntax 16 [(s.sp.toNat - 4192, s.sp.toNat + 72)])
     (pE : Outside strconvErrSyntax 16 R.rt) (qE : Outside strconvErrSyntax 16 R2.priv)
+    (hSrec : S.mem.readLE (s.sp.toNat - 8) 8 = s.mem.readLE (s.sp.toNat - 8) 8 ∧
+      S.mem.readLE s.sp.toNat 8 = s.mem.readLE s.sp.toNat 8)
     (hSp : St.sp = s.sp - 96#64) (hSt28 : St.regs 28 = s.regs 28) (hSt18 : St.regs 18 = s.regs 18)
     (htail : s'.sp = St.sp + 96#64 ∧ s'.regs 0 = BitVec.ofNat 64 numErrItab ∧ s'.regs 1 = t ∧ s'.regs 29 = s.regs 29 ∧
       s'.regs 28 = St.regs 28 ∧ s'.regs 18 = St.regs 18 ∧
@@ -229,7 +236,24 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
   have hbase := te0_base hSf hfr hMF1 hMF2 hMF3 hdep hlow hInR hQsl
   have hFin : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(s.sp.toNat - 4192, s.sp.toNat + 72)]) := by
     rw [hmem']; exact tm_frame hbase (fun r hr => by simp [hr]) hInT
-  refine ⟨?_, hr29, ?_, ?_, ⟨q.toNat, t, hr0, hr1, ?_⟩, hFin⟩
+  have hts0 := InRanges.disjoint hInT e9
+  rw [b48] at hts0
+  have hrec : ∀ a, (a = s.sp.toNat - 8 ∨ a = s.sp.toNat) → s'.mem.readLE a 8 = s.mem.readLE a 8 := by
+    intro a ha
+    have h1 : s.sp.toNat - 4192 ≤ a := by rcases ha with rfl | rfl <;> te_omega
+    have h2 : a + 8 ≤ s.sp.toNat + 72 := by rcases ha with rfl | rfl <;> te_omega
+    have h3 : a + 8 ≤ t.toNat ∨ t.toNat + 48 ≤ a := by rcases ha with rfl | rfl <;> te_omega
+    rw [hmem']
+    unfold TailMem
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [te0_lrS hfr hMF1 hMF2 hMF3 hdep hlow hInR hQsl _ _ (hwin _ _ h1 h2).1 (hwin _ _ h1 h2).2
+      (by rcases ha with rfl | rfl <;> te_omega) (by rcases ha with rfl | rfl <;> te_omega)
+      (by rcases ha with rfl | rfl <;> te_omega) (by rcases ha with rfl | rfl <;> te_omega)
+      (by rcases ha with rfl | rfl <;> te_omega)]
+    rcases ha with rfl | rfl
+    · exact hSrec.1
+    · exact hSrec.2
+  refine ⟨?_, hr29, ?_, ?_, ⟨q.toNat, t, hr0, hr1, ?_⟩, hFin, hrec _ (Or.inl rfl), hrec _ (Or.inr rfl)⟩
   · rw [hsp', hSp]; bv_omega
   · rw [hr28, hSt28]
   · rw [hr18, hSt18]
@@ -257,7 +281,9 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
             refine ⟨Outside.of_sub hspP (by te_omega) (by te_omega), ?_, ?_⟩ <;> te_omega)]
           exact hSf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; te_omega)
       exact te0_copy (hLF := hLF3) (hApt := hApt) hk hQsl (by te_omega) (by te_omega) hCop hsrc
-    · rw [tm_view (rt := R.rt) ⟨(t.toNat, t.toNat + blockSize 48 false), by simp, Nat.le_refl _, by simp only [b48]; omega⟩]
-      exact hinvN
+    · have hl : L ++ [(q.toNat, q.toNat + blockSize sl.toNat true), (t.toNat, t.toNat + blockSize 48 false)] =
+          L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)] ++ [(t.toNat, t.toNat + 48)] := by simp [b48]
+      rw [hl, tm_view (rt := R.rt) ⟨(t.toNat, t.toNat + 48), by simp, Nat.le_refl _, Nat.le_refl _⟩]
+      rw [b48]; exact hinvN
 
 end Fv256.Arm64.SfdToError

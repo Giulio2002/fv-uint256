@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -21,7 +21,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdToError
 
-abbrev te : Nat := segAddr Extracted.program "strconv.toError"
+abbrev te : Nat := segAddr Fv256.Amd64.SfdProg.program "strconv.toError"
 
 
 
@@ -47,11 +47,11 @@ def TePre (R : RtInv) (R2 : IfaceModel) (T : Nat) (b : Nat) (L : List (Nat × Na
   Outside numErrType 16 [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)] ∧
   (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧
   Outside numErrType 16 R.rt ∧ Outside wbFlag 4 R.rt ∧ Outside strconvErrSyntax 16 R.rt ∧
-  R.ok (Extracted.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
-  R.ok (Extracted.program.contractAddr "runtime.newobject") [numErrType] ∧
-  (∀ q, R.ok (Extracted.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
-  R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-  R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") [numErrType] ∧
+  (∀ q, R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
   s.mem.accessible sp.toNat sl.toNat false = true ∧ sp.toNat + sl.toNat ≤ 2 ^ 48 ∧
   (sp.toNat + sl.toNat ≤ (s.regs 4).toNat - 4192 ∨ (s.regs 4).toNat + 72 ≤ sp.toNat) ∧
   Spec.Disjoint ((s.regs 14).toNat + 16) 8 ((s.regs 4).toNat - 4192) 4264 ∧
@@ -280,26 +280,6 @@ elab "te_flags" : tactic => withMainContext do
     evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff] at $h:ident))
     evalTactic (← `(tactic| try simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
       Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*] at $h:ident))
-  if (← System.FilePath.pathExists "/srv/fv-uint256-wi/build/out/debug_flags") then
-    for d in ← getLCtx do
-      if d.isImplementationDetail then continue
-      let ty ← instantiateMVars d.type
-      if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
-        let a ← Meta.ppExpr (ty.getArg! 0)
-        let b ← Meta.ppExpr (ty.getArg! 1)
-        let rs ← Meta.ppExpr (ty.getArg! 2)
-        let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
-        let clean := fun (x : String) => (((x.replace "\n" " ").replace "    " " ").replace "  " " ").replace "  " " "
-        h.putStrLn s!"FRAME {ty.getAppFn.constName!} from={(clean (toString a)).take 700} TO={clean (toString b)} rs={(clean (toString rs)).take 400}"
-        h.flush
-    for n in names do
-      let str ← withMainContext do
-        let d ← getLocalDeclFromUserName n
-        let ty ← instantiateMVars d.type
-        pure (toString (← Meta.ppExpr ty))
-      let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
-      h.putStrLn s!"FLAG {n}: {str.take 800}"
-      h.flush
   for a in names do
     for b in names do
       if a != b then

@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -38,7 +38,7 @@ macro "te_body" : tactic => `(tactic| (
   have hgn := hg.noWrap
   have hgr := hg.readable
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hgn hgr hacc hlow hnw hal hout
-  janus64_run until [Extracted.program.contractAddr "runtime.ifaceeq"]
+  janus64_run until [Fv256.Amd64.SfdProg.program.contractAddr "runtime.ifaceeq"]
   refine reach_name ?_
   intro S hS
   have hS4 : (S.regs 4).toNat = (s.regs 4).toNat - 96 := by
@@ -147,7 +147,7 @@ macro "te_body" : tactic => `(tactic| (
     rw [hs496] at hfr
     simp only [Spec.Disjoint] at hgdis
     clear hres hpc' hpre0 hcmp hdesc hxacc hres' hfr' hinvS hSf hSreg hSacc hS4 hret0 hSra hra' hS0 henv' h1 h3
-    janus64_run [hal1, hgm] until [Extracted.program.contractAddr "runtime.memmove"] calls [hmg.pos]
+    janus64_run [hal1, hgm] until [Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove"] calls [hmg.pos]
     te_grab
     try clear hTS hregS hndS hszS
     have hrsp : (s.regs 4 - 96#64).toNat = (s.regs 4).toNat - 96 := hs496
@@ -174,14 +174,14 @@ macro "te_body" : tactic => `(tactic| (
     simp only [Apart] at hAw hAn hAwb h_apart
     have hNT2' : s.mem.readLE 5077160 8 ≠ 0 := by simpa using hNT2
     have hNT2b : (s.mem.readLE 5077160 8 == 0) = false := by simp [hNT2']
-    have herr : Extracted.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
-    janus64_run [hgm2, hNT2b, herr] until [Extracted.program.contractAddr "runtime.newobject"] calls [hmv]
+    have herr : Fv256.Amd64.SfdProg.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
+    janus64_run [hgm2, hNT2b, herr] until [Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject"] calls [hmv]
     janus64_run [hgm2, hNT2b, herr] until [te + 0xce] calls [hnew.pos]
     janus64_run [hgm2, hNT2b, herr] calls [hnew.pos, hwb1, hwb2]
     all_goals
       first
       | (exfalso
-         have herr : Extracted.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
+         have herr : Fv256.Amd64.SfdProg.dataAddr.«go:itab.internal/strconv.Error,error» = 5183968 := by decide
          first
          | exact absurd (by decide : 18446744073704367648 - (18446744073709551616 - errItab) = 0) (by assumption)
          | omega

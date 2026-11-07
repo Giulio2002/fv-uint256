@@ -35,7 +35,7 @@ set_option maxRecDepth 200000 in
 /-- the loop increment and the slice chop: back to the head with `i + 1` -/
 theorem fd_incr (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (i : Nat) (S : State)
-    (hn78 : nS.toNat ≤ 78) (hlo : lo + 4440 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
+    (hn78 : nS.toNat ≤ 78) (hlo : lo + 4448 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
     (hM : M2Inv R R2 T b L lo hi z pS nS s i S) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 head) S
       (FdInv R R2 T b L lo hi z pS nS s (i + 1)) := by

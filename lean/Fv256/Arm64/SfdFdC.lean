@@ -11,7 +11,7 @@ set_option maxRecDepth 200000 in
 /-- round `i > 0`: `tmp = d`, `tmp = tmp * 10^(19 i)` (`Mul`), `z += tmp` -/
 theorem fd_midK (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State)
-    (hn78 : nS.toNat ≤ 78) (hlo : lo + 4440 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
+    (hn78 : nS.toNat ≤ 78) (hlo : lo + 4448 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
     (hal : s.sp.toNat % 16 = 0) (hs64 : s.sp.toNat + 32 < 2 ^ 64)
     (hzw : s.mem.accessible z.toNat 32 true = true) (hzb : z.toNat + 32 ≤ 2 ^ 48)
     (hzlh : z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) (hzR : Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L)

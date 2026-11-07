@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -22,9 +22,9 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdFd
 
-abbrev fd : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).fromDecimal"
-abbrev mulTab : Nat := Extracted.dataAddr.«github.com/holiman/uint256.multipliers»
-abbrev ioEOF : Nat := Extracted.dataAddr.«io.EOF»
+abbrev fd : Nat := segAddr Fv256.Amd64.SfdProg.program "github.com/holiman/uint256.(*Int).fromDecimal"
+abbrev mulTab : Nat := Fv256.Amd64.SfdProg.dataAddr.«github.com/holiman/uint256.multipliers»
+abbrev ioEOF : Nat := Fv256.Amd64.SfdProg.dataAddr.«io.EOF»
 
 /-- the package variable `multipliers = [5]*Int{nil, 10^19, 10^38, 10^57, 10^76}` as memory holds it: the table, and the
 four `Int`s it points to, are readable, hold the powers of ten, and lie outside `z`'s buffer and the stack window. -/
@@ -66,8 +66,8 @@ def FdPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
   Buffer s z 32 true ∧ (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧ (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
   Outside z.toNat 32 R2.priv ∧ (∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
   ((s.regs 14).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 14).toNat + 16) ∧
-  Buffer s pS nS.toNat false ∧ (pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
-  (pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
+  (pS.toNat + nS.toNat ≤ 2 ^ 48 ∧ (nS.toNat = 0 ∨ s.mem.accessible pS.toNat nS.toNat false = true)) ∧ (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
+  (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
   ChunkAll R R2 L b pS.toNat nS.toNat lo hi s.mem ∧
   (allDec (bytesAt s.mem pS.toNat) 0 nS.toNat → decSum (bytesAt s.mem pS.toNat) 0 nS.toNat < 2 ^ 256)
 

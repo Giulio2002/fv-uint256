@@ -1,0 +1,11 @@
+· have k4' : s'.regs 14 = s.regs 14 := by simpa [setRegF_apply, callRegs64_apply] using k4
+  have k5' : s'.xmm 15 = s.xmm 15 := by simpa [h_x15] using k5
+  have k7' : s'.fsBase = s.fsBase := by simpa using k7
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [retAddrOf]
+  · simp [setRegF_apply]
+  · simp [setRegF_apply]
+  · simpa [setRegF_apply] using k4'
+  · exact k5'
+  · simp [h_df]
+  · exact k7'

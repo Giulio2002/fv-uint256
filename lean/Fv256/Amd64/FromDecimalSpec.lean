@@ -67,6 +67,32 @@ def PreC (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo h
   (Outside pS.toNat nS.toNat R.rt ∨ InRanges pS.toNat nS.toNat L) ∧
   ChunkAll C R R2 L (b - blockSize 32 true) pS.toNat nS.toNat lo hi s.mem
 
+def PreC0 (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi tI : Nat) (pS nS : BitVec 64)
+    (s : State) : Prop :=
+  s.regs 0 = pS ∧ s.regs 3 = nS ∧ Mod C R R2 T L ∧
+  Env C R R2 T b L lo hi s ∧ lo + 4848 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 24 ≤ hi ∧
+  R.ok C.newobject [tI] ∧ blockSize 32 true ≤ b ∧
+  MultOK C lo lo hi s.mem ∧ Outside C.mulTab 40 R.rt ∧
+  (∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt) ∧
+  s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi)] ∧ Outside C.ioEOF 16 R.rt ∧
+  s.mem.accessible C.errBig 16 false = true ∧ Outside C.errBig 16 [(lo, hi)] ∧ Outside C.errBig 16 R.rt ∧
+  InitDone C R2 s.mem ∧
+  s.mem.accessible C.maxStr 78 false = true ∧ Outside C.maxStr 78 [(lo, hi)] ∧ Outside C.maxStr 78 R.rt ∧
+  (∀ k, k < 78 → s.mem.readLE (C.maxStr + k) 1 = maxDigit k) ∧
+  Buffer s pS nS.toNat false ∧ (pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
+  (Outside pS.toNat nS.toNat R.rt ∨ InRanges pS.toNat nS.toNat L) ∧
+  ChunkAll C R R2 L (b - blockSize 32 true) pS.toNat nS.toNat lo hi s.mem
+
+theorem PreC.of0 {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi tI : Nat} {pS nS : BitVec 64} {s : State}
+    (hr : RetOK s) (h : PreC0 C R R2 T b L lo hi tI pS nS s) : PreC C R R2 T b L lo hi tI pS nS s := ⟨hr, h⟩
+
+theorem PreC0.retOK {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi tI : Nat} {pS nS : BitVec 64} {s : State}
+    (h : PreC0 C R R2 T b L lo hi tI pS nS s) (hx : s.xmm 15 = 0) (hdf : s.df = false)
+    (hret : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) : RetOK s := by
+  obtain ⟨-, -, -, env, lo4, hi4, -⟩ := h
+  obtain ⟨e1, e2, e3, e4, e5, -⟩ := env
+  exact ⟨Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inl rfl) (by omega) (by omega), hret, hx, hdf⟩
+
 theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : lo + 4848 ≤ sp) (hhi : sp + 24 ≤ hi)
     (h : Outside a n (rt ++ [(lo, hi)])) :
     Outside a n [(lo, hi)] ∧ Outside a n (rt ++ [(sp - 48 - 4096, sp - 48), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
