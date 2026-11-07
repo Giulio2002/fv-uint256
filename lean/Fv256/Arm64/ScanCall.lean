@@ -175,4 +175,11 @@ theorem strpost_congr {R : RtInv} {R2 : IfaceModel} {L : List (Nat × Nat)} {lo 
   simp only [hm, h0, h1]
   exact h
 
+
+theorem acc_le48 {m : Janus.Arm64.Memory} {a n : Nat} {w : Bool} (h : m.accessible a n w = true) : a + n ≤ 2 ^ 48 := by
+  unfold Janus.Arm64.Memory.accessible at h
+  simp only [Bool.and_eq_true, List.any_eq_true, decide_eq_true_eq] at h
+  obtain ⟨⟨r, -, h1⟩, -⟩ := h
+  omega
+
 end Fv256.Arm64.ScanCall
