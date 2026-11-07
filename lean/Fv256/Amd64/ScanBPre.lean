@@ -282,4 +282,10 @@ theorem post_str {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat
       obtain ⟨h1, h2, h3⟩ := h
       exact ⟨h1, by omega, h3⟩)
 
+theorem acc_le48 {m : Janus.Arm64.Memory} {a n : Nat} {w : Bool} (h : m.accessible a n w = true) : a + n ≤ 2 ^ 48 := by
+  unfold Janus.Arm64.Memory.accessible at h
+  simp only [Bool.and_eq_true, List.any_eq_true, decide_eq_true_eq] at h
+  obtain ⟨⟨r, hr, h1⟩, -⟩ := h
+  omega
+
 end Fv256.Amd64.ScanBPre

@@ -75,7 +75,7 @@ def ScanPre (tyS tyB avx sb st errTy : Nat) (R : RtInv) (R2 : IfaceModel) (T b :
       PagesB R st lo hi s.mem) ∨
    (tw ≠ 0 ∧ tw.toNat ≠ tyS ∧ tw.toNat ≠ tyB ∧ s.mem.accessible (tw.toNat + 16) 4 false = true ∧ Outside (tw.toNat + 16) 4 [(lo, hi)] ∧ (∀ r ∈ R.rt, s.mem.accessible r.1 (r.2 - r.1) true = true) ∧
       Mod C R R2 T L ∧ Env C R R2 T b L lo hi s ∧ R.ok C.newobject [errTy] ∧ blockSize 16 false ≤ b ∧
-      Outside dst.toNat 32 R.rt))
+      Outside dst.toNat 32 R.rt ∧ (dst.toNat + 32 ≤ lo ∨ hi ≤ dst.toNat)))
 
 /-- byte `k` of the message `unsupported type` -/
 def unsupB (k : Nat) : Nat := ("unsupported type".toList.getD k 'a').toNat
