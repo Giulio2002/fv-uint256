@@ -74,3 +74,24 @@ IbsPreA also needs `s.mem.accessible (s.regs 4).toNat 32 false = true` (caller f
 arm64 hibs: pending from FV-X.
 arm64 hibs taken from FV-X (fv/wx cc91d5d): lean/Fv256/{IbsA64,IbsSynd,IbsAlign,IbsVec64,IbsA64Wit,IbsMath}.lean. `Fv256.IndexByte.ibs_lib_64 : IbsLib64 Fv256.IbsProg64.program 0x11f10`
 (segment "internal/bytealg.IndexByteString", base 0x11f10, 224 B); IbsPre64 unchanged (X0,X1,X2, admissible X30, PageReadable). Not rebuilt here.
+
+# HANDOVER (FV-N, 2026-11-07, context large) -- read this first
+Worktree /srv/fv-uint256-wsc, branch fv/wsc, HEAD = commit adding this section (previous 9709227). Never push; identity Giulio2002, trailer Co-Authored-By: Claude Sonnet 5.5.
+## Available (all committed here, lake-built or taken from owners)
+SpecScan.sciParse; MulOverflow library summaries (Amd64/Arm64 MoLib.mo_summary, built); hibs both ISAs (taken from fv/wx 3ce79d4 / cc91d5d, NOT rebuilt here: run `lake build Fv256.IbsA Fv256.IbsA64` first);
+SFD spec copies (Amd64/{SfdTopSpec,SfdEnvC,FromDecimalSpec}); Exp via ExpMain.exp_summary + lib_summary; extractions build/ex-{amd64,arm64}-Scan; env: `cd lean && lake update janus` done (rev 77fb30cc).
+## NOT started (needs the u14 pin first)
+Main decided: consumer on u14 head 72b96825 (live slicebytetostring contract `RtLiveContract64 .. (slicebytetostringSpec ..) slicebytetostringLive` over the SAME allocator R as SFD).
+So: (1) `git -C /srv/janus worktree add /srv/janus-wsc-pin 72b96825`, build bin/janus, set lakefile rev to it, `lake update janus` (COLD Janus rebuild ~ an hour; shared jcache /srv/janus-ops/jcache-shared);
+(2) copy FV-J2's pattern from fv/wj: Amd64/UnmarshalDec.lean (`SbPost`, `dec_call_pre`, PreU), SbtsFacts.lean (`loc`), UnmarshalText.lean (the []byte->string->SFD call shape: slicebytetostring with a stack temp buf, then SFD with budget b - roundupsize n, L ++ [fresh string]).
+## Statement shape (amd64; FV-X mirrors it for arm64)
+`theorem correctness (impl) (R : RtInv) (R2 : IfaceModel) (T b) (L) (lo hi) (dst tw dw : BitVec 64) (hif hnew hmg hmv hwb1 hwb2 : live contracts as FromDecimal) (hsbts : RtLiveContract64 .. slicebytetostringLive)
+ (hsfd : ∀ b' L' lo' hi' z pS' nS', SfdSummary cfg (link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') (hibs : IbsLibA (link impl) ibsEntry (Extracted.dataAddr.«internal/cpu.X86»+68) ...)
+ : Ensures (link impl) Extracted.entry [dst, tw, dw] (ScanPre ..) (ScanPost ..)`
+ScanPre (plain conjunction def): the core of TopPre for z := dst (RetOK, Mod, Env, `lo + 4800 + 0x80 ≤ rsp` (scanSci frame) + Scan frame, MultOK dst, ioEOF/errBig/maxStr facts, Buffer dst 32 true, dst apart from window/R.rt..)
+ ∧ caller frame [RSP,RSP+32) readable (IbsPreA) ∧ typeswitch cases: tw = 0 ∨ (tw = type:string ∧ header(dw) readable ∧ StringPre pS nS = TopPre's pS/nS conjuncts with pS,nS read from the header)
+ ∨ (tw = type:[]uint8 ∧ slice header readable ∧ same string facts ∧ slicebytetostring preconditions incl. budget) ∨ (tw ∉ {0,string,[]uint8} ∧ [tw+16] readable). Use `viewS s pS nS := {s with regs := setRegF (setRegF s.regs 3 pS) 1 nS}` to reuse TopPre verbatim.
+ScanPost: by cases: nil -> val256 dst = 0, error words 0,0; string/[]byte -> `sciParse (bytesAt s.mem pS) nS` as in FromDecimal's post (ok v: val256 dst = v, regs 0=0,regs 3=0; eof/range: io.EOF / ErrBig256Range words; syntax lo len: itab numErrItab + TeObj with chunk (pS+lo, len));
+ other -> regs 0 = itab `go:itab.*errors.errorString,error`, regs 3 = fresh 16-byte block in R.rt holding (ptr to "unsupported type", 16), val256 dst unchanged; MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo,hi),(dst,dst+32)]).
+Then: sorry-proof `janus verify` for the audit verdict (build a satisfiability lemma `∃ s, ScanPre ..` early: SFD's Mod/Env were unsatisfiable once, FV-B9), then the seven segments (see "Proof plan").
+Level A order: (2) idx=-1 tail (single SFD tail call) first, then len==0, then the e-branch (two SFD calls; toppre_of_call pattern with z=&exp local), exp>77, Exp call (lib_summary of ExpMain.exp_summary; needs 0xa8 below SP writable + StackGuardOK s 0x20), MulOverflow (mo_summary, window 152+16 below SP).
