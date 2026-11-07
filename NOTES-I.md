@@ -104,3 +104,17 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
 - correctness is over `Extracted.program.link impl` (ImplApart Extracted.program impl is unsatisfiable: extraction segments contain stub addresses), with `hcmp` (CmpstringContract64).
 - Witness: SfdWitA (stub runtime: newobject/mallocgc/memmove/wb1/wb2 via janus64_live_*, after `rw [linked_eq]`), SfdWitB (ifaceeq model + cmpstring byte loop, literal 4204160), SfdWitC (concrete "7" state, Mod/Env/MultOK/ChunkAll/pre0, hret, setup), `Witness.nonvacuous` in SetFromDecimal.lean. All compile (lake build, Janus 655a23fa, rc=0), no sorry.
 - Real verify: `build/vfy2.sh V2 Fv256/Amd64/SetFromDecimal.lean <correctness> <Witness.nonvacuous>` on pin 77fb30cc, log build/logs/V2.log.
+
+## HSfd-amd64: client-facing statement of the SetFromDecimal library lemma (PLANNED, proof pending; FV-I5 2026-11-07)
+Module `Fv256.Amd64.SfdLib` (Extracted-free; library program `Fv256.Amd64.SfdProg.program`, entry `SfdProg.sfd`), clients import it plus `Fv256.Amd64.SfdTopSpec`.
+```
+theorem Fv256.Amd64.SfdLib.hsfd_of_link
+    (E : Janus.Amd64.Program) (impl : List Janus.Amd64.Segment) (cfg : SfdCfg)
+    (hlink : <E contains the library's segments/stubs, same exit>)   -- discharged by `decide` on the client's Extracted.program (bit-reproducible harness)
+    (R : RtInv) (R2 : IfaceModel) (T : Nat)
+    (hif : Ifaceeq (E.link impl) (E.contractAddr "runtime.ifaceeq") R2)
+    (hnew/hmg/hmv/hwb1/hwb2/hcmp : the six contracts over (E.link impl), exactly as in `SetFromDecimal.correctness`) :
+    ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
+      SfdSummary cfg (E.link impl) SfdProg.sfd R R2 T b' L' lo' hi' z pS' nS'
+```
+i.e. exactly the `hsfd` hypothesis shape J2's UnmarshalText already uses (`SfdSummary cfg (link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS'`, `sfdEntry = SfdProg.sfd = 0x4b4620`), with `cfg = extCfg` (SfdTopCfg). Pre = `TopPre cfg ...` (contains `RetOK`, that is internal to Summary; the top-level Ensures uses `TopPre0`). Post = `TopPost cfg ...`. No other change to specs.
