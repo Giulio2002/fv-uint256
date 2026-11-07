@@ -256,6 +256,40 @@ theorem fetchIn_ok : ∀ {segs : List Janus.Amd64.Segment} {pc : Nat} {w : List 
       exact h1 (pc - seg.base) (by omega)
     · exact fetchIn_ok (by simpa [codeOk] using hc.2) h
 
+/-- `fsBase` is never written by `exec` (any instruction, including `popfq` / `setDF`; `FFI` stubs are not `Steps`). -/
+theorem exec_fs (i : Instr) (len : Nat) (s s' : State) (h : exec i len s = .ok s') : s'.fsBase = s.fsBase := by
+  by_cases hn : NoDf i = true
+  · exact (exec_fr i len s s' hn h).1
+  · cases i with
+    | popfq =>
+      simp only [exec] at h
+      split at h
+      · cases h
+      · split at h
+        · cases h
+        · cases h; rfl
+    | setDF b => simp only [exec] at h; cases h; rfl
+    | locked j a size =>
+      simp only [exec] at h
+      split at h
+      · cases h
+      · exact exec_fs j len s s' h
+    | _ => simp [NoDf] at hn
+termination_by i
+decreasing_by all_goals (simp_wf; subst_vars; simp; try omega)
+
+theorem Steps_fs {p : Janus.Amd64.Program} {s s' : State} {k : Nat} (h : Janus.Amd64.Program.Steps p s k s') :
+    s'.fsBase = s.fsBase := by
+  induction h with
+  | refl => rfl
+  | @step s s₁ s₂ k w hx hs hf hst _ ih =>
+    refine ih.trans ?_
+    unfold Amd64.step at hst
+    split at hst
+    · rename_i i len hd
+      exact exec_fs i len s s₁ hst
+    · cases hst
+
 theorem Steps_fr {p : Janus.Amd64.Program} (hc : codeOk p.segments = true) {s s' : State} {k : Nat}
     (h : Janus.Amd64.Program.Steps p s k s') : Fr s s' := by
   induction h with
@@ -272,20 +306,6 @@ theorem Steps_fr {p : Janus.Amd64.Program} (hc : codeOk p.segments = true) {s s'
       intro hn
       exact exec_fr i len s s₁ hn hst
     · simp_all
-
-/-- `Exp`: the library program has no `popfq`/`setDF` -/
-theorem exp_codeOk : codeOk Fv256.ExpProg.program.segments = true := by sorry
-
-/-- `MulOverflow` -/
-theorem mo_codeOk : codeOk Fv256.MulOverflowProg.program.segments = true := by sorry
-
-/-- **`fsdf_lib_steps`** (U-FRAME-FSDF): ordinary steps of the `Exp` / `MulOverflow` library programs keep `fsBase` and `df`. -/
-theorem fsdf_lib_steps {p : Janus.Amd64.Program}
-    (hp : p = Fv256.ExpProg.program ∨ p = Fv256.MulOverflowProg.program) {s s' : State} {k : Nat}
-    (h : Janus.Amd64.Program.Steps p s k s') : s'.fsBase = s.fsBase ∧ s'.df = s.df := by
-  rcases hp with rfl | rfl
-  · exact Steps_fr exp_codeOk h
-  · exact Steps_fr mo_codeOk h
 
 /-! ## Negative sanity checks: the check rejects `std`, `cld`, `popfq` (also under `lock`-free single-byte forms) -/
 
