@@ -58,4 +58,20 @@ theorem top_range (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
         rw [hm2]; exact MemFrame.refl _ _
       · rw [hm2]; exact tmf.mono (by intro a n h; simp only [outside_cons, outside_nil, and_true] at h ⊢; omega))
 
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 20000 in
+/-- more than 78 digits: jump to the error exit -/
+theorem top_c2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x57)) (hM : TopMid R R2 T b L lo hi z pS nS s S)
+    (hgt : 78 < nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) :
+    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0xb8)) S (TopSt R R2 T b L lo hi z pS s) := by
+  obtain ⟨hSt, h0, ⟨k, hk1, hk2, h3⟩, h1⟩ := hM
+  obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hnS := nS.isLt
+  have hsp := Fv256.TopMath.startPos_spec' (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hmI := ofNat_toInt (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
+  janus64_run [hpc, h1, hmI] until [sfd + 0xb8]
+  all_goals exact topSt_congr hSt rfl rfl rfl rfl rfl rfl rfl
+
 end Fv256.Amd64.SfdTop
