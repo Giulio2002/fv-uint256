@@ -1,0 +1,8 @@
+Kept workspace: /srv/janus-ops/jcache-shared/v1/consumer/ebc1e099d077a51003799cba/4990d1e65f32e7397ff3fe47
+  Use: cd /srv/janus-ops/jcache-shared/v1/consumer/ebc1e099d077a51003799cba/4990d1e65f32e7397ff3fe47/root && lake env lean YourScratch.lean   (Extracted is /srv/janus-ops/jcache-shared/v1/consumer/ebc1e099d077a51003799cba/4990d1e65f32e7397ff3fe47/janus/.lake/build/lib/lean/Extracted.olean)
+  Untruncated goals: add -Dpp.deepTerms=true -Dpp.proofs=true -Dpp.maxSteps=1000000000 to lean
+  (diagnostics only: janus never reads it back, and `janus cache gc` may remove an unused one)
+Invalid: Fv256.Amd64.Scan.correctness depends on disallowed axioms: sorryAx.
+  Stage: axiom audit
+  Next: The proof (or a lemma it uses) contains sorry or an elaboration error; complete it.
+ENDMARK rc=1
