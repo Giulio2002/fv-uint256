@@ -103,3 +103,15 @@ REMAINING (not started):
 2. hpw: from FV-I4's `SfdPw.pw_sum impl R R2 T b L lo hi p len hif hnew hmg hmv hwb1 hwb2` (still `sorry` in my tree; coordinate with a6fa3045cf5aa5e10 / branch fv/wi4; rebase SfdPw when sorry-free). `fun _ _ _ _ => pw_sum ...`.
 3. Witness (`SetFromDecimal.Witness.nonvacuous`): a concrete model for R (toyR, see Arm64/IntoBig.lean Witness: newobjectSeg/wbSeg/LiveSat), R2 (IfaceModel witness for ifaceeq; see Janus Contracts IfaceSat), CmpstringSat for hcmp, and a concrete State satisfying TopPre cfg (memory from Extracted.data: errItab/T descriptors for StaticOK, multipliers table + 10^(19k) objects for MultOK, ioEOF/errBig/maxStr rodata, ChunkAll contracts for every chunk, z, string). Biggest remaining piece; FV-I4's pw witness needs the same Mod/Env/StaticOK parts -> share.
 4. ONE janus verify: HEAVY_PRIORITY=0, /srv/janus-fvA-pin77f/bin/janus, --theorem …correctness --theorem …Witness.nonvacuous, no --keep-workspace.
+
+# HANDOVER 3 (FV-B9): Extracted level + Witness DONE; remaining = pw_sum (FV-I4) + the single verify
+State: fv/wb7 @ 3d7bea5+ (merged fv/master pin 77fb30cc, merged fv/wi4 57bbfc8; lakefile -> /srv/janus-fvA-pin77f).
+DONE: Arm64/SfdLink.lean (generic CodeIn lemmas), SfdCfgE.lean (cfgE from Extracted.dataAddr/contractAddr), SetFromDecimal.lean
+ (`correctness` over Extracted.program.link impl, runtime contracts over Extracted.program.ofImpl impl + ImplApart, sfd_sum transferred; `Witness.nonvacuous`),
+ SfdWitA/B/C.lean (stub runtime implA at contract addresses, R0 ifaceeq, cmpstring loop, concrete state, pre0, nonvacuous_core), SfdWitReg.lean (mod_contra_old regression).
+ Spec fixes: Mod was UNSATISFIABLE (T descriptor inside R2.priv vs Outside priv) -> hT law, T range excluded; TopPre/FdPre pS window conjuncts guarded by nS=0.
+ SfdProg regenerated (stubs = extraction's; the old stub set made ImplApart false via osyield); tools/gen_sfdprog.sh and scripts/contract-flags.sh carry the flag set
+ (cmpstring ifaceeq mallocgc memmove newobject wb1 wb2 wb3 growslice slicebytetostring concatstring2).
+Fast iteration (no lake for Extracted modules): scratch-b9/{chk.sh,mk.sh,linkall.sh} + scratch-b9/lib (Extracted.olean compiled by hand; relink after lake rebuilds). Untracked scratch.
+Only sorryAx in `correctness` = FV-I4's pw_sum (Arm64/SfdPw.lean). When sorry-free: merge fv/wi4, replace nothing else (hpw is already `pw_sum` applied to the converted contracts in SetFromDecimal.lean).
+FINAL: build/verify1.sh (HEAVY_PRIORITY=0 heavy-run, pin77f janus, shared jcache, both theorems, no --keep-workspace); a trial run was queued at the time of writing (build/verify1.log).
