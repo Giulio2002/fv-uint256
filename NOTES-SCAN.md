@@ -196,3 +196,10 @@ STATE: segments 1-4 done (ScanA0 sci_len0, ScanA1 sci_ibs, ScanA2 sci_none, Scan
 2. Level B glue lemma over the Scan entry (cases nil/str/bytes/other) and `Scan.correctness` (Ensures from ReachesRet via CallSetup + RetOK), compose with ScanA8.sci_summary (SciSumm from it).
 3. Discharge in the final theorem: hibs (ibs_lib_A + CodeIn), hexp/hmo (CodeIn.lib_summary_link of ExpMain/MoLib; fsBase/df still extra conjuncts in ExpSumm/MoSumm until U-FRAME-FSDF lands; structure it as a single small lemma), hsfd (SfdLib.hsfd_of_link: NOT delivered by FV-I5 yet; ask FV-I5).
 4. Satisfiability lemma + witnesses (10+ digit decimal with 'e', nil, []byte, unsupported type; real extracted data, janus64_live_memmove_upto); re-run the audit (sorry-body verify) on ex3 because ScanPre changed; one janus verify (no --keep-workspace); scripts/no-sorry.sh; COVERAGE row.
+
+# HANDOVER 6 (FV-SC5, 2026-11-07) -- read after HANDOVER 5
+## Done (fv/wsc, committed)
+* bytes_call2/bytes_call PROVED at default heartbeats (ScanB2 whole file ~10 s). Method: bytes_call2 is stated over an ABSTRACT entry state S0 (no 5-store chain); callee pre = explicit RtLivePre64 built by Extracted-free `sb_pre` (ScanB2c), post turned into SbPost by `sb_post`; ReachesRet.call_regions by hand; engine only runs before/after.
+* Level B glue: ScanB4 (scan_bytes, scan_top), ScanB5 (retOK_of_pre, correctness_cond: Ensures, conditional on hibs hsfd hexp hmo), SummaryEnsures (copy of wJ's). SciSumm now takes R R2 T.
+* ScanDisch.lean: disch_ibs (ibs_lib_A via CodeIn), disch_exp, disch_mo (exp/mo summaries strengthened with fsBase/df via `strengthen`) are REAL. PENDING (sorry): `fsdf_lib_steps` (U-FRAME-FSDF; FV-FR proves it, do not change its statement without telling FV-FR) and `disch_sfd` (FV-I5 SfdLib.hsfd_of_link). Scan.correctness (Scan.lean) = correctness_cond + these.
+* Witness files (work/stage -> lean/Fv256/Amd64/): ScanWitA (stubs), ScanWitB (ifaceeq R3 TW, cmpstring), WitModel (R3), ScanWitC (memory with real data, all five ScanPre states, contracts_ok). Witness theorem statements in Scan.lean (Witness, NoE.Witness, Nil.Witness, Byt.Witness, Other.Witness).
