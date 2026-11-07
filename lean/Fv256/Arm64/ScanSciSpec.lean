@@ -7,7 +7,6 @@ import Fv256.DecCongr
 import Fv256.IndexByteSpec
 import Fv256.Arm64.SfdTopSpec
 import Fv256.Arm64.SfdEnvC
-import Fv256.Arm64.FromDecimalSpec
 
 /-!
 # `scanScientificFromString` (arm64): precondition, postcondition and the `SetFromDecimal` call-site transfer (Extracted-free)
@@ -29,7 +28,7 @@ variable (C : SfdCfg)
 /-- precondition of `scanScientificFromString(dst, s)`: `dst` in `X0`, `s.ptr` in `X1`, `s.len` in `X2` -/
 def SciPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst pS nS : BitVec 64)
     (s : State) : Prop :=
-  TopPre C R R2 T b L lo hi dst pS nS s ∧ lo + 4632 ≤ s.sp.toNat ∧
+  TopPre C R R2 T b L lo hi dst pS nS s ∧ lo + 4640 ≤ s.sp.toNat ∧
     Fv256.IndexByte.PageReadable s.mem pS.toNat nS.toNat
 
 /-- the documented result of `scanScientificFromString` (the value of `dst` on an error return is unspecified) -/
@@ -50,6 +49,18 @@ def SciPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (l
       ∃ (q : Nat) (t : BitVec 64), s'.regs 0 = BitVec.ofNat 64 C.numErrItab ∧ s'.regs 1 = t ∧
         TeObj C R b L (BitVec.ofNat 64 C.fnStr) 9#64 (BitVec.ofNat 64 (pS.toNat + lo')) (BitVec.ofNat 64 len') s s' q t.toNat ∧
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (dst.toNat, dst.toNat + 32)])))
+
+/-- (copy of `FromDecimalSpec.chunkOK_mono`, which is tied to the old window bound) -/
+theorem chunkOK_mono {R : RtInv} {R2 : IfaceModel} {L L' : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64} {lo hi hi3 : Nat}
+    {m m' : Janus.Arm64.Memory} (h : ChunkOK C R R2 L b sp sl lo hi m) (hL : ∀ r ∈ L, r ∈ L') (hh : hi3 ≤ hi)
+    (hacc : m'.accessible sp.toNat sl.toNat false = true) : ChunkOK C R R2 L' b sp sl lo hi3 m' := by
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩ := h
+  exact ⟨h1, h2, h3, hacc, h5, by omega, h7.elim Or.inl (fun hi => Or.inr (hi.of_subset hL)), h8⟩
+
+/-- package-initialisation facts about the sentinel errors (as `FromDecimalSpec.InitDone`) -/
+def InitDone (R2 : IfaceModel) (m : Janus.Arm64.Memory) : Prop :=
+  m.readLE C.ioEOF 8 ≠ 0 ∧ m.readLE (C.ioEOF + 8) 8 ≠ 0 ∧ m.readLE C.errBig 8 ≠ 0 ∧ m.readLE (C.errBig + 8) 8 ≠ 0 ∧
+  (∀ r ∈ R2.priv, r.1 ≤ r.2)
 
 theorem outside_win {a n lo hi hi' z z' : Nat} (h : Outside a n [(lo, hi), (z, z + 32)]) (hhi : hi' ≤ hi)
     (hz : z' = z ∨ (lo ≤ z' ∧ z' + 32 ≤ hi)) : Outside a n [(lo, hi'), (z', z' + 32)] := by
@@ -74,7 +85,7 @@ theorem toppre_sub {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × N
     (hr0 : S.regs 0 = z') (hr1 : S.regs 1 = pS') (hr2 : S.regs 2 = nS')
     (h30a : (S.regs 30).toNat % 4 = 0) (h30b : (S.regs 30).toNat < 2 ^ 48)
     (hr28 : S.regs 28 = s0.regs 28)
-    (hlo : lo + 4520 ≤ S.sp.toNat) (hhi : S.sp.toNat + 32 ≤ hi')
+    (hlo : lo + 4528 ≤ S.sp.toNat) (hhi : S.sp.toNat + 32 ≤ hi')
     (hz'R : Outside z'.toNat 32 R.rt ∨ InRanges z'.toNat 32 L) (hz'P : Outside z'.toNat 32 R2.priv)
     (hz'S : ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z'.toNat, z'.toNat + 32)])
     (hz'g : (s0.regs 28).toNat + 16 + 8 ≤ z'.toNat ∨ z'.toNat + 32 ≤ (s0.regs 28).toNat + 16)
@@ -142,7 +153,7 @@ theorem toppre_sub {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × N
     have h5 : pS.toNat ≤ sp ∧ sp + sl ≤ pS.toNat + nS.toNat := by
       rcases hsub with h | h <;> omega
     have := hCh sp sl h5.1 h5.2 h3 h4
-    refine Fv256.Arm64.FromDecimalSpec.chunkOK_mono C this (fun r hr => hr) hhi' ?_
+    refine chunkOK_mono C this (fun r hr => hr) hhi' ?_
     rw [hF.accessible]; exact this.2.2.2.1
 
 /-! ## `sciParse` lemmas -/

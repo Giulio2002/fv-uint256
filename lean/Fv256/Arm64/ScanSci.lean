@@ -8,7 +8,6 @@ import Fv256.IndexByteSpec
 import Fv256.IbsA64
 import Fv256.Arm64.SfdTopSpec
 import Fv256.Arm64.SfdEnvC
-import Fv256.Arm64.FromDecimalSpec
 import Fv256.Arm64.ScanSciSpec
 
 /-!
@@ -155,6 +154,13 @@ macro "clr" : tactic => `(tactic| (
 
 theorem mod64 (v : BitVec 64) : v.toNat % 256 ^ 8 = v.toNat := Nat.mod_eq_of_lt (by have := v.isLt; simpa using this)
 
+theorem pr_frame {m m' : Janus.Arm64.Memory} {ws : List (Nat × Nat)} {p n : Nat} (hF : MemFrame m m' ws)
+    (h : Fv256.IndexByte.PageReadable m p n) : Fv256.IndexByte.PageReadable m' p n := by
+  unfold Fv256.IndexByte.PageReadable at *
+  rcases h with h | h
+  · exact Or.inl h
+  · exact Or.inr ⟨h.1, by rw [hF.accessible]; exact h.2⟩
+
 abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 abbrev ibsEntry : Nat := segAddr Extracted.program "internal/bytealg.IndexByteString"
 abbrev sciEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).scanScientificFromString"
@@ -162,7 +168,7 @@ abbrev sciEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(
 /-- the summary's precondition -/
 def Pre0 (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst pS nS : BitVec 64)
     (s : State) : Prop :=
-  SciPre cfg R R2 T b L lo hi dst pS nS s ∧ Fv256.Arm64.FromDecimalSpec.InitDone cfg R2 s.mem ∧
+  SciPre cfg R R2 T b L lo hi dst pS nS s ∧ InitDone cfg R2 s.mem ∧
     Extracted.program.DataLoaded s.mem
 
 /-- what every state `S` of the body after the prologue satisfies, relative to the entry state `s0` -/
@@ -234,7 +240,7 @@ theorem seg_entry (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b
     clr
     refine ReachesRet.call (Summary.regions (hibs pS nS 101)) (by first | rfl | decide) ?_ ?_
     · refine ⟨by simp [setReg_apply], by simp [setReg_apply], by simp [setReg_apply], by simp [setReg_apply], by simp [setReg_apply], ?_⟩
-      sorry
+      exact pr_frame (ws := [(lo, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32), (dst.toNat, dst.toNat + 32)]) (by janus_frame) hpage
     · intro S2 hpc2 ⟨⟨hx0, hmem, hsp, h18, h28, h29, h30⟩, hreg⟩
       dsimp only at hpc2 hx0 hmem hsp h18 h28 h29 h30 hreg
       have hfr : Fr lo dst pS nS s S2 := by
