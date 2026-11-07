@@ -27,3 +27,5 @@ cd /srv/fv-uint256-csb-aud; HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- tim
 crow2.sh syncs lean/Fv256 from /srv/fv-uint256-csb, extracts with build/harness-amd64, and runs janus verify with --janus-root /srv/janus-csb. Use crow.sh->crow2.sh (fwstore). A baseline IntoBig audit (no conjunct) launched 00:00 on the old crow.sh was still running (cold framework); its log build/log-amd64-IntoBig shows the auditor's exact expected conjunct texts: compare with ours.
 Extracted-free lean check: LEAN_PATH=/srv/janus-csb/.lake/build/lib/lean:/srv/fv-uint256-csb-aud/scratch/olean lean FILE -o scratch/olean/<mod>.olean.
 Delete /srv/janus-ops/jcache-csb at the end. Never push.
+
+## Baseline IntoBig audit result (crow.sh, cold, 00:00-00:23): rc=1 after 1384 s, but build/log-amd64-IntoBig holds ONLY the extraction output (no verify/auditor text was captured). Cause unknown (verify stderr lost, or heavy-run/memcap exit). The successor must rerun with crow2.sh and capture output (e.g. add `2>&1 | tee`) and check `dmesg`/memcap for an OOM kill. The cold framework build (~20 min) is now in jcache-csb; fwstore not populated by this run.
