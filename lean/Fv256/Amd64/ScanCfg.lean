@@ -29,6 +29,7 @@ def cfg : SfdCfg :=
     Extracted.program.contractAddr "runtime.gcWriteBarrier2")
 
 abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
+abbrev sci : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).scanScientificFromString"
 abbrev ibsEntry : Nat := segAddr Extracted.program "internal/bytealg.IndexByteString.abi0"
 abbrev avxAddr : Nat := Extracted.dataAddr.«internal/cpu.X86» + 68
 abbrev sbAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"

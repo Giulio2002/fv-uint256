@@ -10,8 +10,6 @@ open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec Fv256.ScanSpec Fv256.Amd64.Scan
 
 namespace Fv256.Amd64.ScanA
 
-abbrev sci : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).scanScientificFromString"
-
 set_option maxRecDepth 100000 in
 /-- scanSci with an empty string: `Clear` and return nil -/
 theorem sci_len0 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
