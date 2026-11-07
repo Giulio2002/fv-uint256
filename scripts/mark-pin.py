@@ -5,7 +5,7 @@ import re, sys
 pin = sys.argv[1]
 res = {}
 for ln in sys.stdin:
-    m = re.match(r'^(arm64|amd64)\s+(\S+)\s+(PASS|FAIL)\s*$', ln)
+    m = re.match(r'^(arm64|amd64)\s+(\S+)\s+(PASS|FAIL\S*|MISSING.*)\s*$', ln)
     if m: res[(m.group(2), m.group(1))] = m.group(3)
 L = open('COVERAGE.md').read().split('\n')
 for i, l in enumerate(L):

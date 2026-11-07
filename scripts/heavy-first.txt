@@ -1,0 +1,13 @@
+# slowest rows first (scheduled before the rest in verify-all.sh)
+AddMod
+MulMod
+MarshalText
+Sqrt
+IMod
+IDiv
+ISMod
+Dec
+String
+Reciprocal
+Bytes
+MarshalJSON
