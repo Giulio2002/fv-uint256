@@ -3,6 +3,7 @@ import Fv256.FormatFastDefs
 import Fv256.FormatFastFacts
 import Fv256.Amd64.DecExt
 import Fv256.GrabTac
+import Fv256.GrabEq
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janus.Contracts.ICall Janus.Contracts.IfaceAmd64
 open Fv256.FormatFast Fv256.E Fv256.Amd64.Dec
@@ -63,11 +64,11 @@ theorem dec_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRea
   janus_grab 4568 as hfrD
   grab_last_const Fv256.E.DecAt as hDA
   grab_last_const Janus.Spec.strBytes as hSO
-  have hrip : s'.rip = _ := by assumption
-  have h4 : s'.regs 4 = _ := by assumption
-  have h5 : s'.regs 5 = _ := by assumption
-  have h14 : s'.regs 14 = _ := by assumption
-  have hx : s'.xmm 15 = _ := by assumption
+  grab_eq s' rip as hrip
+  grab_eq s' regs 4 as h4
+  grab_eq s' regs 5 as h5
+  grab_eq s' regs 14 as h14
+  grab_eq s' xmm 15 as hx
   obtain ⟨hl1, hl2, hl3, hl4⟩ := hSO
   have h8 : 8 ≤ (S0.regs 4).toNat := by omega
   simp (disch := omega) only [valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hvS] at hl1 hl2 hl3 hl4
