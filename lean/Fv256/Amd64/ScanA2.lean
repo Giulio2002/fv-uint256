@@ -11,8 +11,6 @@ open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec Fv256.ScanSpec Fv256.Amd64.Scan
 namespace Fv256.Amd64.ScanA
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 4000000 in
-/-- `scanScientificFromString`, no `'e'` in the string: the tail call `SetFromDecimal(dst, s)` -/
 theorem sci_none (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst p n : BitVec 64) (s S : State) (hpc : S.rip = BitVec.ofNat 64 (sci + 0x53))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
@@ -22,14 +20,21 @@ theorem sci_none (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (hidx : Fv256.IndexByte.indexOfNat (Fv256.IndexByte.bytesOf s.mem p.toNat) n.toNat 101 = 2 ^ 64 - 1) :
     ReachesRet (Extracted.program.link impl) (retAddrOf s) S (SciPost cfg R R2 b L lo hi dst p n s) := by
   obtain ⟨hret0, hT, hlo, hav, hpg, htls, hout⟩ := hpre
-  have hT' := hT
-  obtain ⟨h0, h3, h1, hMod, hEnv, hlo4, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hT'
-  obtain ⟨k4, k5, kfs, kdf, kmf, kidx, kdst, kp, kn, kret, krbp⟩ := hK
-  have hslot : Janus.Amd64.load S.mem (S.fsBase + BitVec.ofNat 64 18446744073709551608).toNat 8 = .ok (s.regs 14).toNat := by
-    refine GoABI0.TlsG.load_reentry (s₀ := s) (s₁ := S) htls kfs ⟨?_, ?_⟩
-    · exact kmf.readLE _ _ hout
-    · exact kmf.accessible _ _ _
+  have hpw : p.toNat + n.toNat ≤ 2 ^ 48 := hT.pw
+  have hEnv : Env cfg R R2 T b L lo hi s := hT.env
+  have hlo4 : lo + 4800 ≤ (s.regs 4).toNat := hT.lo4
+  have hhi : (s.regs 4).toNat + 32 ≤ hi := hT.hi32
+  have hwin : s.mem.accessible lo (hi - lo) true = true := hEnv.2.2.2.2.1
+  have e1 : lo ≤ (s.regs 4).toNat := hEnv.1
+  have e2 : (s.regs 4).toNat + 8 ≤ hi := hEnv.2.1
+  have e4 : (s.regs 4).toNat % 8 = 0 := hEnv.2.2.2.1
   have hx15 : s.xmm 15 = 0 := hret0.2.2.1
+  have hT0 : Hid (TopPre0 cfg R R2 T b L lo hi dst p n s) := hT
+  have hEnv0 : Hid (Env cfg R R2 T b L lo hi s) := hEnv
+  have hret00 : Hid (RetOK s) := hret0
+  clear hT hEnv hret0
+  obtain ⟨k4, k5, kfs, kdf, kmf, kidx, kdst, kp, kn, kret, krbp⟩ := hK
+  have hsp := (s.regs 4).isLt
   rw [hidx] at kidx
   janus64_run [kidx, kdst, kp, kn] until [sci + 0x57]
   have hfsb : 8 ≤ S.fsBase.toNat ∧ S.fsBase.toNat ≤ 2 ^ 48 := by rw [kfs]; exact htls.base
@@ -39,12 +44,12 @@ theorem sci_none (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
   have hacc : S.mem.accessible (S.fsBase.toNat - 8) 8 false = true := by rw [kmf.accessible, kfs]; exact htls.readable
   have hval : S.mem.readLE (S.fsBase.toNat - 8) 8 = (s.regs 14).toNat := by rw [kfs, kmf.readLE _ _ hout]; exact htls.g
   janus64_run [hfsa, hfsb.1, hacc, hval, kidx, kdst, kp, kn] until [sfdEntry]
+  have hT : TopPre0 cfg R R2 T b L lo hi dst p n s := hT0
+  have hEnv : Env cfg R R2 T b L lo hi s := hEnv0
+  have hret0 : RetOK s := hret00
   have hsp := (s.regs 4).isLt
   have hF1 : MemFrame s.mem (S.mem.writeLE ((s.regs 4).toNat - 120) 8 4931000) [(lo, hi)] :=
     kmf.writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)
-  have e1 : lo ≤ (s.regs 4).toNat := hEnv.1
-  have e2 : (s.regs 4).toNat + 8 ≤ hi := hEnv.2.1
-  have e4 : (s.regs 4).toNat % 8 = 0 := hEnv.2.2.2.1
   have hF1 : MemFrame s.mem (S.mem.writeLE ((s.regs 4).toNat - 120) 8 4931000) [(lo, hi)] :=
     kmf.writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)
   have hF2 : MemFrame s.mem (S.mem.writeLE ((s.regs 4).toNat - 120) 8 4931000) [(lo, hi), (dst.toNat, dst.toNat + 32)] :=

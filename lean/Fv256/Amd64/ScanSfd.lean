@@ -23,6 +23,9 @@ open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec Fv256.ScanSpec
 
 namespace Fv256.Amd64.ScanSfd
 
+/-- an opaque wrapper: keeps a big hypothesis out of the stepper's hypothesis search -/
+def Hid (p : Prop) : Prop := p
+
 variable (C : SfdCfg)
 
 set_option maxRecDepth 100000
@@ -385,5 +388,30 @@ theorem top_acc {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)
   · exact cMF.accessible a k w
   · exact cMF.accessible a k w
   · exact cMF.accessible a k w
+
+/-! projections of `TopPre0` -/
+section proj
+variable {C : SfdCfg} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {z p n : BitVec 64} {s : State}
+
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.mod (h : TopPre0 C R R2 T b L lo hi z p n s) : Mod C R R2 T L := h.2.2.2.1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.env (h : TopPre0 C R R2 T b L lo hi z p n s) : Env C R R2 T b L lo hi s := h.2.2.2.2.1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.lo4 (h : TopPre0 C R R2 T b L lo hi z p n s) : lo + 4800 ≤ (s.regs 4).toNat := h.2.2.2.2.2.1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.hi32 (h : TopPre0 C R R2 T b L lo hi z p n s) : (s.regs 4).toNat + 32 ≤ hi := h.2.2.2.2.2.2.1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.pw (h : TopPre0 C R R2 T b L lo hi z p n s) : p.toNat + n.toNat ≤ 2 ^ 48 := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, ⟨h1, -⟩, -⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.pacc (h : TopPre0 C R R2 T b L lo hi z p n s) : n.toNat = 0 ∨ s.mem.accessible p.toNat n.toNat false = true := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, ⟨-, h1⟩, -⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.pwin (h : TopPre0 C R R2 T b L lo hi z p n s) : n.toNat = 0 ∨ p.toNat + n.toNat ≤ lo ∨ hi ≤ p.toNat := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, h1, -⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.pz (h : TopPre0 C R R2 T b L lo hi z p n s) : n.toNat = 0 ∨ p.toNat + n.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ p.toNat := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, h1, -⟩ := h
+  exact h1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.chunk (h : TopPre0 C R R2 T b L lo hi z p n s) : ChunkAll C R R2 L b p.toNat n.toNat lo hi s.mem := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, h1⟩ := h
+  exact h1
+end proj
 
 end Fv256.Amd64.ScanSfd
