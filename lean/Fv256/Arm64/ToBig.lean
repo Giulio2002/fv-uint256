@@ -1,3 +1,4 @@
+import Fv256.Arm64.CallSites.Base
 import Extracted
 import Fv256.Spec
 import Fv256.SpecC
@@ -24,6 +25,8 @@ callee summary (`Ensures.toSummaryIn`). The runtime contracts are hypotheses abo
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.EqHashModel
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.ToBig
 
@@ -403,6 +406,41 @@ theorem pre : GuardOK s0 4192 ∧ StackOK s0 4192 0 ∧ Extracted.program.DataLo
   · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
   · unfold Disjoint; decide
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/ToBig.lean
+/-- Call states of the runtime stubs (U-WITNESS-CALLSITE): `s0` with `PC` at the stub's entry and the argument registers of a request `ok` serves. -/
+def csNew0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 bigType else s0.regs i }
+def csNew : State := { csNew0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") }
+def csW1 : State := { s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") }
+def csW2 : State := { s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") }
+
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew := by
+  refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), typeOK_of (by decide) (by decide), by decide⟩, ⟨guardOK_of (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩,
+    ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · rw [addr_new]; exact Or.inl ⟨rfl, Or.inl (by decide)⟩
+  · intro r hr
+    rw [rt_eq]
+    simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide)
+
+set_option maxRecDepth 100000 in
+theorem csW1_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 csW1 := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩), inv0, liveSep_nil _, ?_⟩
+  intro r hr
+  rw [rt_eq]
+  simp only [List.mem_singleton] at hr
+  subst hr
+  simp only [outside_cons, outside_nil]; decide
+
+set_option maxRecDepth 100000 in
+theorem csW2_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 csW2 := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩), inv0, liveSep_nil _, ?_⟩
+  intro r hr
+  rw [rt_eq]
+  simp only [List.mem_singleton] at hr
+  subst hr
+  simp only [outside_cons, outside_nil]; decide
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget and a call of `ToBig` on a
 non-nil receiver satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64) (ret : Nat) (s : State),
@@ -426,10 +464,16 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec
         R.inv b [] (s.regs 28).toNat (view R.rt [] s.mem) ∧
         blockSize 32 false + blockSize 32 true ≤ b ∧
         (z.toNat ≠ 0 → Ptr s.mem z 32 false ∧ Outside z.toNat 32 R.rt ∧ Disjoint z.toNat 32 (s.sp.toNat - 4192) 4192)) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → s'.regs 0 = 0) ∧
         (z.toNat ≠ 0 → ∃ P : Nat, (s'.regs 0).toNat = P ∧ BigObj s'.mem P (val256 s.mem z.toNat)) ∧
         MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4192, s.sp.toNat)]) := by
   refine ⟨implAt, R, 0x400, zV, ret, s0, implOK, ?w1, ?w2, ?w3, hret, setup, pre,
+    ⟨csNew, rfl, csNew_pre⟩,
+    ⟨csW1, rfl, csW1_pre⟩,
+    ⟨csW2, rfl, csW2_pre⟩,
     correctness implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
   case w1 => exact by rw [addr_new]; exact model_new
   case w2 => exact by rw [addr_w1]; exact model_wb1
