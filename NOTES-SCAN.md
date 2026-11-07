@@ -72,3 +72,5 @@ Case proofs are mechanical sed-retargets of MoCases (not janus verify runs).
 `Fv256.IndexByte.ibs_lib_A : IbsLibA Fv256.IbsProgA.program 0x402bc0 0x5df444`; consumer passes avx := Extracted.dataAddr.«internal/cpu.X86» + 68 (= 0x5df444, rfl/decide).
 IbsPreA also needs `s.mem.accessible (s.regs 4).toNat 32 false = true` (caller frame [RSP,RSP+32) readable: args just stored there). Segments "internal/bytealg.IndexByteString.abi0", "indexbytebody"; transfer via codeIn64_of_sub / lib_summary.
 arm64 hibs: pending from FV-X.
+arm64 hibs taken from FV-X (fv/wx cc91d5d): lean/Fv256/{IbsA64,IbsSynd,IbsAlign,IbsVec64,IbsA64Wit,IbsMath}.lean. `Fv256.IndexByte.ibs_lib_64 : IbsLib64 Fv256.IbsProg64.program 0x11f10`
+(segment "internal/bytealg.IndexByteString", base 0x11f10, 224 B); IbsPre64 unchanged (X0,X1,X2, admissible X30, PageReadable). Not rebuilt here.
