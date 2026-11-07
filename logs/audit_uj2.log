@@ -1,0 +1,3 @@
+Invalid: Fv256.Amd64.UnmarshalJSON.correctness depends on disallowed axioms: sorryAx.
+  Stage: axiom audit
+  Next: The proof (or a lemma it uses) contains sorry or an elaboration error; complete it.

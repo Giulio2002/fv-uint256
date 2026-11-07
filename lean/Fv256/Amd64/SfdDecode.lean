@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.UtilI
@@ -15,7 +15,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.SfdDecode
 
-abbrev dr : Nat := segAddr Extracted.program "runtime.decoderune"
+abbrev dr : Nat := segAddr Fv256.Amd64.SfdProg.program "runtime.decoderune"
 
 def DecPre (p k len : BitVec 64) (s : State) : Prop :=
   (s.mem.accessible (s.regs 4).toNat 8 false = true ∧ s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧
@@ -33,7 +33,7 @@ def DecPost (s s' : State) : Prop :=
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 10000 in
 theorem decoderune_sum (impl : List Janus.Amd64.Segment) (p k len : BitVec 64) :
-    Summary (Extracted.program.link impl) dr (DecPre p k len) DecPost := by
+    Summary (Fv256.Amd64.SfdProg.program.link impl) dr (DecPre p k len) DecPost := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, ⟨hpw, hp⟩, hk, ⟨hlow, hnw, hacc⟩, hdisj⟩
   simp only [regSP] at hacc hlow hnw
   have hlen : len.toNat < 2 ^ 63 := by omega

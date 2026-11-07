@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -21,7 +21,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdToError
 
-abbrev te : Nat := segAddr Extracted.program "strconv.toError"
+abbrev te : Nat := segAddr Fv256.Amd64.SfdProg.program "strconv.toError"
 
 
 
@@ -47,11 +47,11 @@ def TePre (R : RtInv) (R2 : IfaceModel) (T : Nat) (b : Nat) (L : List (Nat × Na
   Outside numErrType 16 [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 72)] ∧
   (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧
   Outside numErrType 16 R.rt ∧ Outside wbFlag 4 R.rt ∧ Outside strconvErrSyntax 16 R.rt ∧
-  R.ok (Extracted.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
-  R.ok (Extracted.program.contractAddr "runtime.newobject") [numErrType] ∧
-  (∀ q, R.ok (Extracted.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
-  R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-  R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") [numErrType] ∧
+  (∀ q, R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
   s.mem.accessible sp.toNat sl.toNat false = true ∧ sp.toNat + sl.toNat ≤ 2 ^ 48 ∧
   (sp.toNat + sl.toNat ≤ (s.regs 4).toNat - 4192 ∨ (s.regs 4).toNat + 72 ≤ sp.toNat) ∧
   Spec.Disjoint ((s.regs 14).toNat + 16) 8 ((s.regs 4).toNat - 4192) 4264 ∧

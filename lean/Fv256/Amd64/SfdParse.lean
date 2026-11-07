@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.HexLemmas
@@ -19,13 +19,13 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Fv256.I
 
 namespace Fv256.Amd64.SfdParse
 
-abbrev ip : Nat := segAddr Extracted.program "internal/strconv.ParseUint"
+abbrev ip : Nat := segAddr Fv256.Amd64.SfdProg.program "internal/strconv.ParseUint"
 abbrev head : Nat := ip + 0x1b0
 
 /-- the address of the `internal/strconv.ErrSyntax` constant (an `internal/strconv.Error`) -/
-abbrev synAddr : Nat := Extracted.dataAddr.«.rodata#9967e7a3»
+abbrev synAddr : Nat := Fv256.Amd64.SfdProg.dataAddr.«.rodata#9967e7a3»
 /-- the itab of `internal/strconv.Error` as an `error` -/
-abbrev errItab : Nat := Extracted.dataAddr.«go:itab.internal/strconv.Error,error»
+abbrev errItab : Nat := Fv256.Amd64.SfdProg.dataAddr.«go:itab.internal/strconv.Error,error»
 
 def LoopQ (s : State) (M : Memory) (p len : Nat) (s' : State) : Prop :=
   s'.rip = retAddrOf s ∧ s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧
@@ -50,7 +50,7 @@ theorem loop (impl : List Janus.Amd64.Segment) (s : State) (M : Memory) (p len :
       S.regs 0 = 10#64 → S.regs 12 = 0#64 → S.regs 4 = s.regs 4 - 0x20#64 → S.regs 5 = s.regs 4 - 8#64 →
       S.regs 14 = s.regs 14 → S.xmm 15 = s.xmm 15 → S.df = s.df → S.fsBase = s.fsBase → S.mem = M →
       allDec (Fv256.C.bytesAt M p.toNat) 0 i →
-      ReachesRet (Extracted.program.link impl) (retAddrOf s) S (LoopQ s M p.toNat len.toNat) := by
+      ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S (LoopQ s M p.toNat len.toNat) := by
   intro n
   induction n using Nat.strongRecOn with
   | _ n ih =>
@@ -166,7 +166,7 @@ def PuPost (p len : BitVec 64) (s s' : State) : Prop :=
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 10000 in
 theorem pu_sum (impl : List Janus.Amd64.Segment) (p len : BitVec 64) :
-    Summary (Extracted.program.link impl) ip (PuPre p len) (PuPost p len) := by
+    Summary (Fv256.Amd64.SfdProg.program.link impl) ip (PuPre p len) (PuPost p len) := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, ⟨hpw, hp⟩, hL, hL2, hg, ⟨hlow, hnw, hacc⟩, hdisj⟩
   simp only [regSP] at hacc hlow hnw hdisj
   have hgl := hg.load

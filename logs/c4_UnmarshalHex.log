@@ -1,0 +1,40 @@
+Fv256/Amd64/UnmarshalHex.lean:43:6: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/UnmarshalHex.lean:43:6: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/UnmarshalHex.lean:94:8: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+Fv256/Amd64/UnmarshalHex.lean:94:27: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/UnmarshalHex.lean:33:43: warning: Variable name `hr14` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hr14
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalHex.lean:192:8: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/UnmarshalHex.lean:229:10: warning: This simp argument is unused:
+  BitVec.toNat_setWidth
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_ofNat]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalHex.lean:256:13: warning: This simp argument is unused:
+  Nat.reducePow
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.pow_one] at hl
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalHex.lean:264:13: warning: This simp argument is unused:
+  Nat.reducePow
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.pow_one] at hl
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalHex.lean:270:13: warning: This simp argument is unused:
+  Nat.reducePow
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.pow_one] at hl
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalHex.lean:290:13: warning: This simp argument is unused:
+  Nat.reducePow
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.pow_one] at hl
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalHex.lean:296:13: warning: This simp argument is unused:
+  Nat.reducePow
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.pow_one] at hl
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+LEANRC=0

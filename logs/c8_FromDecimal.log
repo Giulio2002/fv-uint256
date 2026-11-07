@@ -1,0 +1,68 @@
+Fv256/Amd64/FromDecimal.lean:130:108: warning: try 'simp' instead of 'simpa'
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+Fv256/Amd64/FromDecimal.lean:55:5: warning: Variable name `hif` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hif
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/FromDecimal.lean:58:5: warning: Variable name `hmg` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmg
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/FromDecimal.lean:60:5: warning: Variable name `hmv` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmv
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/FromDecimal.lean:62:5: warning: Variable name `hwb1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/FromDecimal.lean:64:5: warning: Variable name `hwb2` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb2
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/FromDecimal.lean:129:191: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/FromDecimal.lean:129:235: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/FromDecimal.lean:130:31: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/FromDecimal.lean:131:72: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_of_disjoint
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/FromDecimal.lean:91:2: warning: positional `rename_i`/`next x`/`case _ x` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+LEANRC=0
+	Command being timed: "build/lcn.sh afd /srv/fv-uint256-wJ/lean/Fv256/Amd64/FromDecimal.lean"
+	User time (seconds): 33.31
+	System time (seconds): 0.47
+	Percent of CPU this job got: 133%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:25.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2748984
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 108714
+	Voluntary context switches: 1804
+	Involuntary context switches: 73
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 38888
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
