@@ -26,6 +26,7 @@ for a in arm64 amd64; do
 done
 (cd go && GOTOOLCHAIN=go1.26.0 GOAMD64=v3 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build -trimpath -buildvcs=false -o ../build/harness-amd64v3 ./cmd/harness) || { echo "harness build failed (amd64 v3)"; exit 2; }
 fi
+# A row whose per-ISA status is `todo` or `in progress (...)` is reported as MISSING and makes the run FAIL (never skipped silently).
 # rows: | `(*uint256.Int).Fn` | owner | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
 mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
 fail=0; table=""
@@ -37,7 +38,12 @@ for row in "${rows[@]}"; do
   case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
   for pair in "arm64:$st_arm:Arm64" "amd64:$st_amd:Amd64"; do
     IFS=: read -r isa st dir <<<"$pair"
-    case "$st" in verified*|partial*) ;; *) continue;; esac
+    case "$st" in
+      verified*|partial*) ;;
+      todo*|inprogress*|in-progress*)   # a function in the coverage target list with no release-grade proof: FAIL, never skip silently
+        table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "MISSING ($st)")"$'\n'; fail=1; continue;;
+      *) continue;;   # n/a, out of scope
+    esac
     out="build/ex-$isa-$fn"
     cflags="$(contract_flags "$fn")"
     # proof module: Fn.lean, or FnMain.lean when the main theorem lives there (split proofs)
