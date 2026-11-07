@@ -39,7 +39,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hsb : RtLiveContract64 (Extracted.program.link impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive)
     : Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s) ∧ (Quoted s.mem pI.toNat nI.toNat → QPre cfg sbAddr R b lo pI nI s))
+      (fun s => ((PreU0m cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ (¬ Quoted s.mem pI.toNat nI.toNat → OkOut sbAddr R pI nI s)) ∧ HexEnv R lo hi z s) ∧ (Quoted s.mem pI.toNat nI.toNat → QPre cfg sbAddr R b lo pI nI s))
       (fun s s' =>
         (Quoted s.mem pI.toNat nI.toNat →
           (IsHex s.mem (pI.toNat + 1) (nI.toNat - 2) →

@@ -46,7 +46,7 @@ theorem correctness_cond (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
     : Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s) ∧ (Quoted s.mem pI.toNat nI.toNat → QPre cfg sbAddr R b lo pI nI s))
+      (fun s => ((PreU0m cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ (¬ Quoted s.mem pI.toNat nI.toNat → OkOut sbAddr R pI nI s)) ∧ HexEnv R lo hi z s) ∧ (Quoted s.mem pI.toNat nI.toNat → QPre cfg sbAddr R b lo pI nI s))
       (fun s s' =>
         (Quoted s.mem pI.toNat nI.toNat →
           (IsHex s.mem (pI.toNat + 1) (nI.toNat - 2) →
@@ -79,13 +79,13 @@ theorem correctness_cond (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
             s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab)) ∧
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro ret hret s hs hpre
-  obtain ⟨⟨hpreU, henv⟩, hQ⟩ := hpre
+  obtain ⟨⟨⟨hpreU, hok⟩, henv⟩, hQ⟩ := hpre
   by_cases h1 : (nI.toNat : Int) < 2
-  · exact ju_a impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨hpreU, henv⟩, h1⟩
+  · exact ju_a impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨hpreU.add cfg (hok (not_q_short h1)), henv⟩, h1⟩
   by_cases h2 : s.mem.readLE pI.toNat 1 = 34
-  case neg => exact ju_d impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨hpreU, henv⟩, h1, h2⟩
+  case neg => exact ju_d impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨hpreU.add cfg (hok (not_q_b0 h2)), henv⟩, h1, h2⟩
   by_cases h3 : Lw s.mem pI.toNat nI.toNat - 34#8 = 0#8
   · exact ju_q impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨⟨hpreU, henv⟩, hQ (q_of h1 h2 h3)⟩, h1, h2, h3⟩
-  · exact ju_c impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨hpreU, henv⟩, h1, h2, h3⟩
+  · exact ju_c impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd ret hret s hs ⟨⟨hpreU.add cfg (hok (not_q_last h3)), henv⟩, h1, h2, h3⟩
 
 end Fv256.Amd64.UnmarshalJSON

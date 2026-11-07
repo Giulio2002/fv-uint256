@@ -54,7 +54,7 @@ theorem hexenv_frame {R : RtInv} {lo hi : Nat} {z : BitVec 64} {s S : State} (h 
 set_option maxHeartbeats 4000000 in
 theorem toppre_ut {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
     {z pI nI pI' nI' : BitVec 64} {s S : State}
-    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s) (hq : QPre C sb R b lo pI nI s) (hn2 : 2 ≤ nI.toNat)
+    (hpre : PreUm C sb st R R2 T b L lo hi z pI nI s) (hq : QPre C sb R b lo pI nI s) (hn2 : 2 ≤ nI.toNat)
     (hr0 : S.regs 0 = z) (hr3 : S.regs 3 = pI') (hr1 : S.regs 1 = nI')
     (hp' : pI'.toNat = pI.toNat + 1) (hn' : nI'.toNat = nI.toNat - 2)
     (hr4 : S.regs 4 = s.regs 4 - 80#64)
@@ -63,7 +63,7 @@ theorem toppre_ut {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : L
     (hF : MemFrame s.mem S.mem [(lo, hi)]) :
     PreU C sb st R R2 T b L lo hi z pI' nI' S := by
   have hp := hpre.toS
-  obtain ⟨hRet, -, -, -, hMod, hEnv, hlo, hhi, hokH, hokD, hcost, hstW, hstR, hstP, hstZ, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
+  obtain ⟨hRet, -, -, -, hMod, hEnv, hlo, hhi, hcost, hstW, hstR, hstP, hstZ, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
     hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hchunk⟩ := hp
   obtain ⟨q1, q2, q3, q4, q5⟩ := hq
   have hEnv' := hEnv
@@ -296,7 +296,7 @@ theorem hexenv_shrink {R : RtInv} {lo hi hi3 : Nat} {z : BitVec 64} {s : State} 
 /-- the precondition of the inner `UnmarshalText` call (window `[lo, hi3)`, `hi3 = sp - 56`) and its hex environment -/
 theorem call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat}
     {z pI nI pI' nI' : BitVec 64} {s S : State}
-    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s) (hq : QPre C sb R b lo pI nI s) (hn2 : 2 ≤ nI.toNat)
+    (hpre : PreUm C sb st R R2 T b L lo hi z pI nI s) (hq : QPre C sb R b lo pI nI s) (hn2 : 2 ≤ nI.toNat)
     (henv : HexEnv R lo hi z s)
     (hr0 : S.regs 0 = z) (hr3 : S.regs 3 = pI') (hr1 : S.regs 1 = nI')
     (hp' : pI'.toNat = pI.toNat + 1) (hn' : nI'.toNat = nI.toNat - 2)
@@ -318,7 +318,7 @@ theorem call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : Li
 /-- after the inner call: the caller's saved slots are intact and the callee's postcondition transfers to the caller's entry memory -/
 theorem json_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat}
     {z pI nI pI' nI' : BitVec 64} {s S s' : State}
-    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s) (hn2 : 2 ≤ nI.toNat)
+    (hpre : PreUm C sb st R R2 T b L lo hi z pI nI s) (hn2 : 2 ≤ nI.toNat)
     (henv : HexEnv R lo hi z s)
     (hp' : pI'.toNat = pI.toNat + 1) (hn' : nI'.toNat = nI.toNat - 2)
     (hF : MemFrame s.mem S.mem [(lo, hi)]) (hh3 : hi3 = (s.regs 4).toNat - 56)

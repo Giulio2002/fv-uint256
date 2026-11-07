@@ -44,7 +44,7 @@ theorem ju_q (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => ((PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s) ∧ QPre cfg sbAddr R b lo pI nI s) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 34 ∧ (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (s.mem.readLE (nI.toNat + pI.toNat - 1) 1)))) - 34#8 = 0#8))
+      (fun s => ((PreU0m cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s) ∧ QPre cfg sbAddr R b lo pI nI s) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 34 ∧ (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (s.mem.readLE (nI.toNat + pI.toNat - 1) 1)))) - 34#8 = 0#8))
       (fun s s' =>
         (Quoted s.mem pI.toNat nI.toNat →
           (IsHex s.mem (pI.toNat + 1) (nI.toNat - 2) →
@@ -79,7 +79,7 @@ theorem ju_q (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
   intro ret hret s hs hpre
   janus64_intro hs
   obtain ⟨⟨⟨hpreU0, henv⟩, hQ⟩, hc1, hc2, hc3⟩ := hpre
-  have hpreU := PreU.of0 cfg (PreU0.retOK cfg hpreU0 h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
+  have hpreU := PreUm.of0 cfg (PreU0m.retOK cfg hpreU0 h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
