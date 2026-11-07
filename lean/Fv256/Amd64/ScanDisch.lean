@@ -85,7 +85,7 @@ theorem hcaSfd : Fv256.Amd64.SfdLib.ContractsAgree Extracted.program :=
   Fv256.Amd64.SfdLink.hca_of_decide (by decide)
 
 set_option maxRecDepth 100000 in
-theorem cfg_eq_ext : cfg = Fv256.Amd64.SfdTopCfg.extCfg := by decide
+theorem cfg_eq_ext : cfg = Fv256.Amd64.SfdTopCfg.extCfg := by rfl
 
 set_option maxRecDepth 100000 in
 theorem sfdEntry_eq : sfdEntry = Fv256.Amd64.SfdProg.sfd := by decide
