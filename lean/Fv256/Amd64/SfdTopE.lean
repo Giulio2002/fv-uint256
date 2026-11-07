@@ -135,4 +135,89 @@ theorem callSt_of {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Na
   · exact MemFrame.trans a7 hf (fun a n h => ⟨h, h⟩)
   · exact Env.frame0 hL hEnv ⟨by rw [hs72]; omega, by rw [hs72]; omega, by rw [hs72]; omega⟩ h14 hf hw
 
+/-- at a `fromDecimal` call: what the continuation needs -/
+def FdCtx (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS nS : BitVec 64)
+    (s : State) (ret : Nat) (Sc : State) : Prop :=
+  CallSt R R2 T b L lo hi z pS s Sc ∧ Sc.regs 0 = z ∧
+    (∃ k, k ≤ startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat ∧
+      (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < nS.toNat → k = startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ∧
+      Sc.regs 3 = pS + BitVec.ofNat 64 k) ∧
+    Sc.regs 1 = BitVec.ofNat 64 (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ∧
+    Sc.mem.readLE ((s.regs 4).toNat - 72) 8 = ret
+
+theorem c1_post (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (S Sc : State) (k len ret : Nat) (hSt : TopSt R R2 T b L lo hi z pS s S)
+    (h4 : Sc.regs 4 = s.regs 4 - 72#64) (h5 : Sc.regs 5 = S.regs 5) (h14 : Sc.regs 14 = S.regs 14) (hx : Sc.xmm 15 = S.xmm 15)
+    (hdf : Sc.df = S.df) (hfs : Sc.fsBase = S.fsBase) (hm : Sc.mem = S.mem.writeLE ((s.regs 4).toNat - 72) 8 ret)
+    (hret : ret < 2 ^ 47) (r0 : Sc.regs 0 = z) (r3 : Sc.regs 3 = pS + BitVec.ofNat 64 k) (r1 : Sc.regs 1 = BitVec.ofNat 64 len)
+    (hk : k + len ≤ nS.toNat) (hlen : len ≤ 78)
+    (hfin : allDec (Fv256.C.bytesAt s.mem (pS.toNat + k)) 0 len →
+      decSum (Fv256.C.bytesAt s.mem (pS.toNat + k)) 0 len < 2 ^ 256)
+    (hq1 : k ≤ startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
+    (hq2 : startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < nS.toNat → k = startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
+    (hlq : len = nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) :
+    FdPre R R2 T b L lo ((s.regs 4).toNat - 40) z (pS + BitVec.ofNat 64 k) (BitVec.ofNat 64 len) Sc ∧
+      FdCtx R R2 T b L lo hi z pS nS s ret Sc := by
+  have hpre' := hpre
+  obtain ⟨⟨hra1, hra2, hx15, hdf0⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hEnv0 := env_to hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
+  have hmf : MemFrame S.mem Sc.mem [(lo, hi)] := by
+    rw [hm]
+    refine MemFrame.writeLE (MemFrame.refl _ _) _ (r := (lo, hi)) (by simp) (by omega) (by omega)
+  have hCall : CallSt R R2 T b L lo hi z pS s Sc := by
+    refine callSt_of hMod.1 hSt (by omega) (by omega) h4 h5 h14 hx hdf hfs hmf (by omega) ?_ ?_ ?_ ?_ (by omega) (by omega)
+    all_goals (rw [hm]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint])
+  have hs72 : (Sc.regs 4).toNat = (s.regs 4).toNat - 72 := by rw [h4]; exact bv_sub_c _ 72 (by decide) (by omega)
+  have hretOK : Fv256.C.RetOK Sc := by
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · rw [hs72, hCall.2.2.2.2.2.2.1.accessible]
+      exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ e5 (by omega) (by omega))
+    · rw [hs72, hm]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+      rw [show (256:Nat) ^ 8 = 2 ^ 64 from rfl, Nat.mod_eq_of_lt (by omega)]; exact hret
+    · rw [hx]; exact hSt.2.2.2.1
+    · rw [hdf]; exact hSt.2.2.2.2.1
+  refine ⟨fdpre_of R R2 T b L lo hi z pS nS s hpre' Sc k len (MemFrame.trans hSt.2.2.2.2.2.2.1 hmf (fun a n h => ⟨h, h⟩)) hCall.2.2.2.2.2.2.2.2.2.2.2 h4 (by rw [h14, hSt.2.2.1]) hretOK hk hlen r0 r3 r1 hfin, hCall, r0, ⟨k, hq1, hq2, r3⟩, ?_, ?_⟩
+  · rw [r1, hlq]
+  · rw [hm]; simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_self]
+    rw [show (256:Nat) ^ 8 = 2 ^ 64 from rfl]; exact Nat.mod_eq_of_lt (by omega)
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 20000 in
+/-- fewer than 78 digits: call `fromDecimal` -/
+theorem top_c1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x57)) (hM : TopMid R R2 T b L lo hi z pS nS s S)
+    (hlt : nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < 78) :
+    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 Fv256.Amd64.SfdFd.fd) S
+      (fun Sc => FdPre R R2 T b L lo ((s.regs 4).toNat - 40) z (Sc.regs 3) (Sc.regs 1) Sc ∧
+        FdCtx R R2 T b L lo hi z pS nS s 4933361 Sc) := by
+  have hpre' := hpre
+  obtain ⟨hSt, h0, ⟨k, hk1, hk2, h3⟩, h1⟩ := hM
+  obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hEnv0 := env_to hEnv
+  have hnS := nS.isLt
+  have hsp := Fv256.TopMath.startPos_spec' (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hmI := ofNat_toInt (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
+  have hS4 : (S.regs 4).toNat = (s.regs 4).toNat - 64 := by rw [hSt.1]; exact bv_sub_c _ 64 (by decide) (by omega)
+  janus64_run [hpc, h1, hmI, hS4] until [Fv256.Amd64.SfdFd.fd]
+  all_goals (
+    refine c1_post R R2 T b L lo hi z pS nS s hpre' S _ k _ 4933361 hSt ?h4 ?h5 ?h14 ?hx rfl rfl rfl (by decide) ?r0 ?r3 ?r1
+      (by omega) (by omega) ?hfin hk1 hk2 rfl
+    case h4 => simp only [setRegF_apply]; simp [hSt.1]; bv_omega
+    case h5 => simp [setRegF_apply]
+    case h14 => simp [setRegF_apply]
+    case hx => simp [setRegF_apply]
+    case r0 => simp [setRegF_apply, h0]
+    case r3 => simp [setRegF_apply, h3]
+    case r1 => simp [setRegF_apply, h1]
+    case hfin =>
+      intro hd
+      have := decSum_lt (Fv256.C.bytesAt s.mem (pS.toNat + k)) 0 (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by simpa using hd)
+      have h10 : 10 ^ (nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ≤ 10 ^ 77 :=
+        Nat.pow_le_pow_right (by omega) (by omega)
+      have := Fv256.I.Fv256.I.pow77_lt
+      omega)
+
 end Fv256.Amd64.SfdTop
