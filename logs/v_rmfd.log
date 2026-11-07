@@ -1,0 +1,24 @@
+Invalid: Lean rejected the proof module Fv256/Arm64/MustFromDecimalMain.lean (or a module it imports).
+Lean errors (1):
+  lean/Fv256/Arm64/MustFromDecimalMain.lean:50:16: error: Function expected at
+      goClass
+    but this term has type
+      ?m.1
+    
+    Note: Expected a function because this term is being applied to the argument
+      P
+    
+    Hint: The identifier `goClass` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+  Stage: proof checking
+  Next: Fix the proof. It must import Extracted and prove Fv256.Arm64.MustFromDecimalMain.correctness. The complete, untruncated Lean output is in build/n10/arm64-MustFromDecimal/diag/Fv256.Arm64.MustFromDecimalMain.lean.lean-output.log.
+Details:
+lean/Fv256/Arm64/MustFromDecimalMain.lean:50:16: error: Function expected at
+  goClass
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  P
+
+Hint: The identifier `goClass` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+ENDMARK rc=1 t=528

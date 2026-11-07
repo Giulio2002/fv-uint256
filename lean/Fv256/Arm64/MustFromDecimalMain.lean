@@ -8,7 +8,7 @@ import Fv256.Arm64.SummaryEnsures
 # `MustFromDecimal` (arm64): the Extracted-level theorem (SetFromDecimal discharged from the library program `SfdProg`)
 -/
 
-open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.EqHashModel Fv256.I Fv256.C
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.EqHashModel Janus.Contracts.Panic Fv256.I Fv256.C
 open Fv256.Arm64.SfdTopSpec
 
 namespace Fv256.Arm64.MustFromDecimalMain
