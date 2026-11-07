@@ -49,14 +49,14 @@ theorem addr_if : Extracted.program.contractAddr "runtime.ifaceeq" = ifA := by d
 theorem addr_cm : Extracted.program.contractAddr "runtime.cmpstring" = cmA := by decide
 theorem addr_w2 : Extracted.program.contractAddr "runtime.gcWriteBarrier2" = w2A := by decide
 
-theorem model_new : NewobjectLiveContract64 (Extracted.program.ofImpl implA) newA 4096 R := by janus64_live_newobject
-theorem model_mg : MallocgcLiveContract64 (Extracted.program.ofImpl implA) mgA 4096 R := by janus64_live_mallocgc
+theorem model_new : NewobjectLiveContract64 (Extracted.program.link implA) newA 4096 R := by janus64_live_newobject
+theorem model_mg : MallocgcLiveContract64 (Extracted.program.link implA) mgA 4096 R := by janus64_live_mallocgc
 theorem hok_mv : ∀ args, ok mvA args → ∃ d sr, args = [d, sr, 1] := by
   intro args h
   rcases h with ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨_, q, rfl⟩
   all_goals first | exact ⟨q, pSA, rfl⟩ | (exfalso; revert h; simp only [newA, mgA, mvA, w1A, w2A]; decide)
-theorem model_mv : MemmoveLive64 (Extracted.program.ofImpl implA) mvA 4096 R := by janus64_live_memmove 1 hok_mv
-theorem model_wb1 : WbLiveContract64 (Extracted.program.ofImpl implA) w1A 4096 R 1 := by janus64_live_wb 1
-theorem model_wb2 : WbLiveContract64 (Extracted.program.ofImpl implA) w2A 4096 R 2 := by janus64_live_wb 2
+theorem model_mv : MemmoveLive64 (Extracted.program.link implA) mvA 4096 R := by janus64_live_memmove 1 hok_mv
+theorem model_wb1 : WbLiveContract64 (Extracted.program.link implA) w1A 4096 R 1 := by janus64_live_wb 1
+theorem model_wb2 : WbLiveContract64 (Extracted.program.link implA) w2A 4096 R 2 := by janus64_live_wb 2
 
 end Fv256.Amd64.SetFromDecimal.Witness
