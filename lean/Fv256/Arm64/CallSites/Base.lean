@@ -72,4 +72,18 @@ open Janus.Contracts in
 @[reducible] def MakesliceSite (H : RtReady) (rt : List (Nat × Nat)) (stack : Nat) (s : State) : Prop :=
   MakeslicePre stack s ∧ Ready H rt [(s.regs 0).toNat, (s.regs 1).toNat, (s.regs 2).toNat] s
 
+open Janus.Contracts in
+@[reducible] def ConvT64Site (R : Janus.Spec.Type.IfaceModel) (H : RtReady) (s : State) : Prop :=
+  Iface.RTPre R 1 s ∧ Ready H R.priv [(s.regs 0).toNat] s
+
+open Janus.Contracts in
+@[reducible] def ErrorfLiveSite (R : RtInv) (addr stack : Nat) (tErr iErr tInt iWrap Fl Fm B : Nat) (L : List (Nat × Nat)) (b : Nat)
+    (s : State) : Prop :=
+  CallOK s stack 5 ∧ StackRoom s stack 5 ∧
+    Errorf.ArgsOK (Errorf.Env.mk tErr iErr tInt iWrap) Fl Fm B s.mem (s.regs 0).toNat (s.regs 1).toNat (s.regs 2).toNat (s.regs 3).toNat (s.regs 4).toNat ∧
+    ReadsOutside (Errorf.errorfReads s.mem (s.regs 0).toNat (s.regs 1).toNat (s.regs 2).toNat) (calleeStack s stack 5) ∧
+    Errorf.ReadsSafe R L (Errorf.errorfReads s.mem (s.regs 0).toNat (s.regs 1).toNat (s.regs 2).toNat) ∧
+    LiveAt R addr [(s.regs 0).toNat, (s.regs 1).toNat, (s.regs 2).toNat, (s.regs 3).toNat, (s.regs 4).toNat] L b
+      (Errorf.errorfCost s.mem (s.regs 0).toNat (s.regs 1).toNat (s.regs 2).toNat) (s.regs 28).toNat s.mem (calleeStack s stack 5)
+
 end Fv256.Arm64.CallSites
