@@ -27,4 +27,62 @@ theorem topSt_of_callSt {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat
   · exact MemFrame.trans amf hf (fun a n h => ⟨h, h⟩)
   · exact Env.frame0 hL hEnv ⟨by rw [hs64]; omega, by rw [hs64]; omega, by rw [hs64]; omega⟩ h14 hf hw
 
+open Janus.Contracts.Cmpstring in
+theorem cmp_after (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (Sc S'' : State) (hC : CmpCtx R R2 T b L lo hi z pS nS s Sc) (hpr : CmpstringPre64 16 Sc)
+    (hret : CmpRet64 16 Sc S'') :
+    TopSt R R2 T b L lo hi z pS s S'' ∧ S''.rip = BitVec.ofNat 64 4933285 ∧
+      S''.regs 0 = BitVec.ofInt 64 (strCmp Sc.mem (pS.toNat + startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) extCfg.maxStr 78 78) ∧
+      S''.mem.readLE ((s.regs 4).toNat - 24) 8 = 78 ∧
+      S''.mem.readLE ((s.regs 4).toNat - 16) 8 = pS.toNat + startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat := by
+  obtain ⟨hCall, m72, m24, m16, r0, r1, r3, r7, heq⟩ := hC
+  obtain ⟨junk, f, x, yh, m, zh, kr, hS, hf⟩ := hret
+  obtain ⟨⟨hra1, hra2, hx15, hdf0⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hEnv0 := env_to hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
+  have hC4 : Sc.regs 4 = s.regs 4 - 72#64 := hCall.1
+  have hs72 : (Sc.regs 4).toNat = (s.regs 4).toNat - 72 := by rw [hC4]; exact bv_sub_c _ 72 (by decide) (by omega)
+  have hfm : MemFrame Sc.mem m [(lo, hi)] := by
+    refine hf.mono ?_
+    intro a n h
+    simp only [calleeStack64, outside_cons, outside_nil, and_true, hs72] at h ⊢
+    omega
+  have hrd : ∀ a, (a + 8 ≤ (s.regs 4).toNat - 88 ∨ (s.regs 4).toNat - 32 ≤ a) → (a + 8 ≤ (s.regs 4).toNat - 72 ∨ (s.regs 4).toNat - 64 ≤ a) →
+      m.readLE a 8 = Sc.mem.readLE a 8 := by
+    intro a h1 h2
+    refine (hf.readLE a 8 ?_)
+    simp only [calleeStack64, outside_cons, outside_nil, and_true, hs72]
+    omega
+  have hS4 : S''.regs 4 = s.regs 4 - 64#64 := by
+    rw [hS]; simp only [retState64, callRegs64]; simp [hC4]; exact bv_72_8 _
+  have hSt : TopSt R R2 T b L lo hi z pS s S'' := by
+    refine topSt_of_callSt hMod.1 hCall hS4 ?_ ?_ ?_ ?_ ?_ (by rw [hS]; exact hfm) (by omega) (by omega) (by omega) (by omega) ?_ ?_ ?_ ?_
+    · rw [hS]; simp [retState64, callRegs64]
+    · rw [hS]; simp [retState64, callRegs64]
+    · rw [hS]; simp [retState64, callRegs64]
+    · rw [hS]; simp [retState64]
+    · rw [hS]; simp [retState64]
+    · rw [hS]; simp [retState64]; exact hrd _ (by omega) (by omega)
+    · rw [hS]; simp [retState64]; exact hrd _ (by omega) (by omega)
+    · rw [hS]; simp [retState64]; exact hrd _ (by omega) (by omega)
+    · rw [hS]; simp [retState64]; exact hrd _ (by omega) (by omega)
+  have hnS := nS.isLt
+  have hq := Fv256.TopMath.startPos_spec' (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hP : (pS + BitVec.ofNat 64 (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)).toNat =
+      pS.toNat + startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat := add_toNat pS _ (by simp only [Nat.reducePow]; omega)
+  have h78 : (78#64 : BitVec 64).toNat = 78 := rfl
+  have hmx : extCfg.maxStr = 5175732 := rfl
+  have hmx2 : (BitVec.ofNat 64 extCfg.maxStr).toNat = extCfg.maxStr := by
+    rw [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by rw [hmx]; omega)
+  refine ⟨hSt, ?_, ?_, ?_, ?_⟩
+  · rw [hS]; simp only [retState64]
+    show BitVec.ofNat 64 (Sc.mem.readLE (Sc.regs 4).toNat 8) = _
+    rw [hs72, m72]
+  · rw [hS]; simp only [retState64, callRegs64, cmpResult64]
+    simp
+    rw [r0, r1, r3, r7, hP, hmx2, h78]
+  · rw [hS]; simp only [retState64]; rw [hrd _ (by omega) (by omega)]; exact m24
+  · rw [hS]; simp only [retState64]; rw [hrd _ (by omega) (by omega)]; exact m16
+
 end Fv256.Amd64.SfdTop
