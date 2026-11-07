@@ -77,9 +77,11 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   rw [digits_base, digits_len] at hj1
   rw [smalls_base, smalls_len] at hj2
   rw [zeroDat_base, zeroDat_len] at hj3
-  have hqmem : Extracted.data[5] ∈ Extracted.program.data := List.getElem_mem (by decide)
-  have hqbase : Extracted.data[5].base = 1007400 := by decide
-  have hqlen : Extracted.data[5].bytes.length = 32 := by decide
+  -- layout-robust: find the 32-byte quote object by its symbol (not by its position in `Extracted.data`)
+  obtain ⟨dq, hqmem, hqbase, hqlen, hqb0⟩ : ∃ d ∈ Extracted.program.data,
+      d.base = Extracted.dataAddr.«.rodata#c3589c3e» ∧ d.bytes.length = 32 ∧ d.bytes[0]! = 34 := by decide
+  have hsym : Extracted.dataAddr.«.rodata#c3589c3e» = 1007400 := by decide
+  rw [hsym] at hqbase
   have hqj := dl_disjoint hd hqmem hwa
   rw [hqbase, hqlen] at hqj
   have hqacc : s.mem.accessible 1007400 1 false = true := by
@@ -90,8 +92,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
     have b0 := dl_byte hd hqmem 0 (by rw [hqlen]; omega)
     rw [hqbase, Nat.add_zero] at b0
     rw [b0]
-    have : Extracted.data[5].bytes[0]! = 34 := by decide
-    simpa [getElem!_pos Extracted.data[5].bytes 0 (by rw [hqlen]; omega)] using this
+    simpa [getElem!_pos dq.bytes 0 (by rw [hqlen]; omega)] using hqb0
   have hOut : BitVec.toNat (s'.regs 0) + BitVec.toNat (s'.regs 1) ≤ BitVec.toNat s.sp - 4688 ∨
       BitVec.toNat s.sp + 8 ≤ BitVec.toNat (s'.regs 0) := by
     rcases hDA with ⟨r, hr, h1, h2⟩ | ⟨h1, h2⟩ | ⟨h1, h2⟩ | ⟨h1, h2⟩

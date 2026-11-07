@@ -56,7 +56,15 @@ theorem dec_call (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (s
   simp only [Spec.val256_limbs] at hH1S hH2S
   have hout8 : Outside (S0.sp.toNat - 4608) (4608 + 8) rt := hout.of_sub (by omega) (by omega)
   janus_run [i88, hwa, hdlS, hgaS, hH1S, hH2S, hvS, hgS, i4, i28] until [Extracted.entry + 0x14c] calls [dec_summary_ext impl rt H z hc]
-  rename_i hrip h4 h29 h28 h18 hfrD hDA hSO
+  -- named by content (never positional rename_i): a new conjunct in dec_summary_ext's post must not shift these
+  janus_grab 4608 as hfrD
+  grab_last_const Fv256.E.DecAt as hDA
+  grab_last_const Janus.Spec.strBytes as hSO
+  have hrip : s'.pc = _ := by assumption
+  have h4 : s'.sp = _ := by assumption
+  have h29 : s'.regs 29 = _ := by assumption
+  have h28 : s'.regs 28 = _ := by assumption
+  have h18 : s'.regs 18 = _ := by assumption
   obtain ⟨hl1, hl2, hl3, hl4⟩ := hSO
   rw [← Spec.val256_limbs S0.mem z.toNat] at hl1 hl4
   have hSO' : StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 S0.mem z.toNat)) :=
