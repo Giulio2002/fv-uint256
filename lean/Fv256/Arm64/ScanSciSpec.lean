@@ -929,4 +929,213 @@ theorem top_zP {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)}
   obtain ⟨h30a, h30b, h0, h1, h2, hMod, hEnv, hlo, hhi, hMult, hE1, hE2, hMa, hMo, hMr, hMb, hB1, hB2, hzP, -⟩ := htop
   exact hzP
 
+/-- returning `ErrBig256Range` (the global's two words loaded in `X0`, `X1`) from a state of the body's frame -/
+theorem post_range {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {dst pS nS : BitVec 64} {s S Sf : State}
+    (htop : TopPre C R R2 T b L lo hi dst pS nS s) (hlo112 : lo + 4640 ≤ s.sp.toNat)
+    (hfr : Fr lo dst pS nS s S)
+    (hSsp : Sf.sp = s.sp) (hS29 : Sf.regs 29 = s.regs 29) (hS28 : Sf.regs 28 = s.regs 28) (hS18 : Sf.regs 18 = s.regs 18)
+    (hSm : Sf.mem = S.mem) (hsci : Fv256.ScanSpec.sciParse (bytesAt s.mem pS.toNat) nS.toNat = .range)
+    (hS0 : (Sf.regs 0).toNat = S.mem.readLE C.errBig 8) (hS1 : (Sf.regs 1).toNat = S.mem.readLE (C.errBig + 8) 8) :
+    SciPost C R R2 T b L lo hi dst pS nS s Sf := by
+  have htop' := htop
+  obtain ⟨h30a, h30b, h0, h1, h2, hMod, hEnv, hlo, hhi, hMult, hE1, hE2, hMa, hMo, hMr, hMb, hB1, hB2, hzP, hzW, hzR, hzPr, hzS,
+    hzg, hPA, hP48, hPW, hPZ, hCh⟩ := htop'
+  obtain ⟨fsp, f28, f18, f29, fmf, -⟩ := hfr
+  have hM3 : MemFrame s.mem S.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] :=
+    fmf.mono (fun a n h => by simp only [outside_cons, outside_nil, and_true] at h ⊢; omega)
+  have hW : Outside C.errBig 16 [(lo, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32), (dst.toNat, dst.toNat + 32)] := by
+    simp only [outside_cons, outside_nil, and_true] at hB2 ⊢; omega
+  unfold SciPost
+  rw [hSm]
+  exact ⟨hSsp, hS29, hS28, hS18, fmf.readLE _ _ (out_sp8 hzW (by omega) hhi), fmf.readLE _ _ (out_sp0 hzW (by omega) hhi),
+    Or.inr (Or.inr (Or.inl ⟨hsci, by rw [hS0]; exact fmf.readLE C.errBig 8 (Outside.of_sub hW (Nat.le_refl _) (by omega)),
+      by rw [hS1]; exact fmf.readLE (C.errBig + 8) 8 (Outside.of_sub hW (by omega) (by omega)), hM3⟩))⟩
+
+theorem top_errBig {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {dst pS nS : BitVec 64} {s : State} (htop : TopPre C R R2 T b L lo hi dst pS nS s) :
+    s.mem.accessible C.errBig 16 false = true := by
+  obtain ⟨h30a, h30b, h0, h1, h2, hMod, hEnv, hlo, hhi, hMult, hE1, hE2, hMa, hMo, hMr, hMb, hB1, -⟩ := htop
+  exact hB1
+
+theorem ofnat_rd8 (m : Janus.Arm64.Memory) (a : Nat) : (BitVec.ofNat 64 (m.readLE a 8)).toNat = m.readLE a 8 := by
+  have := Janus.Arm64.Memory.readLE_lt m a 8
+  simp only [BitVec.toNat_ofNat]
+  exact Nat.mod_eq_of_lt (by simpa using this)
+
+/-- read-only data survives any change confined to writable ranges -/
+theorem dl_frame {p : Janus.Program} {m m2 : Janus.Arm64.Memory} {ws : List (Nat × Nat)} (h : p.DataLoaded m)
+    (hf : MemFrame m m2 ws) (hreg : m2.regions = m.regions)
+    (hw : ∀ r ∈ ws, m.accessible r.1 (r.2 - r.1) true = true) : p.DataLoaded m2 := by
+  intro d hd
+  obtain ⟨hreg0, hb⟩ := h d hd
+  refine ⟨by rw [hreg]; exact hreg0, fun i hi => ?_⟩
+  obtain ⟨k, hk, hdk⟩ := List.getElem_of_mem hd
+  have hout : Outside (d.base + i) 1 ws := by
+    clear hf hreg hreg0 hb
+    induction ws with
+    | nil => trivial
+    | cons r rs ih =>
+      obtain ⟨r1, r2⟩ := r
+      simp only [outside_cons]
+      refine ⟨?_, ih (fun r hr => hw r (List.mem_cons_of_mem _ hr))⟩
+      have := Janus.Tactic.disjoint_of_dataLoaded h k hk (hw (r1, r2) (List.mem_cons_self ..))
+      rw [hdk] at this
+      simp only at this
+      omega
+  have := hf.readLE (d.base + i) 1 hout
+  simp only [Janus.Arm64.Memory.readLE_one] at this
+  rw [this]; exact hb i hi
+
+theorem dl_of_fr {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {dst pS nS : BitVec 64} {s S : State} {p : Janus.Program}
+    (htop : TopPre C R R2 T b L lo hi dst pS nS s) (hFr : Fr lo dst pS nS s S) (hdl : p.DataLoaded s.mem) :
+    p.DataLoaded S.mem := by
+  obtain ⟨hl1, hl2, hl3, hl4, hP48, hl5⟩ := top_nums C htop
+  have hzP := top_zP C htop
+  obtain ⟨fsp, f28, f18, f29, fmf, freg, -⟩ := hFr
+  refine dl_frame hdl fmf freg (fun r hr => ?_)
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+  rcases hr with rfl | rfl | rfl
+  · exact Janus.Arm64.Memory.accessible_sub _ hl5 (Or.inr rfl) (Nat.le_refl _) (by omega)
+  · exact Janus.Arm64.Memory.accessible_sub _ hl5 (Or.inr rfl) (by omega) (by omega)
+  · simpa using hzP.1
+
+/-- the precondition of the `Exp` call `z = &exp`, `x = &base`, `y = &exp` made from a body state `S` -/
+theorem exp_call_pre {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {dst pS nS : BitVec 64} {s S Sc : State} {D : Janus.Arm64.Memory → Prop}
+    (htop : TopPre C R R2 T b L lo hi dst pS nS s) (hlo112 : lo + 4640 ≤ s.sp.toNat) (hFr : Fr lo dst pS nS s S)
+    (hD : D Sc.mem) (hsp : Sc.sp = S.sp) (h28 : Sc.regs 28 = S.regs 28)
+    (h0 : Sc.regs 0 = S.sp + 72#64) (h1 : Sc.regs 1 = S.sp + 40#64) (h2 : Sc.regs 2 = S.sp + 72#64)
+    (h30a : (Sc.regs 30).toNat % 4 = 0) (h30b : (Sc.regs 30).toNat < 2 ^ 56)
+    (hF : MemFrame S.mem Sc.mem [(S.sp.toNat + 40, S.sp.toNat + 104)]) : ExpPre D Sc := by
+  have htop' := htop
+  obtain ⟨h30a', h30b', h0', h1', h2', hMod, hEnv, hlo, hhi, hMult, hE1, hE2, hMa, hMo, hMr, hMb, hB1, hB2, hzP, hzW, hzR, hzPr, hzS,
+    hzg, hPA, hP48, hPW, hPZ, hCh⟩ := htop'
+  obtain ⟨hr1, hr2, hr3, hr4, hr5, hr6, hr7, hr8, hr9, hr10, hr11, hr12, hr13, hr14, -⟩ := hEnv
+  have hSsp : S.sp.toNat = s.sp.toNat - 112 := by
+    obtain ⟨fsp, -⟩ := hFr
+    rw [fsp]; have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  obtain ⟨fsp, f28, f18, f29, fmf, -⟩ := hFr
+  have hz72 : (S.sp + 72#64).toNat = S.sp.toNat + 72 := by
+    rw [BitVec.toNat_add]; simp only [BitVec.toNat_ofNat]
+    exact Nat.mod_eq_of_lt (by have := S.sp.isLt; omega)
+  have hz40 : (S.sp + 40#64).toNat = S.sp.toNat + 40 := by
+    rw [BitVec.toNat_add]; simp only [BitVec.toNat_ofNat]
+    exact Nat.mod_eq_of_lt (by have := S.sp.isLt; omega)
+  have hspn : Sc.sp.toNat = S.sp.toNat := by rw [hsp]
+  have hr28 : (Sc.regs 28).toNat = (s.regs 28).toNat := by rw [h28, f28]
+  have hacc : Sc.mem.accessible (S.sp.toNat - 168) 208 true = true := by
+    rw [hF.accessible, fmf.accessible]
+    exact Janus.Arm64.Memory.accessible_sub _ hr5 (Or.inr rfl) (by omega) (by omega)
+  have haccW : Sc.mem.accessible (S.sp.toNat + 40) 64 true = true := by
+    rw [hF.accessible, fmf.accessible]
+    exact Janus.Arm64.Memory.accessible_sub _ hr5 (Or.inr rfl) (by omega) (by omega)
+  have hrd : Sc.mem.readLE ((s.regs 28).toNat + 16) 8 = s.mem.readLE ((s.regs 28).toNat + 16) 8 := by
+    rw [hF.readLE ((s.regs 28).toNat + 16) 8 (by simp only [outside_cons, outside_nil, and_true]; omega)]
+    exact fmf.readLE ((s.regs 28).toNat + 16) 8 (by simp only [outside_cons, outside_nil, and_true]; omega)
+  have hp : ∀ a, a = S.sp.toNat + 72 ∨ a = S.sp.toNat + 40 → Apart a 32 (S.sp.toNat - 168) 208 := fun a ha => by
+    unfold Apart; omega
+  unfold ExpPre
+  refine ⟨h30a, h30b, ?_, ?_, by omega, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hD⟩
+  · refine ⟨by rw [hr28]; exact hr6, by rw [hF.accessible, fmf.accessible, hr28]; exact hr7, ?_⟩
+    rw [hr28, hrd, hspn]; omega
+  · refine ⟨by omega, by omega, by omega, ?_⟩
+    rw [hspn]; exact hacc
+  · unfold Apart; rw [hr28, hspn]; omega
+  · rw [h0, hz72]; omega
+  · rw [h0, hz72]; exact Janus.Arm64.Memory.accessible_sub _ haccW (Or.inr rfl) (by omega) (by omega)
+  · rw [h1, hz40]; omega
+  · rw [h1, hz40]; exact Janus.Arm64.Memory.accessible_sub _ haccW (Or.inl rfl) (by omega) (by omega)
+  · rw [h2, hz72]; omega
+  · rw [h2, hz72]; exact Janus.Arm64.Memory.accessible_sub _ haccW (Or.inl rfl) (by omega) (by omega)
+  · rw [h0, hz72, hspn]; exact hp _ (Or.inl rfl)
+  · rw [h1, hz40, hspn]; exact hp _ (Or.inr rfl)
+  · rw [h2, hz72, hspn]; exact hp _ (Or.inl rfl)
+
+/-- `Fr` is kept by the `MulOverflow` call (`OnlyWrites3` with the callee's frame at `S.sp`) -/
+theorem fr_of_ow3 {lo : Nat} {dst pS nS : BitVec 64} {s S S' : State} (hfr : Fr lo dst pS nS s S)
+    (h112 : 112 ≤ s.sp.toNat) (hlo : lo + 352 ≤ s.sp.toNat) (hdW : dst.toNat + 32 ≤ lo ∨ s.sp.toNat + 32 ≤ dst.toNat)
+    (hOW : Fv256.UtilSa.OnlyWrites3 S.mem S'.mem dst.toNat 32 (S.sp.toNat - 240) 232 (S.sp.toNat + 8) 8)
+    (h1 : S'.sp = S.sp) (h28 : S'.regs 28 = S.regs 28) (h18 : S'.regs 18 = S.regs 18) (h29 : S'.regs 29 = S.regs 29) :
+    Fr lo dst pS nS s S' := by
+  obtain ⟨fsp, f28, f18, f29, fmf, freg, fra, ffp, fdst, fp, fn⟩ := hfr
+  have hSsp : S.sp.toNat = s.sp.toNat - 112 := by
+    rw [fsp]; have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  have hF := Fv256.UtilSa.ow3_memFrame hOW
+  have hrd : ∀ a, (a = s.sp.toNat - 112 ∨ a = s.sp.toNat - 120 ∨ a = s.sp.toNat + 8 ∨ a = s.sp.toNat + 16 ∨ a = s.sp.toNat + 24) →
+      S'.mem.readLE a 8 = S.mem.readLE a 8 := by
+    intro a ha
+    refine hF.readLE a 8 ?_
+    simp only [outside_cons, outside_nil, and_true]
+    omega
+  refine ⟨by rw [h1]; exact fsp, by rw [h28]; exact f28, by rw [h18]; exact f18, by rw [h29]; exact f29, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · refine fmf.trans hF (fun a n ho => ⟨ho, ?_⟩)
+    simp only [outside_cons, outside_nil, and_true] at ho ⊢
+    omega
+  · rw [hOW.1]; exact freg
+  · rw [hrd _ (by omega)]; exact fra
+  · rw [hrd _ (by omega)]; exact ffp
+  · rw [hrd _ (by omega)]; exact fdst
+  · rw [hrd _ (by omega)]; exact fp
+  · rw [hrd _ (by omega)]; exact fn
+
+/-- the precondition of the `MulOverflow(dst, dst, &exp)` call made from a body state `S` (memory unchanged) -/
+theorem mo_call_pre {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {dst pS nS : BitVec 64} {s S Sc : State}
+    (htop : TopPre C R R2 T b L lo hi dst pS nS s) (hlo112 : lo + 4640 ≤ s.sp.toNat) (hFr : Fr lo dst pS nS s S)
+    (hsp : Sc.sp = S.sp) (h28 : Sc.regs 28 = S.regs 28) (hm : Sc.mem = S.mem) :
+    MoPreS dst dst (S.sp + 72#64) Sc := by
+  have htop' := htop
+  obtain ⟨h30a', h30b', h0', h1', h2', hMod, hEnv, hlo, hhi, hMult, hE1, hE2, hMa, hMo, hMr, hMb, hB1, hB2, hzP, hzW, hzR, hzPr, hzS,
+    hzg, hPA, hP48, hPW, hPZ, hCh⟩ := htop'
+  obtain ⟨hr1, hr2, hr3, hr4, hr5, hr6, hr7, hr8, hr9, hr10, hr11, hr12, hr13, hr14, -⟩ := hEnv
+  have hSsp : S.sp.toNat = s.sp.toNat - 112 := by
+    obtain ⟨fsp, -⟩ := hFr
+    rw [fsp]; have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  obtain ⟨fsp, f28, f18, f29, fmf, -⟩ := hFr
+  have hz72 : (S.sp + 72#64).toNat = S.sp.toNat + 72 := by
+    rw [BitVec.toNat_add]; simp only [BitVec.toNat_ofNat]
+    exact Nat.mod_eq_of_lt (by have := S.sp.isLt; omega)
+  have hspn : Sc.sp.toNat = S.sp.toNat := by rw [hsp]
+  have hr28 : (Sc.regs 28).toNat = (s.regs 28).toNat := by rw [h28, f28]
+  have hacc : Sc.mem.accessible (S.sp.toNat - 240) 256 true = true := by
+    rw [hm, fmf.accessible]
+    exact Janus.Arm64.Memory.accessible_sub _ hr5 (Or.inr rfl) (by omega) (by omega)
+  have haccW : Sc.mem.accessible (S.sp.toNat + 72) 32 true = true := by
+    rw [hm, fmf.accessible]
+    exact Janus.Arm64.Memory.accessible_sub _ hr5 (Or.inr rfl) (by omega) (by omega)
+  have hrd : Sc.mem.readLE ((s.regs 28).toNat + 16) 8 = s.mem.readLE ((s.regs 28).toNat + 16) 8 := by
+    rw [hm]
+    exact fmf.readLE ((s.regs 28).toNat + 16) 8 (by simp only [outside_cons, outside_nil, and_true]; omega)
+  have hdz : Sc.mem.accessible dst.toNat 32 true = true := by rw [hm, fmf.accessible]; exact hzP.1
+  have hd1 : Disjoint dst.toNat 32 (S.sp.toNat - 240) 256 := by unfold Disjoint; omega
+  have hd2 : Disjoint (S.sp + 72#64).toNat 32 (S.sp.toNat - 240) 256 := by unfold Disjoint; rw [hz72]; omega
+  unfold MoPreS
+  refine ⟨?_, ?_, ⟨hdz, hzP.2⟩, ⟨Janus.Arm64.Memory.accessible_sub _ hdz (Or.inl rfl) (Nat.le_refl _) (Nat.le_refl _), hzP.2⟩,
+    ⟨by rw [hz72]; exact Janus.Arm64.Memory.accessible_sub _ haccW (Or.inl rfl) (Nat.le_refl _) (Nat.le_refl _), by rw [hz72]; omega⟩,
+    Or.inl rfl, Or.inr (by unfold Disjoint32 Disjoint; rw [hz72]; omega), Or.inr (by unfold Disjoint32 Disjoint; rw [hz72]; omega),
+    by rw [hspn]; exact hd1, by rw [hspn]; exact hd1, by rw [hspn]; exact hd2⟩
+  · refine ⟨by rw [hr28]; exact hr6, by rw [hm, fmf.accessible, hr28]; exact hr7, ?_⟩
+    rw [hr28, hrd, hspn]; omega
+  · refine ⟨by omega, by omega, by omega, ?_⟩
+    rw [hspn]; exact hacc
+
+/-- `Fr` is kept by a change confined to `ws`, a subrange of the frame window that avoids the saved/argument slots -/
+theorem fr_gen {lo : Nat} {dst pS nS : BitVec 64} {s S S' : State} {ws : List (Nat × Nat)} (hfr : Fr lo dst pS nS s S)
+    (hF : MemFrame S.mem S'.mem ws) (hreg : S'.mem.regions = S.mem.regions)
+    (hws : ∀ a n, Outside a n [(lo, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32), (dst.toNat, dst.toNat + 32)] → Outside a n ws)
+    (hrd : ∀ a, (a = s.sp.toNat - 112 ∨ a = s.sp.toNat - 120 ∨ a = s.sp.toNat + 8 ∨ a = s.sp.toNat + 16 ∨ a = s.sp.toNat + 24) →
+      Outside a 8 ws)
+    (h1 : S'.sp = S.sp) (h28 : S'.regs 28 = S.regs 28) (h18 : S'.regs 18 = S.regs 18) (h29 : S'.regs 29 = S.regs 29) :
+    Fr lo dst pS nS s S' := by
+  obtain ⟨fsp, f28, f18, f29, fmf, freg, fra, ffp, fdst, fp, fn⟩ := hfr
+  refine ⟨by rw [h1]; exact fsp, by rw [h28]; exact f28, by rw [h18]; exact f18, by rw [h29]; exact f29,
+    fmf.trans hF (fun a n ho => ⟨ho, hws a n ho⟩), by rw [hreg]; exact freg, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hF.readLE _ _ (hrd _ (Or.inl rfl))]; exact fra
+  · rw [hF.readLE _ _ (hrd _ (Or.inr (Or.inl rfl)))]; exact ffp
+  · rw [hF.readLE _ _ (hrd _ (Or.inr (Or.inr (Or.inl rfl))))]; exact fdst
+  · rw [hF.readLE _ _ (hrd _ (Or.inr (Or.inr (Or.inr (Or.inl rfl)))))]; exact fp
+  · rw [hF.readLE _ _ (hrd _ (Or.inr (Or.inr (Or.inr (Or.inr rfl)))))]; exact fn
+
 end Fv256.Arm64.ScanSciSpec

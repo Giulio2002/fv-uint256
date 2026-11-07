@@ -165,4 +165,12 @@ theorem seg_entry (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b
       · rw [hpc2]; simp [setReg_apply, h_sci]
       · rw [h30]; simp [setReg_apply, h_sci]
 
+/-- the summary of `scanScientificFromString` (conditional on the callee summaries) -/
+theorem sci_summary (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (dst pS nS : BitVec 64)
+    (hsfd : HSfd impl R R2 T) (hexp : HExp impl) (hmo : HMo impl)
+    (hibs : Fv256.IndexByte.IbsLib64 (Extracted.program.link impl) ibsEntry) :
+    Summary (Extracted.program.link impl) sciEntry (Pre0 R R2 T b L lo hi dst pS nS) (SciPost cfg R R2 T b L lo hi dst pS nS) :=
+  fun s hpc hpre => seg_entry impl R R2 T b L lo hi dst pS nS hsfd hexp hmo hibs s hpc hpre
+
 end Fv256.Arm64.ScanSci

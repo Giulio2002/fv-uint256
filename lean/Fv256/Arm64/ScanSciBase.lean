@@ -179,6 +179,10 @@ theorem indexOfNat_congr (b b' : Nat → Nat) (n c : Nat) (h : ∀ k, k < n → 
   rw [find_congr (fun i => b i == c % 256) (fun i => b' i == c % 256) _ (fun x hx => by simp only [h x (List.mem_range.1 hx)])]
 
 
+abbrev errBigAddr : Nat := Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range»
+
+theorem cfg_errBig : SfdCfg.errBig cfg = errBigAddr := rfl
+
 theorem hitab_ne : BitVec.ofNat 64 cfg.numErrItab ≠ 0 := by
   unfold cfg
   decide
