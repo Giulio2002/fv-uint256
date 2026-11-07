@@ -196,7 +196,7 @@ theorem bigPath_taken : NotPlain R0z R0z R0z dataV tabV chV amA amA (chV.toNat %
 open Janus.Contracts.IfaceSatAmd64 Fv256.FormatFast Fv256.Amd64.FormatFast Janus.Spec.Type in
 theorem nonvacuous_big_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
-    Fv256.Amd64.FormatWitA.pinT stack b0 zv fW fP fF fWr z tab data ch ret s rt ∧
+    Fv256.Amd64.FormatWitA.pinT stack b0 zv fW fP fF fWr z tab data ch ret s rt impl R H R2 RW RP RF RWr RFp RBf ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H ∧

@@ -18,7 +18,8 @@ abbrev ssAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring
 abbrev stAddr : Nat := Extracted.program.contractAddr "runtime.stringtoslicebyte"
 
 /-- type pins for the witnesses' existential variables (the printed statement has no binder types) -/
-def pinT (_stack _b0 _zv _fW _fP _fF _fWr : Nat) (_z _tab _data _ch : BitVec 64) (_ret : Nat) (_s : State) (_rt : List (Nat × Nat)) : Prop := True
+def pinT (_stack _b0 _zv _fW _fP _fF _fWr : Nat) (_z _tab _data _ch : BitVec 64) (_ret : Nat) (_s : State) (_rt : List (Nat × Nat)) (_impl : List Amd64.Segment) (_R : Janus.Spec.Type.IfaceModel)
+    (_H : Janus.Contracts.RtReady) (_R2 : Janus.Contracts.RtInv) (_RW _RP _RF _RWr _RFp _RBf : Janus.Contracts.ICall.Res) : Prop := True
 
 def hA : Nat := 0x600000
 def hB : Nat := 0x610000
