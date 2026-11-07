@@ -51,6 +51,14 @@ L.append("")
 for m in re.finditer(r'def (dataAddr\.«[^»]+») : Nat := (0x[0-9a-f]+)', t0):
     L.append("def %s : Nat := %s" % (m.group(1), m.group(2)))
 L.append("")
+L.append("/-- ASCII-named literal copies of the addresses the statement (`SfdTopCfg.extCfg`) mentions (the auditor rejects non-ASCII names) -/")
+alias = [("cfgIoEOF","io.EOF"),("cfgErrBig","github.com/holiman/uint256.ErrBig256Range"),("cfgMulTab","github.com/holiman/uint256.multipliers"),
+ ("cfgNumErrType","type:strconv.NumError#3eb4e62e"),("cfgNumErrItab","go:itab.*strconv.NumError,error"),("cfgErrItab","go:itab.internal/strconv.Error,error"),
+ ("cfgSynConst",".rodata#9967e7a3"),("cfgErrSyntax","strconv.ErrSyntax"),("cfgWbFlag","runtime.writeBarrier"),("cfgFnStr",".rodata#3d2a826c"),("cfgMaxStr",".rodata#575028b4")]
+dd = dict((m.group(1), m.group(2)) for m in re.finditer(r'def dataAddr\.«([^»]+)» : Nat := (0x[0-9a-f]+)', t0))
+for a, n in alias:
+    L.append("def %s : Nat := %s" % (a, dd[n]))
+L.append("")
 L.append("end Fv256.Amd64.SfdProg")
 open(out, "w").write("\n".join(L) + "\n")
 print("ok", len(L))

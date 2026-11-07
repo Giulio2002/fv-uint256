@@ -316,4 +316,17 @@ def dataAddr.«strconv.ErrSyntax→data» : Nat := 0x5b7f10
 def dataAddr.«github.com/holiman/uint256.multipliers» : Nat := 0x5b8580
 def dataAddr.«runtime.writeBarrier» : Nat := 0x5def20
 
+/-- ASCII-named literal copies of the addresses the statement (`SfdTopCfg.extCfg`) mentions (the auditor rejects non-ASCII names) -/
+def cfgIoEOF : Nat := 0x5b7c50
+def cfgErrBig : Nat := 0x5b7ba0
+def cfgMulTab : Nat := 0x5b8580
+def cfgNumErrType : Nat := 0x4d78a0
+def cfgNumErrItab : Nat := 0x4f1a00
+def cfgErrItab : Nat := 0x4f19e0
+def cfgSynConst : Nat := 0x4f09f0
+def cfgErrSyntax : Nat := 0x5b7ef0
+def cfgWbFlag : Nat := 0x5def20
+def cfgFnStr : Nat := 0x4e6568
+def cfgMaxStr : Nat := 0x4ef9b4
+
 end Fv256.Amd64.SfdProg
