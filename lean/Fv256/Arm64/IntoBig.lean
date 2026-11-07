@@ -213,9 +213,7 @@ def csW1 : State := { s0 with pc := BitVec.ofNat 64 (Extracted.program.contractA
 def csW2 : State := { s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") }
 
 set_option maxRecDepth 100000 in
-theorem csNew_pre : NewobjectPre 4096 csNew ∧ StackRoom csNew 4096 1 ∧
-    LiveAt R (Extracted.program.contractAddr "runtime.newobject") [(csNew.regs 0).toNat] [] 0x400 (newobjectRound csNew)
-      (csNew.regs 28).toNat csNew.mem (calleeStack csNew 4096 1) := by
+theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew := by
   refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), typeOK_of (by decide) (by decide), by decide⟩, ⟨guardOK_of (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩,
     ?_, inv0, by decide, liveSep_nil _, ?_⟩
   · rw [addr_new]; exact Or.inl ⟨rfl, Or.inl (by decide)⟩
@@ -225,9 +223,7 @@ theorem csNew_pre : NewobjectPre 4096 csNew ∧ StackRoom csNew 4096 1 ∧
     rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide)
 
 set_option maxRecDepth 100000 in
-theorem csW1_pre : CallOK csW1 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-    R.inv 0x400 [] (csW1.regs 28).toNat (view R.rt [] csW1.mem) ∧
-    LiveSep [] [(csW1.sp.toNat - 4096, csW1.sp.toNat - 8)] ∧ LiveSep [(csW1.sp.toNat - 4096, csW1.sp.toNat - 8)] R.rt := by
+theorem csW1_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 csW1 := by
   refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩), inv0, liveSep_nil _, ?_⟩
   intro r hr
   rw [rt_eq]
@@ -236,9 +232,7 @@ theorem csW1_pre : CallOK csW1 4096 0 ∧ R.ok (Extracted.program.contractAddr "
   simp only [outside_cons, outside_nil]; decide
 
 set_option maxRecDepth 100000 in
-theorem csW2_pre : CallOK csW2 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
-    R.inv 0x400 [] (csW2.regs 28).toNat (view R.rt [] csW2.mem) ∧
-    LiveSep [] [(csW2.sp.toNat - 4096, csW2.sp.toNat - 8)] ∧ LiveSep [(csW2.sp.toNat - 4096, csW2.sp.toNat - 8)] R.rt := by
+theorem csW2_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 csW2 := by
   refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩), inv0, liveSep_nil _, ?_⟩
   intro r hr
   rw [rt_eq]
@@ -258,14 +252,14 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z bp : Bit
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, bp] s ∧
     Pre R b z bp s ∧ PreX z bp s ∧
-    (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectPre 4096 s_c ∧ StackRoom s_c 4096 1 ∧ LiveAt R (Extracted.program.contractAddr "runtime.newobject") [(s_c.regs 0).toNat] L b (newobjectRound s_c) (s_c.regs 28).toNat s_c.mem (calleeStack s_c 4096 1)) ∧
-    (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ CallOK s_c 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧ R.inv b L (s_c.regs 28).toNat (view R.rt L s_c.mem) ∧ LiveSep L [(s_c.sp.toNat - 4096, s_c.sp.toNat - 8)] ∧ LiveSep [(s_c.sp.toNat - 4096, s_c.sp.toNat - 8)] R.rt) ∧
-    (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ CallOK s_c 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧ R.inv b L (s_c.regs 28).toNat (view R.rt L s_c.mem) ∧ LiveSep L [(s_c.sp.toNat - 4096, s_c.sp.toNat - 8)] ∧ LiveSep [(s_c.sp.toNat - 4096, s_c.sp.toNat - 8)] R.rt) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Post R z bp s s' := by
   refine ⟨implAt, R, 0x400, zV, bpV, ret, s0, ?w0, ?w1, ?w2, hret, setup, pre, preX,
-    ⟨[], 0x400, csNew, rfl, csNew_pre⟩,
-    ⟨[], 0x400, csW1, rfl, csW1_pre⟩,
-    ⟨[], 0x400, csW2, rfl, csW2_pre⟩,
+    ⟨csNew, rfl, csNew_pre⟩,
+    ⟨csW1, rfl, csW1_pre⟩,
+    ⟨csW2, rfl, csW2_pre⟩,
     correctness implAt R 0x400 zV bpV ?w0 ?w1 ?w2 ret hret s0 setup ⟨pre, preX⟩⟩
   case w0 => exact by rw [addr_new]; exact model_new
   case w1 => exact by rw [addr_w1]; exact model_wb1
