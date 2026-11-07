@@ -72,3 +72,7 @@ theorem sfd_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
           (ret_of_ctx hctx (by decide) hlo72 hpost.1.1) hpost (Fv256.TopMath.decParse_eq _ _ heq hlex)
 
 end Fv256.Amd64.SfdTop
+
+#print axioms Fv256.Amd64.SfdTop.sfd_sum
+#print axioms Fv256.Amd64.SfdFd.fd_sum
+#print axioms Fv256.Amd64.SfdPw.pw_sum
