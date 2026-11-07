@@ -26,6 +26,20 @@ for a in arm64 amd64; do
 done
 (cd go && GOTOOLCHAIN=go1.26.0 GOAMD64=v3 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build -trimpath -buildvcs=false -o ../build/harness-amd64v3 ./cmd/harness) || { echo "harness build failed (amd64 v3)"; exit 2; }
 fi
+# the binary under verification is pinned: build/harness-* must hash to scripts/harness.sha256 (checked even with SKIP_HARNESS). FAIL LOUDLY otherwise.
+hbad=0
+while read -r h name; do
+  case "$h" in ''|\#*) continue;; esac
+  got="$(sha256sum "build/$name" 2>/dev/null | awk '{print $1}')"
+  if [ "$got" != "$h" ]; then
+    echo "HARNESS MISMATCH: build/$name has sha256 ${got:-<missing>}, expected $h (scripts/harness.sha256)." >&2
+    hbad=1
+  fi
+done < "$root/scripts/harness.sha256"
+if [ "$hbad" != 0 ]; then
+  echo "The library programs are tied to the pinned harness layout. Do NOT regenerate libraries or re-verify silently: restore go/, GOTOOLCHAIN=go1.26.0 and the flags in scripts/harness.sha256, or change them deliberately and re-verify everything." >&2
+  exit 3
+fi
 # A row whose per-ISA status is `todo` or `in progress (...)` is reported as MISSING and makes the run FAIL (never skipped silently).
 # rows: | `(*uint256.Int).Fn` | owner | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
 mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
