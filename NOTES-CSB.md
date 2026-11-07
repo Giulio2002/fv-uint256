@@ -29,3 +29,8 @@ Extracted-free lean check: LEAN_PATH=/srv/janus-csb/.lake/build/lib/lean:/srv/fv
 Delete /srv/janus-ops/jcache-csb at the end. Never push.
 
 ## Baseline IntoBig audit result (crow.sh, cold, 00:00-00:23): rc=1 after 1384 s, but build/log-amd64-IntoBig holds ONLY the extraction output (no verify/auditor text was captured). Cause unknown (verify stderr lost, or heavy-run/memcap exit). The successor must rerun with crow2.sh and capture output (e.g. add `2>&1 | tee`) and check `dmesg`/memcap for an OOM kill. The cold framework build (~20 min) is now in jcache-csb; fwstore not populated by this run.
+
+## IMPORTANT audit finding from FV-CSA (on 8615b09c), UNVERIFIED by me
+A call-site conjunct whose pre is a multi-part `A ∧ B ∧ C` is rejected even with the exact text: the auditor flattens the witness into [pc, A, B, C] but calls `findConj (And A B)` on the WHOLE pre, so only a pre that is ONE conjunct matches (WriteTo's single ICallPre works).
+Proposed workaround (FV-CSA is testing it; confirm with them): wrap each multi-part pre in an `@[reducible] def` (e.g. `NewSite R addr stack L b s := NewobjectPre64 stack s ∧ StackRoom64 s stack 1 ∧ LiveAt ...`) and write the conjunct as `∃ Lc bc s_c, s_c.rip = ofNat addr ∧ NewSite ...`.
+My generated conjuncts (Live block, csNew-type ones with two-part pre such as `NewobjectPre64 ∧ Ready64`, ifaceeq, memmove, IntoBig/ToBig, EncodeRLP newobject) use the multi-part form, so they must be changed to the wrapped-def form if the workaround is confirmed. Audit-only takes ~25 s once fwstore is warm.
