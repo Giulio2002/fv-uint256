@@ -3,7 +3,7 @@ import Fv256.Amd64.FormatWitA
 import Fv256.Amd64.FormatBigDefs
 
 /-!
-# Format witness, part B: the fast-path call state (amd64)
+# Format witness, big path: the call state with verb `q` (amd64)
 
 `z = 16` (decimal `16`, hexadecimal `0x10`), verb `d`, all queries answered plain by the trivial callees.
 -/
@@ -19,20 +19,6 @@ namespace Fv256.Amd64.FormatWitBig
 
 open Janus.Contracts.Toy
 
-
-/-! ### the allocator of the big path: serves `IntoBig`'s requests -/
-
-open Janus.Contracts.Toy Janus.Contracts.LiveSatAmd64 Janus.Contracts.LiveStubAmd64
-
-/-- the requests the witness runtime serves: `IntoBig`'s (two `newobject`s and the two barriers) -/
-def okBig : Nat → List Nat → Prop := fun a args =>
-  (a = newA ∧ (args = [Fv256.Amd64.IntoBig.bigType] ∨ args = [Fv256.Amd64.IntoBig.arrType])) ∨ (a = w1A ∧ args = [1]) ∨ (a = w2A ∧ args = [2])
-
-def R2b : RtInv := toyR [] okBig
-
-theorem model_newb : NewobjectLiveContract64 (Extracted.program.ofImpl implAll) newA 4096 R2b := by janus64_live_newobject
-theorem model_wb1b : WbLiveContract64 (Extracted.program.ofImpl implAll) w1A 4096 R2b 1 := by janus64_live_wb 1
-theorem model_wb2b : WbLiveContract64 (Extracted.program.ofImpl implAll) w2A 4096 R2b 2 := by janus64_live_wb 2
 
 def ret : Nat := 0x200000
 def sp0 : Nat := 0x100000
@@ -164,7 +150,7 @@ theorem find_none (a : Nat) (ha : 0x500000 ≤ a) :
   simp only [Bool.not_eq_true, decide_eq_false_iff_not]
   omega
 
-theorem inv0 : R2b.inv 0x400 [] (s0.regs 14).toNat (view R2b.rt [] s0.mem) := by
+theorem inv0 : R2.inv 0x400 [] (s0.regs 14).toNat (view R2.rt [] s0.mem) := by
   have hbump : mem0.readLE BUMP 8 = HEAP := by decide
   refine toyInv_init (m := mem0) (g := (s0.regs 14).toNat) (by decide) hbump (fun i hi hi' => ?_) (by decide) (by decide) (by decide)
   show bytes i = 0
@@ -177,23 +163,8 @@ theorem inv0 : R2b.inv 0x400 [] (s0.regs 14).toNat (view R2b.rt [] s0.mem) := by
   have e4 : ¬ i = BUMP + 3 := by simp only [BUMP]; omega
   rw [if_neg e1, if_neg e2, if_neg e3, if_neg e4]
 
-open Janus.Contracts.IfaceSatAmd64 in
-theorem pre : PreF R0 Hw R2b rtT stackN 0x400 amA amA amA amA 16 zV tabV dataV s0 := by
-  refine ⟨preRt, preCommon, fun h => absurd h (by decide), fun _ => ⟨preFastE, preFastX, hzv, inv0, ?_⟩⟩
-  show Outside _ _ (Janus.Contracts.Toy.toyRt [])
-  simp only [Janus.Contracts.Toy.toyRt, List.map_nil, List.append_nil, s0, sp0, stackN, outside_cons, outside_nil, and_true,
-    HEAP, HEND, HSIZE, BUMP, WBUF]
-  decide
-
-open Fv256.Amd64.IntoBig in
-theorem addr_new : Extracted.program.contractAddr "runtime.newobject" = newA := by decide
-theorem addr_w1 : Extracted.program.contractAddr "runtime.gcWriteBarrier1" = w1A := by decide
-theorem addr_w2 : Extracted.program.contractAddr "runtime.gcWriteBarrier2" = w2A := by decide
-
-theorem rtb_eq : R2b.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] := rfl
-
-/-- the extra facts of the big path (`BigR2`) hold at the entry state -/
-theorem bigR2 : Fv256.Amd64.FormatBig.BigR2 R2b 0x400 zV s0 := by
+open Fv256.Amd64.IntoBig Fv256.Amd64.FormatBig in
+theorem preBig : PreBigE R2 0x400 zV s0 := by
   refine ⟨by decide, ?_, by decide, ?_, ?_, ?_, ?_, ?_, ?_, ?_, by decide⟩
   · rw [rtb_eq]; simp only [s0, g0, outside_cons, outside_nil, and_true, HEND, HEAP, HSIZE, BUMP, WBUF]; decide
   · rw [rtb_eq]; simp only [outside_cons, outside_nil, and_true, HEND, HEAP, HSIZE, BUMP, WBUF]; decide
@@ -203,6 +174,14 @@ theorem bigR2 : Fv256.Amd64.FormatBig.BigR2 R2b 0x400 zV s0 := by
   · rw [addr_new]; exact Or.inl ⟨rfl, Or.inr rfl⟩
   · rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩)
   · rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩)
+
+open Janus.Contracts.IfaceSatAmd64 in
+theorem pre : PreF R0 Hw R2 rtT stackN 0x400 amA amA amA amA 16 zV tabV dataV s0 := by
+  refine ⟨preRt, preCommon, fun h => absurd h (by decide), fun _ => ⟨preFastE, preFastX, hzv, inv0, ?_, preBig⟩⟩
+  show Outside _ _ (Janus.Contracts.Toy.toyRt [])
+  simp only [Janus.Contracts.Toy.toyRt, List.map_nil, List.append_nil, s0, sp0, stackN, outside_cons, outside_nil, and_true,
+    HEAP, HEND, HSIZE, BUMP, WBUF]
+  decide
 
 open Fv256.Amd64.FormatFast Fv256.FormatFast in
 /-- with these answers (all queries plain) and the verb `q`, the code leaves the query chain for the big path: `NotPlain` holds -/
@@ -239,11 +218,11 @@ theorem nonvacuous_big_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
     PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s ∧
-    Fv256.Amd64.FormatBig.BigR2 R2 b0 z s ∧ z.toNat ≠ 0 ∧ (ch.toNat % 2 ^ 32 ≠ 100 ∧ ch.toNat % 2 ^ 32 ≠ 115 ∧ ch.toNat % 2 ^ 32 ≠ 118 ∧ ch.toNat % 2 ^ 32 ≠ 120) := by
-  refine ⟨implAll, Janus.Contracts.IfaceModel.R0, Hw, R2b, rtT, amA, amA, amA, amA, stackN, 0x400, 16, R0z, R0z, R0z, R0z, R0z, R0z, zV, tabV, dataV, chV, ret, s0,
-    implOK, Janus.Contracts.IfaceModel.R0_laws, model_ta, model_newb, model_wb1b, model_wb2b, model1, model2, by decide,
+    z.toNat ≠ 0 ∧ NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) := by
+  refine ⟨implAll, Janus.Contracts.IfaceModel.R0, Hw, R2, rtT, amA, amA, amA, amA, stackN, 0x400, 16, R0z, R0z, R0z, R0z, R0z, R0z, zV, tabV, dataV, chV, ret, s0,
+    implOK, Janus.Contracts.IfaceModel.R0_laws, model_ta, model_new, model_wb1, model_wb2, model1, model2, by decide,
     stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h),
     stub_am _ _ _ _ _ _ (fun _ => trivial), stub_fp _ _ _ _ _ _ (fun _ => trivial), stub_bf _ _ _ _ _ _ (fun _ => trivial),
-    by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre, bigR2, by decide, by decide⟩
+    by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre, by decide, bigPath_taken⟩
 
 end Fv256.Amd64.FormatWitBig
