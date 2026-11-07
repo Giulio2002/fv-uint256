@@ -68,4 +68,8 @@ open Janus.Contracts in
 theorem strsIn_of {m : Memory} {buf : Nat} {xs : List (Nat × Nat)} (h : ∀ x ∈ xs, StrIn m x.1 x.2) (hb : buf = 0) :
     StrsIn m buf xs := fun x hx => ⟨h x hx, fun hh => absurd hb hh⟩
 
+open Janus.Contracts in
+@[reducible] def MakesliceSite (H : RtReady) (rt : List (Nat × Nat)) (stack : Nat) (s : State) : Prop :=
+  MakeslicePre stack s ∧ Ready H rt [(s.regs 0).toNat, (s.regs 1).toNat, (s.regs 2).toNat] s
+
 end Fv256.Arm64.CallSites

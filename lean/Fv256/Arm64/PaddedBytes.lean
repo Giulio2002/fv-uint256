@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -55,6 +56,8 @@ memory is unchanged outside `rt` and the stack window. The loop is unrolled: one
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.PaddedBytes
 
@@ -327,6 +330,26 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoad
     by simp only [rt, outside_cons, outside_nil]; decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by unfold Disjoint; decide, hH⟩
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/PaddedBytes.lean
+def csMk0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 1 then 5#64 else if i = 2 then 5#64 else s0.regs i }
+/-- The call state of `runtime.makeslice` (U-WITNESS-CALLSITE): `makeslice(uint8, 5, 5)` at its entry in the caller's frame (`SP = sp0 - 48`, as in `hH`). -/
+def csMk : State := { csMk0 with sp := BitVec.ofNat 64 (sp0 - 48), pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") }
+
+set_option maxRecDepth 100000 in
+theorem csMk_pre : MakesliceSite H rt 4096 csMk := by
+  refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide),
+    typeOK_of (by decide) (by decide), by decide, by decide, by decide⟩, ?_⟩
+  have e0 : (csMk.regs 0).toNat = byteType := by
+    have hpt : byteType = tyA := by unfold tyA; decide
+    rw [hpt]; decide
+  have e1 : (csMk.regs 1).toNat = 5 := by decide
+  have e2 : (csMk.regs 2).toNat = 5 := by decide
+  have e3 : (csMk.regs 28).toNat = (s0.regs 28).toNat := by decide
+  have e4 : csMk.sp.toNat = s0.sp.toNat - 48 := by decide
+  show H [(csMk.regs 0).toNat, (csMk.regs 1).toNat, (csMk.regs 2).toNat] (csMk.regs 28).toNat csMk.sp.toNat (rtView rt csMk.mem)
+  rw [e0, e1, e2, e3, e4]
+  exact hH
+
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z n : BitVec 64),
     MakesliceContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H ∧
@@ -337,11 +360,13 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
     Outside (s.sp.toNat - 4144) 4168 rt ∧ Ptr32 s.mem z false ∧ Outside z.toNat 32 rt ∧
     Disjoint z.toNat 32 (s.sp.toNat - 4144) 4168 ∧
     H [byteType, n.toNat, n.toNat] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem)) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") ∧ MakesliceSite H rt 4096 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ (s'.regs 1).toNat = n.toNat ∧ (s'.regs 2).toNat = n.toNat ∧
         (0 < n.toNat → InRanges ptr n.toNat rt ∧ s'.mem.accessible ptr n.toNat true = true) ∧
         Spec.fromBE (fun i => s'.mem.readLE (ptr + i) 1) n.toNat = val256 s.mem z.toNat % 2 ^ (8 * n.toNat) ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre,
+    ⟨csMk, rfl, csMk_pre⟩,
     correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
 
 
