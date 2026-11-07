@@ -214,16 +214,16 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
     · rfl
 
 /-- the saved `RBP` and the return address are unchanged at the end: they are outside every frame -/
-theorem ret_reads {R : RtInv} {lo hi sp v5 vp vz ra ra' : Nat} {s0 M0 m S3m S' : Janus.Arm64.Memory}
-    (hlo : lo + 4904 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt : Outside lo (hi - lo) R.rt)
+theorem ret_reads {R : RtInv} {lo hi sp v5 vp vz ra ra' buf : Nat} {s0 M0 m S3m S' : Janus.Arm64.Memory}
+    (hb1 : sp - 72 ≤ buf) (hb2 : buf + 32 ≤ sp - 8) (hlo : lo + 4904 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt : Outside lo (hi - lo) R.rt)
     (hM0 : M0 = (((s0.writeLE (sp - 8) 8 v5).writeLE (sp + 16) 8 vp).writeLE (sp + 8) 8 vz).writeLE (sp - 104) 8 ra)
-    (hMF : MemFrame M0 m (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(sp - 40, sp - 40 + 32)]))
+    (hMF : MemFrame M0 m (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(buf, buf + 32)]))
     (hS3 : S3m = m.writeLE (sp - 104) 8 ra')
     {W : List (Nat × Nat)} (cMF : MemFrame S3m S' W) (hW : ∀ a, a = sp ∨ a = sp - 8 → Outside a 8 W) :
     S'.readLE sp 8 = s0.readLE sp 8 ∧ S'.readLE (sp - 8) 8 = v5 % 2 ^ 64 := by
   have o1 : ∀ a, a = sp ∨ a = sp - 8 → Outside a 8 W := hW
   have o2 : ∀ a, a = sp ∨ a = sp - 8 →
-      Outside a 8 (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(sp - 40, sp - 40 + 32)]) := by
+      Outside a 8 (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(buf, buf + 32)]) := by
     intro a ha
     simp only [outside_append, outside_cons, outside_nil, and_true]
     refine ⟨⟨Outside.of_sub hrt (by omega) (by omega), ?_, ?_⟩, ?_⟩ <;> omega
@@ -308,7 +308,7 @@ theorem dec_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : Li
       simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
       obtain ⟨⟨h1, h2⟩, h3, h4⟩ := h
       exact ⟨⟨h1, h3⟩, ⟨h1, h2⟩, by omega, h4⟩
-    · refine ret_reads (R := R) hlo4 hhi4 e9 hM0c hMFof hS3 cMF ?_
+    · refine ret_reads (R := R) (buf := (s.regs 4).toNat - 40) (by omega) (by omega) hlo4 hhi4 e9 hM0c hMFof hS3 cMF ?_
       intro a ha
       simp only [outside_append, outside_cons, outside_nil, and_true]
       refine ⟨⟨Outside.of_sub e9 (by omega) (by omega), Outside.of_sub e10 (by omega) (by omega)⟩, ?_, ?_⟩ <;> omega
