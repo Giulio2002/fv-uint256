@@ -115,4 +115,52 @@ theorem z_store2 (m : Memory) (zz v r rv : Nat) (hv : v < 2 ^ 64) (hd : zz + 32 
   rw [Memory.readLE_writeLE_of_disjoint _ _ hd]
   exact z_store1 m zz v hv
 
+open Janus.Arm64 in
+theorem z_store3 (m : Memory) (zz a2 v r rv : Nat) (ha : a2 = zz + 16) (hv : v < 2 ^ 64) (hd : zz + 32 ≤ r ∨ r + 8 ≤ zz) :
+    ((((m.writeLE zz 16 0).writeLE a2 16 0).writeLE zz 8 v).writeLE r 8 rv).readLE zz 32 = v := by
+  subst ha; exact z_store2 m zz v r rv hv hd
+
+open Janus.Arm64 in
+/-- the four-limb `add`/`adc` chain of `fromDecimal` stores `(X + Y) mod 2^256` at `z` -/
+theorem add4 (M : Memory) (z x0 x1 x2 x3 y0 y1 y2 y3 : Nat) (hx0 : x0 < 2 ^ 64) (hx1 : x1 < 2 ^ 64) (hx2 : x2 < 2 ^ 64)
+    (hx3 : x3 < 2 ^ 64) (hy0 : y0 < 2 ^ 64) (hy1 : y1 < 2 ^ 64) (hy2 : y2 < 2 ^ 64) (hy3 : y3 < 2 ^ 64) :
+    (((((M.writeLE z 8 (y0 + x0)).writeLE (z + 8) 8 (y1 + x1 + (decide (2 ^ 64 ≤ y0 + x0)).toNat)).writeLE (z + 16) 8
+      (y2 + x2 + (decide (2 ^ 64 ≤ y1 + x1 + (decide (2 ^ 64 ≤ y0 + x0)).toNat)).toNat)).writeLE (z + 24) 8
+      (x3 + y3 + (decide (2 ^ 64 ≤ y2 + x2 + (decide (2 ^ 64 ≤ y1 + x1 + (decide (2 ^ 64 ≤ y0 + x0)).toNat)).toNat)).toNat))).readLE z 32 =
+    ((x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3) + (y0 + 2 ^ 64 * y1 + 2 ^ 128 * y2 + 2 ^ 192 * y3)) % 2 ^ 256 := by
+  have ins : ∀ (M : Memory) (a n b k v : Nat), a ≤ b → b + k ≤ a + n → (M.writeLE a n v).readLE b k = v / 256 ^ (b - a) % 256 ^ k :=
+    fun M a n b k v h1 h2 => Memory.readLE_writeLE_inside M v h1 h2
+  have h8 : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+  rw [Fv256.Util.readLE_32]
+  generalize hc0 : (decide (2 ^ 64 ≤ y0 + x0)).toNat = c0
+  generalize hc1 : (decide (2 ^ 64 ≤ y1 + x1 + c0)).toNat = c1
+  generalize hc2 : (decide (2 ^ 64 ≤ y2 + x2 + c1)).toNat = c2
+  have k0 : (c0 = 1 ∧ 2 ^ 64 ≤ y0 + x0) ∨ (c0 = 0 ∧ y0 + x0 < 2 ^ 64) := by
+    by_cases h : 2 ^ 64 ≤ y0 + x0 <;> simp [h] at hc0 ⊢ <;> omega
+  have k1 : (c1 = 1 ∧ 2 ^ 64 ≤ y1 + x1 + c0) ∨ (c1 = 0 ∧ y1 + x1 + c0 < 2 ^ 64) := by
+    by_cases h : 2 ^ 64 ≤ y1 + x1 + c0 <;> simp [h] at hc1 ⊢ <;> omega
+  have k2 : (c2 = 1 ∧ 2 ^ 64 ≤ y2 + x2 + c1) ∨ (c2 = 0 ∧ y2 + x2 + c1 < 2 ^ 64) := by
+    by_cases h : 2 ^ 64 ≤ y2 + x2 + c1 <;> simp [h] at hc2 ⊢ <;> omega
+  simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self, h8]
+  simp only [Nat.reducePow]
+  omega
+
+open Janus.Arm64 in
+/-- two 16-byte zero stores zero a 32-byte buffer -/
+theorem zero32 (M : Memory) (z : Nat) : ((M.writeLE (z + 16) 16 0).writeLE z 16 0).readLE z 32 = 0 := by
+  have ins : ∀ (M : Memory) (a n b k v : Nat), a ≤ b → b + k ≤ a + n → (M.writeLE a n v).readLE b k = v / 256 ^ (b - a) % 256 ^ k :=
+    fun M a n b k v h1 h2 => Memory.readLE_writeLE_inside M v h1 h2
+  rw [Fv256.Util.readLE_32]
+  have e1 : ((M.writeLE (z + 16) 16 0).writeLE z 16 0).readLE z 8 = 0 := by
+    rw [ins _ z 16 z 8 0 (by omega) (by omega)]; simp
+  have e2 : ((M.writeLE (z + 16) 16 0).writeLE z 16 0).readLE (z + 8) 8 = 0 := by
+    rw [ins _ z 16 (z + 8) 8 0 (by omega) (by omega)]; simp
+  have e3 : ((M.writeLE (z + 16) 16 0).writeLE z 16 0).readLE (z + 16) 8 = 0 := by
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint]
+    rw [ins _ (z + 16) 16 (z + 16) 8 0 (by omega) (by omega)]; simp
+  have e4 : ((M.writeLE (z + 16) 16 0).writeLE z 16 0).readLE (z + 24) 8 = 0 := by
+    simp (disch := omega) only [Memory.readLE_writeLE_of_disjoint]
+    rw [ins _ (z + 16) 16 (z + 24) 8 0 (by omega) (by omega)]; simp
+  rw [e1, e2, e3, e4]
+
 end Fv256.I

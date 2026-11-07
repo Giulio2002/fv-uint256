@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -22,8 +22,8 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdPw
 
-abbrev pw : Nat := segAddr Extracted.program "strconv.ParseUint"
-abbrev fnStr : Nat := Extracted.dataAddr.«.rodata#3d2a826c»
+abbrev pw : Nat := segAddr Fv256.Amd64.SfdProg.program "strconv.ParseUint"
+abbrev fnStr : Nat := Fv256.Amd64.SfdProg.dataAddr.«.rodata#3d2a826c»
 
 open Fv256.C in
 def PwPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (p len : BitVec 64)
@@ -37,7 +37,8 @@ def PwPost (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
     (s s' : State) : Prop :=
   Kept s s' ∧
   ((allDec (bytesAt s.mem p.toNat) 0 len.toNat ∧ (s'.regs 0).toNat = decSum (bytesAt s.mem p.toNat) 0 len.toNat ∧
-      s'.regs 3 = 0 ∧ s'.regs 1 = 0 ∧ Env R R2 T b L lo hi s' ∧ MemFrame s.mem s'.mem [(lo, hi)]) ∨
+      s'.regs 3 = 0 ∧ s'.regs 1 = 0 ∧ Env R R2 T b L lo hi s' ∧
+      MemFrame s.mem s'.mem [((s.regs 4).toNat - 96, (s.regs 4).toNat + 40)]) ∨
    (¬ allDec (bytesAt s.mem p.toNat) 0 len.toNat ∧ s'.regs 0 = 0 ∧
       (∃ (q : Nat) (t : BitVec 64), s'.regs 3 = BitVec.ofNat 64 numErrItab ∧ s'.regs 1 = t ∧
         TeObj R b L (BitVec.ofNat 64 fnStr) 9#64 p len s s' q t.toNat) ∧
@@ -48,19 +49,19 @@ set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 20000 in
 theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (p len : BitVec 64)
-    (hif : Ifaceeq (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
-    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
-    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
-    (hmv : MemmoveLive64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
-    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
-    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
-    Summary (Extracted.program.link impl) pw (PwPre R R2 T b L lo hi p len) (PwPost R R2 T b L lo hi p len) := by
+    (hif : Ifaceeq (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
+    Summary (Fv256.Amd64.SfdProg.program.link impl) pw (PwPre R R2 T b L lo hi p len) (PwPost R R2 T b L lo hi p len) := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, hl1, hl2, hMod, hEnv, hlo, hhi, hCh⟩
   have hte := te_sum impl R R2 hMod.1 T b L (BitVec.ofNat 64 fnStr) 9#64 p len hif hnew hmg hmv hwb1 hwb2
   have hEnv' := hEnv
@@ -73,7 +74,7 @@ theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
   intro S1 hS1
   have hrsp1 : (S1.regs 4).toNat = (s.regs 4).toNat - 88 := by
     subst hS1; simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff]; rw [BitVec.toNat_sub]; simp; omega
-  have hSf : MemFrame s.mem S1.mem [((s.regs 4).toNat - 88, (s.regs 4).toNat + 48)] := by
+  have hSf : MemFrame s.mem S1.mem [((s.regs 4).toNat - 96, (s.regs 4).toNat + 40)] := by
     subst hS1; dsimp only; janus_frame
   have hret1 : S1.mem.readLE (S1.regs 4).toNat 8 = 4771367 := by
     rw [hrsp1]; subst hS1; dsimp only
@@ -107,12 +108,16 @@ theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
       have hrsp' : (s.regs 4 - 88#64).toNat = (s.regs 4).toNat - 88 := by
         rw [BitVec.toNat_sub]; simp; omega
       simp only [calleeStack, setRegF_apply, reduceIte, Nat.reduceEqDiff, hrsp'] at hfr
-      have hfinF : MemFrame s.mem s'.mem [(lo, hi)] := hSf.trans hfr (by
+      have hfinT : MemFrame s.mem s'.mem [((s.regs 4).toNat - 96, (s.regs 4).toNat + 40)] := hSf.trans hfr (by
+        intro a n h
+        simp only [outside_cons, outside_nil, and_true] at h ⊢
+        omega)
+      have hfinF : MemFrame s.mem s'.mem [(lo, hi)] := hfinT.mono (by
         intro a n h
         simp only [outside_cons, outside_nil, and_true] at h ⊢
         omega)
       janus64_run
-      refine ⟨⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩, Or.inl ⟨?_, ?_, ?_, ?_, ?_, hfinF⟩⟩
+      refine ⟨⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩, Or.inl ⟨?_, ?_, ?_, ?_, ?_, hfinT⟩⟩
       · simp only [retAddrOf]
       · simp [setRegF_apply]
       · simp [setRegF_apply]
