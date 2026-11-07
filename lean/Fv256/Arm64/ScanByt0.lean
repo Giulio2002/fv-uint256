@@ -217,4 +217,121 @@ theorem byt_top0 {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L L
       · exact Or.inr (InRanges.sub h h1 (by omega))
     · exact Outside.of_sub hsP' h1 (by omega)
 
+
+/-- the facts about the state `S2` after `string(b)` (the live `slicebytetostring` contract, buffer `sp - 40`), in the form the
+engine leaves them -/
+theorem byt_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI r0 r1 : BitVec 64} {s S1 S2 : State}
+    (hpre : PreB C sb st R R2 T b L lo hi z pI nI s) (hlo : lo + 4720 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
+    (hF1 : MemFrame s.mem S1.mem [(lo, hi)])
+    (hmf : MemFrame S1.mem S2.mem (R.rt ++ [(s.sp.toNat - 80 - 4096, s.sp.toNat - 80 - 8),
+      (s.sp.toNat - 80 + 8, s.sp.toNat - 80 + 8 + 24)] ++
+      if s.sp.toNat - 40 = 0 then [] else [(s.sp.toNat - 40, s.sp.toNat - 40 + 32)]))
+    (hsoa : (r1.toNat = (strBytes S1.mem pI.toNat nI.toNat).length ∧ r0.toNat + r1.toNat ≤ 2 ^ 48 ∧
+        (0 < r1.toNat → s.mem.accessible r0.toNat r1.toNat false = true) ∧
+        strBytes S2.mem r0.toNat r1.toNat = strBytes S1.mem pI.toNat nI.toNat) ∧
+      StrAt R.rt (s.sp.toNat - 40) st pI.toNat r1.toNat r0.toNat S1.mem)
+    (hlf : LiveFrame S1.mem S2.mem L (if s.sp.toNat - 40 = 0 then [] else [(s.sp.toNat - 40, s.sp.toNat - 40 + 32)]))
+    (hfr : FreshFrom (if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then
+        (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) L)
+    (hinv : R.inv (b - roundupsize nI.toNat true)
+      (L ++ ((if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then
+          (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) ++
+        (if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then []
+         else if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)])))
+      (s.regs 28).toNat (view R.rt (L ++ ((if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then
+          (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) ++
+        (if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then []
+         else if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]))) S2.mem))
+    (hr0 : S2.regs 0 = z) (hr1 : S2.regs 1 = r0) (hr2 : S2.regs 2 = r1) (hsp2 : S2.sp = s.sp - 80#64)
+    (hr28 : S2.regs 28 = s.regs 28) :
+    TopPre0 C R R2 T (b - roundupsize nI.toNat true) (L ++ (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)]))
+      lo (s.sp.toNat - 40) z r0 nI S2 ∧
+    (∀ k, k < nI.toNat → S2.mem.readLE (r0.toNat + k) 1 = s.mem.readLE (pI.toNat + k) 1) ∧
+    MemFrame s.mem S2.mem (R.rt ++ [(lo, hi)]) := by
+  obtain ⟨hSO, hSA⟩ := hsoa
+  have hpre' := hpre
+  obtain ⟨hMod, hEnv, hok, hcost, hstW, hstR, hstP, hstZ, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
+    hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hRW, hchunk⟩ := hpre'
+  have hEnv' := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
+  have hbne : s.sp.toNat - 40 ≠ 0 := by omega
+  rw [if_neg hbne] at hmf hlf
+  have hn : r1.toNat = nI.toNat := by rw [hSO.1]; simp
+  have hr2' : S2.regs 2 = nI := by rw [hr2]; exact BitVec.eq_of_toNat_eq hn
+  have hF : MemFrame s.mem S2.mem (R.rt ++ [(lo, hi)]) := by
+    refine hF1.trans hmf (fun a n h => ?_)
+    simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+    obtain ⟨h1, h2⟩ := h
+    exact ⟨h2, ⟨⟨h1, by omega, by omega⟩, by omega⟩⟩
+  have hadds : ((if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then
+          (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) ++
+        (if 2 ≤ r1.toNat ∧ (s.sp.toNat - 40 = 0 ∨ 32 < r1.toNat) then []
+         else if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)])) =
+      (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)]) := by
+    rw [adds_eq, hn]
+  rw [hadds] at hinv
+  rw [hn] at hSO hSA
+  have hr28n : (S2.regs 28).toNat = (s.regs 28).toNat := by rw [hr28]
+  have hMod' := hMod
+  obtain ⟨-, -, -, -, -, hLpriv, -⟩ := hMod'
+  have hstW' : Outside st 2048 [(lo, hi)] := hstW
+  have hprt : ∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt := hMod.2.2.2.2.1
+  have hpwf : ∀ r ∈ R2.priv, r.1 ≤ r.2 := hInit.2.2.2.2
+  by_cases hz0 : nI.toNat = 0
+  · rw [if_pos hz0] at hinv ⊢
+    refine ⟨?_, fun k hk => absurd hk (by omega), hF⟩
+    refine byt_top0 C hpre hlo hhi (hi3 := s.sp.toNat - 40) (Nat.le_refl _) (by omega) hr0 hr1 hr2' hsp2 hr28 hF
+      (L' := L ++ []) (fun r hr => List.mem_append_left _ hr) ?_ ?_ ⟨by have := hSO.2.1; omega, Or.inl hz0⟩
+      (Or.inl hz0) (Or.inl hz0) (Or.inl hz0) (Or.inl hz0) rfl (by rw [hr28n]; exact hinv)
+    · intro r hr
+      have h := e18 r (by simpa using hr)
+      simp only [outside_cons, outside_nil, and_true] at h ⊢
+      omega
+    · intro r hr
+      exact hLpriv r (by simpa using hr)
+  · have hpos : 0 < nI.toNat := Nat.pos_of_ne_zero hz0
+    have hfr' : 32 < nI.toNat → ApartAll r0.toNat nI.toNat L := by
+      intro h32
+      have := hfr
+      rw [hn] at this
+      rw [if_pos (by omega), if_neg hz0] at this
+      simpa using this _ (List.mem_singleton_self _)
+    obtain ⟨hlw, hlp, hlz⟩ := loc (hi3 := s.sp.toNat - 40) hSA hpos (by omega) (by omega)
+      (Nat.le_refl _) (by omega) e9 e10 hpwf hprt hstW' hstP hstZ hzwin hzR hbne hfr'
+    rw [if_neg hz0] at hinv ⊢
+    have hbytes : ∀ k, k < nI.toNat → S2.mem.readLE (r0.toNat + k) 1 = s.mem.readLE (pI.toNat + k) 1 := by
+      intro k hk
+      have hq := congrArg (fun l => l.getD k 0) hSO.2.2.2
+      rw [strBytes_getD _ _ _ _ (by omega), strBytes_getD _ _ _ _ (by omega)] at hq
+      have e := hF1.readLE (pI.toNat + k) 1 (by
+        have := hiwin
+        simp only [outside_cons, outside_nil, and_true]; omega)
+      rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at e
+      rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one, hq, e]
+    refine ⟨?_, hbytes, hF⟩
+    have hlw2 : r0.toNat + nI.toNat ≤ lo ∨ s.sp.toNat - 40 ≤ r0.toNat := by
+      have h := hlw
+      simp only [outside_cons, outside_nil, and_true] at h
+      exact h
+    refine byt_top0 C hpre hlo hhi (hi3 := s.sp.toNat - 40) (Nat.le_refl _) (by omega) hr0 hr1 hr2' hsp2 hr28 hF
+      (L' := L ++ [(r0.toNat, r0.toNat + nI.toNat)]) (fun r hr => List.mem_append_left _ hr) ?_ ?_
+      ⟨by have := hSO.2.1; omega, Or.inr (by rw [hF.accessible]; exact hSO.2.2.1 hpos)⟩
+      (Or.inr hlw2) (Or.inr hlz) ?_ (Or.inr hlp) rfl (by rw [hr28n]; exact hinv)
+    · intro r hr
+      rcases List.mem_append.1 hr with h | h
+      · have := e18 r h
+        simp only [outside_cons, outside_nil, and_true] at this ⊢
+        omega
+      · simp only [List.mem_singleton] at h
+        subst h
+        rw [Nat.add_sub_cancel_left]; exact hlw
+    · intro r hr
+      rcases List.mem_append.1 hr with h | h
+      · exact hLpriv r h
+      · simp only [List.mem_singleton] at h
+        subst h
+        rw [Nat.add_sub_cancel_left]; exact hlp
+    · exact Or.inr (Or.inr ⟨(r0.toNat, r0.toNat + nI.toNat), List.mem_append_right _ (List.mem_singleton_self _), Nat.le_refl _, Nat.le_refl _⟩)
+
 end Fv256.Arm64.ScanByt0
