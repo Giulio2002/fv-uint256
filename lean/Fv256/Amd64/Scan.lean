@@ -11,6 +11,8 @@ import Fv256.Amd64.SfdEnvC
 import Fv256.Amd64.FromDecimalSpec
 import Fv256.Amd64.ScanSpec
 import Fv256.Amd64.ScanCfg
+import Fv256.Amd64.ScanB5
+import Fv256.Amd64.ScanDisch
 
 /-!
 # `(*uint256.Int).Scan(src any) error` (amd64), conditional on the `SetFromDecimal` summary `hsfd` and `IndexByteString` `hibs`
@@ -42,6 +44,8 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
           Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧ Extracted.program.DataLoaded s.mem)
       (fun s s' => ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
           Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s') := by
-  sorry
+  exact Fv256.Amd64.ScanB.correctness_cond impl R R2 T b L lo hi dst tw dw hnew hsb (Fv256.Amd64.ScanDisch.disch_ibs impl)
+    (Fv256.Amd64.ScanDisch.disch_sfd impl R R2 T hif hnew hmg hmv hwb1 hwb2 hcmp) (Fv256.Amd64.ScanDisch.disch_exp impl)
+    (Fv256.Amd64.ScanDisch.disch_mo impl)
 
 end Fv256.Amd64.Scan
