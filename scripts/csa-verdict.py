@@ -6,5 +6,6 @@ inv=re.findall(r'=== (\S+): FAILED ===\s*\nInvalid: (.*)',t)
 bad=[(n,m) for n,m in inv if not re.search(r'depends on disallowed axioms: sorryAx',m)] if mode=='audit' else inv
 if errs: print('VERDICT COMPILE-ERR'); print('\n'.join(errs[:8]))
 elif bad: print('VERDICT REJECT'); [print(n,m[:900]) for n,m in bad[:6]]
-elif re.search(r'\bValid\b|PASS|verified',t) or mode=='audit': print('VERDICT AUDIT-PASS' if mode=='audit' else 'VERDICT FULL-PASS')
+elif mode=='audit': print('VERDICT AUDIT-PASS')
+elif 'rc=0' in open(sys.argv[1][:-4]+'.raw',errors='replace').read(): print('VERDICT FULL-PASS')
 else: print('VERDICT UNKNOWN')
