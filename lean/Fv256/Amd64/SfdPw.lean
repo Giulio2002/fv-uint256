@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -22,8 +22,8 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdPw
 
-abbrev pw : Nat := segAddr Extracted.program "strconv.ParseUint"
-abbrev fnStr : Nat := Extracted.dataAddr.«.rodata#3d2a826c»
+abbrev pw : Nat := segAddr Fv256.Amd64.SfdProg.program "strconv.ParseUint"
+abbrev fnStr : Nat := Fv256.Amd64.SfdProg.dataAddr.«.rodata#3d2a826c»
 
 open Fv256.C in
 def PwPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (p len : BitVec 64)
@@ -49,19 +49,19 @@ set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 20000 in
 theorem pw_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (p len : BitVec 64)
-    (hif : Ifaceeq (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
-    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
-    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
-    (hmv : MemmoveLive64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
-    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
-    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
-    Summary (Extracted.program.link impl) pw (PwPre R R2 T b L lo hi p len) (PwPost R R2 T b L lo hi p len) := by
+    (hif : Ifaceeq (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2) :
+    Summary (Fv256.Amd64.SfdProg.program.link impl) pw (PwPre R R2 T b L lo hi p len) (PwPost R R2 T b L lo hi p len) := by
   intro s hpc ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, h7, hl1, hl2, hMod, hEnv, hlo, hhi, hCh⟩
   have hte := te_sum impl R R2 hMod.1 T b L (BitVec.ofNat 64 fnStr) 9#64 p len hif hnew hmg hmv hwb1 hwb2
   have hEnv' := hEnv

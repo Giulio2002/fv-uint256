@@ -8,7 +8,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdTop
 
-abbrev sfd : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
+abbrev sfd : Nat := segAddr Fv256.Amd64.SfdProg.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 
 /-- the state inside `SetFromDecimal`'s frame (64 bytes below the return slot), before `fromDecimal` runs:
 only the window `[lo, hi)` was written; the spill words hold BP, `z`, `pS`. -/
@@ -87,7 +87,7 @@ set_option maxRecDepth 20000 in
 theorem top_pro (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpc : s.rip = BitVec.ofNat 64 sfd)
     (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x3a)) s (PostA R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x3a)) s (PostA R R2 T b L lo hi z pS nS s) := by
   have hpre' := hpre
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hEnv0 := env_to hEnv

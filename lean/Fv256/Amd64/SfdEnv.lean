@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SumC64
@@ -17,12 +17,12 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdEnv
 
-abbrev numErrType : Nat := Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»
-abbrev numErrItab : Nat := Extracted.dataAddr.«go:itab.*strconv.NumError,error»
-abbrev errItab : Nat := Extracted.dataAddr.«go:itab.internal/strconv.Error,error»
-abbrev synConst : Nat := Extracted.dataAddr.«.rodata#9967e7a3»
-abbrev strconvErrSyntax : Nat := Extracted.dataAddr.«strconv.ErrSyntax»
-abbrev wbFlag : Nat := Extracted.dataAddr.«runtime.writeBarrier»
+abbrev numErrType : Nat := Fv256.Amd64.SfdProg.dataAddr.«type:strconv.NumError#3eb4e62e»
+abbrev numErrItab : Nat := Fv256.Amd64.SfdProg.dataAddr.«go:itab.*strconv.NumError,error»
+abbrev errItab : Nat := Fv256.Amd64.SfdProg.dataAddr.«go:itab.internal/strconv.Error,error»
+abbrev synConst : Nat := Fv256.Amd64.SfdProg.dataAddr.«.rodata#9967e7a3»
+abbrev strconvErrSyntax : Nat := Fv256.Amd64.SfdProg.dataAddr.«strconv.ErrSyntax»
+abbrev wbFlag : Nat := Fv256.Amd64.SfdProg.dataAddr.«runtime.writeBarrier»
 
 /-- the ranges `[lo, hi)` the static facts read (the descriptor `T` has `typeDescSize = 48` bytes). -/
 def staticRanges (T : Nat) : List (Nat × Nat) :=

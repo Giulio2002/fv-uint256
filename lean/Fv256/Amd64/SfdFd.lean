@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecI
@@ -22,9 +22,9 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
 
 namespace Fv256.Amd64.SfdFd
 
-abbrev fd : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).fromDecimal"
-abbrev mulTab : Nat := Extracted.dataAddr.«github.com/holiman/uint256.multipliers»
-abbrev ioEOF : Nat := Extracted.dataAddr.«io.EOF»
+abbrev fd : Nat := segAddr Fv256.Amd64.SfdProg.program "github.com/holiman/uint256.(*Int).fromDecimal"
+abbrev mulTab : Nat := Fv256.Amd64.SfdProg.dataAddr.«github.com/holiman/uint256.multipliers»
+abbrev ioEOF : Nat := Fv256.Amd64.SfdProg.dataAddr.«io.EOF»
 
 /-- the package variable `multipliers = [5]*Int{nil, 10^19, 10^38, 10^57, 10^76}` as memory holds it: the table, and the
 four `Int`s it points to, are readable, hold the powers of ten, and lie outside `z`'s buffer and the stack window. -/

@@ -26,8 +26,8 @@ theorem fd_post_call (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
     (RA : Nat) (hRA : RA = 4933783 ∨ RA = 4933806) (S1 : State) (hS1 : PwCtx s S i nS RA S1)
     (S' : State) (hpost : PwPost R R2 T b L ((s.regs 4).toNat - 4432) ((s.regs 4).toNat - 104) p len S1 S')
     (hcont : ∀ (S2 : State) (d : Nat), MidInv R R2 T b L lo hi z pS nS s i d S2 →
-      ReachesRet (Extracted.program.link impl) (retAddrOf s) S2 (FdPost R R2 T b L lo hi z pS nS s)) :
-    ReachesRet (Extracted.program.link impl) (retAddrOf s) S' (FdPost R R2 T b L lo hi z pS nS s) := by
+      ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S2 (FdPost R R2 T b L lo hi z pS nS s)) :
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S' (FdPost R R2 T b L lo hi z pS nS s) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hn78, hMod, hEnv0, hlo, hhi, hMult, hEOF, hEOFo, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp'⟩, hpW, hpz, hCA, hfin⟩ := hpre
   have hI' := hI
   obtain ⟨hpc, hi5', r0, r3, r2, r1, r6, r4, r5, r14, rx15, rdf, rfs, hfr, mret, mbp, mz, mp, mtab, mval, hEnvS, hfb, hall⟩ := hI'

@@ -1,5 +1,5 @@
 import Extracted
-import Fv256.Amd64.SfdTopI
+import Fv256.Amd64.SfdLink
 import Fv256.Amd64.SummaryEnsures
 import Fv256.Amd64.SfdWitC
 
@@ -18,6 +18,15 @@ namespace Fv256.Amd64.SetFromDecimal
 
 set_option maxRecDepth 100000 in
 theorem entry_eq : Extracted.entry = Fv256.Amd64.SfdTop.sfd := by decide
+
+set_option maxRecDepth 100000 in
+/-- the library program (`Fv256.Amd64.SfdProg`, proved Extracted-free) is part of this extraction -/
+theorem hLib : Fv256.LinkEq.LibIn Fv256.Amd64.SfdProg.program Extracted.program :=
+  Fv256.Amd64.SfdLink.hLib_of_decide (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+
+set_option maxRecDepth 100000 in
+theorem hca : Fv256.Amd64.SfdLib.ContractsAgree Extracted.program :=
+  Fv256.Amd64.SfdLink.hca_of_decide (by decide)
 
 /-- the call-state facts `RetOK` follow from the ABI call setup and the stack window (so the top-level `Ensures` needs no bound on
 the caller's return address beyond `RetAddr`) -/
@@ -49,7 +58,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T
       (fun s s' => TopPost extCfg R R2 T b L lo hi z pS nS s s') := by
   rw [entry_eq]
   exact Fv256.Amd64.SummaryEnsures.ensures_of_summary64
-    (Fv256.Amd64.SfdTop.sfd_sum impl R R2 T b L lo hi z pS nS hif hnew hmg hmv hwb1 hwb2 hcmp)
+    (Fv256.Amd64.SfdLib.hsfd_of_link hLib hca impl R R2 T hif hnew hmg hmv hwb1 hwb2 hcmp b L lo hi z pS nS)
     (fun ret s hret hs hp => ⟨retok_of hret hs hp.2.2.2.2.1.1 hp.2.2.2.2.1.2.1 hp.2.2.2.2.1.2.2.2.2.1, hp⟩)
     (fun ret s s' hret hs hp hq => ⟨⟨hq.1.2.1, hq.1.2.2.1, hq.1.2.2.2.1, hq.1.2.2.2.2.1⟩, hq⟩)
 

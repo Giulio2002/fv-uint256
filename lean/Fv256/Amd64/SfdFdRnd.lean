@@ -40,7 +40,7 @@ theorem fd_to_pw (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (hpre : FdPre R R2 T b L lo hi z pS nS s)
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (hbig : 19 < nS.toNat - 19 * i) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 pw) S
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 pw) S
       (fun S1 => PwPre R R2 T b L ((s.regs 4).toNat - 4432) ((s.regs 4).toNat - 104)
         (BitVec.ofNat 64 (pS.toNat + (nS.toNat - 19 * (i + 1)))) 19#64 S1 ∧ PwCtx s S i nS 4933783 S1) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA, hfin⟩ := hpre
@@ -151,7 +151,7 @@ theorem fd_to_pw_small (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Iface
     (hpre : FdPre R R2 T b L lo hi z pS nS s)
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (hsmall : nS.toNat - 19 * i ≤ 19) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 pw) S
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 pw) S
       (fun S1 => PwPre R R2 T b L ((s.regs 4).toNat - 4432) ((s.regs 4).toNat - 104)
         pS (nS - BitVec.ofNat 64 (19 * i)) S1 ∧ PwCtx s S i nS 4933806 S1) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA, hfin⟩ := hpre

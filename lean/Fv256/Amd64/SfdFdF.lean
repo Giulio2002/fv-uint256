@@ -14,7 +14,7 @@ theorem fd_nil (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State)
     (hpre : FdPre R R2 T b L lo hi z pS nS s) (hn : nS.toNat ≠ 0)
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hex : i = 5 ∨ nS.toNat ≤ 19 * i) :
-    ReachesRet (Extracted.program.link impl) (retAddrOf s) S (FdPost R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S (FdPost R R2 T b L lo hi z pS nS s) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hn78, hMod, hEnv0, hlo, hhi, hMult, hEOF, hEOFo, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA, hfin⟩ := hpre
   obtain ⟨hpc, hi5', r0, r3, r2, r1, r6, r4, r5, r14, rx15, rdf, rfs, hfr, mret, mbp, mz, mp, mtab, mval, hEnvS, hfb, hall⟩ := hI
   have hEnv' := hEnvS

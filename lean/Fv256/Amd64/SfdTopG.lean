@@ -14,7 +14,7 @@ theorem top_range (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
     (S : State) (pcE : Nat) (hE : pcE = sfd + 0xb8 ∨ pcE = sfd + 0x8a) (hpc : S.rip = BitVec.ofNat 64 pcE)
     (hSt : TopSt R R2 T b L lo hi z pS s S)
     (hdp : decParse (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = Res.range) :
-    ReachesRet (Extracted.program.link impl) (retAddrOf s) S (TopPost extCfg R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S (TopPost extCfg R R2 T b L lo hi z pS nS s) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hEnv0 := env_to hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0
@@ -65,7 +65,7 @@ theorem top_c2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
     (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x57)) (hM : TopMid R R2 T b L lo hi z pS nS s S)
     (hgt : 78 < nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0xb8)) S (TopSt R R2 T b L lo hi z pS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0xb8)) S (TopSt R R2 T b L lo hi z pS s) := by
   obtain ⟨hSt, h0, ⟨k, hk1, hk2, h3⟩, h1⟩ := hM
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hnS := nS.isLt
@@ -144,7 +144,7 @@ theorem top_c3a (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
     (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x57)) (hM : TopMid R R2 T b L lo hi z pS nS s S)
     (heq : nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 78) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring")) S
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (Fv256.Amd64.SfdProg.program.contractAddr "runtime.cmpstring")) S
       (fun Sc => CmpstringPre64 16 Sc ∧ CmpCtx R R2 T b L lo hi z pS nS s Sc) := by
   have hpre' := hpre
   obtain ⟨hSt, h0, ⟨k, hk1, hk2, h3⟩, h1⟩ := hM
@@ -158,7 +158,7 @@ theorem top_c3a (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
   have hS4 : (S.regs 4).toNat = (s.regs 4).toNat - 64 := by rw [hSt.1]; exact bv_sub_c _ 64 (by decide) (by omega)
   have hwacc : S.mem.accessible ((s.regs 4).toNat - 72) 56 true = true := by
     rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ e5 (by omega) (by omega)
-  janus64_run [hpc, h1, hmI, hS4, heq, hwacc] until [Extracted.program.contractAddr "runtime.cmpstring"]
+  janus64_run [hpc, h1, hmI, hS4, heq, hwacc] until [Fv256.Amd64.SfdProg.program.contractAddr "runtime.cmpstring"]
   all_goals (
     refine ReachesRet.done (by first | rfl | decide) ?_
     refine c3a_post R R2 T b L lo hi z pS nS s hpre' S _ k hSt hkq heq ?h4 ?h5 ?h14 ?hx ?hdf ?hfs ?hm ?r0 ?r1 ?r3 ?r7

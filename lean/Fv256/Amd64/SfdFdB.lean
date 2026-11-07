@@ -14,7 +14,7 @@ theorem fd_to_mul (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State)
     (hn78 : nS.toNat ≤ 78) (hlo : lo + 4432 ≤ (s.regs 4).toNat) (hhi : (s.regs 4).toNat + 32 ≤ hi)
     (S : State) (i d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s i d S) (hi0 : i ≠ 0) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 mulE) S
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 mulE) S
       (fun S3 => S3.regs 0 = s.regs 4 - 88#64 ∧ S3.regs 3 = s.regs 4 - 88#64 ∧
         S3.regs 1 = BitVec.ofNat 64 (s.mem.readLE (mulTab + 8 * i) 8) ∧ S3.regs 4 = s.regs 4 - 152#64 ∧
         S3.regs 5 = S.regs 5 ∧ S3.regs 14 = S.regs 14 ∧ S3.xmm 15 = S.xmm 15 ∧ S3.df = S.df ∧ S3.fsBase = S.fsBase ∧
@@ -45,7 +45,7 @@ theorem fd_add (impl : List Janus.Amd64.Segment) (s S' : State) (z : BitVec 64) 
     (hiS : S'.mem.readLE ((s.regs 4).toNat - 104) 8 = i)
     (hal : (s.regs 4).toNat % 8 = 0) (hs64 : (s.regs 4).toNat + 32 < 2 ^ 64)
     (hacc : S'.mem.accessible ((s.regs 4).toNat - 144) 168 true = true) (hzacc : S'.mem.accessible z.toNat 32 true = true) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 m2) S'
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 m2) S'
       (fun S4 => S4.rip = BitVec.ofNat 64 m2 ∧ S4.regs 6 = z ∧ S4.regs 2 = BitVec.ofNat 64 i ∧
         S4.regs 8 = BitVec.ofNat 64 (nS.toNat - 19 * i) ∧
         S4.flags = (subFlags (BitVec.ofNat 64 (nS.toNat - 19 * i)) (19#64) false).snd ∧

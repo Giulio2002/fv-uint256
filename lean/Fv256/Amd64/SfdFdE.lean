@@ -10,29 +10,29 @@ set_option maxRecDepth 20000 in
 /-- one round, from the loop head to the next loop head (continuing with `ihn`) -/
 theorem fd_round (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State)
-    (hif : Ifaceeq (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
-    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
-    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
-    (hmv : MemmoveLive64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
-    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
-    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
+    (hif : Ifaceeq (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hpre : FdPre R R2 T b L lo hi z pS nS s)
     (S : State) (i : Nat) (hI : FdInv R R2 T b L lo hi z pS nS s i S) (hi5 : i < 5) (hrem : 19 * i < nS.toNat)
     (ihn : ∀ S', FdInv R R2 T b L lo hi z pS nS s (i + 1) S' →
-      ReachesRet (Extracted.program.link impl) (retAddrOf s) S' (FdPost R R2 T b L lo hi z pS nS s)) :
-    ReachesRet (Extracted.program.link impl) (retAddrOf s) S (FdPost R R2 T b L lo hi z pS nS s) := by
+      ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S' (FdPost R R2 T b L lo hi z pS nS s)) :
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S (FdPost R R2 T b L lo hi z pS nS s) := by
   have hpreC := hpre
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hn78, hMod, hEnv0, hlo, hhi, hMult, hEOF, hEOFo, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA, hfin⟩ := hpre
   have hEnv0' := hEnv0
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv0'
   have hcont : ∀ (S2 : State) (d : Nat), MidInv R R2 T b L lo hi z pS nS s i d S2 →
-      ReachesRet (Extracted.program.link impl) (retAddrOf s) S2 (FdPost R R2 T b L lo hi z pS nS s) := by
+      ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S2 (FdPost R R2 T b L lo hi z pS nS s) := by
     intro S2 d hM
     by_cases hi0 : i = 0
     · subst hi0

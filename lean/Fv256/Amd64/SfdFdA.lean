@@ -38,7 +38,7 @@ theorem fd_mid0 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     (hzg : (s.regs 14).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 14).toNat + 16)
     (hMod : Mod R R2 T L) (hfin : allDec (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat → decSum (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat < 2 ^ 256)
     (S : State) (d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s 0 d S) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s 0) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s 0) := by
   obtain ⟨hpc, hi5, hrem, hd64, r0, r3, r1, r4, r5, r14, rx15, rdf, rfs, mi, mlen, mrem, mW, hfr, mret, mbp, mz, mp, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'

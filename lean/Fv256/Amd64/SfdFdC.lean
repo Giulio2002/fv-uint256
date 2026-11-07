@@ -19,7 +19,7 @@ theorem fd_midK (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     (hMod : Mod R R2 T L) (hMult : MultOK z.toNat lo hi s.mem)
     (hfin : allDec (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat → decSum (Fv256.C.bytesAt s.mem pS.toNat) 0 nS.toNat < 2 ^ 256)
     (S : State) (i d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s i d S) (hi0 : i ≠ 0) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s i) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 m2) S (M2Inv R R2 T b L lo hi z pS nS s i) := by
   have hM' := hM
   obtain ⟨hpc, hi5, hrem, hd64, r0, r3, r1, r4, r5, r14, rx15, rdf, rfs, mi, mlen, mrem, mW, hfr, mret, mbp, mz, mp, mtab, mval, hEnv, hfb, hdig, hd, hall⟩ := hM'
   refine Fv256.SegCompose.seg_trans (fd_to_mul impl R R2 T b L lo hi z pS nS s hn78 hlo hhi S i d hM hi0) ?_

@@ -11,7 +11,7 @@ theorem top_loop (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s) :
     ∀ (k j : Nat) (S : State), nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat - j = k →
       S.rip = BitVec.ofNat 64 (sfd + 0xe0) → LoopInv R R2 T b L lo hi z pS nS s j S →
-      ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S
+      ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S
         (fun S' => ∃ i, TailInv R R2 T b L lo hi z pS nS s i S') := by
   intro k
   induction k with
@@ -32,7 +32,7 @@ theorem top_loop (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
 theorem top_front (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpc : s.rip = BitVec.ofNat 64 sfd)
     (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) s (TopMid R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) s (TopMid R R2 T b L lo hi z pS nS s) := by
   refine Fv256.SegCompose.seg_trans (top_pro impl R R2 T b L lo hi z pS nS s hpc hpre) ?_
   intro S hpc1 hA
   by_cases hR1 : S.regs 1 = 0#64

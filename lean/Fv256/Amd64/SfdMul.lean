@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SumC64
@@ -14,7 +14,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Fv256.C
 
 namespace Fv256.Amd64.SfdMul
 
-abbrev mulEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Mul"
+abbrev mulEntry : Nat := segAddr Fv256.Amd64.SfdProg.program "github.com/holiman/uint256.(*Int).Mul"
 
 def MulPre (z x y : BitVec 64) (s : State) : Prop :=
   RetOK s ∧ s.regs 0 = z ∧ s.regs 3 = x ∧ s.regs 1 = y ∧ StackWritable s 16 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧
@@ -28,7 +28,7 @@ def MulPost (z x y : BitVec 64) (s s' : State) : Prop :=
     Janus.MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 16, (s.regs regSP).toNat)]
 
 set_option maxHeartbeats 16000000 in
-theorem mul_sum (z x y : BitVec 64) : Summary Extracted.program mulEntry (MulPre z x y) (MulPost z x y) := by
+theorem mul_sum (z x y : BitVec 64) : Summary Fv256.Amd64.SfdProg.program mulEntry (MulPre z x y) (MulPost z x y) := by
   intro s hpc ⟨⟨hr1, hr2, hx15, hdf⟩, h0, h3, h1, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hds, hdx, hdy⟩
   simp only [regSP] at hacc hnw hds hlow hdx hdy
   all_goals first

@@ -1,4 +1,4 @@
-import Extracted
+import Fv256.Amd64.SfdProg
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SumC64
@@ -23,14 +23,14 @@ def Mod (R : RtInv) (R2 : IfaceModel) (T : Nat) (L : List (Nat × Nat)) : Prop :
   R2.Laws ∧ R2.depth ≤ 4096 ∧ R2.IsType T ∧ (∀ r ∈ R2.priv, Outside r.1 (r.2 - r.1) R.rt) ∧
   (∀ r ∈ L, Outside r.1 (r.2 - r.1) R2.priv) ∧ (∀ r ∈ R.rt, 0 < r.1) ∧
   (∀ r ∈ staticRanges T, Outside r.1 (r.2 - r.1) R.rt) ∧ (∀ r ∈ staticRanges T, r ≠ (T, T + 48) → Outside r.1 (r.2 - r.1) R2.priv) ∧
-  R.ok (Extracted.program.contractAddr "runtime.newobject") [numErrType] ∧
-  R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-  R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2]
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") [numErrType] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") [2]
 
 /-- the facts about the string `(sp, sl)` being copied -/
 def ChunkOK (R : RtInv) (R2 : IfaceModel) (L : List (Nat × Nat)) (b : Nat) (sp sl : BitVec 64) (lo hi : Nat) (m : Janus.Arm64.Memory) : Prop :=
-  R.ok (Extracted.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
-  (∀ q, R.ok (Extracted.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
+  R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") [sl.toNat, 0, 0] ∧
+  (∀ q, R.ok (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") [q, sp.toNat, sl.toNat]) ∧
   blockSize sl.toNat true + blockSize 48 false ≤ b ∧
   m.accessible sp.toNat sl.toNat false = true ∧ sp.toNat + sl.toNat ≤ 2 ^ 48 ∧
   (sp.toNat + sl.toNat ≤ lo ∨ hi ≤ sp.toNat) ∧

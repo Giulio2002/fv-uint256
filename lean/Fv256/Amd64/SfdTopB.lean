@@ -100,7 +100,7 @@ set_option maxRecDepth 20000 in
 theorem top_b0 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x3a))
     (hA : PostA R R2 T b L lo hi z pS nS s S) (hz : S.regs 1 = 0#64) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
   obtain ⟨hSt, h0, h1, k, hk1, hk2, h3⟩ := hA
   have hpe := Fv256.TopMath.plusEnd_le (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
   have hn := sub_zero_eq nS _ hpe (h1.symm.trans hz)
@@ -123,7 +123,7 @@ theorem top_b1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x3a))
     (hA : PostA R R2 T b L lo hi z pS nS s S) (hR1 : S.regs 1 ≠ 0#64)
     (hbz : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) ≠ 48) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
   obtain ⟨hSt, h0, h1, k, hk1, hk2, h3⟩ := hA
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hpe := Fv256.TopMath.plusEnd_le (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
@@ -182,7 +182,7 @@ theorem top_b2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x3a))
     (hA : PostA R R2 T b L lo hi z pS nS s S) (hR1 : S.regs 1 ≠ 0#64)
     (hbz : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) = 48) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0xe0)) S (LoopInv R R2 T b L lo hi z pS nS s 0) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0xe0)) S (LoopInv R R2 T b L lo hi z pS nS s 0) := by
   obtain ⟨hSt, h0, h1, k, hk1, hk2, h3⟩ := hA
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hEnv0 := env_to hEnv
@@ -254,7 +254,7 @@ theorem top_tail (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
     (S : State) (i : Nat) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x12a))
     (hT : TailInv R R2 T b L lo hi z pS nS s i S) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
   obtain ⟨hSt, h0, h3, h1, h2, hi1, hsp⟩ := hT
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hnS := nS.isLt

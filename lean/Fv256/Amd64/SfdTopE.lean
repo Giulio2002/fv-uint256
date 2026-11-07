@@ -192,7 +192,7 @@ theorem top_c1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
     (S : State) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x57)) (hM : TopMid R R2 T b L lo hi z pS nS s S)
     (hlt : nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < 78) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 Fv256.Amd64.SfdFd.fd) S
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 Fv256.Amd64.SfdFd.fd) S
       (fun Sc => FdPre R R2 T b L lo ((s.regs 4).toNat - 40) z (Sc.regs 3) (Sc.regs 1) Sc ∧
         FdCtx R R2 T b L lo hi z pS nS s 4933361 Sc) := by
   have hpre' := hpre

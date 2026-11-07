@@ -11,7 +11,7 @@ set_option maxRecDepth 20000 in
 theorem fd_pro (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpc : s.rip = BitVec.ofNat 64 fd)
     (hpre : FdPre R R2 T b L lo hi z pS nS s) (hn : nS ≠ 0) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 head) s (FdInv R R2 T b L lo hi z pS nS s 0) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 head) s (FdInv R R2 T b L lo hi z pS nS s 0) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0, h3, h1, hn78, hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA, hfin⟩ := hpre
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'

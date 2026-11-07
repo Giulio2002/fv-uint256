@@ -18,7 +18,7 @@ theorem fd_incr (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (i : Nat) (S : State)
     (hn78 : nS.toNat ≤ 78) (hlo : lo + 4432 ≤ (s.regs 4).toNat) (hhi : (s.regs 4).toNat + 32 ≤ hi)
     (hM : M2Inv R R2 T b L lo hi z pS nS s i S) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 head) S (FdInv R R2 T b L lo hi z pS nS s (i + 1)) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 head) S (FdInv R R2 T b L lo hi z pS nS s (i + 1)) := by
   obtain ⟨hpc, hi5, hrem, r6, r2, r8, hfl, r4, r5, r14, rx15, rdf, rfs, mlen, hfr, mret, mbp, mz, mp, mtab, mval, hEnv, hfb, hall⟩ := hM
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'

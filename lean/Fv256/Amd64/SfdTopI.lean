@@ -19,21 +19,21 @@ set_option maxRecDepth 20000 in
 /-- `SetFromDecimal` (amd64), from the `fromDecimal` summary's contracts and the `runtime.cmpstring` contract -/
 theorem sfd_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64)
-    (hif : Ifaceeq (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.ifaceeq") R2)
-    (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.newobject") 4096 R)
-    (hmg : MallocgcLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.mallocgc") 4096 R)
-    (hmv : MemmoveLive64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.memmove") 4096 R)
-    (hwb1 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
-    (hwb2 : WbLiveContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
-    (hcmp : Janus.Contracts.Cmpstring.CmpstringContract64 (Extracted.program.link impl)
-      (Extracted.program.contractAddr "runtime.cmpstring") 16) :
-    SfdSummary extCfg (Extracted.program.link impl) sfd R R2 T b L lo hi z pS nS := by
+    (hif : Ifaceeq (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.newobject") 4096 R)
+    (hmg : MallocgcLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.mallocgc") 4096 R)
+    (hmv : MemmoveLive64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.memmove") 4096 R)
+    (hwb1 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
+    (hwb2 : WbLiveContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
+    (hcmp : Janus.Contracts.Cmpstring.CmpstringContract64 (Fv256.Amd64.SfdProg.program.link impl)
+      (Fv256.Amd64.SfdProg.program.contractAddr "runtime.cmpstring") 16) :
+    SfdSummary extCfg (Fv256.Amd64.SfdProg.program.link impl) sfd R R2 T b L lo hi z pS nS := by
   intro s hpc hpre
   have hpre' := hpre
   have hlo72 : 72 ≤ (s.regs 4).toNat := by have := hpre.2.2.2.2.2.2.1; omega

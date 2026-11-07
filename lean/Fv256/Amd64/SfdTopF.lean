@@ -18,7 +18,7 @@ theorem top_epi (impl : List Janus.Amd64.Segment) (S1 : State) (RA : Nat) (hRA :
     (ra bp : BitVec 64) (hra : ra.toNat < 2 ^ 47) (hpc : S1.rip = BitVec.ofNat 64 RA)
     (hbp : S1.mem.readLE ((S1.regs 4).toNat + 56) 8 = bp.toNat) (hret : S1.mem.readLE ((S1.regs 4).toNat + 64) 8 = ra.toNat)
     (hacc : S1.mem.accessible ((S1.regs 4).toNat + 56) 16 false = true) (hsp64 : (S1.regs 4).toNat + 72 < 2 ^ 64) :
-    ReachesRet (Extracted.program.link impl) ra S1
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) ra S1
       (fun S2 => S2.regs 0 = S1.regs 0 ∧ S2.regs 3 = S1.regs 3 ∧ S2.regs 4 = S1.regs 4 + 72#64 ∧ S2.regs 5 = bp ∧
         S2.regs 14 = S1.regs 14 ∧ S2.xmm 15 = S1.xmm 15 ∧ S2.df = S1.df ∧ S2.fsBase = S1.fsBase ∧ S2.mem = S1.mem) := by
   rcases hRA with rfl | rfl
@@ -35,7 +35,7 @@ theorem top_fin (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
     (hpost : FdPost R R2 T b L lo ((s.regs 4).toNat - 40) z (Sc.regs 3) (Sc.regs 1) Sc S1)
     (hdp : decParse (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat =
       fromDec (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)) :
-    ReachesRet (Extracted.program.link impl) (retAddrOf s) S1 (TopPost extCfg R R2 T b L lo hi z pS nS s) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S1 (TopPost extCfg R R2 T b L lo hi z pS nS s) := by
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hEnv0 := env_to hEnv
   have hEnvs := hEnv0
@@ -76,7 +76,7 @@ theorem top_fin (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
       ∀ post : State → Prop, (∀ S2 : State, S2.rip = retAddrOf s →
         (S2.regs 0 = S1.regs 0 ∧ S2.regs 3 = S1.regs 3 ∧ S2.regs 4 = S1.regs 4 + 72#64 ∧ S2.regs 5 = (s.regs 5) ∧
           S2.regs 14 = S1.regs 14 ∧ S2.xmm 15 = S1.xmm 15 ∧ S2.df = S1.df ∧ S2.fsBase = S1.fsBase ∧ S2.mem = S1.mem) → post S2) →
-      ReachesRet (Extracted.program.link impl) (retAddrOf s) S1 post := by
+      ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (retAddrOf s) S1 post := by
     intro hrd hacc post hp
     refine Fv256.SegCompose.seg_trans (top_epi impl S1 RA hRA (retAddrOf s) (s.regs 5) hra47 hpc ?_ ?_ ?_ hsp64) ?_
     · have e : (S1.regs 4).toNat + 56 = (s.regs 4).toNat - 8 := by omega

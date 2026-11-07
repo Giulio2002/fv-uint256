@@ -10,7 +10,7 @@ import Fv256.HexLemmas
 
 Nothing here names an extraction.  Every binary-specific address (package variables, runtime type descriptors, runtime
 entry points) is a field of `SfdCfg`; a consumer instantiates it for its own binary (the proof instantiates it with the
-`Extracted.dataAddr` / `contractAddr` values).  `TopPre`/`TopPost` are the Pre/Post of `Summary P entry (TopPre ..) (TopPost ..)`:
+`Fv256.Amd64.SfdProg.dataAddr` / `contractAddr` values).  `TopPre`/`TopPost` are the Pre/Post of `Summary P entry (TopPre ..) (TopPost ..)`:
 `z` in `RAX`, `s.ptr` in `RBX`, `s.len` in `RCX`; the `error` result is `RAX` (itab or type word) and `RBX` (data word), nil = `0, 0`.
 
 The result is by cases on `Fv256.I.decParse` (the documented behaviour): the number (`ok v`: `z = v`, `err = nil`), `io.EOF`

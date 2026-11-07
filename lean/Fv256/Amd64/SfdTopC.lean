@@ -20,8 +20,8 @@ theorem top_ls (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (hI : LoopInv R R2 T b L lo hi z pS nS s j S) (hjm : j + 1 ≤ nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
     (hbz : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) = 48)
     {Q : State → Prop}
-    (ihn : ∀ S', S'.rip = BitVec.ofNat 64 (sfd + 0xe0) → LoopInv R R2 T b L lo hi z pS nS s (j + 1) S' → ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S' Q) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S Q := by
+    (ihn : ∀ S', S'.rip = BitVec.ofNat 64 (sfd + 0xe0) → LoopInv R R2 T b L lo hi z pS nS s (j + 1) S' → ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S' Q) :
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S Q := by
   obtain ⟨hSt, h0, h3, h1, h2, h6, m1, m2, hlt, hjle, hzs⟩ := hI
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hnS := nS.isLt
@@ -80,7 +80,7 @@ theorem top_lb (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (hI : LoopInv R R2 T b L lo hi z pS nS s j S) (hjm : j + 1 ≤ nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
     (hb127 : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) ≤ 127)
     (hb48 : Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) ≠ 48) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S (TailInv R R2 T b L lo hi z pS nS s j) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S (TailInv R R2 T b L lo hi z pS nS s j) := by
   obtain ⟨hSt, h0, h3, h1, h2, h6, m1, m2, hlt, hjle, hzs⟩ := hI
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hnS := nS.isLt
@@ -124,7 +124,7 @@ theorem top_lend (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
     (S : State) (j : Nat) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0xe0))
     (hI : LoopInv R R2 T b L lo hi z pS nS s j S) (hjm : nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat ≤ j) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S
       (TailInv R R2 T b L lo hi z pS nS s (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat - 1)) := by
   obtain ⟨hSt, h0, h3, h1, h2, h6, m1, m2, hlt, hjle, hzs⟩ := hI
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
@@ -156,7 +156,7 @@ theorem top_ld (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (S : State) (j : Nat) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0xe0))
     (hI : LoopInv R R2 T b L lo hi z pS nS s j S) (hjm : j + 1 ≤ nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
     (hb128 : 127 < Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) :
-    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S (TailInv R R2 T b L lo hi z pS nS s j) := by
+    ReachesRet (Fv256.Amd64.SfdProg.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S (TailInv R R2 T b L lo hi z pS nS s j) := by
   obtain ⟨hSt, h0, h3, h1, h2, h6, m1, m2, hlt, hjle, hzs⟩ := hI
   obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hEnv0 := env_to hEnv
