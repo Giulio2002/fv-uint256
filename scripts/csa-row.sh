@@ -4,6 +4,7 @@
 set -u
 isa=$1; fn=$2; mode=${3:-audit}
 W=/srv/fv-uint256-csa; A=/srv/fv-uint256-csa-aud; JANUS=/srv/janus-up3/bin/janus
+export JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore
 export LEAN_NUM_THREADS=8 JANUS_JOBS=2 JANUS_CACHE_DIR=/srv/janus-ops/jcache-csa
 rsync -a --delete $W/lean/Fv256/ $A/lean/Fv256/ ; cp $W/lean/Fv256.lean $A/lean/Fv256.lean
 cd $A
