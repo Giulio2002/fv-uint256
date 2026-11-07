@@ -6,7 +6,7 @@ contract_flags() {
     IntoBig|ToBig) echo "--contract runtime.gcWriteBarrier1 --contract runtime.gcWriteBarrier2 --contract runtime.newobject";;
     DivMod) echo "--contract runtime.newobject";;
     Dec|String) echo "--contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic";;
-    Format) echo "--contract runtime.gcWriteBarrier1 --contract runtime.gcWriteBarrier2 --contract runtime.newobject --contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic --contract fmt.Fprint --contract math/big.(*Int).Format --contract runtime.stringtoslicebyte --contract runtime.memmove --contract runtime.typeAssert";;
+    Format) echo "--contract runtime.gcWriteBarrier1 --contract runtime.gcWriteBarrier2 --contract runtime.newobject --contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic --contract fmt.Fprint --contract math/big.(*Int).Format --contract runtime.stringtoslicebyte --contract runtime.typeAssert";;
     MarshalSSZ|PaddedBytes) echo "--contract runtime.makeslice";;
     MarshalSSZAppend) echo "--contract runtime.growslice";;
     MarshalSSZInto|UnmarshalSSZ) echo "--contract runtime.convT64 --contract fmt.errorf --contract runtime.newobject";;
