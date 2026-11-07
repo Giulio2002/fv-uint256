@@ -37,11 +37,13 @@ In every case `*z` is unchanged and memory changes only in the stack frame and t
 
 namespace Fv256.FormatSpec
 
-/-- the results of the `fmt.State` queries, as the machine sees them -/
-structure Answers where
-  hasWidth : Bool
-  hasPrec : Bool
-  flag : Nat → Bool
+/-- the results of the `fmt.State` queries, as the machine sees them: (`hasWidth`, `hasPrec`, `flag c`) (a plain tuple: the Janus audit
+rejects consumer-declared structures reachable from a theorem statement) -/
+abbrev Answers := Bool × Bool × (Nat → Bool)
+
+@[reducible] def Answers.hasWidth (a : Answers) : Bool := a.1
+@[reducible] def Answers.hasPrec (a : Answers) : Bool := a.2.1
+@[reducible] def Answers.flag (a : Answers) : Nat → Bool := a.2.2
 
 /-- the characters tested by the five `Flag` calls, in order: `+`, space, `-`, `0`, `#` -/
 def flagChars : List Nat := [43, 32, 45, 48, 35]
@@ -65,8 +67,11 @@ def fastBytes (z ch : Nat) : List Nat := if ch = 120 then hexBytes z else Fv256.
 /-- `"<nil>"` -/
 def nilText : List Nat := [60, 110, 105, 108, 62]
 
-inductive Case | nilCase | fast | big
-  deriving DecidableEq
+/-- the case tags (plain numbers, see `Answers`): `0` nil, `1` fast path, `2` through `big.Int` -/
+abbrev Case := Nat
+@[reducible] def Case.nilCase : Case := 0
+@[reducible] def Case.fast : Case := 1
+@[reducible] def Case.big : Case := 2
 
 open Classical in
 /-- which case runs, from the receiver, the answers of the state and the verb -/
