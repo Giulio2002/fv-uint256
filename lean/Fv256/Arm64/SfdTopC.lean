@@ -107,7 +107,12 @@ theorem fdpre_of (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat
   · rw [hf.accessible]; exact hEOF
   · exact outside_hi hEOFo (by omega)
   · exact ⟨by rw [hf.accessible]; exact hz.1, hz.2⟩
-  · rw [hpk, hlN, hf.accessible]; exact Arm64.Memory.accessible_mono _ hpA (by omega) (by omega)
+  · rw [hpk, hlN]
+    by_cases hl0 : len = 0
+    · exact Or.inl hl0
+    · refine Or.inr ?_
+      rw [hf.accessible]
+      exact Arm64.Memory.accessible_mono _ (hpA.resolve_left (by omega)) (by omega) (by omega)
   · rw [hpk, hlN]; omega
   · rw [hpk, hlN]; omega
   · exact chunkAll_hi cfg (chunkAll_frame cfg hf hCA (by omega) (by rw [hlN]; omega)) (by omega)
@@ -461,7 +466,7 @@ theorem c3a_post (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat
   · rw [hmf.accessible, topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ e5 (by omega) (by omega)
   · rw [r0, hP, r1, hmf.accessible, topSt_acc hSt]
     simp only [BitVec.toNat_ofNat, Nat.reducePow]
-    exact Arm64.Memory.accessible_mono _ hpA (by omega) (by omega)
+    exact Arm64.Memory.accessible_mono _ (hpA.resolve_left (by omega)) (by omega) (by omega)
   · rw [r0, hP, r1]; simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
   · rw [r2, r3, hmf.accessible, topSt_acc hSt]
     simp only [BitVec.toNat_ofNat, Nat.reducePow]
