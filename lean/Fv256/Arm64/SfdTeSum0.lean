@@ -6,11 +6,6 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
 
 namespace Fv256.Arm64.SfdToError
 
-theorem rr_mono {p : Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
-    (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
-  obtain ⟨k, s', a, b, c⟩ := h
-  exact ⟨k, s', a, b, hQ _ c⟩
-
 
 theorem reach_name {p : Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
     (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl

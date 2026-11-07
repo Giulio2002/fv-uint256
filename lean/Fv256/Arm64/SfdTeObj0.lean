@@ -6,7 +6,7 @@ import Fv256.Arm64.SfdTeTail0
 # `strconv.toError` (arm64): memory-frame lemmas of the `ErrSyntax` path (extraction-free)
 -/
 
-open Janus Janus.Arm64 Janus.GoABI Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.Arm64.SfdEnv
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.Arm64.SfdEnv
 
 namespace Fv256.Arm64.SfdToError
 
@@ -107,6 +107,11 @@ theorem tm_frame {m0 m4 : Janus.Arm64.Memory} {Lst rt : List (Nat × Nat)} {t fl
     obtain ⟨r, hr, h1, h2⟩ := ht; exact ⟨r, hsub r hr, by omega, by omega⟩
   unfold TailMem
   exact (((((hF.writeLE_inRanges _ (h 8 (by omega))).writeLE_inRanges _ (by simpa using h 0 (by omega))).writeLE_inRanges _ (h 16 (by omega))).writeLE_inRanges _ (h 24 (by omega))).writeLE_inRanges _ (h 32 (by omega))).writeLE_inRanges _ (h 40 (by omega))
+
+theorem rr_mono {p : Program} {ret : BitVec 64} {S : State} {Q Q' : State → Prop}
+    (h : ReachesRet p ret S Q) (hQ : ∀ s', Q s' → Q' s') : ReachesRet p ret S Q' := by
+  obtain ⟨k, s', a, b, c⟩ := h
+  exact ⟨k, s', a, b, hQ _ c⟩
 
 /-- reads of an address outside everything the `toError` path writes see the memory `S` at the `ifaceeq` call -/
 theorem te0_lrS {S m' m2 m3 m4 : Janus.Arm64.Memory} {rt priv : List (Nat × Nat)} {r4 depth q bs sl qv x1 x2 : Nat}
