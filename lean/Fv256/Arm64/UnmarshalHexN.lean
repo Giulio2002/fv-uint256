@@ -208,9 +208,9 @@ theorem hex_post {sp : Nat} {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : N
     · rw [c1, hio _ _ (Outside.of_sub t7 (by omega) (by omega)) (by simp only [outside_cons, outside_nil, and_true]; omega)]
 
 /-- the instance of the `fromHex` summary for the copy -/
-theorem hex_inst {P : Janus.Program} {entry : Nat} {R : RtInv} {b : Nat} {L : List (Nat × Nat)} {z pI nI r0 r1 : BitVec 64}
+theorem hex_inst {sp : Nat} {P : Janus.Program} {entry : Nat} {R : RtInv} {b : Nat} {L : List (Nat × Nat)} {z pI nI r0 r1 : BitVec 64}
     {s : State} {M0 m : Janus.Arm64.Memory} {st : Nat}
-    (_hP : SbPost R st b L sp s pI nI r0 r1 M0 m (s.sp.toNat - 72))
+    (_hP : SbPost R st b L sp s pI nI r0 r1 M0 m (sp - 72))
     (hhex : ∀ (z hp len : BitVec 64), Summary P entry (FromHexPre z hp len) (FromHexPost z hp len)) :
     Summary P entry (FromHexPre z r0 nI) (FromHexPost z r0 nI) := hhex z r0 nI
 
