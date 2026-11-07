@@ -19,6 +19,11 @@ def fmtAddr : Nat :=
   adrpLdTarget (Extracted.entry + 0x6c) (segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZInto" 27)
     (segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZInto" 28) 0
 
+/-- The address of the constant `32` (the third `fmt.errorf` argument), recomputed from the `ADRP`+`ADD` words. -/
+def c32Addr : Nat :=
+  adrpLdTarget (Extracted.entry + 0x60) (segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZInto" 24)
+    (segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZInto" 25) 0
+
 /-- The text of the error: the `ErrBadBufferLength` text, then `": have n, want 32 bytes"`. -/
 def errMsg (txt : List Nat) (n : Nat) : List Nat :=
   txt ++ ([58, 32, 104, 97, 118, 101, 32] ++ natBytes n ++ [44, 32, 119, 97, 110, 116, 32] ++ [51, 50] ++ [32, 98, 121, 116, 101, 115])
@@ -137,6 +142,10 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
   obtain ⟨hcEnv, hcG, hcal, hdep, hcsp, hcab, hcacc, hcout, hcgd, hcgo⟩ := hc'
   janus_intro hs
   janus_data hd [hw4]
+  janus_eval_nat hFA : fmtAddr
+  janus_eval_nat hC32 : c32Addr
+  janus_eval_nat hTI : tInt
+  janus_eval_nat hTE : tErr
   simp only [ev, iErr, Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBufferLength», Extracted.dataAddr.«go:itab.*errors.errorString,error»] at hv1 hv2 hv3 hevO hevW
   janus_run [hv2, hv3] until [Extracted.program.contractAddr "runtime.convT64"]
   refine Reaches.call (Summary.withExit hconv hret) rfl
@@ -175,11 +184,9 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
     rcases hr with hr | hr
     · exact hpR r hr
     · subst hr; exact hwrt _ (List.mem_singleton_self _)
-  janus_eval_nat hFA : fmtAddr
-  rw [hFA] at hok
-  have hO2 : Outside 977152 256 (R.rt ++ Ri.priv) :=
+  have hO2 : Outside fmtAddr 256 (R.rt ++ Ri.priv) :=
     hdataO _ (List.getElem_mem (l := Extracted.program.data) (n := 2) (by decide))
-  have hO3 : Outside 1004776 256 (R.rt ++ Ri.priv) :=
+  have hO3 : Outside c32Addr 256 (R.rt ++ Ri.priv) :=
     hdataO _ (List.getElem_mem (l := Extracted.program.data) (n := 3) (by decide))
   simp only [outside_append] at hO2 hO3 hevO heO
   have hTP : tl = 0 ∨ Outside tp tl (Ri.priv ++ [(s.sp.toNat - 4208, s.sp.toNat + 24)]) := by
@@ -195,14 +202,14 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
     intro M; simp only [errMsg, strBytes, List.length_append, List.length_map, List.length_range, List.length_cons, List.length_nil]; omega
   have facts : ∀ (M : Memory) (b : Nat), MemFrame s.mem M (Ri.priv ++ [(s.sp.toNat - 4208, s.sp.toNat + 24)]) →
       b + 8 ≤ 2 ^ 48 → b ≠ 0 → M.accessible b 8 false = true → M.readLE b 8 = len.toNat →
-      M.readLE (s.sp.toNat - 56) 8 = 857504 → M.readLE (s.sp.toNat - 48) 8 = e →
-      M.readLE (s.sp.toNat - 40) 8 = 834592 → M.readLE (s.sp.toNat - 32) 8 = b →
-      M.readLE (s.sp.toNat - 24) 8 = 834592 → M.readLE (s.sp.toNat - 16) 8 = 1004776 →
-      ArgsOK (Env.mk tErr iErr tInt iWrap) 26 fmtNum 4294967296 M 977152 26 (s.sp.toNat - 56) 3 3 ∧
-      errorfReads M 977152 26 (s.sp.toNat - 56) =
-        [(977152, 26), (s.sp.toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (1004776, 8)] ∧
-      msgOf M 977152 26 (s.sp.toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat ∧
-      errorfCost M 977152 26 (s.sp.toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 ∧
+      M.readLE (s.sp.toNat - 56) 8 = tErr → M.readLE (s.sp.toNat - 48) 8 = e →
+      M.readLE (s.sp.toNat - 40) 8 = tInt → M.readLE (s.sp.toNat - 32) 8 = b →
+      M.readLE (s.sp.toNat - 24) 8 = tInt → M.readLE (s.sp.toNat - 16) 8 = c32Addr →
+      ArgsOK (Env.mk tErr iErr tInt iWrap) 26 fmtNum 4294967296 M fmtAddr 26 (s.sp.toNat - 56) 3 3 ∧
+      errorfReads M fmtAddr 26 (s.sp.toNat - 56) =
+        [(fmtAddr, 26), (s.sp.toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (c32Addr, 8)] ∧
+      msgOf M fmtAddr 26 (s.sp.toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat ∧
+      errorfCost M fmtAddr 26 (s.sp.toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 ∧
       operandD M (s.sp.toNat - 56) 0 = e := by
     intro M b hf' hb48 hbn hbacc' hbv hA0 hA1 hA2 hA3 hA4 hA5
     have hrd : ∀ a n, Outside a n (Ri.priv ++ [(s.sp.toNat - 4208, s.sp.toNat + 24)]) → M.readLE a n = s.mem.readLE a n :=
@@ -213,54 +220,54 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
     have hW2 : ∀ a n, (a + n ≤ s.sp.toNat - 4208 ∨ s.sp.toNat + 24 ≤ a) → Outside a n Ri.priv →
         Outside a n (Ri.priv ++ [(s.sp.toNat - 4208, s.sp.toNat + 24)]) := by
       intro a n h1 h2; simp only [outside_append]; exact ⟨h2, hW1 a n h1⟩
-    have hfm : M.readLE 977152 26 = fmtNum := by
-      rw [hrd 977152 26 (hW2 977152 26 (by omega) (Outside.of_sub hO2.2 (by omega) (by omega))), h_rodata 977152 26 (by decide +kernel)]; decide +kernel
-    have hv32 : M.readLE 1004776 8 = 32 := by
-      rw [hrd 1004776 8 (hW2 1004776 8 (by omega) (Outside.of_sub hO3.2 (by omega) (by omega))), h_rodata 1004776 8 (by decide +kernel)]; decide +kernel
-    have hfR : Readable M 977152 26 :=
+    have hfm : M.readLE fmtAddr 26 = fmtNum := by
+      rw [hrd fmtAddr 26 (hW2 fmtAddr 26 (by omega) (Outside.of_sub hO2.2 (by omega) (by omega))), h_rodata fmtAddr 26 (by decide +kernel)]; decide +kernel
+    have hv32 : M.readLE c32Addr 8 = 32 := by
+      rw [hrd c32Addr 8 (hW2 c32Addr 8 (by omega) (Outside.of_sub hO3.2 (by omega) (by omega))), h_rodata c32Addr 8 (by decide +kernel)]; decide +kernel
+    have hfR : Readable M fmtAddr 26 :=
       ⟨by omega, fun _ => by rw [hacc]; exact Memory.accessible_mono _ h_data2 (by omega) (by omega)⟩
     have hsR : Readable M (s.sp.toNat - 56) 48 :=
       ⟨by omega, fun _ => by rw [hacc]; exact Memory.accessible_weaken _ (Memory.accessible_mono _ hw4 (by omega) (by omega))⟩
     have heR : Readable M e 16 := ⟨by omega, fun _ => by rw [hacc]; exact hv4⟩
     have htR : Readable M tp tl := ⟨htpb, fun hpos => by rw [hacc]; rcases htx with h | h; omega; exact h⟩
     have hq1R : Readable M b 8 := ⟨hb48, fun _ => hbacc'⟩
-    have hq2R : Readable M 1004776 8 :=
+    have hq2R : Readable M c32Addr 8 :=
       ⟨by omega, fun _ => by rw [hacc]; exact Memory.accessible_mono _ h_data3 (by omega) (by omega)⟩
     have hA1' : M.readLE (s.sp.toNat - 56 + 8) 8 = e := by
       rw [show s.sp.toNat - 56 + 8 = s.sp.toNat - 48 by omega]; exact hA1
-    have hA2' : M.readLE (s.sp.toNat - 56 + 16) 8 = 834592 := by
+    have hA2' : M.readLE (s.sp.toNat - 56 + 16) 8 = tInt := by
       rw [show s.sp.toNat - 56 + 16 = s.sp.toNat - 40 by omega]; exact hA2
     have hA3' : M.readLE (s.sp.toNat - 56 + 24) 8 = b := by
       rw [show s.sp.toNat - 56 + 24 = s.sp.toNat - 32 by omega]; exact hA3
-    have hA4' : M.readLE (s.sp.toNat - 56 + 32) 8 = 834592 := by
+    have hA4' : M.readLE (s.sp.toNat - 56 + 32) 8 = tInt := by
       rw [show s.sp.toNat - 56 + 32 = s.sp.toNat - 24 by omega]; exact hA4
-    have hA5' : M.readLE (s.sp.toNat - 56 + 40) 8 = 1004776 := by
+    have hA5' : M.readLE (s.sp.toNat - 56 + 40) 8 = c32Addr := by
       rw [show s.sp.toNat - 56 + 40 = s.sp.toNat - 16 by omega]; exact hA5
     have htp' : M.readLE e 8 = tp := by rw [hrd e 8 (hW2 e 8 (by omega) (Outside.of_sub heO.2 (by omega) (by omega)))]; exact hv5
     have htl' : M.readLE (e + 8) 8 = tl := by
       rw [hrd (e + 8) 8 (hW2 (e + 8) 8 (by omega) (Outside.of_sub heO.2 (by omega) (by omega)))]; exact hv6
-    have hargs := ErrorfConsumer.argsOK_real (Env.mk tErr iErr tInt iWrap) 4294967296 M 977152 (s.sp.toNat - 56)
-      e tp tl b 1004776 (by decide) hfm hfR hsR hA0 hA1' hv3n heR htp' htl' htR hA2' hA3' hbn
+    have hargs := ErrorfConsumer.argsOK_real (Env.mk tErr iErr tInt iWrap) 4294967296 M fmtAddr (s.sp.toNat - 56)
+      e tp tl b c32Addr (by decide) hfm hfR hsR hA0 hA1' hv3n heR htp' htl' htR hA2' hA3' hbn
       hq1R hA4' hA5' (by decide) hq2R (by omega)
-    have hn : nDec (segsOf M 977152 26) = 2 := by rw [segsOf_real _ _ _ rfl hfm]; decide
+    have hn : nDec (segsOf M fmtAddr 26) = 2 := by rw [segsOf_real _ _ _ rfl hfm]; decide
     have hstr : strBytes M tp tl = strBytes s.mem tp tl := by
       apply strBytes_congr
       intro i hi
       rcases hTP with h0 | h0
       · omega
       · exact hf'.bytes (Outside.of_sub h0 (by omega) (by omega))
-    have hmsg : msgOf M 977152 26 (s.sp.toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat := by
+    have hmsg : msgOf M fmtAddr 26 (s.sp.toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat := by
       rw [msgOf_real _ _ _ _ rfl hfm, hA1', htp', htl', hA3', hA5', hbv, hv32, hstr,
         decBytes_small len.toNat (by omega)]
       have d32 : decBytes (toSigned 32) = [51, 50] := by decide
       rw [d32]; rfl
-    have hmlen : (msgOf M 977152 26 (s.sp.toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
+    have hmlen : (msgOf M fmtAddr 26 (s.sp.toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
       rw [hmsg]
-    have hcost : errorfCost M 977152 26 (s.sp.toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 := by
+    have hcost : errorfCost M fmtAddr 26 (s.sp.toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 := by
       have := hmsgL s.mem
       unfold errorfCost; rw [hmlen, if_neg (by omega)]; simp only [wrapBytes]; omega
-    have hreads : errorfReads M 977152 26 (s.sp.toNat - 56) =
-        [(977152, 26), (s.sp.toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (1004776, 8)] := by
+    have hreads : errorfReads M fmtAddr 26 (s.sp.toNat - 56) =
+        [(fmtAddr, 26), (s.sp.toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (c32Addr, 8)] := by
       unfold errorfReads
       rw [hn]
       simp [operandD, hA1', htp', htl', hA3', hA5', List.range_succ]
@@ -272,11 +279,11 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
   have hnb : (natBytes len.toNat).length ≤ 2 := natBytes_len_small len.toNat hlen
   have key : ∀ (S : State), MemFrame s.mem S.mem (Ri.priv ++ [(s.sp.toNat - 4208, s.sp.toNat + 24)]) → S.regs 28 = s.regs 28 →
       S.sp.toNat + 112 = s.sp.toNat → (S.regs 30).toNat % 4 = 0 → (S.regs 30).toNat < 2 ^ 48 →
-      S.regs 0 = 977152#64 → S.regs 1 = 26#64 → S.regs 2 = s.sp - 56#64 → S.regs 3 = 3#64 → S.regs 4 = 3#64 →
+      S.regs 0 = (BitVec.ofNat 64 fmtAddr) → S.regs 1 = 26#64 → S.regs 2 = s.sp - 56#64 → S.regs 3 = 3#64 → S.regs 4 = 3#64 →
       S.mem.accessible (r 0).toNat 8 false = true → S.mem.readLE (r 0).toNat 8 = len.toNat →
-      S.mem.readLE (s.sp.toNat - 56) 8 = 857504 → S.mem.readLE (s.sp.toNat - 48) 8 = e →
-      S.mem.readLE (s.sp.toNat - 40) 8 = 834592 → S.mem.readLE (s.sp.toNat - 32) 8 = (r 0).toNat →
-      S.mem.readLE (s.sp.toNat - 24) 8 = 834592 → S.mem.readLE (s.sp.toNat - 16) 8 = 1004776 →
+      S.mem.readLE (s.sp.toNat - 56) 8 = tErr → S.mem.readLE (s.sp.toNat - 48) 8 = e →
+      S.mem.readLE (s.sp.toNat - 40) 8 = tInt → S.mem.readLE (s.sp.toNat - 32) 8 = (r 0).toNat →
+      S.mem.readLE (s.sp.toNat - 24) 8 = tInt → S.mem.readLE (s.sp.toNat - 16) 8 = c32Addr →
       (CallOK S 4096 5 ∧ StackRoom S 4096 5 ∧
         ArgsOK (Env.mk tErr iErr tInt iWrap) 26 fmtNum 4294967296 S.mem (S.regs 0).toNat (S.regs 1).toNat
           (S.regs 2).toNat (S.regs 3).toNat (S.regs 4).toNat ∧
@@ -287,7 +294,7 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
           (errorfCost S.mem (S.regs 0).toNat (S.regs 1).toNat (S.regs 2).toNat) (S.regs 28).toNat S.mem
           (calleeStack S 4096 5)) := by
     intro S hf' hg hsp h30a h30b h0 h1 h2 h3 h4 hbA hbV hA0 hA1 hA2 hA3 hA4 hA5
-    have e0 : (S.regs 0).toNat = 977152 := by rw [h0]; rfl
+    have e0 : (S.regs 0).toNat = fmtAddr := by rw [h0]; rfl
     have e1 : (S.regs 1).toNat = 26 := by rw [h1]; rfl
     have e2 : (S.regs 2).toNat = s.sp.toNat - 56 := by rw [h2]; exact hsp56
     have e3 : (S.regs 3).toNat = 3 := by rw [h3]; rfl
@@ -296,8 +303,8 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
     obtain ⟨hargs, hreads, hmsg, hcosteq, hop⟩ := facts S.mem (r 0).toNat hf' hb48 hb0 hbA hbV hA0 hA1 hA2 hA3 hA4 hA5
     have hf2 : MemFrame s.mem S.mem (R.rt ++ ((s.sp.toNat - 4208, s.sp.toNat + 24) :: Ri.priv)) :=
       hf'.mono (by intro a n h; simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact ⟨h.2.2, h.2.1⟩)
-    have hc := call_pre' R L bud (errorfCost S.mem 977152 26 (s.sp.toNat - 56))
-      (Extracted.program.contractAddr "fmt.errorf") [977152, 26, s.sp.toNat - 56, 3, 3] Ri.priv
+    have hc := call_pre' R L bud (errorfCost S.mem fmtAddr 26 (s.sp.toNat - 56))
+      (Extracted.program.contractAddr "fmt.errorf") [fmtAddr, 26, s.sp.toNat - 56, 3, 3] Ri.priv
       (s := s) (S := S) (lo := s.sp.toNat - 4208) (hi := s.sp.toNat + 24) (stack := 4096) (nargs := 5) (fr := 112)
       hg1 hg2 (by omega) hgo hcgo hf2 hg hsp (by omega) h30a h30b (by decide) (by omega) (by omega) (by omega) ha4
       (by rw [show s.sp.toNat + 24 - (s.sp.toNat - 4208) = 4208 + 24 by omega]; exact hw4) hwrt hwL hok
@@ -325,12 +332,12 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
         (s.sp.toNat - 112 + 8, s.sp.toNat - 112 + 8 + 8 * 5)]) →
       MemFrame s.mem M (Ri.priv ++ [(s.sp.toNat - 4208, s.sp.toNat + 24)]) →
       M.accessible (r 0).toNat 8 false = true → M.readLE (r 0).toNat 8 = len.toNat →
-      M.readLE (s.sp.toNat - 56) 8 = 857504 → M.readLE (s.sp.toNat - 48) 8 = e →
-      M.readLE (s.sp.toNat - 40) 8 = 834592 → M.readLE (s.sp.toNat - 32) 8 = (r 0).toNat →
-      M.readLE (s.sp.toNat - 24) 8 = 834592 → M.readLE (s.sp.toNat - 16) 8 = 1004776 →
+      M.readLE (s.sp.toNat - 56) 8 = tErr → M.readLE (s.sp.toNat - 48) 8 = e →
+      M.readLE (s.sp.toNat - 40) 8 = tInt → M.readLE (s.sp.toNat - 32) 8 = (r 0).toNat →
+      M.readLE (s.sp.toNat - 24) 8 = tInt → M.readLE (s.sp.toNat - 16) 8 = c32Addr →
       M.readLE (s.sp.toNat - 120) 8 = s.sp.toNat - 8 → M.readLE (s.sp.toNat - 112) 8 = ret →
       LiveFrame M m1 L [] → ∀ a b : Nat,
-      ErrorfPost (Env.mk tErr iErr tInt iWrap) R M 977152 26 (s.sp.toNat - 56)
+      ErrorfPost (Env.mk tErr iErr tInt iWrap) R M fmtAddr 26 (s.sp.toNat - 56)
         [(s.sp.toNat - 112 - 4096, s.sp.toNat - 112 - 8), (s.sp.toNat - 112 + 8, s.sp.toNat - 112 + 8 + 8 * 5)] L bud
         (s.regs 28).toNat a b m1 →
       m1.readLE (s.sp.toNat - 120) 8 = s.sp.toNat - 8 ∧ m1.readLE (s.sp.toNat - 112) 8 = ret ∧
@@ -360,7 +367,7 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
       exact h30
     have hacc : ∀ a n w, m1.accessible a n w = s.mem.accessible a n w := fun a n w => by
       rw [hfr.accessible, hMF.accessible]
-    have hmlen : (msgOf M 977152 26 (s.sp.toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
+    have hmlen : (msgOf M fmtAddr 26 (s.sp.toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
       rw [hmsgM]
     refine ⟨hs29, hs30, ?_, ?_, hiw, ?_, ?_, ?_, ?_, ?_, ?_, hfresh, hinr, ?_, ?_, ?_⟩
     · rw [hacc]; exact Memory.accessible_weaken _ (Memory.accessible_mono _ hw4 (by omega) (by omega))
@@ -374,9 +381,9 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
     · exact MemFrame.trans hMF hfr (by frame_sub)
     · exact LiveFrame.trans (LiveFrame.of_win hMF hLS) hlf (fun _ _ h => h)
     · rw [hcostM] at hinv'; rw [hmlen] at hinv'; exact hinv'
-  have hm0 : m'.readLE (s.sp.toNat - 56) 8 = 857504 := by
+  have hm0 : m'.readLE (s.sp.toNat - 56) 8 = tErr := by
     rw [hfr.readLE _ _ (by simp only [outside_append, outside_cons, outside_nil, and_true]; exact ⟨hPo _ _ (by omega) (by omega), by omega, by omega⟩)]
-    (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]
+    (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega
   have hm1 : m'.readLE (s.sp.toNat - 48) 8 = e := by
     rw [hfr.readLE _ _ (by simp only [outside_append, outside_cons, outside_nil, and_true]; exact ⟨hPo _ _ (by omega) (by omega), by omega, by omega⟩)]
     (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]
@@ -390,13 +397,13 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
     (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]
     exact Nat.mod_eq_of_lt (by have h := hret.user; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)
   refine Reaches.call (Summary.withExit (hf L bud) hret) rfl
-    (key _ (by janus_frame) (by simp [setReg, Map.keepABI]) (by simp [hsp112]; omega) (by simp [setReg]) (by simp [setReg])
-      (by simp [setReg]) (by simp [setReg]) (by simp [setReg]) (by simp [setReg]) (by simp [setReg])
+    (key _ (by janus_frame) (by simp [setReg, Map.keepABI]) (by simp [hsp112]; omega) (by simp [setReg, hFA]) (by simp [setReg, hFA])
+      (by simp [setReg, hFA]) (by simp [setReg, hFA]) (by simp [setReg, hFA]) (by simp [setReg, hFA]) (by simp [setReg, hFA])
       (by (try dsimp only); simp only [Memory.accessible_writeLE]; exact hbacc)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hbval)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm0)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm1)
-      (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self])) ?_
+      (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega)) ?_
   intro s' hpc' ⟨r2, vr2, fl2, m1, ex1, ep1, hs1, hfr1, hlf1, hpost⟩
   subst hs1
   simp only [calleeStack, setReg_apply, reduceIte, Nat.reduceEqDiff, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod,
@@ -406,7 +413,7 @@ theorem errblk1 (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Law
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hbval)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm0)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm1)
-      (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self])
+      (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Memory.readLE_writeLE_self]; try omega)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm120)
       (by (try dsimp only); (repeat rw [Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm112)
       hlf1 _ _ hpost
@@ -492,7 +499,7 @@ abbrev evData : Nat := Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBuf
 def sp0 : Nat := 0x200000
 def g0 : Nat := 0x300000
 def retA : Nat := 0x1000
-def textAddr : Nat := 0x1b5300
+def textAddr : Nat := 2 * evData
 def txtNum : Nat := 152660719805448614182092436004481091377314964726114
 
 def dat (a : Nat) : Option Nat :=
@@ -500,7 +507,7 @@ def dat (a : Nat) : Option Nat :=
     if d.base ≤ a ∧ a < d.base + d.bytes.length then some (d.bytes.getD (a - d.base) 0) else none
 
 def regions0 : List Region :=
-  [⟨sp0 - 4208, 4232, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩, ⟨0x1b5b00, 0x200, true⟩,
+  [⟨sp0 - 4208, 4232, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩, ⟨ev, evData + 16 - ev, true⟩,
     ⟨textAddr, 0x40, false⟩, ⟨0x10000, 0x300, false⟩, ⟨0x10300, 0xd00, true⟩] ++
     Extracted.data.map fun d => ⟨d.base, d.bytes.length, false⟩
 

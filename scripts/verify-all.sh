@@ -26,6 +26,21 @@ for a in arm64 amd64; do
 done
 (cd go && GOTOOLCHAIN=go1.26.0 GOAMD64=v3 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO" build -trimpath -buildvcs=false -o ../build/harness-amd64v3 ./cmd/harness) || { echo "harness build failed (amd64 v3)"; exit 2; }
 fi
+# the binary under verification is pinned: build/harness-* must hash to scripts/harness.sha256 (checked even with SKIP_HARNESS). FAIL LOUDLY otherwise.
+hbad=0
+while read -r h name; do
+  case "$h" in ''|\#*) continue;; esac
+  got="$(sha256sum "build/$name" 2>/dev/null | awk '{print $1}')"
+  if [ "$got" != "$h" ]; then
+    echo "HARNESS MISMATCH: build/$name has sha256 ${got:-<missing>}, expected $h (scripts/harness.sha256)." >&2
+    hbad=1
+  fi
+done < "$root/scripts/harness.sha256"
+if [ "$hbad" != 0 ]; then
+  echo "The library programs are tied to the pinned harness layout. Do NOT regenerate libraries or re-verify silently: restore go/, GOTOOLCHAIN=go1.26.0 and the flags in scripts/harness.sha256, or change them deliberately and re-verify everything." >&2
+  exit 3
+fi
+# A row whose per-ISA status is `todo` or `in progress (...)` is reported as MISSING and makes the run FAIL (never skipped silently).
 # rows: | `(*uint256.Int).Fn` | owner | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
 mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
 fail=0; table=""
@@ -37,12 +52,21 @@ for row in "${rows[@]}"; do
   case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
   for pair in "arm64:$st_arm:Arm64" "amd64:$st_amd:Amd64"; do
     IFS=: read -r isa st dir <<<"$pair"
-    case "$st" in verified*|partial*) ;; *) continue;; esac
+    case "$st" in
+      verified*|partial*) ;;
+      todo*|inprogress*|in-progress*)   # a function in the coverage target list with no release-grade proof: FAIL, never skip silently
+        table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "MISSING ($st)")"$'\n'; fail=1; continue;;
+      *) continue;;   # n/a, out of scope
+    esac
     out="build/ex-$isa-$fn"
     cflags="$(contract_flags "$fn")"
+    # a verified row with neither a flags case (contract-flags.sh) nor an entry in noflags.txt is a configuration gap: FAIL, never guess
+    if ! contract_known "$fn"; then echo "no contract-flags case for $fn: add the flags of its verified extraction to scripts/contract-flags.sh (or scripts/noflags.txt)" >"build/log-$isa-$fn"; table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "FAIL (no flags case)")"$'\n'; fail=1; continue; fi
     # proof module: Fn.lean, or FnMain.lean when the main theorem lives there (split proofs)
-    pf="$fn"; if ! grep -q "theorem correctness" "lean/Fv256/$dir/$fn.lean" 2>/dev/null && [ -f "lean/Fv256/$dir/${fn}Main.lean" ]; then pf="${fn}Main"; fi
-    wt=(); if [ -n "${WITNESS:-}" ] && grep -q "theorem nonvacuous" "lean/Fv256/$dir/$pf.lean"; then wt=(--theorem "Fv256.$dir.$pf.Witness.nonvacuous"); fi
+    # FnMain.lean, when it exists, is the full-spec proof and wins over Fn.lean (which may be an older partial proof)
+    pf="$fn"; if [ -f "lean/Fv256/$dir/${fn}Main.lean" ] && grep -q "theorem correctness" "lean/Fv256/$dir/${fn}Main.lean"; then pf="${fn}Main"; fi
+    # every existential witness theorem declared in the module (Witness.nonvacuous, Grow.Witness.nonvacuous, Witness.big, ...): scripts/witness-theorems.py
+    wt=(); if [ -n "${WITNESS:-}" ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/$dir/$pf.lean"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
        timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
          --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi

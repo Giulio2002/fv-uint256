@@ -118,7 +118,7 @@ theorem segF (S : State) (R X29 zv : BitVec 64) (V : Nat) (hpc : S.pc = BitVec.o
       (fun S' => S'.pc = R ∧ S'.sp = S.sp + 368 ∧ S'.regs 0 = zv ∧ S'.regs 28 = S.regs 28 ∧ S'.regs 29 = X29 ∧ S'.regs 18 = S.regs 18 ∧
         S'.regs 30 = R ∧
         S'.mem.readLE zv.toNat 32 = (V + 2 ^ 256) % S.mem.readLE (S.regs 6).toNat 32 ∧
-        MemFrame S.mem S'.mem [(zv.toNat, zv.toNat + 32), (S.sp.toNat - 344, S.sp.toNat + 384)]) := by
+        MemFrame S.mem S'.mem [(zv.toNat, zv.toNat + 32), (S.sp.toNat - 344, S.sp.toNat + 360), (S.sp.toNat + 376, S.sp.toNat + 384)]) := by
   have e216 : (S.sp + 216#64).toNat = S.sp.toNat + 216 := by simp [BitVec.toNat_add]; omega
   have e248 : (S.sp + 248#64).toNat = S.sp.toNat + 248 := by simp [BitVec.toNat_add]; omega
   have e144 : (S.sp + 144#64).toNat = S.sp.toNat + 144 := by simp [BitVec.toNat_add]; omega

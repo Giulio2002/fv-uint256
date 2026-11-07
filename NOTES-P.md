@@ -31,3 +31,25 @@ The SAME offsets relative to r hold on arm64 (y r-80, divisor r-48, buf r-320, o
 - Tables: digits 989280, smalls 1002589 (inside seg @1002456, +133), zero string 960826. Arm64/Pd/Tabs.lean written (uncompiled).
 - Steps once amd64 77f run ends: rsync, build Arm64.P.Append in build/wsdev3 (WSD=wsdev3), fix Init, then Iter1.. in order.
 - No lsr #32 / rot32_and spots appear in PrettyDec (only used by division/Knuth code already summarised in ChainProg).
+
+## STATUS (handover point)
+- amd64 PrettyDec VERIFIED on 77fb30cc (453 s warm; build/out/vamd64-77f.log) and on 655a23fa (2974 s cold). COVERAGE row sent to FV-A.
+- arm64: libraries build in build/wsdev3 (WSD=wsdev3 build/bld.sh|chk.sh|errs.sh; Extracted for arm64 NOT yet installed there: copy build/ex-arm64-PrettyDec/Extracted.lean to wsdev3/root and
+  `lake env lean -o ../janus/.lake/build/lib/lean/Extracted.olean Extracted.lean`).  DONE+compiled: Arm64/{StrProg,PrettyProg,P/*,Pd/Tabs,Pd/Init(pd_init)}.
+- arm64 TODO in order: Iter1 (udivrem via UdivremFinal.udivrem_rem_L_final: GuardOK s 304, StackOK s 344 72, callee entry sp = body sp b (no push); callee frames [b-344,b-8),[b+8,b+72);
+  need StackWritable below >= 744 -> use 0x300 etc; AppendUint arm64 summary Fv256.Arm64.P.append_summary), Inner, Pad, Tail, Chunk, Loop, Summary (reachesRet64_bind/link, x30 return: restore from saved slot b), Lift, PrettyDec.lean + 5-byte copying witness (Arm64/Hex.lean witness is the template; copy code words need x0..: ldrb/strb encodings).
+- Drafts: Arm64/Pd/draft/*.lean.draft (mechanical, register map in NOTES above). Branch-condition form: use `until [pdK, pdH]`-style probing (shows hbr) with janus_run.
+
+## HANDOVER (FV-E took over from FV-D2, then handed over at ~900k tokens of context; nothing new compiled by FV-E)
+- Dev workspace build/wsdev3 now has the arm64 library chain BUILT (`WSD=wsdev3 build/bld.sh init1 Fv256.Arm64.Pd.Init`, 1492 s, DONE rc=0), Extracted = arm64 PrettyDec.
+  Amd64 oleans (e.g. Fv256.ChainProg) are NOT in wsdev3 (the arm64 target does not need them): drafts must import Fv256.Arm64.ChainProg, not Fv256.ChainProg.
+- IMPORTANT correction to the "mechanical" claim above: Arm64/Pd/draft/*.lean.draft are the AMD64 files with a few register renames; they still use the
+  amd64 API (Janus.Amd64 namespace, `janus64_run`, `s.regs 4` as rsp, `State.rip`, `Fv256.Amd64.P` lemmas, `Fv256.ChainProg`, imports of Amd64.UdivremL ...). Each file is a
+  real port: take the corresponding arm64 pattern from the Dec stack (lean/Fv256/Arm64/{DecIter,DecLoop,DecSummary,StrconvFormatUint,Dec,...}.lean, `janus_run`,
+  `s.sp`, `s.regs 28`, `GuardOK/StackOK`, `Janus.Tactic.Summary/ReachesRet`, `RtContract` (arm64 form), udivrem via `Fv256.Arm64.UdivremFinal.udivrem_rem_L_final` +
+  `Summary.of_codeIn` with `Fv256.Arm64.ChainProg`) and the compiled `Arm64/Pd/Init.lean` as the style template for Pd files.
+- Iterate with `WSD=wsdev3 N=12 build/errs.sh Fv256/Arm64/Pd/<File>.lean` (≈ seconds-minutes per file once its imports are built with bld.sh); update this file after each compiled file.
+- Content-based lookup after janus_run … calls: use Fv256/GrabTac.lean (grab_const / grab_last_const / grab_frame / grab_proj_of) from fv/we, not positional rename_i.
+- Final steps: Arm64/PrettyDec.lean (statement, copying 5-byte toy slicebytetostring witness, z = 1000 -> "1,000"; arm64 toys: see fv/we lean/Fv256/ToyRuntimeArm64.lean for assembling words with aarch64-linux-gnu-as),
+  then janus verify on 77fb30cc with the shared cache (JANUS_CACHE_DIR=/srv/janus-ops/jcache-shared), correctness + Witness.nonvacuous in one run.
+- Useful for the second half of the proof: Dec's post carries DecAt; PrettyDec's slicebytetostring contract post now has StrAt (needs `Extracted.dataAddr.«runtime.staticuint64s»` in the contract, see fv/we Arm64/Dec*.lean for the pattern).

@@ -1,8 +1,0 @@
-Fv256/Amd64/UnmarshalJq.lean:109:18: warning: try 'simp' instead of 'simpa'
-Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
-Fv256/Amd64/UnmarshalJq.lean:107:40: warning: This simp argument is unused:
-  callRegs64_apply
-Hint: Omit it from the simp argument list.
-  [apply] simp [setRegF_apply]
-Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-LEANRC=0

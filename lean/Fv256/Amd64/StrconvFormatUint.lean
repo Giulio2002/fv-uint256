@@ -40,7 +40,8 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
         s'.regs 4 = s.regs 4 + 8 ∧ s'.regs 5 = s.regs 5 ∧ s'.regs 14 = s.regs 14 ∧ s'.xmm 15 = s.xmm 15 ∧
         s'.df = s.df ∧ s'.mxcsr = s.mxcsr ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) ∧ TabsOK s'.mem ∧
-        DecAt rt 5163273 5176582 5134938 (s'.regs 0).toNat (s'.regs 3).toNat) := by
+        DecAt rt 5163273 5176582 5134938 (s'.regs 0).toNat (s'.regs 3).toNat ∧
+        ((s.regs 0).toNat < 100 → MemFrame s.mem s'.mem [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)])) := by
   intro s hpc ⟨hb10, hu, hg, hw, hal, hret, htab, hrt1, hrt2, hrt3, hH⟩
   have hc2 : fu + 0x300 < 2 ^ 47 := by decide
   obtain ⟨hwb, hwn, hwa⟩ := hw
@@ -62,12 +63,14 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
         rw [decBytes_lt _ h10]
         simp only [strBytes, List.range_one, List.map_cons, List.map_nil]
         rw [← Janus.Arm64.Memory.readLE_one, Nat.add_zero, hd0]
-      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_, ?_⟩
+      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_, ?_, ?_⟩
       · rw [decBytes_lt _ h10]; rfl
       · exact accessible_sub htab.acc1 (Or.inl rfl) (by omega) (by omega)
       · exact (MemFrame.refl s.mem _).writeLE _ (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)
       · exact htab.writeLE (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) _
       · simp only [DecAt]; right; left; constructor <;> simp [setRegF] <;> omega
+      · try intro _
+        exact (MemFrame.refl s.mem _).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)
     · have hl : decLen (s.regs 0).toNat = 2 := by
         rw [decLen_ge _ (by omega), decLen_lt _ (by omega)]
       janus64_run [hb10]
@@ -80,12 +83,14 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
           show 5176582 + (s.regs 0).toNat * 2 = 5176582 + 2 * (s.regs 0).toNat by omega, hsr.1, hsr.2]
         simp only [List.cons_append, List.nil_append, List.cons.injEq, and_true]
         try omega
-      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_, ?_⟩
+      refine ⟨⟨?_, by omega, ?_, hsb⟩, ?_, ?_, ?_, ?_⟩
       · rw [decBytes_ge _ (by omega), decBytes_lt _ (by omega)]; simp
       · exact accessible_sub htab.acc2 (Or.inl rfl) (by omega) (by omega)
       · exact (MemFrame.refl s.mem _).writeLE _ (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)
       · exact htab.writeLE (accessible_sub hwa (Or.inr rfl) (by omega) (by omega)) _
       · simp only [DecAt]; right; right; left; constructor <;> simp [setRegF] <;> omega
+      · try intro _
+        exact (MemFrame.refl s.mem _).writeLE _ (List.mem_singleton_self _) (by omega) (by omega)
   · have hge : 100 ≤ (s.regs 0).toNat := by omega
     have hdl20 := decLen_le_20 _ hu
     have hsp := (s.regs 4).isLt
@@ -160,7 +165,7 @@ theorem formatUint_summary (st : Nat) (impl : List Janus.Amd64.Segment) (rt : Li
           have e : (s.regs 4).toNat - 32 + (24 - decLen (s.regs 0).toNat) + decLen (s.regs 0).toNat - 1 - k = (s.regs 4).toNat - 32 + 23 - k := by omega
           rw [e]; exact this)
       have hap := htab.apart hwa
-      refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_, ?_⟩
+      refine ⟨⟨?_, hr2, hr3, ?_⟩, ?_, ?_, ?_, fun h => h.elim⟩
       · rw [hr1, hdig]
       · rw [hr4]; exact hdig
       · have hfs' : MemFrame s.mem sA.mem (rt ++ [((s.regs 4).toNat - 0x58 - 4096, (s.regs 4).toNat)]) :=

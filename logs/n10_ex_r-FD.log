@@ -1,4 +1,0 @@
-Error: No function "github.com/holiman/uint256.(*Int).FromDecimal" in build/harness-arm64
-  Similar: github.com/holiman/uint256.FromDecimal
-  Stage: function selection
-  Next: Run janus list on the binary and copy the exact symbol name. Unused functions are removed by the linker; keep them alive from main.

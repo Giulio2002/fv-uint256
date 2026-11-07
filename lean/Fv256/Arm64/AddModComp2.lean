@@ -34,7 +34,7 @@ def Post (s s' : State) : Prop :=
   s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
   s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.addmodSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32)
     (s.mem.readLE (s.regs 3).toNat 32) ∧
-  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)]
+  MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]
 
 /-- facts after segment A (the prologue and the fast-path test) -/
 structure AF (s S1 : State) : Prop where
@@ -169,7 +169,7 @@ theorem gb_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.
     have := q3val
     rw [t0, t1, t2] at this
     rw [this, hmem2 _ _ (by omega), hmem2 _ _ (by omega)]
-  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] := by
+  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] := by
     rw [t0] at q3frame
     exact f2.trans q3frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
   refine seg_mono (segD S3 (s.regs 30) (s.regs 29) h3pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
@@ -289,7 +289,7 @@ theorem gb_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.e
     have := q3val
     rw [t0, t1, t2] at this
     rw [this, hmem2 _ _ (by omega), hmem2 _ _ (by omega)]
-  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] := by
+  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] := by
     rw [t0] at q3frame
     exact f2.trans q3frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
   refine seg_trans (segE S3 h3pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
@@ -357,7 +357,7 @@ theorem gb_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.e
   · rw [q5val, mval4, vz]
     simp [Fv256.F.addmodSpec, hm32]
   · rw [sp4n] at q5frame
-    have f4 : MemFrame s.mem S4.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] :=
+    have f4 : MemFrame s.mem S4.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] :=
       f3.trans q4frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
     exact f4.trans q5frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
 
@@ -463,7 +463,7 @@ theorem ga_nov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.
     have := q3val
     rw [t0, t1, t2] at this
     rw [this, hmem2 _ _ (by omega) (by omega), hmem2 _ _ (by omega) (by omega)]
-  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] := by
+  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] := by
     rw [t0] at q3frame
     exact f2.trans q3frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
   refine seg_mono (segD S3 (s.regs 30) (s.regs 29) h3pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
@@ -599,7 +599,7 @@ theorem ga_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.e
     have := q3val
     rw [t0, t1, t2] at this
     rw [this, hmem2 _ _ (by omega) (by omega), hmem2 _ _ (by omega) (by omega)]
-  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] := by
+  have f3 : MemFrame s.mem S3.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] := by
     rw [t0] at q3frame
     exact f2.trans q3frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
   refine seg_trans (segE S3 h3pc ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_) ?_
@@ -667,7 +667,7 @@ theorem ga_ov (s : State) (hpc : s.pc = BitVec.ofNat 64 Fv256.Arm64.AddModProg.e
   · rw [q5val, mval4, vz]
     simp [Fv256.F.addmodSpec, hm32]
   · rw [sp4n] at q5frame
-    have f4 : MemFrame s.mem S4.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)] :=
+    have f4 : MemFrame s.mem S4.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] :=
       f3.trans q4frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
     exact f4.trans q5frame (fun a n h => by simp only [Outside, and_true] at h ⊢; omega)
 

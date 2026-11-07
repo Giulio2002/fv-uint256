@@ -1,7 +1,0 @@
-AUDIT ut rc=1 t=75
-AUDIT uj rc=1 t=173
-AUDIT afd rc=1 t=23
-AUDIT amfd rc=1 t=97
-AUDIT rfd rc=1 t=83
-AUDIT rmfd rc=1 t=101
-ENDMARK

@@ -1,8 +1,0 @@
-MulModWithReciprocal EXIT=0
-IMulModWithReciprocal EXIT=0
-MulMod EXIT=0
-IMulMod EXIT=0
--rw-r--r-- 1 root root  6959 21:06:21 logs/v77_IMulMod.log
--rw-r--r-- 1 root root  9056 20:46:03 logs/v77_IMulModWithReciprocal.log
--rw-r--r-- 1 root root  7433 21:05:41 logs/v77_MulMod.log
--rw-r--r-- 1 root root 10034 20:45:04 logs/v77_MulModWithReciprocal.log

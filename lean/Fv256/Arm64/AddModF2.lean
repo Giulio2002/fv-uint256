@@ -201,7 +201,7 @@ theorem fast2 : Summary Fv256.Arm64.AddModProg.program Fv256.Arm64.AddModProg.en
         s'.regs 29 = s.regs 29 ∧ s'.regs 30 = s.regs 30 ∧
         s'.mem.readLE (s.regs 0).toNat 32 = Fv256.F.addmodSpec (s.mem.readLE (s.regs 1).toNat 32) (s.mem.readLE (s.regs 2).toNat 32)
           (s.mem.readLE (s.regs 3).toNat 32) ∧
-        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat + 16)]) := by
+        MemFrame s.mem s'.mem [((s.regs 0).toNat, (s.regs 0).toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)]) := by
   intro s hpc ⟨hpre, hm3, hx3, hy3⟩
   have h1 := half1 s hpc hpre hm3 hx3 hy3
   obtain ⟨h30a, h30b, ⟨hg1, hg2, hg3⟩, hsal, hsb, hsc, hsw, hdata, hgw, hzb, hza, hxb, hxa, hyb, hya, hmb, hma, hdz, hdx, hdy, hdm, hzm, hzx, hzy, hgz⟩ := hpre
