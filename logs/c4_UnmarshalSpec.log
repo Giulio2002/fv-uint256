@@ -1,9 +1,0 @@
-Fv256/Amd64/UnmarshalSpec.lean:236:11: warning: Variable name `sb` is not explicitly referenced.
-Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
-  [apply] _sb
-Note: This linter can be disabled with `set_option linter.unusedVariables false`
-Fv256/Amd64/UnmarshalSpec.lean:276:12: warning: Variable name `sb` is not explicitly referenced.
-Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
-  [apply] _sb
-Note: This linter can be disabled with `set_option linter.unusedVariables false`
-LEANRC=0
