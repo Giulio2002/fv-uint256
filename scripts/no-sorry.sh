@@ -16,7 +16,8 @@ done < "$allow"
 if [ -n "${RELEASE:-}" ] && [ ${#ok[@]} -gt 0 ]; then echo "FAIL (RELEASE): $allow is not empty (${#ok[@]} entries)"; exit 1; fi
 fail=0
 while IFS= read -r f; do
-  if sed 's/--.*$//' "$f" | grep -qw 'sorry'; then
+  # (not `grep -q` in a pipe: with pipefail an early-exiting grep SIGPIPEs sed and the test would falsely say 'no sorry' on big files)
+  if [ "$(sed 's/--.*$//' "$f" | grep -cw 'sorry')" -gt 0 ]; then
     if [ -n "${ok[$f]:-}" ]; then echo "allowed (WIP): $f"; else echo "FAIL: sorry in $f (not in $allow)"; fail=1; fi
   elif [ -n "${ok[$f]:-}" ]; then echo "note: $f is in $allow but no longer contains sorry (remove it)"; fi
 done < <(find lean/Fv256 -name '*.lean' | sort)

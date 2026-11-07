@@ -83,7 +83,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         have nz3 : s.mem.readLE (z.toNat + 24) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (z.toNat + 24) 8) := fun h => by simp [Spec.bitLen, h]
         rw [Util.readLE_32, Util.bl_4 _ _ _ _ x0 x1 x2]
         simp only [setRegF, Nat.reduceEqDiff, ite_false, ite_true, if_false, BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod, ne_eq]
-        (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod]) <;> first | omega | (trace_state; sorry)
+        (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod]) <;> omega
       · first | rfl | simp [h_df])
 
 namespace Witness
