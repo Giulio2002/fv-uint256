@@ -314,9 +314,15 @@ theorem te1_pre (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     have hwF' : 1979584 + 4 ≤ t.toNat ∨ t.toNat + 48 ≤ 1979584 := by rw [← hwb]; exact hInTW'
     have hte4' : 1793712 + 16 ≤ t.toNat ∨ t.toNat + 48 ≤ 1793712 := by rw [← hes]; exact hte4
     janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hf4b, hacc4, hacc4w, hacc4t, hacc4e, hSlr, hSfp, hof30, hof29] until [P.contractAddr "runtime.gcWriteBarrier2"]
-    exact hcont s S _ m' m2 m3 m4 q t (by first | rfl | decide) (by simp [callRegs, setReg_apply]) rfl (by simp [callRegs, setReg_apply]) rfl
-      (by simp [callRegs, setReg_apply, Map.keepABI, hg28]) (by simp [callRegs, setReg_apply, Map.keepABI, hg18]) hok1 hok2
+    refine hcont s S _ m' m2 m3 m4 q t ?_ ?_ ?_ ?_ ?_ ?_ ?_ hok1 hok2
       { hdep, hlow, e9, e10, hSf, hfr := hfr', hMF1, hMF2, hMF3, hLF1, hLF3, hCop, hinvN, hInR, hInT, hApL, hApT, hQsl, hspR, hspP,
         hsdisj, hSm8, oE, pE, qE, hf4, hacc4, hacc4t, hacc4e, hacc4w, hlr4, hfp4, hts4, hte4, hwF, hL18 := e18, hrt0, hal := e4, hsp72 := e3, e5, pW, qW }
+    · first | rfl | decide
+    · simp [callRegs, setReg_apply]
+    · rfl
+    · simp [callRegs, setReg_apply]
+    · rfl
+    · simp [callRegs, setReg_apply, Map.keepABI, hg28]
+    · simp [callRegs, setReg_apply, Map.keepABI, hg18]
 
 end Fv256.Arm64.SfdToError
