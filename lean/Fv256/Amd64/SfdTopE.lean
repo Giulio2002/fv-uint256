@@ -104,4 +104,35 @@ theorem fdpre_of (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat
     rw [hpk, hlN] at *
     exact hbc.2 ▸ hfin (hbc.1.1 hd)
 
+/-- the state at the `fromDecimal` call (return slot at `sp0 - 72`): the frame facts of `TopSt` with the stack pointer 8 lower -/
+def CallSt (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS : BitVec 64)
+    (s Sc : State) : Prop :=
+  Sc.regs 4 = s.regs 4 - 72#64 ∧ Sc.regs 5 = s.regs 4 - 8#64 ∧ Sc.regs 14 = s.regs 14 ∧ Sc.xmm 15 = 0 ∧ Sc.df = false ∧
+  Sc.fsBase = s.fsBase ∧ MemFrame s.mem Sc.mem [(lo, hi)] ∧
+  Sc.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
+  Sc.mem.readLE ((s.regs 4).toNat + 8) 8 = z.toNat ∧ Sc.mem.readLE ((s.regs 4).toNat + 16) 8 = pS.toNat ∧
+  Sc.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+  Fv256.Amd64.SfdEnv.Env R R2 T b L lo hi Sc
+
+theorem callSt_of {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {z pS : BitVec 64}
+    {s S Sc : State} (hL : R2.Laws) (hS : TopSt R R2 T b L lo hi z pS s S) (hlo : 72 ≤ (s.regs 4).toNat)
+    (hsp : (s.regs 4).toNat < 2 ^ 64)
+    (h4 : Sc.regs 4 = s.regs 4 - 72#64) (h5 : Sc.regs 5 = S.regs 5) (h14 : Sc.regs 14 = S.regs 14) (hx : Sc.xmm 15 = S.xmm 15)
+    (hdf : Sc.df = S.df) (hfs : Sc.fsBase = S.fsBase) (hf : MemFrame S.mem Sc.mem [(lo, hi)]) (hw : lo + 32 ≤ hi)
+    (e1 : Sc.mem.readLE ((s.regs 4).toNat - 8) 8 = S.mem.readLE ((s.regs 4).toNat - 8) 8)
+    (e2 : Sc.mem.readLE ((s.regs 4).toNat + 8) 8 = S.mem.readLE ((s.regs 4).toNat + 8) 8)
+    (e3 : Sc.mem.readLE ((s.regs 4).toNat + 16) 8 = S.mem.readLE ((s.regs 4).toNat + 16) 8)
+    (e4 : Sc.mem.readLE (s.regs 4).toNat 8 = S.mem.readLE (s.regs 4).toNat 8)
+    (hlo2 : lo + 72 ≤ (s.regs 4).toNat) (hhi : (s.regs 4).toNat + 8 ≤ hi) :
+    CallSt R R2 T b L lo hi z pS s Sc := by
+  obtain ⟨a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12⟩ := hS
+  have hEnv := a12
+  obtain ⟨c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18⟩ := a12
+  have hs72 : (Sc.regs 4).toNat = (s.regs 4).toNat - 72 := by rw [h4]; exact bv_sub_c _ 72 (by decide) hlo
+  have hS4 : (S.regs 4).toNat = (s.regs 4).toNat - 64 := by rw [a1]; exact bv_sub_c _ 64 (by decide) (by omega)
+  refine ⟨h4, h5.trans a2, h14.trans a3, hx.trans a4, hdf.trans a5, hfs.trans a6, ?_, e1.trans a8, e2.trans a9, e3.trans a10,
+    e4.trans a11, ?_⟩
+  · exact MemFrame.trans a7 hf (fun a n h => ⟨h, h⟩)
+  · exact Env.frame0 hL hEnv ⟨by rw [hs72]; omega, by rw [hs72]; omega, by rw [hs72]; omega⟩ h14 hf hw
+
 end Fv256.Amd64.SfdTop
