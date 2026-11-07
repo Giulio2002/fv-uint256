@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -7,6 +8,8 @@ import Fv256.HexLemmas
 import Fv256.HexSpec
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Fv256.C Fv256.Hex
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.Hex
 
@@ -460,6 +463,22 @@ theorem pre : GuardOK s0 0 ∧ StackOK s0 4208 8 ∧ Extracted.program.DataLoade
     refine ⟨by decide, by decide, ?_, by decide⟩
     decide
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/Hex.lean
+def csSb0 : State := { s0 with regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 HEAP else if i = 2 then BitVec.ofNat 64 3 else s0.regs i }
+/-- The call state of `runtime.slicebytetostring` (U-WITNESS-CALLSITE): `slicebytetostring(nil, HEAP, 3)` at its entry, in the caller's frame (`SP = sp0 - 112`). -/
+def csSb : State := { csSb0 with sp := BitVec.ofNat 64 (sp0 - 112), pc := BitVec.ofNat 64 ssAddr }
+
+set_option maxRecDepth 100000 in
+theorem csSb_pre : RtPre rtW 4096 H1 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, BufOK, StrIn]
+    exact ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]
+    intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
+  · show H1 (argWords csSb 3) (csSb.regs 28).toNat csSb.sp.toNat (rtView rtW csSb.mem)
+    refine ⟨by decide, by decide, ?_, by decide⟩
+    decide
+
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
@@ -472,13 +491,14 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4208 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
         (∀ n, hexDigits (val256 s.mem z.toNat) n → H [0, s.sp.toNat - 112 + 38 + (64 - n), n + 2]
           (s.regs 28).toNat (s.sp.toNat - 112) (rtView rt s.mem))) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 ssAddr ∧ RtPre rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ HexOut (val256 s.mem z.toNat) s'.mem (s'.regs 0).toNat (s'.regs 1).toNat ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4208, s.sp.toNat + 8)]) := by
   refine ⟨implAt, rtW, H1, ret, s0, arg0, model, ?w1, ?w2, pre,
+    ⟨csSb, rfl, csSb_pre⟩,
     correctness implAt rtW H1 arg0 model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
-
 end Witness
 
 end Fv256.Arm64.Hex
