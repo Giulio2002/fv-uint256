@@ -12,3 +12,11 @@ New Base.lean wrappers appended: strsIn_of, MakesliceSite, ConvT64Site, ErrorfLi
 Audit: scripts/csa-q.sh arm64 ROW audit -> /srv/fv-uint256-csa-aud/q/arm64-ROW-audit.out (VERDICT line).
 Rows: Hex PrettyDec MarshalJSON MarshalText Value MarshalSSZAppend MarshalSSZ PaddedBytes EncodeRLP MarshalSSZInto UnmarshalSSZ.
 Verdicts: see the end of this file (updated by the final report).
+
+## Status at fork end
+- Audited: Hex AUDIT-PASS (106 s incl. extraction+compile); Bytes (not mine) pass.
+- Queued (nohup, flock queue shared with forks B/C1/C2; verdicts appear in /srv/fv-uint256-csa-aud/q/arm64-ROW-audit.out):
+  batchA1.sh (Hex PrettyDec; done marker q/A1.done), batchA2.sh (MarshalJSON MarshalText Value MarshalSSZAppend MarshalSSZ PaddedBytes EncodeRLP; q/A2.done),
+  batchA3.sh (MarshalSSZInto UnmarshalSSZ; q/A3.done). They start in order.
+- Everything except Hex is uncompiled: expect COMPILE-ERR rounds (likely spots: decide on StrOut/ArgsOK with big memories in EncodeRLP/SSZInto, `simp only` shapes in the concat/ReadsOutside bullets
+  of MarshalJSON, cost bounds `by decide` in Value/growslice). Fix = edit the generator, rerun it, requeue with scripts/csa-q.sh.
