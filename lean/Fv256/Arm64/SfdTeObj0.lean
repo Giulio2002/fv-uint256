@@ -159,9 +159,9 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
     (hLF3 : LiveFrame ((m3.writeLE (s.sp.toNat - 40) 8 sl.toNat).writeLE (s.sp.toNat - 24) 8 q.toNat) m4
       (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)]) [])
     (hCop : Mem.Copied (m2.writeLE (s.sp.toNat - 16) 8 q.toNat) m3 q.toNat sp.toNat sl.toNat)
-    (hinvN : R.inv (b - blockSize sl.toNat true - blockSize 48 false)
-      (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true), (t.toNat, t.toNat + blockSize 48 false)]) (s.regs 28).toNat
-      (view R.rt (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true), (t.toNat, t.toNat + blockSize 48 false)]) m4))
+    (hinvN : R.inv (b - blockSize sl.toNat true - 48)
+      (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)] ++ [(t.toNat, t.toNat + 48)]) (s.regs 28).toNat
+      (view R.rt (L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)] ++ [(t.toNat, t.toNat + 48)]) m4))
     (hInR : InRanges q.toNat (blockSize sl.toNat true) R.rt) (hInT : InRanges t.toNat (blockSize 48 false) R.rt)
     (hApL : ApartAll q.toNat (blockSize sl.toNat true) L)
     (hApT : ApartAll t.toNat 48 L ∧ Apart t.toNat 48 q.toNat (blockSize sl.toNat true))
@@ -257,7 +257,9 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
             refine ⟨Outside.of_sub hspP (by te_omega) (by te_omega), ?_, ?_⟩ <;> te_omega)]
           exact hSf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; te_omega)
       exact te0_copy (hLF := hLF3) (hApt := hApt) hk hQsl (by te_omega) (by te_omega) hCop hsrc
-    · rw [tm_view (rt := R.rt) ⟨(t.toNat, t.toNat + blockSize 48 false), by simp, Nat.le_refl _, by simp only [b48]; omega⟩]
-      exact hinvN
+    · have hl : L ++ [(q.toNat, q.toNat + blockSize sl.toNat true), (t.toNat, t.toNat + blockSize 48 false)] =
+          L ++ [(q.toNat, q.toNat + blockSize sl.toNat true)] ++ [(t.toNat, t.toNat + 48)] := by simp [b48]
+      rw [hl, tm_view (rt := R.rt) ⟨(t.toNat, t.toNat + 48), by simp, Nat.le_refl _, Nat.le_refl _⟩]
+      rw [b48]; exact hinvN
 
 end Fv256.Arm64.SfdToError
