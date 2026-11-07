@@ -199,7 +199,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
     Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inl rfl) (by omega) (by omega)
   have hWinZ : Apart lo (hi - lo) zv.toNat 32 := InRanges.apart hz e9
   have hGZ : Apart ((s.regs 14).toNat + 16) 8 zv.toNat 32 := InRanges.apart hz e11
-  unfold TopPre
+  unfold TopPre TopPre0
   refine ⟨?_, hr0, hr3, hr1, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · unfold RetOK
     rw [hsp, hF.accessible]

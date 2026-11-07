@@ -14,7 +14,7 @@ theorem caseE (z : BitVec 64) :
       (fun s s' => s'.regs 0 = z ∧
         (s'.regs 3).toNat % 256 = (if Spec.W ≤ valueAt s z 32 * valueAt s z 32 then 1 else 0) ∧
         valueAt s' z 32 = Spec.mul (valueAt s z 32) (valueAt s z 32) ∧
-        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168) := by
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168 ∧ s'.df = s.df) := by
   intro ret hret s hs ⟨hg, ⟨hlow, hnw, hacc⟩, hal, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hd0⟩
   janus64_intro hs
   have hgl := hg.load

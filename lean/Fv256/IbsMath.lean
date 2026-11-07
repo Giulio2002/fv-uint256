@@ -263,9 +263,9 @@ theorem chunk_none (m : Janus.Arm64.Memory) (q k c : Nat) (hc : c < 256) :
 
 theorem post_mk (p n : BitVec 64) (c : Nat) (s s' : Janus.Amd64.State) (r : Nat)
     (hmem : s'.mem = s.mem.writeLE ((s.regs 4).toNat + 32) 8 r)
-    (h4 : s'.regs 4 = s.regs 4 + 8#64) (h5 : s'.regs 5 = s.regs 5)
+    (h4 : s'.regs 4 = s.regs 4 + 8#64) (h5 : s'.regs 5 = s.regs 5) (hfs : s'.fsBase = s.fsBase) (hdf : s'.df = s.df)
     (hr : r % 2 ^ 64 = indexOfNat (bytesOf s.mem p.toNat) n.toNat c) : IbsPostA p n c s s' := by
-  refine ⟨?_, h4, h5, ?_⟩
+  refine ⟨?_, h4, h5, ?_, hfs, hdf⟩
   · rw [hmem, Janus.Arm64.Memory.readLE_writeLE_self]; simpa using hr
   · rw [hmem]
     exact Janus.MemFrame.of_writeLE s.mem r (r := ((s.regs 4).toNat + 32, (s.regs 4).toNat + 40)) (List.mem_singleton.2 rfl) (Nat.le_refl _) (by omega)
