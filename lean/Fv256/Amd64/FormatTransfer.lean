@@ -2,6 +2,8 @@ import Extracted
 import Fv256.FormatFastDefs
 import Fv256.Amd64.FormatNil
 import Fv256.DecAt
+import Fv256.IntoBigCommon
+import Fv256.Amd64.FormatFastPre
 import Fv256.SpecC
 import Fv256.SpecE
 
@@ -262,5 +264,127 @@ theorem nilpre_of {R : IfaceModel} (hl : R.Laws) {rt : List (Nat × Nat)} {stack
   · rw [hfr.readLE _ _ (Outside.of_sub hq4.2 (by omega) (by omega))]; exact q1
   · rw [hfr.readLE _ _ (Outside.of_sub hq4.2 (by omega) (by omega))]; exact q2
   · exact strOut_frame hfr hq5.2 q3
+
+
+/-! ## The postconditions of the three cases, in terms of the entry state `s` and the final state `s'` -/
+
+/-- nil receiver: one `fmt.Fprint(w, "<nil>")` -/
+def NilPost (R : IfaceModel) (rt : List (Nat × Nat)) (stack : Nat) (RFp : Res) (tab data : BitVec 64) (s s' : State) : Prop :=
+  MemFrame s.mem s'.mem (NilFLE R rt (s.regs 4).toNat stack) ∧
+  ∃ j0 j3 j1, RFp (BitVec.ofNat 64 (wOf R s tab)) data (BitVec.ofNat 64 ((s.regs 4).toNat - 72 + 0x30)) 1#64 j0 j3 j1
+
+/-- fast path: all queries answered plain, `ch ∈ {d, v, s, x}`, one `Write` -/
+def FastPost (rt : List (Nat × Nat)) (stack fP fF : Nat) (RW RP RF RWr : Res) (tab data ch : BitVec 64) (s s' : State) : Prop :=
+  MemFrame s.mem s'.mem (FL rt ((s.regs 4).toNat - 72) stack ++ PFL (s.regs 4).toNat) ∧
+  (∃ ptr len cap j0 j3 j1, RWr data (BitVec.ofNat 64 ptr) (BitVec.ofNat 64 len) (BitVec.ofNat 64 cap) j0 j3 j1) ∧
+  (∃ j3, PlainHist RW RP RF data tab ch j3 fP fF) ∧
+  (ch.toNat % 2 ^ 32 = 100 ∨ ch.toNat % 2 ^ 32 = 115 ∨ ch.toNat % 2 ^ 32 = 118 ∨ ch.toNat % 2 ^ 32 = 120)
+
+/-- big path: some query answered "not plain" or `ch` not a fast verb, then one `(*big.Int).Format` call -/
+def BigPost (R2 : RtInv) (rt : List (Nat × Nat)) (stack fP fF : Nat) (RW RP RF RBf : Res) (tab data ch : BitVec 64) (s s' : State) : Prop :=
+  MemFrame s.mem s'.mem (R2.rt ++ FL rt ((s.regs 4).toNat - 72) stack ++ PFL (s.regs 4).toNat) ∧
+  Fv256.Amd64.FormatFast.NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) ∧
+  ∃ P j0 j3 j1, RBf (BitVec.ofNat 64 P) tab data (BitVec.ofNat 64 (ch.toNat % 2 ^ 32)) j0 j3 j1
+
+/-- the state-level result of the big path from the `Format+0x1cc` state (the interface of the big-path lemma (iii)) -/
+def BigQ (R2 : RtInv) (rt : List (Nat × Nat)) (stack : Nat) (RBf : Res) (tab data ch : BitVec 64) (S0 S' : State) : Prop :=
+  S'.regs 4 = S0.regs 4 + 80#64 ∧ S'.regs 5 = BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 64) 8) ∧
+  S'.regs 14 = S0.regs 14 ∧ S'.xmm 15 = S0.xmm 15 ∧
+  MemFrame S0.mem S'.mem (R2.rt ++ FL rt (S0.regs 4).toNat stack) ∧
+  ∃ P j0 j3 j1, RBf (BitVec.ofNat 64 P) tab data (BitVec.ofNat 64 (ch.toNat % 2 ^ 32)) j0 j3 j1
+
+/-- the allocator invariant survives any callee: memory changed only inside `rt` and the callee windows keeps `R2.inv`
+(the named assumption `CalleePreservesRt R2`: well-behaved Go code keeps the runtime's invariant) -/
+def CalleePreservesRt (R2 : RtInv) (rt : List (Nat × Nat)) (stack : Nat) : Prop :=
+  ∀ (S0 S : State) (b : Nat), MemFrame S0.mem S.mem (FL rt (S0.regs 4).toNat stack) → S.regs 14 = S0.regs 14 →
+    R2.inv b [] (S0.regs 14).toNat (view R2.rt [] S0.mem) → R2.inv b [] (S.regs 14).toNat (view R2.rt [] S.mem)
+
+
+theorem rtView_frame {rs : List (Nat × Nat)} {m m' : Memory} (hreg : m'.regions = m.regions)
+    (hb : ∀ a, InRanges a 1 rs → m'.bytes a = m.bytes a) : rtView rs m' = rtView rs m := by
+  unfold rtView
+  congr 1
+  · funext a
+    by_cases h : rs.any (fun r => decide (r.1 ≤ a) && decide (a < r.2)) = true
+    · rw [if_pos h, if_pos h]
+      apply hb
+      obtain ⟨r, hr, h2⟩ := List.any_eq_true.1 h
+      simp only [Bool.and_eq_true, decide_eq_true_eq] at h2
+      exact ⟨r, hr, h2.1, by omega⟩
+    · rw [if_neg h, if_neg h]
+
+theorem view_frame {rs : List (Nat × Nat)} {m m' : Memory} {r stack : Nat} (hfr : MemFrame m m' (PFL r))
+    (hreg : m'.regions = m.regions) (h8 : 80 + stack ≤ r)
+    (hw : Outside (r - 80 - stack) (stack + 0x80) rs) : view rs [] m' = view rs [] m := by
+  unfold view
+  congr 1
+  funext a
+  by_cases hp : Outside a 1 (PFL r)
+  · have := hfr.readLE a 1 hp
+    rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at this
+    rw [BitVec.eq_of_toNat_eq this]
+  · have hin : r - 80 - stack ≤ a ∧ a < r - 80 - stack + (stack + 0x80) := by
+      rw [pfl_out] at hp; omega
+    rw [inRs_of_outside hw hin.1 hin.2]; simp
+
+/-- the assembly precondition, at the entry state `s` -/
+def PreF (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat)) (stack b0 : Nat) (fW fP fF fWr zv : Nat)
+    (z tab data : BitVec 64) (s : State) : Prop :=
+  PreCommon rt stack s ∧
+  (z.toNat = 0 → PreNilE R rt stack tab s ∧
+    (tab.toNat ≠ 0 → H [descA, tyOf s tab] (s.regs 14).toNat ((s.regs 4).toNat - 80) (rtView R.priv s.mem))) ∧
+  (z.toNat ≠ 0 → PreFastE rt stack z tab data fW fP fF fWr s ∧ PreFastX H rt stack z s ∧
+    s.mem.readLE z.toNat 32 = zv ∧ R2.inv b0 [] (s.regs 14).toNat (view R2.rt [] s.mem) ∧
+    Outside ((s.regs 4).toNat - 80 - stack) (stack + 0x80) R2.rt)
+
+
+theorem ofNat_toNat64 (x : BitVec 64) : BitVec.ofNat 64 x.toNat = x := by
+  apply BitVec.eq_of_toNat_eq; simp [Nat.mod_eq_of_lt x.isLt]
+
+theorem rsp0_toNat {s S0 : State} (hc : 80 ≤ (s.regs 4).toNat) (hr4 : S0.regs 4 = s.regs 4 - 72#64) :
+    (S0.regs 4).toNat = (s.regs 4).toNat - 72 := by
+  rw [hr4, BitVec.toNat_sub]; have := (s.regs 4).isLt; simp; omega
+
+/-- the ABI obligations on return, from the exit facts of the paths -/
+theorem abi_of {s S0 S' : State} (hc : 80 ≤ (s.regs 4).toNat) (hr4 : S0.regs 4 = s.regs 4 - 72#64)
+    (hrbp : S0.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat) (hr14 : S0.regs 14 = s.regs 14)
+    (hxmm : S0.xmm = s.xmm)
+    (e4 : S'.regs 4 = S0.regs 4 + 80#64)
+    (e5 : S'.regs 5 = BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 64) 8))
+    (e14 : S'.regs 14 = S0.regs 14) (ex : S'.xmm 15 = S0.xmm 15) : ABIReturn s S' := by
+  have hn := rsp0_toNat hc hr4
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · show S'.regs 4 = s.regs 4 + 8#64
+    rw [e4, hr4]; bv_omega
+  · show S'.regs 5 = s.regs 5
+    rw [e5, hn, show (s.regs 4).toNat - 72 + 64 = (s.regs 4).toNat - 8 by omega, hrbp, ofNat_toNat64]
+  · show S'.regs 14 = s.regs 14
+    rw [e14, hr14]
+  · show S'.xmm 15 = s.xmm 15
+    rw [ex, hxmm]
+
+theorem priv_out {R : IfaceModel} {s : State} (hco : CallerOK R s 80 48) :
+    ∀ a n, InRanges a n R.priv → Outside a n (PFL (s.regs 4).toNat) := by
+  obtain ⟨-, -, -, -, -, -, hpriv, -, -⟩ := hco
+  intro a n hin
+  obtain ⟨r, hr, h1, h2⟩ := hin
+  have := MemFrame.outside_mem hpriv hr
+  rw [pfl_out]; omega
+
+theorem wOf_frame {R : IfaceModel} {s S0 : State} {tab : BitVec 64} (hfr : MemFrame s.mem S0.mem (PFL (s.regs 4).toNat))
+    (hd : Outside descA 24 (PFL (s.regs 4).toNat)) (ht : tab.toNat ≠ 0 → Outside (tab.toNat + 8) 8 (PFL (s.regs 4).toNat)) :
+    wOf R S0 tab = wOf R s tab := by
+  unfold wOf
+  by_cases h : tab.toNat = 0
+  · simp [h]
+  · simp only [h, if_false]
+    have e1 : tyOf S0 tab = tyOf s tab := by unfold tyOf; exact hfr.readLE _ _ (ht h)
+    rw [e1, taInter_frame hfr hd]
+
+theorem bytes_frame {m m' : Memory} {ws : List (Nat × Nat)} {a : Nat} (hf : MemFrame m m' ws) (h : Outside a 1 ws) :
+    m'.bytes a = m.bytes a := by
+  have := hf.readLE a 1 h
+  rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at this
+  exact BitVec.eq_of_toNat_eq this
 
 end Fv256.Amd64.FormatTransfer
