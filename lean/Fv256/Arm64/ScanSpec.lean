@@ -113,17 +113,17 @@ def SynObj (R : RtInv) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64) (s s' :
   (∀ k, k < sl.toNat → s'.mem.readLE (q + k) 1 = s.mem.readLE (sp.toNat + k) 1)
 
 /-- the documented result for the string `(p, n)` -/
-def ScanStrPost (R : RtInv) (R2 : IfaceModel) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64)
+def ScanStrPost (R : RtInv) (R2 : IfaceModel) (L : List (Nat × Nat)) (W : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64)
     (s s' : State) : Prop :=
   ((∃ v, sciParse (bytesAt s.mem p.toNat) n.toNat = .ok v ∧
       s'.regs 0 = 0 ∧ s'.regs 1 = 0 ∧ Janus.Spec.val256 s'.mem dst.toNat = v ∧
-      MemFrame s.mem s'.mem [(lo, hi), (dst.toNat, dst.toNat + 32)]) ∨
+      MemFrame s.mem s'.mem (W ++ [(lo, hi), (dst.toNat, dst.toNat + 32)])) ∨
    (sciParse (bytesAt s.mem p.toNat) n.toNat = .eof ∧
       (s'.regs 0).toNat = s.mem.readLE C.ioEOF 8 ∧ (s'.regs 1).toNat = s.mem.readLE (C.ioEOF + 8) 8 ∧
-      MemFrame s.mem s'.mem [(lo, hi), (dst.toNat, dst.toNat + 32)]) ∨
+      MemFrame s.mem s'.mem (W ++ [(lo, hi), (dst.toNat, dst.toNat + 32)])) ∨
    (sciParse (bytesAt s.mem p.toNat) n.toNat = .range ∧
       (s'.regs 0).toNat = s.mem.readLE C.errBig 8 ∧ (s'.regs 1).toNat = s.mem.readLE (C.errBig + 8) 8 ∧
-      MemFrame s.mem s'.mem [(lo, hi), (dst.toNat, dst.toNat + 32)]) ∨
+      MemFrame s.mem s'.mem (W ++ [(lo, hi), (dst.toNat, dst.toNat + 32)])) ∨
    (∃ lo' len', sciParse (bytesAt s.mem p.toNat) n.toNat = .syntax lo' len' ∧
       ∃ (q : Nat) (t : BitVec 64), s'.regs 0 = BitVec.ofNat 64 C.numErrItab ∧ s'.regs 1 = t ∧
         SynObj C R L (BitVec.ofNat 64 C.fnStr) 9#64 (BitVec.ofNat 64 (p.toNat + lo')) (BitVec.ofNat 64 len') s s' q t.toNat ∧
@@ -138,8 +138,8 @@ def ScanPost (tyS tyB itab : Nat) (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : L
   Kept s s' ∧
   ((tw = 0 ∧ s'.regs 0 = 0 ∧ s'.regs 1 = 0 ∧ Janus.Spec.val256 s'.mem dst.toNat = 0 ∧
       MemFrame s.mem s'.mem [(lo, hi), (dst.toNat, dst.toNat + 32)]) ∨
-   (tw.toNat = tyS ∧ ScanStrPost C R R2 L lo hi dst (hdrP s dw) (hdrN s dw) s s') ∨
-   (tw.toNat = tyB ∧ ScanStrPost C R R2 L lo hi dst (hdrP s dw) (hdrN s dw) s s') ∨
+   (tw.toNat = tyS ∧ ScanStrPost C R R2 L [] lo hi dst (hdrP s dw) (hdrN s dw) s s') ∨
+   (tw.toNat = tyB ∧ ScanStrPost C R R2 L R.rt lo hi dst (hdrP s dw) (hdrN s dw) s s') ∨
    (tw ≠ 0 ∧ tw.toNat ≠ tyS ∧ tw.toNat ≠ tyB ∧ s'.regs 0 = BitVec.ofNat 64 itab ∧
       (∃ (blk ptr : Nat), s'.regs 1 = BitVec.ofNat 64 blk ∧ InRanges blk 16 R.rt ∧ ApartAll blk 16 L ∧
         s'.mem.readLE blk 8 = ptr ∧ s'.mem.readLE (blk + 8) 8 = 16 ∧ (∀ k, k < 16 → s'.mem.readLE (ptr + k) 1 = unsupB k)) ∧

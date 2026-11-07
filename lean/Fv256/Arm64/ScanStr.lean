@@ -30,7 +30,7 @@ theorem str_tail (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     (hpc3 : S3.pc = S.regs GoABI.regLR) (hreg3 : S3.mem.regions = S.mem.regions)
     (hpost : SciPost cfg R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) S S3) :
     ReachesRet (Extracted.program.link impl) (s.regs GoABI.regLR) S3
-      (fun s' => Kept s s' ∧ ScanStrPost cfg R R2 L lo hi dst (hdrP s dw) (hdrN s dw) s s') := by
+      (fun s' => Kept s s' ∧ ScanStrPost cfg R R2 L [] lo hi dst (hdrP s dw) (hdrN s dw) s s') := by
   have hpost' := hpost
   obtain ⟨k1, k2, k3, k4, k5, k6, -⟩ := hpost
   have hsp80 : (s.sp - 80#64).toNat = s.sp.toNat - 80 := by
@@ -58,7 +58,7 @@ theorem str_tail (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b 
   have hsp3 : S3.sp = s.sp - 80#64 := by rw [k1, hsp]
   refine ⟨⟨by simp, by simp [setReg_apply], by simp [setReg_apply, k3, h28], by simp [setReg_apply, k4, h18]⟩, ?_⟩
   refine strpost_congr cfg (S3 := S3) rfl (by simp [setReg_apply]) (by simp [setReg_apply]) ?_
-  exact str_post cfg hF (fun k hk => hF.readLE _ _ (str_out2 hPW hPZ hk)) hP48 hP48 io1 io2 er1 er2 sy1 sy2 hpost'
+  exact str_post cfg (W := []) hF (fun a n h => by simp only [outside_append, List.nil_append] at h ⊢; exact h.2) (fun k hk => hF.readLE _ _ (str_out2 hPW hPZ hk)) hP48 hP48 io1 io2 er1 er2 sy1 sy2 hpost'
 
 theorem scan_str (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst tw dw : BitVec 64) (s : State) (hpc : s.pc = BitVec.ofNat 64 scanEntry)
@@ -71,7 +71,7 @@ theorem scan_str (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     (hsfd : HSfd impl R R2 T) (hexp : HExp impl) (hmo : HMo impl)
     (hibs : Fv256.IndexByte.IbsLib64 (Extracted.program.link impl) ibsEntry) :
     ReachesRet (Extracted.program.link impl) (s.regs GoABI.regLR) s
-      (fun s' => Kept s s' ∧ ScanStrPost cfg R R2 L lo hi dst (hdrP s dw) (hdrN s dw) s s') := by
+      (fun s' => Kept s s' ∧ ScanStrPost cfg R R2 L [] lo hi dst (hdrP s dw) (hdrN s dw) s s') := by
   janus_eval_nat h_sc : scanEntry
   janus_eval_nat h_ty : tyStr
   rw [h_sc] at hpc

@@ -92,7 +92,9 @@ theorem sciParse_syn_le {b : Nat → Nat} {n lo len : Nat} (h : sciParse b n = R
 documentation talks about, `(pS, n)` the one `sci` scanned (the same bytes) -/
 theorem str_post {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {dst p pS nS : BitVec 64}
     {s S S3 : State}
-    (hF : MemFrame s.mem S.mem [(lo, hi), (dst.toNat, dst.toNat + 32)])
+    {W : List (Nat × Nat)} (hF : MemFrame s.mem S.mem (W ++ [(lo, hi), (dst.toNat, dst.toNat + 32)]))
+    (hWsub : ∀ a n, Outside a n (R.rt ++ R2.priv ++ [(lo, hi), (dst.toNat, dst.toNat + 32)]) →
+      Outside a n (W ++ [(lo, hi), (dst.toNat, dst.toNat + 32)]))
     (hbytes : ∀ k, k < nS.toNat → S.mem.readLE (pS.toNat + k) 1 = s.mem.readLE (p.toNat + k) 1)
     (hp48 : p.toNat + nS.toNat ≤ 2 ^ 48) (hpS48 : pS.toNat + nS.toNat ≤ 2 ^ 48)
     (hio1 : S.mem.readLE C.ioEOF 8 = s.mem.readLE C.ioEOF 8)
@@ -102,7 +104,7 @@ theorem str_post {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat
     (hsy1 : S.mem.readLE C.strconvErrSyntax 8 = s.mem.readLE C.strconvErrSyntax 8)
     (hsy2 : S.mem.readLE (C.strconvErrSyntax + 8) 8 = s.mem.readLE (C.strconvErrSyntax + 8) 8)
     (hpost : SciPost C R R2 T b L lo hi dst pS nS S S3) :
-    ScanStrPost C R R2 L lo hi dst p nS s S3 := by
+    ScanStrPost C R R2 L W lo hi dst p nS s S3 := by
   have hcong : ∀ r, Fv256.ScanSpec.sciParse (bytesAt S.mem pS.toNat) nS.toNat = r →
       Fv256.ScanSpec.sciParse (bytesAt s.mem p.toNat) nS.toNat = r := by
     intro r hr
@@ -111,13 +113,16 @@ theorem str_post {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat
       show S.mem.readLE (pS.toNat + k) 1 = s.mem.readLE (p.toNat + k) 1
       exact hbytes k hk)).symm
   obtain ⟨-, -, -, -, -, -, hcases⟩ := hpost
-  have hW : ∀ W : List (Nat × Nat), (∀ a n, Outside a n W → Outside a n [(lo, hi), (dst.toNat, dst.toNat + 32)]) →
-      MemFrame S.mem S3.mem W → MemFrame s.mem S3.mem W := fun W hW hM =>
-    hF.trans hM (fun a n h => ⟨hW a n h, h⟩)
+  have hW1 : ∀ M : MemFrame S.mem S3.mem [(lo, hi), (dst.toNat, dst.toNat + 32)],
+      MemFrame s.mem S3.mem (W ++ [(lo, hi), (dst.toNat, dst.toNat + 32)]) := fun M =>
+    hF.trans M (fun a n h => ⟨h, by simp only [outside_append] at h; exact h.2⟩)
+  have hW2 : ∀ M : MemFrame S.mem S3.mem (R.rt ++ R2.priv ++ [(lo, hi), (dst.toNat, dst.toNat + 32)]),
+      MemFrame s.mem S3.mem (R.rt ++ R2.priv ++ [(lo, hi), (dst.toNat, dst.toNat + 32)]) := fun M =>
+    hF.trans M (fun a n h => ⟨hWsub a n h, h⟩)
   rcases hcases with ⟨v, hv, h0, h1, hval, hM⟩ | ⟨hv, h0, h1, hM⟩ | ⟨hv, h0, h1, hM⟩ | ⟨lo', len', hv, q, t, h0, h1, hTe, hM⟩
-  · exact Or.inl ⟨v, hcong _ hv, h0, h1, hval, hW _ (fun _ _ h => h) hM⟩
-  · exact Or.inr (Or.inl ⟨hcong _ hv, by rw [h0, hio1], by rw [h1, hio2], hW _ (fun _ _ h => h) hM⟩)
-  · exact Or.inr (Or.inr (Or.inl ⟨hcong _ hv, by rw [h0, her1], by rw [h1, her2], hW _ (fun _ _ h => h) hM⟩))
+  · exact Or.inl ⟨v, hcong _ hv, h0, h1, hval, hW1 hM⟩
+  · exact Or.inr (Or.inl ⟨hcong _ hv, by rw [h0, hio1], by rw [h1, hio2], hW1 hM⟩)
+  · exact Or.inr (Or.inr (Or.inl ⟨hcong _ hv, by rw [h0, her1], by rw [h1, her2], hW1 hM⟩))
   · refine Or.inr (Or.inr (Or.inr ⟨lo', len', hcong _ hv, q, t, h0, h1, ?_, ?_⟩))
     · obtain ⟨a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, -⟩ := hTe
       have hlen : lo' + len' ≤ nS.toNat := sciParse_syn_le hv
@@ -136,8 +141,7 @@ theorem str_post {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat
         simp only [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by omega)
       rw [e1, e2, Nat.add_assoc, Nat.add_assoc]
       exact hbytes (lo' + k) (by omega)
-    · exact hW _ (fun a n h => by
-        simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact h.2) hM
+    · exact hW2 hM
 
 
 theorem str_out2 {pS nS lo hi dst k : Nat} (hPW : nS = 0 ∨ pS + nS ≤ lo ∨ hi ≤ pS)
@@ -168,9 +172,9 @@ theorem frame_consts {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat ×
     ⟨hF.readLE _ _ (Outside.of_sub o (Nat.le_refl _) (by omega)), hF.readLE _ _ (Outside.of_sub o (by omega) (by omega))⟩⟩
 
 
-theorem strpost_congr {R : RtInv} {R2 : IfaceModel} {L : List (Nat × Nat)} {lo hi : Nat} {dst p n : BitVec 64}
+theorem strpost_congr {R : RtInv} {R2 : IfaceModel} {L W : List (Nat × Nat)} {lo hi : Nat} {dst p n : BitVec 64}
     {s S3 S3' : State} (hm : S3'.mem = S3.mem) (h0 : S3'.regs 0 = S3.regs 0) (h1 : S3'.regs 1 = S3.regs 1)
-    (h : ScanStrPost C R R2 L lo hi dst p n s S3) : ScanStrPost C R R2 L lo hi dst p n s S3' := by
+    (h : ScanStrPost C R R2 L W lo hi dst p n s S3) : ScanStrPost C R R2 L W lo hi dst p n s S3' := by
   unfold ScanStrPost SynObj at *
   simp only [hm, h0, h1]
   exact h
