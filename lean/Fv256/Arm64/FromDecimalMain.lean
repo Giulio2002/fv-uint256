@@ -111,6 +111,7 @@ theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T
   exact Fv256.Arm64.FromDecimal.correctness_cond impl R R2 T b L lo hi pS nS hnew'' hsfd
 
 namespace Witness
+open Fv256.Arm64.FdWit
 set_option maxRecDepth 100000 in
 /-- non-vacuity: a concrete runtime (stub contracts), a 48-digit decimal string, and a call state with `Pre`, `DataLoaded` of the real data -/
 theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -143,9 +144,22 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
         (∀ lo' len', decParse (bytesAt s.mem pS.toNat) nS.toNat = .syntax lo' len' →
           s'.regs 0 = 0 ∧ s'.regs 1 = BitVec.ofNat 64 cfg.numErrItab) ∧
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
-  obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7⟩ := Fv256.Arm64.FdWit.nonvacuous_core
-  exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7,
-    correctness impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
+  refine ⟨implA, R, (R3 TW), TW, 0x400, ([]), loW, hiW, pSV, nSV, retW, s0, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, hret, setup, pre0, ?cs1, ?cs2, ?cs3, ?cs4, ?cs5, ?cs6, ?cs7,
+    correctness implA R (R3 TW) TW 0x400 ([]) loW hiW pSV nSV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 retW hret s0 setup pre0⟩
+  case h2 => exact (by rw [addr_if]; exact model_if)
+  case h3 => exact (by rw [addr_new]; exact model_new)
+  case h4 => exact (by rw [addr_mg]; exact model_mg)
+  case h5 => exact (by rw [addr_mv]; exact model_mv)
+  case h6 => exact (by rw [addr_w1]; exact model_wb1)
+  case h7 => exact (by rw [addr_w2]; exact model_wb2)
+  case h8 => exact (by rw [addr_cm]; exact hcmp)
+  case cs1 => exact (⟨csNew, rfl, csNew_pre⟩)
+  case cs2 => exact (⟨csMg, rfl, csMg_pre⟩)
+  case cs3 => exact (⟨csMv, rfl, csMv_pre⟩)
+  case cs4 => exact (⟨csW1, rfl, csW1_pre⟩)
+  case cs5 => exact (⟨csW2, rfl, csW2_pre⟩)
+  case cs6 => exact (⟨csCm, rfl, csCm_pre⟩)
+  case cs7 => exact (⟨csIf, rfl, csIf_pre⟩)
 
 end Witness
 

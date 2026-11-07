@@ -181,10 +181,62 @@ def apply(name, cfile, cthm, tfile, tthms, nsc):
         t = t[:st] + body + t[en:]
     open(tfile, 'w').write(t)
 
+# ---------------------------------------------------------------------------------------------------------------
+# inline_thin: the auditor's witness-size walk (Audit.lean `witnessSizes`/`proofHead`, U-ICALL-STACK) cannot read through
+# `obtain ⟨..⟩ := core; exact ⟨..⟩` (stuck at `Exists.rec` on the theorem constant `core`). Rewrite the thin witness's proof
+# as one `refine ⟨<core components>, correctness ..⟩` (proof components as `?name` holes closed by `case name => exact (..)`).
+#   cs_live_a64.py --inline CORE_FILE CORE_THM THIN_FILE THIN_THM [OPEN_NS]
+def split_top(s):
+    out, depth, cur = [], 0, ''
+    for ch in s:
+        if ch in '⟨([{': depth += 1
+        elif ch in '⟩)]}': depth -= 1
+        if ch == ',' and depth == 0:
+            out.append(cur.strip()); cur = ''
+        else: cur += ch
+    if cur.strip(): out.append(cur.strip())
+    return out
+
+def inline_thin(cfile, cthm, tfile, tthm, open_ns=None):
+    s = open(cfile).read()
+    st, en = thm_span(s, cthm); body = s[st:en]
+    k = re.search(r' :=\n\s*⟨', body).end()
+    e = body.rindex('⟩')
+    comps = split_top(body[k:e])
+    t = open(tfile).read()
+    st, en = thm_span(t, tthm); tb = t[st:en]
+    m = re.search(r'\n(\s*)obtain ⟨(.*?)⟩ := \S+\n\s*exact ⟨(.*)⟩\s*$', tb, re.S)
+    assert m, 'thin proof shape not recognised'
+    ind = m.group(1)
+    names = [x.strip() for x in m.group(2).split(',')]
+    assert len(names) == len(comps), (len(names), len(comps))
+    cor = m.group(3)[m.group(3).index('correctness'):]
+    ndata = names.index('s') + 1
+    simple = re.compile(r"^[\w.'«»]+$")
+    sub, cases = {}, []
+    for i, (n, c) in enumerate(zip(names, comps)):
+        c1 = ' '.join(c.split())
+        if simple.match(c1): sub[n] = c1
+        elif i < ndata: sub[n] = '(' + c1 + ')'
+        else:
+            sub[n] = '?' + n; cases.append(f'{ind}case {n} => exact ({c1})')
+    tup = ', '.join(sub[n] for n in names)
+    cor2 = ' '.join(sub.get(x, x) for x in cor.split())
+    proof = f'\n{ind}refine ⟨{tup},\n{ind}  {cor2}⟩\n' + '\n'.join(cases) + '\n'
+    tb = tb[:m.start()] + proof + '\n'
+    t = t[:st] + tb + t[en:]
+    if open_ns and f'open {open_ns}\n' not in t:
+        t = t.replace('\nnamespace Witness\n', f'\nnamespace Witness\nopen {open_ns}\n', 1)
+    open(tfile, 'w').write(t)
+
+
 if __name__ == '__main__':
     n = sys.argv[1]
+    if n == '--inline':
+        a = sys.argv[2:]; inline_thin(a[0], a[1], a[2], a[3], a[4] if len(a) > 4 else None); sys.exit(0)
     if sys.argv[2] == '--print':
         d, cj, tm = block(CFG[n]); print(d); print('\n'.join(cj)); print(tm); sys.exit(0)
     cf, ct, tf = sys.argv[2:5]; tt = sys.argv[5:]
     nsc = re.search(r'^namespace (\S+)', open(cf).read(), re.M).group(1)
     apply(n, cf, ct, tf, tt, nsc)
+
