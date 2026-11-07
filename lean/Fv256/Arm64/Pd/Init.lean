@@ -34,7 +34,7 @@ theorem pd_init (s : State) (hpc : s.pc = BitVec.ofNat 64 pdE) (zp : Nat) (e0 : 
         S'.regs 6 = BitVec.ofNat 64 (s.sp.toNat - 48) ∧ S'.regs 8 = BitVec.ofNat 64 (s.sp.toNat - 320) ∧
         S'.regs 29 = BitVec.ofNat 64 (s.sp.toNat - 408) ∧ S'.sp = BitVec.ofNat 64 (s.sp.toNat - 400) ∧
         (∀ k, k ∉ [0, 2, 3, 4, 6, 8, 9, 10, 11, 16, 17, 20, 25, 29] → S'.regs k = s.regs k) ∧
-        MemFrame s.mem S'.mem [(s.sp.toNat - 408, s.sp.toNat + 0x18)] ∧
+        MemFrame s.mem S'.mem [(s.sp.toNat - 408, s.sp.toNat - 8), (s.sp.toNat + 16, s.sp.toNat + 17)] ∧
         S'.mem.readLE (s.sp.toNat + 16) 1 = (s.regs 1).toNat % 256 ∧
         Fv256.B.wv S'.mem (s.sp.toNat - 80) 4 = Fv256.B.wv s.mem zp 4 ∧
         Fv256.B.wv S'.mem (s.sp.toNat - 48) 4 = 10 ^ 19 ∧
@@ -80,7 +80,8 @@ theorem pd_init (s : State) (hpc : s.pc = BitVec.ofNat 64 pdE) (zp : Nat) (e0 : 
   · dsimp only
     repeat' first
       | exact MemFrame.refl _ _
-      | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) (by omega) (by omega)
+      | refine MemFrame.writeLE ?_ _ (List.mem_cons_self ..) (by omega) (by omega)
+      | refine MemFrame.writeLE ?_ _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)) (by omega) (by omega)
   · dsimp only
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
   · dsimp only
@@ -124,14 +125,16 @@ theorem pd_init (s : State) (hpc : s.pc = BitVec.ofNat 64 pdE) (zp : Nat) (e0 : 
     · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
       exact hzb _ (by omega)
   · dsimp only
-    refine TabsOK.frame (TabsOK.of_loaded hd) (rs := [(s.sp.toNat - 408, s.sp.toNat + 0x18)]) ?_ ?_
+    refine TabsOK.frame (TabsOK.of_loaded hd) (rs := [(s.sp.toNat - 408, s.sp.toNat - 8), (s.sp.toNat + 16, s.sp.toNat + 17)]) ?_ ?_
     · repeat' first
         | exact MemFrame.refl _ _
-        | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) (by omega) (by omega)
+        | refine MemFrame.writeLE ?_ _ (List.mem_cons_self ..) (by omega) (by omega)
+        | refine MemFrame.writeLE ?_ _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)) (by omega) (by omega)
     · intro r hr
       simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
-      subst hr
-      exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
+      rcases hr with rfl | rfl
+      · exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
+      · exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
   · dsimp only
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
     simp only [Nat.reducePow]
