@@ -60,6 +60,8 @@ for row in "${rows[@]}"; do
     esac
     out="build/ex-$isa-$fn"
     cflags="$(contract_flags "$fn")"
+    # a verified row with neither a flags case (contract-flags.sh) nor an entry in noflags.txt is a configuration gap: FAIL, never guess
+    if ! contract_known "$fn"; then echo "no contract-flags case for $fn: add the flags of its verified extraction to scripts/contract-flags.sh (or scripts/noflags.txt)" >"build/log-$isa-$fn"; table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "FAIL (no flags case)")"$'\n'; fail=1; continue; fi
     # proof module: Fn.lean, or FnMain.lean when the main theorem lives there (split proofs)
     # FnMain.lean, when it exists, is the full-spec proof and wins over Fn.lean (which may be an older partial proof)
     pf="$fn"; if [ -f "lean/Fv256/$dir/${fn}Main.lean" ] && grep -q "theorem correctness" "lean/Fv256/$dir/${fn}Main.lean"; then pf="${fn}Main"; fi
