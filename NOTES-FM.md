@@ -19,8 +19,8 @@ Verify: build/vwm.sh File Theorem [extra]  (log build/vwm.log).  Do not use --ke
   n10 extraction has 26 data objects and IntoBigMid timed out with fm_clear_ddisj; FormatFastBigA.call_pre takes `Pib_dataLoaded hdl`.
   Hex FM (scripts/gen-fm-hex-arm64.sh) keeps data object index 7 + fm_clear_ddisj 7.
 
-## TODO
-1. Cold build of the real chain: `PRE="Fv256.Arm64.FM.IntoBigT Fv256.Arm64.FormatFastBig Fv256.Arm64.FormatFastAll" build/lrm.sh` (Dec/Hex are warm).
-2. Switch Format.lean off StubFast, delete StubFast.lean, run the one-run verify:
-   build/vwm.sh Format Fv256.Arm64.Format.correctness --theorem Fv256.Arm64.Format.Witness.nonvacuous --theorem ...Witness.nil --theorem ...Witness.big
-3. Send the COVERAGE row to FV-A (a080d76370e009554).
+## RESULT 2026-11-07: VERIFIED (one run, no --keep-workspace, n10 51d592da, jcache-shared, 3:06 wall after warm chain)
+build/vfinal.sh -> Fv256.Arm64.Format.correctness + Witness.nonvacuous + Witness.nil + Witness.big all `verified` (log build/vfinal.log).
+StubFast.lean deleted; no sorry in the arm64 Format dependency tree (scripts/no-sorry.sh still fails only on amd64 FormatFastT3.lean, from the fv/wgf merge, not in this tree).
+Witnesses restated with 14 binders (fa/Rc/Rd merged, stack=4608, b0=0x400, zv literal) and a two-group conjunction: the 26-binder form exceeded pp depth and failed the audit round-trip.
+Cold chain (Dec 1059 s, Hex 134 s, IntoBig FM ~750 s) is built in the kept workspace; a fresh cache needs these once.
