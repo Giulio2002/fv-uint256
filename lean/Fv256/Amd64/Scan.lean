@@ -10,40 +10,16 @@ import Fv256.Amd64.SfdTopSpec
 import Fv256.Amd64.SfdEnvC
 import Fv256.Amd64.FromDecimalSpec
 import Fv256.Amd64.ScanSpec
+import Fv256.Amd64.ScanCfg
 
 /-!
 # `(*uint256.Int).Scan(src any) error` (amd64), conditional on the `SetFromDecimal` summary `hsfd` and `IndexByteString` `hibs`
 -/
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64 Fv256.I Fv256.C
-open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec
+open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec Fv256.Amd64.ScanCfg
 
 namespace Fv256.Amd64.Scan
-
-/-- the `SfdCfg` of this binary -/
-def cfg : SfdCfg :=
-  (Extracted.dataAddr.«io.EOF»,
-    Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range»,
-    Extracted.dataAddr.«github.com/holiman/uint256.multipliers»,
-    Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»,
-    Extracted.dataAddr.«go:itab.*strconv.NumError,error»,
-    Extracted.dataAddr.«go:itab.internal/strconv.Error,error»,
-    Extracted.dataAddr.«.rodata#9967e7a3»,
-    Extracted.dataAddr.«strconv.ErrSyntax»,
-    Extracted.dataAddr.«runtime.writeBarrier»,
-    Extracted.dataAddr.«.rodata#3d2a826c»,
-    Extracted.dataAddr.«.rodata#575028b4»,
-    Extracted.program.contractAddr "runtime.mallocgc",
-    Extracted.program.contractAddr "runtime.memmove",
-    Extracted.program.contractAddr "runtime.newobject",
-    Extracted.program.contractAddr "runtime.gcWriteBarrier1",
-    Extracted.program.contractAddr "runtime.gcWriteBarrier2")
-
-abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
-abbrev ibsEntry : Nat := segAddr Extracted.program "internal/bytealg.IndexByteString.abi0"
-abbrev avxAddr : Nat := Extracted.dataAddr.«internal/cpu.X86» + 68
-abbrev sbAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"
-abbrev stAddr : Nat := Extracted.dataAddr.«runtime.staticuint64s»
 
 theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst tw dw : BitVec 64)

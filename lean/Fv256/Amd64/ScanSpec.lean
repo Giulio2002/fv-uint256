@@ -100,6 +100,20 @@ def ScanStrPost (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst
       ∃ (q : Nat) (t : BitVec 64), s'.regs 0 = BitVec.ofNat 64 C.numErrItab ∧ s'.regs 3 = t ∧
         SynObj C R b L (BitVec.ofNat 64 C.fnStr) 9#64 (BitVec.ofNat 64 (p.toNat + lo')) (BitVec.ofNat 64 len') s s' q t.toNat))
 
+/-- precondition of `scanScientificFromString(dst, s)` at its entry (`dst` in `RAX`, `s.ptr` in `RBX`, `s.len` in `RCX`): the
+`SetFromDecimal` precondition plus the frame (`0x70` bytes and the return slot below the entry `SP`, so `SetFromDecimal` sees
+`lo + 4800 <= SP - 0x78`), the readability of `internal/cpu.X86.HasAVX2` and the pages of the string. -/
+def SciPre (avx : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64)
+    (s : State) : Prop :=
+  RetOK s ∧ TopPre0 C R R2 T b L lo hi dst p n s ∧ lo + 4920 ≤ (s.regs 4).toNat ∧ s.mem.accessible avx 1 false = true ∧
+  Fv256.IndexByte.PageReadable s.mem p.toNat n.toNat
+
+/-- postcondition of `scanScientificFromString` -/
+def SciPost (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64)
+    (s s' : State) : Prop :=
+  Kept s s' ∧ ScanStrPost C R b L lo hi dst p n s s' ∧
+  MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (dst.toNat, dst.toNat + 32)])
+
 /-- postcondition of `Scan`.  `itab`: the itab `*errors.errorString, error`. -/
 def ScanPost (tyS tyB itab : Nat) (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (dst tw dw : BitVec 64) (s s' : State) : Prop :=
