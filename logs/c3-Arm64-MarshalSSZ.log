@@ -1,0 +1,52 @@
+=== Fv256.Arm64.MarshalSSZ.correctness: verified ===
+Verified: Fv256.Arm64.MarshalSSZ.correctness
+  Module: fv-uint256/harness (go1.26.0)
+  Entry: github.com/holiman/uint256.(*Int).MarshalSSZ at 0xb7650
+  Binary: build/harness-arm64 (SHA-256 431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec)
+  Proof: lean/Fv256/Arm64/MarshalSSZ.lean
+  Consumer: lean (lakefile.toml, module Fv256.Arm64.MarshalSSZ, 1261 source file(s), janus git /srv/janus-fvA-pin77f @ 77fb30cccd11fd24ce73df73601a06f515d2b60f)
+  Build: rebuilt Extracted, Fv256.Arm64.MarshalSSZ
+  Framework: embedded (SHA-256 1c5739cd9f1ec4026a97b4a2a29d5db8f076c2bb8b02875e9acf5acaa0355b2f, 314 files, leanprover/lean4:v4.34.1)
+  Sandbox: bubblewrap (no network, read-only filesystem, private build dir)
+  Axioms: Classical.choice, Quot.sound, propext
+  Kernel replay: leanchecker passed (Extracted, Fv256.Arm64.MarshalSSZ, Fv256.Spec, Fv256.SpecC, Fv256.Util, Fv256.UtilC, Janus, Janus.Amd64, Janus.Amd64.Bridge, Janus.Amd64.CABI, … and 306 more; 316 modules; 313 reused from the replay cache)
+  Lean: Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)
+  Role: main theorem (the runtime implementation is a variable of the statement, constrained only by the runtime contracts)
+  Runtime contracts assumed: Janus.Contracts.MakesliceContract@runtime.makeslice (not extracted; the statement applies them as hypotheses)
+  Non-vacuity: shown by Fv256.Arm64.MarshalSSZ.Witness.nonvacuous (kernel-checked witness: a concrete state and runtime satisfying the whole precondition, contract hypotheses included)
+  Olean provenance: checked (the consumer/dependency modules were compiled by janus from the hashed source)
+  Report: build/ex-arm64-MarshalSSZ/verified/Fv256.Arm64.MarshalSSZ.correctness.json
+  Statement:
+    Fv256.Arm64.MarshalSSZ.correctness (impl : List Janus.Segment) (rt : List (Nat × Nat)) (H : Janus.Contracts.RtReady) (z : BitVec 64) (hmk : Janus.Contracts.MakesliceContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H) : Janus.GoABI.Ensures (Extracted.program.link impl) Extracted.entry [z] (fun s => Janus.Spec.GuardOK s 0 ∧ Janus.Spec.StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧ Janus.Outside (BitVec.toNat s.sp - 4144) 4168 rt ∧ Janus.Spec.Ptr32 s.mem z Bool.false ∧ Janus.Outside z.toNat 32 rt ∧ Janus.Spec.Disjoint z.toNat 32 (BitVec.toNat s.sp - 4144) 4168 ∧ H [Fv256.Arm64.MarshalSSZ.byteType, 0, 32] (BitVec.toNat (s.regs 28)) (BitVec.toNat s.sp - 48) (Janus.Contracts.rtView rt s.mem)) fun s s' => ∃ ptr, BitVec.toNat (s'.regs 0) = ptr ∧ BitVec.toNat (s'.regs 1) = 32 ∧ BitVec.toNat (s'.regs 2) = 32 ∧ s'.regs 3 = 0 ∧ s'.regs 4 = 0 ∧ Janus.InRanges ptr 32 rt ∧ s'.mem.accessible ptr 32 Bool.true = Bool.true ∧ s'.mem.readLE ptr 32 = Janus.Spec.val256 s.mem z.toNat ∧ Janus.MemFrame s.mem s'.mem (rt ++ [(BitVec.toNat s.sp - 4144, BitVec.toNat s.sp + 24)])
+  Proof-local definitions used by the statement (part of its meaning):
+    Fv256.Arm64.MarshalSSZ.byteType : Nat := Janus.Spec.adrpLdTarget (Extracted.entry + 28) (Janus.Spec.segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZ" 7) (Janus.Spec.segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZ" 8) 0
+  Notes (standard Lean meaning that may read unexpectedly; not errors):
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 4144`
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 48`
+  Report (also): build/ex-arm64-MarshalSSZ/verified.json
+=== Fv256.Arm64.MarshalSSZ.Witness.nonvacuous: verified ===
+Verified: Fv256.Arm64.MarshalSSZ.Witness.nonvacuous
+  Module: fv-uint256/harness (go1.26.0)
+  Entry: github.com/holiman/uint256.(*Int).MarshalSSZ at 0xb7650
+  Binary: build/harness-arm64 (SHA-256 431fb0a964434808b5327dbfda18d1846922357e0ff3c29cf0228729a595c0ec)
+  Proof: lean/Fv256/Arm64/MarshalSSZ.lean
+  Consumer: lean (lakefile.toml, module Fv256.Arm64.MarshalSSZ, 1261 source file(s), janus git /srv/janus-fvA-pin77f @ 77fb30cccd11fd24ce73df73601a06f515d2b60f)
+  Build: rebuilt Extracted, Fv256.Arm64.MarshalSSZ
+  Framework: embedded (SHA-256 1c5739cd9f1ec4026a97b4a2a29d5db8f076c2bb8b02875e9acf5acaa0355b2f, 314 files, leanprover/lean4:v4.34.1)
+  Sandbox: bubblewrap (no network, read-only filesystem, private build dir)
+  Axioms: Classical.choice, Quot.sound, propext
+  Kernel replay: leanchecker passed (Extracted, Fv256.Arm64.MarshalSSZ, Fv256.Spec, Fv256.SpecC, Fv256.Util, Fv256.UtilC, Janus, Janus.Amd64, Janus.Amd64.Bridge, Janus.Amd64.CABI, … and 306 more; 316 modules; 313 reused from the replay cache)
+  Lean: Lean (version 4.34.1, x86_64-unknown-linux-gnu, commit 5045d0056413266e57c625dcd7c365b10e377c52, Release)
+  Role: WITNESS, not a correctness claim: a concrete instance showing its hypotheses and precondition are satisfiable together, for the main theorem Fv256.Arm64.MarshalSSZ.correctness (it uses a concrete runtime implementation; the main theorem must be verified separately)
+  Runtime contracts assumed: Janus.Contracts.MakesliceContract@runtime.makeslice (not extracted; the statement applies them as hypotheses)
+  Non-vacuity: this is a witness (it is not a correctness claim)
+  Olean provenance: checked (the consumer/dependency modules were compiled by janus from the hashed source)
+  Report: build/ex-arm64-MarshalSSZ/verified/Fv256.Arm64.MarshalSSZ.Witness.nonvacuous.json
+  Statement:
+    Fv256.Arm64.MarshalSSZ.Witness.nonvacuous : ∃ impl rt H z ret s, Janus.Contracts.MakesliceContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H ∧ Janus.GoABI.RetAddr (Extracted.program.link impl) ret ∧ Janus.GoABI.CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧ Janus.Spec.GuardOK s 0 ∧ Janus.Spec.StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧ Janus.Outside (BitVec.toNat s.sp - 4144) 4168 rt ∧ Janus.Spec.Ptr32 s.mem z Bool.false ∧ Janus.Outside z.toNat 32 rt ∧ Janus.Spec.Disjoint z.toNat 32 (BitVec.toNat s.sp - 4144) 4168 ∧ H [Fv256.Arm64.MarshalSSZ.byteType, 0, 32] (BitVec.toNat (s.regs 28)) (BitVec.toNat s.sp - 48) (Janus.Contracts.rtView rt s.mem)
+  Proof-local definitions used by the statement (part of its meaning):
+    Fv256.Arm64.MarshalSSZ.byteType : Nat := Janus.Spec.adrpLdTarget (Extracted.entry + 28) (Janus.Spec.segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZ" 7) (Janus.Spec.segWord Extracted.program "github.com/holiman/uint256.(*Int).MarshalSSZ" 8) 0
+  Notes (standard Lean meaning that may read unexpectedly; not errors):
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 4144`
+    - Nat subtraction truncates at 0 (`a - b = 0` whenever `a ≤ b`): `BitVec.toNat s.sp - 48`
+ENDMARK rc=0 secs=26

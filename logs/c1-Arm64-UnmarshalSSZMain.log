@@ -1,0 +1,224 @@
+=== Fv256.Arm64.UnmarshalSSZMain.correctness: FAILED ===
+Invalid: Lean rejected the proof module Fv256/Arm64/UnmarshalSSZMain.lean (or a module it imports).
+Lean errors (1):
+  lean/Fv256/Arm64/UnmarshalSSZMain.lean:584:70: error: maximum recursion depth has been reached
+    use `set_option maxRecDepth <num>` to increase limit
+    use `set_option diagnostics true` to get diagnostic information
+  Stage: proof checking
+  Next: Fix the proof. It must import Extracted and prove Fv256.Arm64.UnmarshalSSZMain.correctness. The complete, untruncated Lean output is in build/ex-arm64-UnmarshalSSZ/diag/Fv256.Arm64.UnmarshalSSZMain.lean.lean-output.log.
+Details:
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:33:6: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:35:6: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:90:45: warning: This simp argument is unused:
+  outside_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_append, and_true] at hgo hgX ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:90:58: warning: This simp argument is unused:
+  and_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_append, outside_nil] at hgo hgX ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:103:29: warning: This simp argument is unused:
+  outside_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, and_true] at hgo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:103:42: warning: This simp argument is unused:
+  and_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_nil] at hgo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:106:70: warning: Variable name `e` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _e
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:269:36: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:401:104: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:401:128: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:48: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:72: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:96: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:120: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:441:19: warning: Variable name `len` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _len
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:441:23: warning: Variable name `cap` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _cap
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:553:102: warning: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:584:70: error: maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+=== Fv256.Arm64.UnmarshalSSZMain.Witness.nonvacuous: FAILED ===
+Invalid: Lean rejected the proof module Fv256/Arm64/UnmarshalSSZMain.lean (or a module it imports).
+Lean errors (1):
+  lean/Fv256/Arm64/UnmarshalSSZMain.lean:584:70: error: maximum recursion depth has been reached
+    use `set_option maxRecDepth <num>` to increase limit
+    use `set_option diagnostics true` to get diagnostic information
+  Stage: proof checking
+  Next: Fix the proof. It must import Extracted and prove Fv256.Arm64.UnmarshalSSZMain.Witness.nonvacuous. The complete, untruncated Lean output is in build/ex-arm64-UnmarshalSSZ/diag/Fv256.Arm64.UnmarshalSSZMain.lean.lean-output.log.
+Details:
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:33:6: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:35:6: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:90:45: warning: This simp argument is unused:
+  outside_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_append, and_true] at hgo hgX ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:90:58: warning: This simp argument is unused:
+  and_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_append, outside_nil] at hgo hgX ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:103:29: warning: This simp argument is unused:
+  outside_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, and_true] at hgo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:103:42: warning: This simp argument is unused:
+  and_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_nil] at hgo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:106:70: warning: Variable name `e` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _e
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:269:36: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:401:104: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:401:128: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:48: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:72: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:96: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:402:120: warning: This simp argument is unused:
+  hFA
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:441:19: warning: Variable name `len` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _len
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:441:23: warning: Variable name `cap` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _cap
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:553:102: warning: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+lean/Fv256/Arm64/UnmarshalSSZMain.lean:584:70: error: maximum recursion depth has been reached
+use `set_option maxRecDepth <num>` to increase limit
+use `set_option diagnostics true` to get diagnostic information
+Invalid: 2 of 2 theorem(s) failed.
+  Stage: verify
+  Next: See the FAIL blocks above (each theorem is checked on its own; the others are unaffected).
+ENDMARK rc=1 secs=646

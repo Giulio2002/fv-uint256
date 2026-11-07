@@ -18,6 +18,12 @@ abbrev iWrap : Nat := Extracted.dataAddr.«go:itab.*fmt.wrapError,error»
 
 def fmtAddr : Nat := ripTarget Extracted.program (Extracted.entry + 0x88)
 
+/-- The address of the constant `32` (the third `fmt.errorf` argument), recomputed from the `LEA` at `entry + 0x7c`. -/
+def c32Addr : Nat := ripTarget Extracted.program (Extracted.entry + 0x7c)
+
+/-- The return address of the `fmt.errorf` call (the instruction after it). -/
+def errRet : Nat := Extracted.entry + 0xa6
+
 /-- The text of the error: the `ErrBadBufferLength` text, then `": have n, want 32 bytes"`. -/
 def errMsg (txt : List Nat) (n : Nat) : List Nat :=
   txt ++ ([58, 32, 104, 97, 118, 101, 32] ++ natBytes n ++ [44, 32, 119, 97, 110, 116, 32] ++ [51, 50] ++ [32, 98, 121, 116, 101, 115])
@@ -144,6 +150,11 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
   have hgr := hg.readable
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hb4 ha4 hw4 hal
   janus64_data hd [hw4]
+  janus_eval_nat hFA : fmtAddr
+  janus_eval_nat hC32 : c32Addr
+  janus_eval_nat hER : errRet
+  janus_eval_nat hTI : tInt
+  janus_eval_nat hTE : tErr
   simp only [ev, iErr, Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBufferLength», Extracted.dataAddr.«go:itab.*errors.errorString,error»] at hv1 hv2 hv3 hevO hevW
   janus64_run [hv2, hv3] until [Extracted.program.contractAddr "runtime.convT64"]
   have hsp104 : (s.regs 4 - 104#64).toNat = (s.regs 4).toNat - 104 := by
@@ -183,11 +194,9 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
     rcases hr with hr | hr
     · exact hpR r hr
     · subst hr; exact hwrt _ (List.mem_singleton_self _)
-  janus_eval_nat hFA : fmtAddr
-  rw [hFA] at hok
-  have hO2 : Outside 5151169 256 (R.rt ++ Ri.priv) :=
+  have hO2 : Outside fmtAddr 256 (R.rt ++ Ri.priv) :=
     hdataO _ (List.getElem_mem (l := Extracted.program.data) (n := 2) (by decide))
-  have hO3 : Outside 5178744 256 (R.rt ++ Ri.priv) :=
+  have hO3 : Outside c32Addr 256 (R.rt ++ Ri.priv) :=
     hdataO _ (List.getElem_mem (l := Extracted.program.data) (n := 3) (by decide))
   simp only [outside_append] at hO2 hO3 hevO heO
   have hTP : tl = 0 ∨ Outside tp tl (Ri.priv ++ [((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24)]) := by
@@ -203,14 +212,14 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
     intro M; simp only [errMsg, strBytes, List.length_append, List.length_map, List.length_range, List.length_cons, List.length_nil]; omega
   have facts : ∀ (M : Janus.Arm64.Memory) (b : Nat), MemFrame s.mem M (Ri.priv ++ [((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24)]) →
       b + 8 ≤ 2 ^ 48 → b ≠ 0 → M.accessible b 8 false = true → M.readLE b 8 = len.toNat →
-      M.readLE ((s.regs 4).toNat - 56) 8 = 5031392 → M.readLE ((s.regs 4).toNat - 48) 8 = e →
-      M.readLE ((s.regs 4).toNat - 40) 8 = 5008480 → M.readLE ((s.regs 4).toNat - 32) 8 = b →
-      M.readLE ((s.regs 4).toNat - 24) 8 = 5008480 → M.readLE ((s.regs 4).toNat - 16) 8 = 5178744 →
-      ArgsOK (Env.mk tErr iErr tInt iWrap) 26 fmtNum 4294967296 M 5151169 26 ((s.regs 4).toNat - 56) 3 3 ∧
-      errorfReads M 5151169 26 ((s.regs 4).toNat - 56) =
-        [(5151169, 26), ((s.regs 4).toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (5178744, 8)] ∧
-      msgOf M 5151169 26 ((s.regs 4).toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat ∧
-      errorfCost M 5151169 26 ((s.regs 4).toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 ∧
+      M.readLE ((s.regs 4).toNat - 56) 8 = tErr → M.readLE ((s.regs 4).toNat - 48) 8 = e →
+      M.readLE ((s.regs 4).toNat - 40) 8 = tInt → M.readLE ((s.regs 4).toNat - 32) 8 = b →
+      M.readLE ((s.regs 4).toNat - 24) 8 = tInt → M.readLE ((s.regs 4).toNat - 16) 8 = c32Addr →
+      ArgsOK (Env.mk tErr iErr tInt iWrap) 26 fmtNum 4294967296 M fmtAddr 26 ((s.regs 4).toNat - 56) 3 3 ∧
+      errorfReads M fmtAddr 26 ((s.regs 4).toNat - 56) =
+        [(fmtAddr, 26), ((s.regs 4).toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (c32Addr, 8)] ∧
+      msgOf M fmtAddr 26 ((s.regs 4).toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat ∧
+      errorfCost M fmtAddr 26 ((s.regs 4).toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 ∧
       operandD M ((s.regs 4).toNat - 56) 0 = e := by
     intro M b hf' hb48 hbn hbacc' hbv hA0 hA1 hA2 hA3 hA4 hA5
     have hrd : ∀ a n, Outside a n (Ri.priv ++ [((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24)]) → M.readLE a n = s.mem.readLE a n :=
@@ -221,54 +230,54 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
     have hW2 : ∀ a n, (a + n ≤ (s.regs 4).toNat - 4200 ∨ (s.regs 4).toNat + 24 ≤ a) → Outside a n Ri.priv →
         Outside a n (Ri.priv ++ [((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24)]) := by
       intro a n h1 h2; simp only [outside_append]; exact ⟨h2, hW1 a n h1⟩
-    have hfm : M.readLE 5151169 26 = fmtNum := by
-      rw [hrd 5151169 26 (hW2 5151169 26 (by omega) (Outside.of_sub hO2.2 (by omega) (by omega))), h_rodata 5151169 26 (by decide +kernel)]; decide +kernel
-    have hv32 : M.readLE 5178744 8 = 32 := by
-      rw [hrd 5178744 8 (hW2 5178744 8 (by omega) (Outside.of_sub hO3.2 (by omega) (by omega))), h_rodata 5178744 8 (by decide +kernel)]; decide +kernel
-    have hfR : Readable M 5151169 26 :=
+    have hfm : M.readLE fmtAddr 26 = fmtNum := by
+      rw [hrd fmtAddr 26 (hW2 fmtAddr 26 (by omega) (Outside.of_sub hO2.2 (by omega) (by omega))), h_rodata fmtAddr 26 (by decide +kernel)]; decide +kernel
+    have hv32 : M.readLE c32Addr 8 = 32 := by
+      rw [hrd c32Addr 8 (hW2 c32Addr 8 (by omega) (Outside.of_sub hO3.2 (by omega) (by omega))), h_rodata c32Addr 8 (by decide +kernel)]; decide +kernel
+    have hfR : Readable M fmtAddr 26 :=
       ⟨by omega, fun _ => by rw [hacc]; exact Arm64.Memory.accessible_mono _ h_data2 (by omega) (by omega)⟩
     have hsR : Readable M ((s.regs 4).toNat - 56) 48 :=
       ⟨by omega, fun _ => by rw [hacc]; exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ hw4 (by omega) (by omega))⟩
     have heR : Readable M e 16 := ⟨by omega, fun _ => by rw [hacc]; exact hv4⟩
     have htR : Readable M tp tl := ⟨htpb, fun hpos => by rw [hacc]; rcases htx with h | h; omega; exact h⟩
     have hq1R : Readable M b 8 := ⟨hb48, fun _ => hbacc'⟩
-    have hq2R : Readable M 5178744 8 :=
+    have hq2R : Readable M c32Addr 8 :=
       ⟨by omega, fun _ => by rw [hacc]; exact Arm64.Memory.accessible_mono _ h_data3 (by omega) (by omega)⟩
     have hA1' : M.readLE ((s.regs 4).toNat - 56 + 8) 8 = e := by
       rw [show (s.regs 4).toNat - 56 + 8 = (s.regs 4).toNat - 48 by omega]; exact hA1
-    have hA2' : M.readLE ((s.regs 4).toNat - 56 + 16) 8 = 5008480 := by
+    have hA2' : M.readLE ((s.regs 4).toNat - 56 + 16) 8 = tInt := by
       rw [show (s.regs 4).toNat - 56 + 16 = (s.regs 4).toNat - 40 by omega]; exact hA2
     have hA3' : M.readLE ((s.regs 4).toNat - 56 + 24) 8 = b := by
       rw [show (s.regs 4).toNat - 56 + 24 = (s.regs 4).toNat - 32 by omega]; exact hA3
-    have hA4' : M.readLE ((s.regs 4).toNat - 56 + 32) 8 = 5008480 := by
+    have hA4' : M.readLE ((s.regs 4).toNat - 56 + 32) 8 = tInt := by
       rw [show (s.regs 4).toNat - 56 + 32 = (s.regs 4).toNat - 24 by omega]; exact hA4
-    have hA5' : M.readLE ((s.regs 4).toNat - 56 + 40) 8 = 5178744 := by
+    have hA5' : M.readLE ((s.regs 4).toNat - 56 + 40) 8 = c32Addr := by
       rw [show (s.regs 4).toNat - 56 + 40 = (s.regs 4).toNat - 16 by omega]; exact hA5
     have htp' : M.readLE e 8 = tp := by rw [hrd e 8 (hW2 e 8 (by omega) (Outside.of_sub heO.2 (by omega) (by omega)))]; exact hv5
     have htl' : M.readLE (e + 8) 8 = tl := by
       rw [hrd (e + 8) 8 (hW2 (e + 8) 8 (by omega) (Outside.of_sub heO.2 (by omega) (by omega)))]; exact hv6
-    have hargs := ErrorfConsumer.argsOK_real (Env.mk tErr iErr tInt iWrap) 4294967296 M 5151169 ((s.regs 4).toNat - 56)
-      e tp tl b 5178744 (by decide) hfm hfR hsR hA0 hA1' hv3n heR htp' htl' htR hA2' hA3' hbn
+    have hargs := ErrorfConsumer.argsOK_real (Env.mk tErr iErr tInt iWrap) 4294967296 M fmtAddr ((s.regs 4).toNat - 56)
+      e tp tl b c32Addr (by decide) hfm hfR hsR hA0 hA1' hv3n heR htp' htl' htR hA2' hA3' hbn
       hq1R hA4' hA5' (by decide) hq2R (by omega)
-    have hn : nDec (segsOf M 5151169 26) = 2 := by rw [segsOf_real _ _ _ rfl hfm]; decide
+    have hn : nDec (segsOf M fmtAddr 26) = 2 := by rw [segsOf_real _ _ _ rfl hfm]; decide
     have hstr : strBytes M tp tl = strBytes s.mem tp tl := by
       apply strBytes_congr
       intro i hi
       rcases hTP with h0 | h0
       · omega
       · exact hf'.bytes (Outside.of_sub h0 (by omega) (by omega))
-    have hmsg : msgOf M 5151169 26 ((s.regs 4).toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat := by
+    have hmsg : msgOf M fmtAddr 26 ((s.regs 4).toNat - 56) = errMsg (strBytes s.mem tp tl) len.toNat := by
       rw [msgOf_real _ _ _ _ rfl hfm, hA1', htp', htl', hA3', hA5', hbv, hv32, hstr,
         decBytes_small len.toNat (by omega)]
       have d32 : decBytes (toSigned 32) = [51, 50] := by decide
       rw [d32]; rfl
-    have hmlen : (msgOf M 5151169 26 ((s.regs 4).toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
+    have hmlen : (msgOf M fmtAddr 26 ((s.regs 4).toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
       rw [hmsg]
-    have hcost : errorfCost M 5151169 26 ((s.regs 4).toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 := by
+    have hcost : errorfCost M fmtAddr 26 ((s.regs 4).toNat - 56) = 2 * (errMsg (strBytes s.mem tp tl) len.toNat).length + 48 := by
       have := hmsgL s.mem
       unfold errorfCost; rw [hmlen, if_neg (by omega)]; simp only [wrapBytes]; omega
-    have hreads : errorfReads M 5151169 26 ((s.regs 4).toNat - 56) =
-        [(5151169, 26), ((s.regs 4).toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (5178744, 8)] := by
+    have hreads : errorfReads M fmtAddr 26 ((s.regs 4).toNat - 56) =
+        [(fmtAddr, 26), ((s.regs 4).toNat - 56, 48), (e, 16), (tp, tl), (b, 8), (c32Addr, 8)] := by
       unfold errorfReads
       rw [hn]
       simp [operandD, hA1', htp', htl', hA3', hA5', List.range_succ]
@@ -280,12 +289,12 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
   have hnb : (natBytes len.toNat).length ≤ 2 := natBytes_len_small len.toNat hlen
   have key : ∀ (S : State), MemFrame s.mem S.mem (Ri.priv ++ [((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24)]) → S.regs 14 = s.regs 14 →
       (S.regs 4).toNat + 104 = (s.regs 4).toNat →
-      S.regs 0 = 5151169#64 → S.regs 3 = 26#64 → S.regs 1 = s.regs 4 - 56#64 → S.regs 7 = 3#64 → S.regs 6 = 3#64 →
-      S.mem.readLE (S.regs 4).toNat 8 = 4926534 →
+      S.regs 0 = (BitVec.ofNat 64 fmtAddr) → S.regs 3 = 26#64 → S.regs 1 = s.regs 4 - 56#64 → S.regs 7 = 3#64 → S.regs 6 = 3#64 →
+      S.mem.readLE (S.regs 4).toNat 8 = errRet →
       S.mem.accessible (r 0).toNat 8 false = true → S.mem.readLE (r 0).toNat 8 = len.toNat →
-      S.mem.readLE ((s.regs 4).toNat - 56) 8 = 5031392 → S.mem.readLE ((s.regs 4).toNat - 48) 8 = e →
-      S.mem.readLE ((s.regs 4).toNat - 40) 8 = 5008480 → S.mem.readLE ((s.regs 4).toNat - 32) 8 = (r 0).toNat →
-      S.mem.readLE ((s.regs 4).toNat - 24) 8 = 5008480 → S.mem.readLE ((s.regs 4).toNat - 16) 8 = 5178744 →
+      S.mem.readLE ((s.regs 4).toNat - 56) 8 = tErr → S.mem.readLE ((s.regs 4).toNat - 48) 8 = e →
+      S.mem.readLE ((s.regs 4).toNat - 40) 8 = tInt → S.mem.readLE ((s.regs 4).toNat - 32) 8 = (r 0).toNat →
+      S.mem.readLE ((s.regs 4).toNat - 24) 8 = tInt → S.mem.readLE ((s.regs 4).toNat - 16) 8 = c32Addr →
       (CallOK64 S 4096 5 ∧ RetLow S ∧ StackRoom64 S 4096 5 ∧
         ArgsOK (Env.mk tErr iErr tInt iWrap) 26 fmtNum 4294967296 S.mem (S.regs 0).toNat (S.regs 3).toNat
           (S.regs 1).toNat (S.regs 7).toNat (S.regs 6).toNat ∧
@@ -296,7 +305,7 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
           (errorfCost S.mem (S.regs 0).toNat (S.regs 3).toNat (S.regs 1).toNat) (S.regs 14).toNat S.mem
           (liveWin64 S 4096 5)) := by
     intro S hf' hg hsp h0 h3 h1 h7 h6 hra hbA hbV hA0 hA1 hA2 hA3 hA4 hA5
-    have e0 : (S.regs 0).toNat = 5151169 := by rw [h0]; rfl
+    have e0 : (S.regs 0).toNat = fmtAddr := by rw [h0]; rfl
     have e3 : (S.regs 3).toNat = 26 := by rw [h3]; rfl
     have e1 : (S.regs 1).toNat = (s.regs 4).toNat - 56 := by rw [h1]; exact hsp56
     have e7 : (S.regs 7).toNat = 3 := by rw [h7]; rfl
@@ -305,8 +314,8 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
     obtain ⟨hargs, hreads, hmsg, hcosteq, hop⟩ := facts S.mem (r 0).toNat hf' hb48 hb0 hbA hbV hA0 hA1 hA2 hA3 hA4 hA5
     have hf2 : MemFrame s.mem S.mem (R.rt ++ (((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24) :: Ri.priv)) :=
       hf'.mono (by intro a n h; simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact ⟨h.2.2, h.2.1⟩)
-    have hc := call_pre64' R L bud (errorfCost S.mem 5151169 26 ((s.regs 4).toNat - 56))
-      (Extracted.program.contractAddr "fmt.errorf") [5151169, 26, (s.regs 4).toNat - 56, 3, 3] Ri.priv
+    have hc := call_pre64' R L bud (errorfCost S.mem fmtAddr 26 ((s.regs 4).toNat - 56))
+      (Extracted.program.contractAddr "fmt.errorf") [fmtAddr, 26, (s.regs 4).toNat - 56, 3, 3] Ri.priv
       (s := s) (S := S) (lo := (s.regs 4).toNat - 4200) (hi := (s.regs 4).toNat + 24) (stack := 4096) (nargs := 5) (fr := 104)
       hnw2 hgr (by omega) hgo hcgo hf2 hg hsp (by omega) (by omega) (by omega) (by omega) (by omega) ha4
       (by rw [show (s.regs 4).toNat + 24 - ((s.regs 4).toNat - 4200) = 4200 + 24 by omega]; exact hw4) hwrt hwL hok
@@ -336,12 +345,12 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
         ((s.regs 4).toNat - 104 + 8, (s.regs 4).toNat - 104 + 8 + 8 * 5)]) →
       MemFrame s.mem M (Ri.priv ++ [((s.regs 4).toNat - 4200, (s.regs 4).toNat + 24)]) →
       M.accessible (r 0).toNat 8 false = true → M.readLE (r 0).toNat 8 = len.toNat →
-      M.readLE ((s.regs 4).toNat - 56) 8 = 5031392 → M.readLE ((s.regs 4).toNat - 48) 8 = e →
-      M.readLE ((s.regs 4).toNat - 40) 8 = 5008480 → M.readLE ((s.regs 4).toNat - 32) 8 = (r 0).toNat →
-      M.readLE ((s.regs 4).toNat - 24) 8 = 5008480 → M.readLE ((s.regs 4).toNat - 16) 8 = 5178744 →
+      M.readLE ((s.regs 4).toNat - 56) 8 = tErr → M.readLE ((s.regs 4).toNat - 48) 8 = e →
+      M.readLE ((s.regs 4).toNat - 40) 8 = tInt → M.readLE ((s.regs 4).toNat - 32) 8 = (r 0).toNat →
+      M.readLE ((s.regs 4).toNat - 24) 8 = tInt → M.readLE ((s.regs 4).toNat - 16) 8 = c32Addr →
       M.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat → M.readLE (s.regs 4).toNat 8 = ret →
       LiveFrame M m1 L [] → ∀ a b : Nat,
-      ErrorfPost (Env.mk tErr iErr tInt iWrap) R M 5151169 26 ((s.regs 4).toNat - 56)
+      ErrorfPost (Env.mk tErr iErr tInt iWrap) R M fmtAddr 26 ((s.regs 4).toNat - 56)
         [((s.regs 4).toNat - 104 - 4096, (s.regs 4).toNat - 104), ((s.regs 4).toNat - 104 + 8, (s.regs 4).toNat - 104 + 8 + 8 * 5), ((s.regs 4).toNat - 104, (s.regs 4).toNat - 104 + 8)] L bud
         (s.regs 14).toNat a b m1 →
       m1.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧ m1.readLE (s.regs 4).toNat 8 = ret ∧
@@ -371,7 +380,7 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
       exact h30
     have hacc : ∀ a n w, m1.accessible a n w = s.mem.accessible a n w := fun a n w => by
       rw [hfr.accessible, hMF.accessible]
-    have hmlen : (msgOf M 5151169 26 ((s.regs 4).toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
+    have hmlen : (msgOf M fmtAddr 26 ((s.regs 4).toNat - 56)).length = (errMsg (strBytes s.mem tp tl) len.toNat).length := by
       rw [hmsgM]
     refine ⟨hs29, hs30, ?_, ?_, hiw, ?_, ?_, ?_, ?_, ?_, ?_, hfresh, hinr, ?_, ?_, ?_⟩
     · rw [hacc]; exact Arm64.Memory.accessible_weaken _ (Arm64.Memory.accessible_mono _ hw4 (by omega) (by omega))
@@ -385,9 +394,9 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
     · exact MemFrame.trans hMF hfr (by frame_sub)
     · exact LiveFrame.trans (LiveFrame.of_win hMF hLS) hlf (fun _ _ h => h)
     · rw [hcostM] at hinv'; rw [hmlen] at hinv'; exact hinv'
-  have hm0 : m'.readLE ((s.regs 4).toNat - 56) 8 = 5031392 := by
+  have hm0 : m'.readLE ((s.regs 4).toNat - 56) 8 = tErr := by
     rw [hfr.readLE _ _ (by simp only [outside_append, outside_cons, outside_nil, and_true]; exact ⟨hPo _ _ (by omega) (by omega), by omega, by omega⟩)]
-    (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]
+    (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega
   have hm1 : m'.readLE ((s.regs 4).toNat - 48) 8 = e := by
     rw [hfr.readLE _ _ (by simp only [outside_append, outside_cons, outside_nil, and_true]; exact ⟨hPo _ _ (by omega) (by omega), by omega, by omega⟩)]
     (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]
@@ -400,14 +409,14 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
     rw [hfr.readLE _ _ (by simp only [outside_append, outside_cons, outside_nil, and_true]; exact ⟨hPo _ _ (by omega) (by omega), by omega, by omega⟩)]
     (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact h_ret
   refine Reaches.call (Summary.withExit (hf L bud) hret) rfl
-    (key _ (by janus_frame) (by simp [setRegF, MapAmd64.keepABI]) (by simp [setRegF, hsp104]; omega) (by simp [setRegF]) (by simp [setRegF])
+    (key _ (by janus_frame) (by simp [setRegF, MapAmd64.keepABI]) (by simp [setRegF, hsp104]; omega) (by simp [setRegF, hFA]) (by simp [setRegF])
       (by simp [setRegF]) (by simp [setRegF]) (by simp [setRegF])
-      (by simp [setRegF, hsp104, Arm64.Memory.readLE_writeLE_self])
+      (by simp [setRegF, hsp104, Arm64.Memory.readLE_writeLE_self, hER])
       (by (try dsimp only); simp only [Arm64.Memory.accessible_writeLE]; exact hbacc)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hbval)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm0)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm1)
-      (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self])) ?_
+      (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega)) ?_
   intro s' hpc' ⟨r2, x2, y2, fl2, m1, zh2, kr2, hs1, hfr1, hlf1, hpost⟩
   subst hs1
   simp only [liveWin64, calleeStack64, List.cons_append, List.nil_append, setRegF, reduceIte, Nat.reduceEqDiff, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod,
@@ -417,7 +426,7 @@ theorem errblk1 (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : 
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hbval)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm0)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm1)
-      (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self])
+      (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; exact Nat.mod_eq_of_lt (by have h := (r 0).isLt; have : (256 : Nat) ^ 8 = 2 ^ 64 := (by decide); omega)) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega) (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); rw [Arm64.Memory.readLE_writeLE_self]; try omega)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm120)
       (by (try dsimp only); (repeat rw [Arm64.Memory.readLE_writeLE_of_disjoint (h := by omega)]); exact hm104)
       hlf1 _ _ hpost
@@ -504,7 +513,7 @@ abbrev evData : Nat := Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBuf
 def sp0 : Nat := 0x200000
 def g0 : Nat := 0x300000
 def retA : Nat := 0x1000
-def textAddr : Nat := 0x500000
+def textAddr : Nat := 2 * evData
 def txtNum : Nat := 152660719805448614182092436004481091377314964726114
 
 def dat (a : Nat) : Option Nat :=
@@ -512,7 +521,7 @@ def dat (a : Nat) : Option Nat :=
     if d.base ≤ a ∧ a < d.base + d.bytes.length then some (d.bytes.getD (a - d.base) 0) else none
 
 def regions0 : List Arm64.Region :=
-  [⟨sp0 - 4200, 4224, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩, ⟨0x5b5b00, 0x200, true⟩,
+  [⟨sp0 - 4200, 4224, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩, ⟨ev, evData + 16 - ev, true⟩,
     ⟨textAddr, 0x40, false⟩, ⟨0x10000, 0x300, false⟩, ⟨0x10300, 0xd00, true⟩] ++
     Extracted.data.map fun d => ⟨d.base, d.bytes.length, false⟩
 
