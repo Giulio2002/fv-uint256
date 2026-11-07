@@ -151,6 +151,12 @@ theorem top_b1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     · rw [hsp]; simp [h3]
     · simp [h1, hsp, sub_ofNat nS _ hpe])
 
+theorem r2_eq (m i : Nat) (h : i ≤ m) (hm : m < 2 ^ 64) : BitVec.ofNat 64 m - BitVec.ofNat 64 i = BitVec.ofNat 64 (m - i) := by
+  apply BitVec.eq_of_toNat_eq
+  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
+  simp only [Nat.reducePow] at hm ⊢
+  omega
+
 theorem topSt_wr {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat} {z pS : BitVec 64}
     {s S S' : State} (hL : R2.Laws) (hS : TopSt R R2 T b L lo hi z pS s S) (hlo : 64 ≤ (s.regs 4).toNat)
     (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
@@ -240,5 +246,39 @@ theorem top_b2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
       simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
       rw [show (256:Nat) ^ 8 = 2 ^ 64 from rfl]; exact Nat.mod_eq_of_lt (by omega))
 
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 20000 in
+/-- `s = s[i:]` and back to the length compare -/
+theorem top_tail (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (S : State) (i : Nat) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0x12a))
+    (hT : TailInv R R2 T b L lo hi z pS nS s i S) :
+    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x57)) S (TopMid R R2 T b L lo hi z pS nS s) := by
+  obtain ⟨hSt, h0, h3, h1, h2, hi1, hsp⟩ := hT
+  obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hnS := nS.isLt
+  have hpe := Fv256.TopMath.plusEnd_le (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hmm : nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < 2 ^ 64 := by omega
+  have hsub : (BitVec.ofNat 64 (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) - BitVec.ofNat 64 i).toNat =
+      nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat - i := by
+    simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; simp only [Nat.reducePow]; omega
+  have hmask : (0#64 - (BitVec.ofNat 64 (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) - BitVec.ofNat 64 i)).sshiftRight 63 &&&
+      BitVec.ofNat 64 i = BitVec.ofNat 64 i := by
+    rw [sshr63_neg _ (by rw [hsub]; omega) (by rw [hsub]; omega)]
+    apply BitVec.eq_of_toNat_eq
+    rw [BitVec.toNat_and, BitVec.toNat_allOnes, Nat.and_comm, Nat.and_two_pow_sub_one_eq_mod, Nat.mod_eq_of_lt (BitVec.isLt _)]
+  janus64_run [hpc, h1, h2, h3, hmask] until [sfd + 0x57]
+  all_goals (
+    refine name_state (P := TopMid R R2 T b L lo hi z pS nS s) ?_
+    intro S2 hS2
+    refine ⟨topSt_congr hSt (by simp [hS2, setRegF_apply]) (by simp [hS2, setRegF_apply]) (by simp [hS2, setRegF_apply])
+      (by rw [hS2]) (by rw [hS2]) (by rw [hS2]) (by rw [hS2]), ?_, ⟨plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + i, ?_, ?_, ?_⟩, ?_⟩
+    · simp [hS2, setRegF_apply, h0]
+    · rw [hsp]; omega
+    · intro _; rw [hsp]
+    · simp only [hS2, setRegF_apply]; simp [hmask, BitVec.ofNat_add]
+    · simp only [hS2, setRegF_apply]; simp
+      rw [r2_eq _ _ (by omega) hmm, hsp]; congr 1; omega)
 
 end Fv256.Amd64.SfdTop
