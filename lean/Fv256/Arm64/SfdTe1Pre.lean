@@ -6,7 +6,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
 namespace Fv256.Arm64.SfdToError
 
 
-theorem reach_name {p : Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
+theorem reach_name1 {p : Program} {ret : BitVec 64} {S : State} {Q : State → Prop}
     (h : ∀ S', S' = S → ReachesRet p ret S' Q) : ReachesRet p ret S Q := h S rfl
 
 set_option maxHeartbeats 16000000 in
@@ -20,10 +20,11 @@ theorem te1_pre (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     (hwb1 : WbLiveContract (P.link impl) (P.contractAddr "runtime.gcWriteBarrier1") 4096 R 1)
     (hwb2 : WbLiveContract (P.link impl) (P.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hcont : ∀ (s S St : State) (m' m2 m3 m4 : Janus.Arm64.Memory) (q t : BitVec 64),
-      St.pc = BitVec.ofNat 64 (P.contractAddr "runtime.gcWriteBarrier2") → St.regs 0 = t →
-      St.mem = m4.writeLE (t.toNat + 8) 8 fl.toNat → St.regs 30 = 618880#64 → St.sp = s.sp - 96#64 →
+      St.pc = BitVec.ofNat 64 (te + 0xd8) → St.regs 0 = t →
+      St.mem = m4.writeLE (t.toNat + 8) 8 fl.toNat → St.regs 27 = 1978368#64 → St.sp = s.sp - 96#64 →
       St.regs 28 = s.regs 28 → St.regs 18 = s.regs 18 →
       R.ok (P.contractAddr "runtime.gcWriteBarrier1") [1] → R.ok (P.contractAddr "runtime.gcWriteBarrier2") [2] →
+      (s.regs 30).toNat % 4 = 0 → (s.regs 30).toNat < 2 ^ 48 →
       Pre1 R R2 b L fp fl sp sl s S m' m2 m3 m4 q t →
       ReachesRet (P.link impl) (s.regs regLR) St (TePost R R2 b L fp fl sp sl s)) :
     Summary (P.link impl) te (fun s => TePre R R2 T b L fp fl sp sl s ∧ s.mem.readLE wbFlag 4 ≠ 0)
@@ -40,7 +41,7 @@ theorem te1_pre (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     · exact Outside.of_sub e10 (by te_omega) (by te_omega)
     · simp only [Spec.Disjoint]; te_omega
   janus_run until [P.contractAddr "runtime.ifaceeq"]
-  refine reach_name ?_
+  refine reach_name1 ?_
   intro S hS
   have hS4 : S.sp.toNat = s.sp.toNat - 96 := by subst hS; exact hsp0
   have hSf : MemFrame s.mem S.mem [(s.sp.toNat - (R2.depth + 96), s.sp.toNat + 72)] := by
@@ -50,6 +51,10 @@ theorem te1_pre (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
   have hpre0 : Iface.RTPre R2 3 S := Iface.RTPre.of_caller hl hcOK hSf hS4 (by subst hS; rfl) (by subst hS; simp [setReg_apply])
     (by subst hS; simp [setReg_apply]) (by te_omega) (by te_omega)
   have hSacc : ∀ a n w, S.mem.accessible a n w = s.mem.accessible a n w := hSf.accessible
+  have hSrec : S.mem.readLE (s.sp.toNat - 8) 8 = s.mem.readLE (s.sp.toNat - 8) 8 ∧
+      S.mem.readLE s.sp.toNat 8 = s.mem.readLE s.sp.toNat 8 := by
+    subst hS; dsimp only
+    constructor <;> simp (disch := te_omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   have hSreg : S.regs 0 = BitVec.ofNat 64 errItab ∧ S.regs 1 = BitVec.ofNat 64 synConst ∧
       S.regs 2 = BitVec.ofNat 64 synConst := by
     subst hS; simp only [setReg_apply, reduceIte, Nat.reduceEqDiff]; decide
@@ -313,10 +318,9 @@ theorem te1_pre (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
     have hes : strconvErrSyntax = 1793712 := by decide
     have hwF' : 1979584 + 4 ≤ t.toNat ∨ t.toNat + 48 ≤ 1979584 := by rw [← hwb]; exact hInTW'
     have hte4' : 1793712 + 16 ≤ t.toNat ∨ t.toNat + 48 ≤ 1793712 := by rw [← hes]; exact hte4
-    janus_run [hrsp, hS30, hbit, hsl32, hSm24, hSm32, hSm8, hSm16, hg28, hf4, hf4b, hacc4, hacc4w, hacc4t, hacc4e, hSlr, hSfp, hof30, hof29] until [P.contractAddr "runtime.gcWriteBarrier2"]
-    refine hcont s S _ m' m2 m3 m4 q t ?_ ?_ ?_ ?_ ?_ ?_ ?_ hok1 hok2
+    refine hcont s S _ m' m2 m3 m4 q t ?_ ?_ ?_ ?_ ?_ ?_ ?_ hok1 hok2 hl1 hl2
       { hdep, hlow, e9, e10, hSf, hfr := hfr', hMF1, hMF2, hMF3, hLF1, hLF3, hCop, hinvN, hInR, hInT, hApL, hApT, hQsl, hspR, hspP,
-        hsdisj, hSm8, oE, pE, qE, hf4, hacc4, hacc4t, hacc4e, hacc4w, hlr4, hfp4, hts4, hte4, hwF, hL18 := e18, hrt0, hal := e4, hsp72 := e3, e5, pW, qW }
+        hsdisj, hSm8, oE, pE, qE, hf4, hacc4, hacc4t, hacc4e, hacc4w, hlr4, hfp4, hts4, hte4, hwF, hL18 := e18, hrt0, hal := e4, hsp72 := e3, e5, pW, qW, hSrec, oW }
     · first | rfl | decide
     · simp [callRegs, setReg_apply]
     · rfl

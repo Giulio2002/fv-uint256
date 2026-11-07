@@ -44,6 +44,10 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
   have hpre0 : Iface.RTPre R2 3 S := Iface.RTPre.of_caller hl hcOK hSf hS4 (by subst hS; rfl) (by subst hS; simp [setReg_apply])
     (by subst hS; simp [setReg_apply]) (by te_omega) (by te_omega)
   have hSacc : ∀ a n w, S.mem.accessible a n w = s.mem.accessible a n w := hSf.accessible
+  have hSrec : S.mem.readLE (s.sp.toNat - 8) 8 = s.mem.readLE (s.sp.toNat - 8) 8 ∧
+      S.mem.readLE s.sp.toNat 8 = s.mem.readLE s.sp.toNat 8 := by
+    subst hS; dsimp only
+    constructor <;> simp (disch := te_omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   have hSreg : S.regs 0 = BitVec.ofNat 64 errItab ∧ S.regs 1 = BitVec.ofNat 64 synConst ∧
       S.regs 2 = BitVec.ofNat 64 synConst := by
     subst hS; simp only [setReg_apply, reduceIte, Nat.reduceEqDiff]; decide
@@ -317,6 +321,6 @@ theorem te_sum0 (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (hl : R2.Law
       (by te_omega) hwF) ?_
     intro s' h
     exact te0_conv (St := _) hdep hlow e9 e10 hSf hfr' hMF1 hMF2 hMF3 hLF1 hLF3 hCop hinvN hInR hInT hApL hApT hQsl
-      hspR hspP hsdisj hSm8 oE pE qE rfl (by simp [callRegs, setReg_apply, Map.keepABI, hg28]) (by simp [callRegs, setReg_apply, Map.keepABI, hg18]) h
+      hspR hspP hsdisj hSm8 oE pE qE hSrec rfl (by simp [callRegs, setReg_apply, Map.keepABI, hg28]) (by simp [callRegs, setReg_apply, Map.keepABI, hg18]) h
 
 end Fv256.Arm64.SfdToError

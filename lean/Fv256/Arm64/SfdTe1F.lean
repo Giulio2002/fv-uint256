@@ -62,5 +62,8 @@ structure Pre1 (R : RtInv) (R2 : IfaceModel) (b : Nat) (L : List (Nat × Nat)) (
   e5 : s.mem.accessible (s.sp.toNat - 4192) (s.sp.toNat + 72 - (s.sp.toNat - 4192)) true = true
   pW : Outside wbFlag 4 R.rt
   qW : Outside wbFlag 4 R2.priv
+  hSrec : S.mem.readLE (s.sp.toNat - 8) 8 = s.mem.readLE (s.sp.toNat - 8) 8 ∧
+    S.mem.readLE s.sp.toNat 8 = s.mem.readLE s.sp.toNat 8
+  oW : Outside wbFlag 4 [(s.sp.toNat - 4192, s.sp.toNat + 72)]
 
 end Fv256.Arm64.SfdToError

@@ -176,6 +176,8 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
     (hSm8 : S.mem.readLE (s.sp.toNat + 8) 8 = fp.toNat)
     (oE : Outside strconvErrSyntax 16 [(s.sp.toNat - 4192, s.sp.toNat + 72)])
     (pE : Outside strconvErrSyntax 16 R.rt) (qE : Outside strconvErrSyntax 16 R2.priv)
+    (hSrec : S.mem.readLE (s.sp.toNat - 8) 8 = s.mem.readLE (s.sp.toNat - 8) 8 ∧
+      S.mem.readLE s.sp.toNat 8 = s.mem.readLE s.sp.toNat 8)
     (hSp : St.sp = s.sp - 96#64) (hSt28 : St.regs 28 = s.regs 28) (hSt18 : St.regs 18 = s.regs 18)
     (htail : s'.sp = St.sp + 96#64 ∧ s'.regs 0 = BitVec.ofNat 64 numErrItab ∧ s'.regs 1 = t ∧ s'.regs 29 = s.regs 29 ∧
       s'.regs 28 = St.regs 28 ∧ s'.regs 18 = St.regs 18 ∧
@@ -234,7 +236,24 @@ theorem te0_conv {R : RtInv} {R2 : IfaceModel} {b : Nat} {L : List (Nat × Nat)}
   have hbase := te0_base hSf hfr hMF1 hMF2 hMF3 hdep hlow hInR hQsl
   have hFin : MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(s.sp.toNat - 4192, s.sp.toNat + 72)]) := by
     rw [hmem']; exact tm_frame hbase (fun r hr => by simp [hr]) hInT
-  refine ⟨?_, hr29, ?_, ?_, ⟨q.toNat, t, hr0, hr1, ?_⟩, hFin⟩
+  have hts0 := InRanges.disjoint hInT e9
+  rw [b48] at hts0
+  have hrec : ∀ a, (a = s.sp.toNat - 8 ∨ a = s.sp.toNat) → s'.mem.readLE a 8 = s.mem.readLE a 8 := by
+    intro a ha
+    have h1 : s.sp.toNat - 4192 ≤ a := by rcases ha with rfl | rfl <;> te_omega
+    have h2 : a + 8 ≤ s.sp.toNat + 72 := by rcases ha with rfl | rfl <;> te_omega
+    have h3 : a + 8 ≤ t.toNat ∨ t.toNat + 48 ≤ a := by rcases ha with rfl | rfl <;> te_omega
+    rw [hmem']
+    unfold TailMem
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [te0_lrS hfr hMF1 hMF2 hMF3 hdep hlow hInR hQsl _ _ (hwin _ _ h1 h2).1 (hwin _ _ h1 h2).2
+      (by rcases ha with rfl | rfl <;> te_omega) (by rcases ha with rfl | rfl <;> te_omega)
+      (by rcases ha with rfl | rfl <;> te_omega) (by rcases ha with rfl | rfl <;> te_omega)
+      (by rcases ha with rfl | rfl <;> te_omega)]
+    rcases ha with rfl | rfl
+    · exact hSrec.1
+    · exact hSrec.2
+  refine ⟨?_, hr29, ?_, ?_, ⟨q.toNat, t, hr0, hr1, ?_⟩, hFin, hrec _ (Or.inl rfl), hrec _ (Or.inr rfl)⟩
   · rw [hsp', hSp]; bv_omega
   · rw [hr28, hSt28]
   · rw [hr18, hSt18]

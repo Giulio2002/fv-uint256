@@ -20,3 +20,7 @@ cd /srv/fv-uint256-wI4; syntax: build/syn.sh F; light direct check: DEPS="Fv256.
 te_omega not omega; literal addresses (rw abbrev = literal) for stepper; `rename` picks wrong hyps after several fresh vars -> use `hX := contract` names in `calls [..]` or obtain; heartbeats are per declaration -> split.
 ## After pw_sum is sorry-free
 git log -1 --format=%h ; SendMessage to a782b34e9c7f76b70 (FV-B9) with the hash and to main.
+## 2026-11-07 FV-I6: pw_sum DONE (sorry-free, axioms propext/Classical.choice/Quot.sound)
+Chain: SfdTe1Pre (te1_pre) + SfdTe1Tail (te_tail1) + SfdTe1Conv/SfdTe1Mem -> SfdTeSum1 -> SfdToError (te_sum) -> SfdPw (pw_sum).
+Interface changes: PwPre needs lo+4288<=sp (was 4280); TePost gained two conjuncts (s'.mem unchanged at sp-8 and sp); PuPost frame is [(sp-56,sp-8),(sp+8,sp+16)].
+Not janus-verified; lean-checked only (lake build Fv256.Arm64.SfdToError ok).
