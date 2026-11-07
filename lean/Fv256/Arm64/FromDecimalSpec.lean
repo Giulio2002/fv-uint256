@@ -53,7 +53,7 @@ def PanicInit (R : RtInv) (R2 : IfaceModel) (lo hi : Nat) (m : Janus.Arm64.Memor
 def PreC (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi tI : Nat) (pS nS : BitVec 64)
     (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 48 ∧ s.regs 0 = pS ∧ s.regs 1 = nS ∧ Mod C R R2 T L ∧
-  Env C R R2 T b L lo hi s ∧ lo + 4568 ≤ s.sp.toNat ∧ s.sp.toNat + 24 ≤ hi ∧
+  Env C R R2 T b L lo hi s ∧ lo + 4576 ≤ s.sp.toNat ∧ s.sp.toNat + 24 ≤ hi ∧
   R.ok C.newobject [tI] ∧ blockSize 32 true ≤ b ∧
   MultOK C lo lo hi s.mem ∧ Outside C.mulTab 40 R.rt ∧
   (∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt) ∧
@@ -67,7 +67,7 @@ def PreC (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo h
   ChunkAll C R R2 L (b - blockSize 32 true) pS.toNat nS.toNat lo hi s.mem
 
 
-theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : lo + 4568 ≤ sp) (hhi : sp + 24 ≤ hi)
+theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : lo + 4576 ≤ sp) (hhi : sp + 24 ≤ hi)
     (h : Outside a n (rt ++ [(lo, hi)])) :
     Outside a n [(lo, hi)] ∧ Outside a n (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
   simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
@@ -76,7 +76,7 @@ theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : l
 
 /-- the reads of the spill slots of `FromDecimal`'s frame in the memory at the `SetFromDecimal` call -/
 theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp ra v29 vn vp zN : Nat}
-    (hlo : lo + 4568 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt9 : Outside lo (hi - lo) rt)
+    (hlo : lo + 4576 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt9 : Outside lo (hi - lo) rt)
     (hMF : MemFrame ((((m0.writeLE (sp - 48) 8 ra).writeLE (sp - 56) 8 v29).writeLE (sp + 16) 8 vn).writeLE (sp + 8) 8 vp) mN
       (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)])) :
     (mN.writeLE (sp - 16) 8 zN).readLE (sp - 48) 8 = ra % 2 ^ 64 ∧
@@ -100,7 +100,7 @@ theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp
 
 /-- a byte of the string is unchanged between the entry memory and the memory at the `SetFromDecimal` call -/
 theorem str_read {rt : List (Nat × Nat)} {L : List (Nat × Nat)} {m0 M0 mN : Janus.Arm64.Memory} {lo hi sp zN a : Nat}
-    (hlo : lo + 4568 ≤ sp) (hhi : sp + 24 ≤ hi)
+    (hlo : lo + 4576 ≤ sp) (hhi : sp + 24 ≤ hi)
     (hM0 : MemFrame m0 M0 [(lo, hi)])
     (hMF : MemFrame M0 mN (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
     (hLF : LiveFrame M0 mN L [])

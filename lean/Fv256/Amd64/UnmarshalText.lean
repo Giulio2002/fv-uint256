@@ -63,7 +63,7 @@ theorem br_a (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ (nI.toNat : Int) < 2)
+      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ (nI.toNat : Int) < 2)
       (fun s s' =>
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
@@ -85,7 +85,8 @@ theorem br_a (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨⟨hpreU, henv, hdl⟩, hc1⟩ := hpre
+  obtain ⟨⟨hpreU0, henv, hdl⟩, hc1⟩ := hpre
+  have hpreU := PreU.of0 cfg (hpreU0.retOK h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
@@ -162,7 +163,7 @@ theorem br_x (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 48 ∧ Bw s.mem pI.toNat - 120#8 = 0#8)
+      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 48 ∧ Bw s.mem pI.toNat - 120#8 = 0#8)
       (fun s s' =>
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
@@ -184,7 +185,8 @@ theorem br_x (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨⟨hpreU, henv, hdl⟩, hc1, hc2, hc3⟩ := hpre
+  obtain ⟨⟨hpreU0, henv, hdl⟩, hc1, hc2, hc3⟩ := hpre
+  have hpreU := PreU.of0 cfg (hpreU0.retOK h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
@@ -264,7 +266,7 @@ theorem br_X (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 48 ∧ ¬ (Bw s.mem pI.toNat - 120#8 = 0#8) ∧ Bw s.mem pI.toNat - 88#8 = 0#8)
+      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 48 ∧ ¬ (Bw s.mem pI.toNat - 120#8 = 0#8) ∧ Bw s.mem pI.toNat - 88#8 = 0#8)
       (fun s s' =>
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
@@ -286,7 +288,8 @@ theorem br_X (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨⟨hpreU, henv, hdl⟩, hc1, hc2, hc3, hc4⟩ := hpre
+  obtain ⟨⟨hpreU0, henv, hdl⟩, hc1, hc2, hc3, hc4⟩ := hpre
+  have hpreU := PreU.of0 cfg (hpreU0.retOK h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
@@ -366,7 +369,7 @@ theorem br_b (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 48 ∧ ¬ (Bw s.mem pI.toNat - 120#8 = 0#8) ∧ ¬ (Bw s.mem pI.toNat - 88#8 = 0#8))
+      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ s.mem.readLE pI.toNat 1 = 48 ∧ ¬ (Bw s.mem pI.toNat - 120#8 = 0#8) ∧ ¬ (Bw s.mem pI.toNat - 88#8 = 0#8))
       (fun s s' =>
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
@@ -388,7 +391,8 @@ theorem br_b (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨⟨hpreU, henv, hdl⟩, hc1, hc2, hc3, hc4⟩ := hpre
+  obtain ⟨⟨hpreU0, henv, hdl⟩, hc1, hc2, hc3, hc4⟩ := hpre
+  have hpreU := PreU.of0 cfg (hpreU0.retOK h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
@@ -465,7 +469,7 @@ theorem br_c (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ ¬ s.mem.readLE pI.toNat 1 = 48)
+      (fun s => (PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ ¬ s.mem.readLE pI.toNat 1 = 48)
       (fun s s' =>
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
@@ -487,7 +491,8 @@ theorem br_c (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨⟨hpreU, henv, hdl⟩, hc1, hc2⟩ := hpre
+  obtain ⟨⟨hpreU0, henv, hdl⟩, hc1, hc2⟩ := hpre
+  have hpreU := PreU.of0 cfg (hpreU0.retOK h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreU0
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
@@ -564,7 +569,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem)
+      (fun s => PreU0 cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem)
       (fun s s' =>
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →

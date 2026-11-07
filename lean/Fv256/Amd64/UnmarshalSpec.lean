@@ -136,6 +136,62 @@ theorem PreU.toS {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : Li
   obtain ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
   exact ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
 
+/-- `PreU` without `RetOK` (the top-level statements must not bound `[RSP]`; `RetOK` is derived inside the proof, `PreU0.retOK`) -/
+def PreU0 (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
+    (z pI nI : BitVec 64) (s : State) : Prop :=
+  (s.regs 0 = z) ∧
+  (s.regs 3 = pI) ∧
+  (s.regs 1 = nI) ∧
+  (Mod C R R2 T L) ∧
+  (Env C R R2 T b L lo hi s) ∧
+  (lo + 4904 ≤ (s.regs 4).toNat) ∧
+  ((s.regs 4).toNat + 24 ≤ hi) ∧
+  (R.ok sb [(s.regs 4).toNat - 72, pI.toNat, nI.toNat]) ∧
+  (R.ok sb [(s.regs 4).toNat - 40, pI.toNat, nI.toNat]) ∧
+  (roundupsize nI.toNat true ≤ b) ∧
+  (Outside st 2048 [(lo, hi)]) ∧
+  (Outside st 2048 R.rt) ∧
+  (Outside st 2048 R2.priv) ∧
+  (Outside st 2048 [(z.toNat, z.toNat + 32)]) ∧
+  (MultOK C z.toNat lo hi s.mem) ∧
+  (Outside C.mulTab 40 R.rt) ∧
+  (∀ k, 1 ≤ k → k ≤ 4 → Outside (s.mem.readLE (C.mulTab + 8 * k) 8) 32 R.rt) ∧
+  (s.mem.accessible C.ioEOF 16 false = true) ∧
+  (Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+  (Outside C.ioEOF 16 R.rt) ∧
+  (s.mem.accessible C.errBig 16 false = true) ∧
+  (Outside C.errBig 16 [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+  (Outside C.errBig 16 R.rt) ∧
+  (Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem) ∧
+  (s.mem.accessible C.maxStr 78 false = true) ∧
+  (Outside C.maxStr 78 [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+  (Outside C.maxStr 78 R.rt) ∧
+  (∀ k, k < 78 → s.mem.readLE (C.maxStr + k) 1 = maxDigit k) ∧
+  (Buffer s z 32 true) ∧
+  (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧
+  (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
+  (Outside z.toNat 32 R2.priv) ∧
+  (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
+  ((s.regs 14).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 14).toNat + 16) ∧
+  (Buffer s pI nI.toNat false) ∧
+  (pI.toNat + nI.toNat ≤ lo ∨ hi ≤ pI.toNat) ∧
+  (∀ sl, 1 ≤ sl → sl ≤ 19 → sl ≤ nI.toNat → R.ok C.mallocgc [sl, 0, 0] ∧ (∀ q p, R.ok C.memmove [q, p, sl]) ∧     blockSize sl true + blockSize 48 false ≤ b - roundupsize nI.toNat true)
+
+
+theorem PreU.of0 {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s : State} (hr : RetOK s) (h : PreU0 C sb st R R2 T b L lo hi z pI nI s) :
+    PreU C sb st R R2 T b L lo hi z pI nI s := by
+  obtain ⟨r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
+  exact ⟨hr, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
+
+/-- `RetOK` from `PreU0` and the ABI facts of the call (`X15 = 0`, `DF = 0`, `[RSP] < 2^47`) -/
+theorem PreU0.retOK {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s : State} (h : PreU0 C sb st R R2 T b L lo hi z pI nI s)
+    (hx : s.xmm 15 = 0) (hdf : s.df = false) (hret : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47) : RetOK s := by
+  obtain ⟨-, -, -, -, env, lo4, hi4, -⟩ := h
+  obtain ⟨e1, e2, e3, e4, e5, -⟩ := env
+  exact ⟨Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inl rfl) (by omega) (by omega), hret, hx, hdf⟩
+
 /-- keeps a disjunctive hypothesis away from `omega` -/
 def Hide (P : Prop) : Prop := P
 theorem Hide.mk {P : Prop} (h : P) : Hide P := h
