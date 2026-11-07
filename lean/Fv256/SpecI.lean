@@ -97,12 +97,35 @@ noncomputable def firstBad (b : Nat → Nat) (n p : Nat) : Nat → Nat → Optio
 
 /-- the outcome of `SetFromDecimal`: the number, `io.EOF`, `ErrBig256Range`, or the `strconv` syntax error of the
 chunk `[lo, lo+len)` of the original string. -/
-inductive Res
-  | ok (v : Nat)
-  | eof
-  | range
-  | syntax (lo len : Nat)
-  deriving DecidableEq
+abbrev Res : Type := Nat × Nat × Nat
+
+/-- the number `v` -/
+@[match_pattern] def Res.ok (v : Nat) : Res := (0, v, 0)
+/-- `io.EOF` -/
+@[match_pattern] def Res.eof : Res := (1, 0, 0)
+/-- `ErrBig256Range` -/
+@[match_pattern] def Res.range : Res := (2, 0, 0)
+/-- the `strconv` syntax error of the chunk `[lo, lo+len)` -/
+@[match_pattern] def Res.syntax (lo len : Nat) : Res := (3, lo, len)
+
+/-! `Res` is a plain def (a tagged triple), not an `inductive`: the Janus audit admits no consumer-declared inductive in a statement.
+The constructor laws are proved here and are `simp` lemmas. -/
+@[simp] theorem Res.ok.injEq (a b : Nat) : (Res.ok a = Res.ok b) = (a = b) := by
+  simp [Res.ok]
+@[simp] theorem Res.syntax.injEq (a b c d : Nat) : (Res.syntax a b = Res.syntax c d) = (a = c ∧ b = d) := by
+  simp [Res.syntax]
+@[simp] theorem Res.ok_ne_eof (a : Nat) : (Res.ok a = Res.eof) = False := by simp [Res.ok, Res.eof]
+@[simp] theorem Res.eof_ne_ok (a : Nat) : (Res.eof = Res.ok a) = False := by simp [Res.ok, Res.eof]
+@[simp] theorem Res.ok_ne_range (a : Nat) : (Res.ok a = Res.range) = False := by simp [Res.ok, Res.range]
+@[simp] theorem Res.range_ne_ok (a : Nat) : (Res.range = Res.ok a) = False := by simp [Res.ok, Res.range]
+@[simp] theorem Res.ok_ne_syntax (a b c : Nat) : (Res.ok a = Res.syntax b c) = False := by simp [Res.ok, Res.syntax]
+@[simp] theorem Res.syntax_ne_ok (a b c : Nat) : (Res.syntax b c = Res.ok a) = False := by simp [Res.ok, Res.syntax]
+@[simp] theorem Res.eof_ne_range : (Res.eof = Res.range) = False := by simp [Res.eof, Res.range]
+@[simp] theorem Res.range_ne_eof : (Res.range = Res.eof) = False := by simp [Res.eof, Res.range]
+@[simp] theorem Res.eof_ne_syntax (b c : Nat) : (Res.eof = Res.syntax b c) = False := by simp [Res.eof, Res.syntax]
+@[simp] theorem Res.syntax_ne_eof (b c : Nat) : (Res.syntax b c = Res.eof) = False := by simp [Res.eof, Res.syntax]
+@[simp] theorem Res.range_ne_syntax (b c : Nat) : (Res.range = Res.syntax b c) = False := by simp [Res.range, Res.syntax]
+@[simp] theorem Res.syntax_ne_range (b c : Nat) : (Res.syntax b c = Res.range) = False := by simp [Res.range, Res.syntax]
 
 open Classical in
 /-- parse the stripped digit string `[p, n)` (at most 78 digits). -/

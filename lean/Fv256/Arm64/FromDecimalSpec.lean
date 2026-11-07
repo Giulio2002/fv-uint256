@@ -266,7 +266,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
   · exact hzP
   · exact hzS
   · rw [hr28]; unfold Apart at hGZ; omega
-  · rw [hF.accessible]; exact hacP
+  · rw [hF.accessible]; exact Or.inr hacP
   · exact hp48
   · omega
   · rcases hPR with h | h

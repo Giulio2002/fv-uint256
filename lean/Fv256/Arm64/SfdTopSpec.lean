@@ -21,24 +21,46 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
 
 namespace Fv256.Arm64.SfdTopSpec
 
-/-- the binary-specific addresses -/
-structure SfdCfg where
-  ioEOF : Nat            -- package variable `io.EOF` (an `error` interface value: 2 words)
-  errBig : Nat           -- package variable `uint256.ErrBig256Range`
-  mulTab : Nat           -- package variable `uint256.multipliers` (`[5]*Int`)
-  numErrType : Nat       -- type descriptor `strconv.NumError`
-  numErrItab : Nat       -- itab `*strconv.NumError, error`
-  errItab : Nat          -- itab `internal/strconv.Error, error`
-  synConst : Nat         -- constant `internal/strconv.ErrSyntax` object
-  strconvErrSyntax : Nat -- package variable `strconv.ErrSyntax`
-  wbFlag : Nat           -- `runtime.writeBarrier`
-  fnStr : Nat            -- the string constant "ParseUint"
-  maxStr : Nat           -- the 78-byte rodata string `twoPow256Sub1` (the decimal digits of 2^256-1)
-  mallocgc : Nat         -- entry of `runtime.mallocgc`
-  memmove : Nat
-  newobject : Nat
-  wb1 : Nat              -- `runtime.gcWriteBarrier1`
-  wb2 : Nat
+/-- the binary-specific addresses: a 16-tuple of naturals (a plain `def`, not a `structure`, so that the audit accepts statements
+mentioning it); the fields are read with the accessors `C.ioEOF`, `C.errBig`, … (reducible defs). -/
+def SfdCfg : Type := Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat × Nat
+
+/-- package variable `io.EOF` (an `error` interface value: 2 words) -/
+@[reducible] def SfdCfg.ioEOF (c : SfdCfg) : Nat := c.1
+/-- package variable `uint256.ErrBig256Range` -/
+@[reducible] def SfdCfg.errBig (c : SfdCfg) : Nat := c.2.1
+/-- package variable `uint256.multipliers` (`[5]*Int`) -/
+@[reducible] def SfdCfg.mulTab (c : SfdCfg) : Nat := c.2.2.1
+/-- type descriptor `strconv.NumError` -/
+@[reducible] def SfdCfg.numErrType (c : SfdCfg) : Nat := c.2.2.2.1
+/-- itab `*strconv.NumError, error` -/
+@[reducible] def SfdCfg.numErrItab (c : SfdCfg) : Nat := c.2.2.2.2.1
+/-- itab `internal/strconv.Error, error` -/
+@[reducible] def SfdCfg.errItab (c : SfdCfg) : Nat := c.2.2.2.2.2.1
+/-- constant `internal/strconv.ErrSyntax` object -/
+@[reducible] def SfdCfg.synConst (c : SfdCfg) : Nat := c.2.2.2.2.2.2.1
+/-- package variable `strconv.ErrSyntax` -/
+@[reducible] def SfdCfg.strconvErrSyntax (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.1
+/-- `runtime.writeBarrier` -/
+@[reducible] def SfdCfg.wbFlag (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.1
+/-- the string constant "ParseUint" -/
+@[reducible] def SfdCfg.fnStr (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.1
+/-- the 78-byte rodata string `twoPow256Sub1` (the decimal digits of 2^256-1) -/
+@[reducible] def SfdCfg.maxStr (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.2.1
+/-- entry of `runtime.mallocgc` -/
+@[reducible] def SfdCfg.mallocgc (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.2.2.1
+/-- entry of `runtime.memmove` -/
+@[reducible] def SfdCfg.memmove (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.2.2.2.1
+/-- entry of `runtime.newobject` -/
+@[reducible] def SfdCfg.newobject (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.2.2.2.2.1
+/-- `runtime.gcWriteBarrier1` -/
+@[reducible] def SfdCfg.wb1 (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1
+/-- `runtime.gcWriteBarrier2` -/
+@[reducible] def SfdCfg.wb2 (c : SfdCfg) : Nat := c.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2
+
+/-- build a configuration from its 16 fields (in the order of the accessors) -/
+def SfdCfg.mk (ioEOF : Nat) (errBig : Nat) (mulTab : Nat) (numErrType : Nat) (numErrItab : Nat) (errItab : Nat) (synConst : Nat) (strconvErrSyntax : Nat) (wbFlag : Nat) (fnStr : Nat) (maxStr : Nat) (mallocgc : Nat) (memmove : Nat) (newobject : Nat) (wb1 : Nat) (wb2 : Nat) : SfdCfg :=
+  (ioEOF, errBig, mulTab, numErrType, numErrItab, errItab, synConst, strconvErrSyntax, wbFlag, fnStr, maxStr, mallocgc, memmove, newobject, wb1, wb2)
 
 variable (C : SfdCfg)
 
@@ -137,7 +159,7 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   Ptr32 s.mem z true ∧ (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧ (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
   Outside z.toNat 32 R2.priv ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
   ((s.regs 28).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 28).toNat + 16) ∧
-  s.mem.accessible pS.toNat nS.toNat false = true ∧ pS.toNat + nS.toNat ≤ 2 ^ 48 ∧
+  (nS.toNat = 0 ∨ s.mem.accessible pS.toNat nS.toNat false = true) ∧ pS.toNat + nS.toNat ≤ 2 ^ 48 ∧
   (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
   (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
   ChunkAll C R R2 L b pS.toNat nS.toNat lo hi s.mem

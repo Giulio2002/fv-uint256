@@ -20,10 +20,10 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
     (hM0 : MemFrame s.mem M0 [(lo, hi)])
     (hMF : MemFrame M0 m (R.rt ++ [((s.regs 4).toNat - 104 - 4096, (s.regs 4).toNat - 104),
         ((s.regs 4).toNat - 104 + 8, (s.regs 4).toNat - 104 + 8 + 24)] ++ [((s.regs 4).toNat - 40, (s.regs 4).toNat - 40 + 32)]))
-    (hSO : r1.toNat = (strBytes s.mem pI.toNat nI.toNat).length ∧ r0.toNat + r1.toNat ≤ 2 ^ 48 ∧
+    (hSOA : (r1.toNat = (strBytes s.mem pI.toNat nI.toNat).length ∧ r0.toNat + r1.toNat ≤ 2 ^ 48 ∧
       (0 < r1.toNat → s.mem.accessible r0.toNat r1.toNat false = true) ∧
-      strBytes m r0.toNat r1.toNat = strBytes s.mem pI.toNat nI.toNat)
-    (hSA : StrAt R.rt ((s.regs 4).toNat - 40) st pI.toNat r1.toNat r0.toNat M0)
+      strBytes m r0.toNat r1.toNat = strBytes s.mem pI.toNat nI.toNat) ∧
+      StrAt R.rt ((s.regs 4).toNat - 40) st pI.toNat r1.toNat r0.toNat M0)
     (hLF : LiveFrame M0 m L [((s.regs 4).toNat - 40, (s.regs 4).toNat - 40 + 32)])
     (hFr : FreshFrom (if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then
         (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) L)
@@ -41,6 +41,7 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
     (hS3 : S3.mem = m.writeLE ((s.regs 4).toNat - 104) 8 retv) (hretv : retv < 2 ^ 47) :
     TopPre C R R2 T (b - roundupsize nI.toNat true) (L ++ (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)]))
       lo ((s.regs 4).toNat - 40) z r0 nI S3 := by
+  obtain ⟨hSO, hSA⟩ := hSOA
   have hp := hpre.toS
   have hlo4 := hp.lo4
   have hhi4 := hp.hi4
@@ -124,5 +125,34 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
     · exact Or.inr ⟨(r0.toNat, r0.toNat + nI.toNat), List.mem_append_right _ (List.mem_singleton_self _), Nat.le_refl _, Nat.le_refl _⟩
     · exact hlp
     · rfl
+
+/-- the saved `RBP` and the return address are unchanged at the end: they are outside every frame -/
+theorem ret_reads {R : RtInv} {lo hi sp v5 vp vz ra ra' : Nat} {s0 M0 m S3m S' : Janus.Arm64.Memory}
+    (hlo : lo + 4904 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt : Outside lo (hi - lo) R.rt)
+    (hM0 : M0 = (((s0.writeLE (sp - 8) 8 v5).writeLE (sp + 16) 8 vp).writeLE (sp + 8) 8 vz).writeLE (sp - 104) 8 ra)
+    (hMF : MemFrame M0 m (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(sp - 40, sp - 40 + 32)]))
+    (hS3 : S3m = m.writeLE (sp - 104) 8 ra')
+    (cMF : MemFrame S3m S' (R.rt ++ [(lo, sp - 40)])) :
+    S'.readLE sp 8 = s0.readLE sp 8 ∧ S'.readLE (sp - 8) 8 = v5 % 2 ^ 64 := by
+  have o1 : ∀ a, a = sp ∨ a = sp - 8 → Outside a 8 (R.rt ++ [(lo, sp - 40)]) := by
+    intro a ha
+    rw [outside_append]
+    refine ⟨Outside.of_sub hrt (by omega) (by omega), ?_⟩
+    simp only [outside_cons, outside_nil, and_true]; omega
+  have o2 : ∀ a, a = sp ∨ a = sp - 8 →
+      Outside a 8 (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(sp - 40, sp - 40 + 32)]) := by
+    intro a ha
+    simp only [outside_append, outside_cons, outside_nil, and_true]
+    refine ⟨⟨Outside.of_sub hrt (by omega) (by omega), ?_, ?_⟩, ?_⟩ <;> omega
+  have step : ∀ a, a = sp ∨ a = sp - 8 → S'.readLE a 8 = M0.readLE a 8 := by
+    intro a ha
+    rw [cMF.readLE a 8 (o1 a ha), hS3]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    exact hMF.readLE a 8 (o2 a ha)
+  constructor
+  · rw [step sp (Or.inl rfl), hM0]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  · rw [step (sp - 8) (Or.inr rfl), hM0]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
 
 end Fv256.Amd64.UnmarshalDec
