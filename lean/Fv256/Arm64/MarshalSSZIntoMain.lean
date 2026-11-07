@@ -499,7 +499,7 @@ abbrev evData : Nat := Extracted.dataAddr.«github.com/holiman/uint256.ErrBadBuf
 def sp0 : Nat := 0x200000
 def g0 : Nat := 0x300000
 def retA : Nat := 0x1000
-def textAddr : Nat := 0x1b5300
+def textAddr : Nat := 2 * evData
 def txtNum : Nat := 152660719805448614182092436004481091377314964726114
 
 def dat (a : Nat) : Option Nat :=
@@ -507,7 +507,7 @@ def dat (a : Nat) : Option Nat :=
     if d.base ≤ a ∧ a < d.base + d.bytes.length then some (d.bytes.getD (a - d.base) 0) else none
 
 def regions0 : List Region :=
-  [⟨sp0 - 4208, 4232, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩, ⟨0x1b5b00, 0x200, true⟩,
+  [⟨sp0 - 4208, 4232, true⟩, ⟨g0, 0x100, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩, ⟨ev, evData + 16 - ev, true⟩,
     ⟨textAddr, 0x40, false⟩, ⟨0x10000, 0x300, false⟩, ⟨0x10300, 0xd00, true⟩] ++
     Extracted.data.map fun d => ⟨d.base, d.bytes.length, false⟩
 

@@ -173,12 +173,12 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
     janus_eval_nat h_ut : u8T
     rw [h_ut] at hdt hdtd hdesc hok
     janus_data hd [hw]
-    have hu3 : S.mem.accessible 834336 16 false = true := by
+    have hu3 : S.mem.accessible u8T 16 false = true := by
       rw [hfr.accessible]
-      exact Memory.accessible_sub s.mem (show s.mem.accessible 834336 256 false = true by janus_assumption) (Or.inl rfl) (by omega) (by omega)
-    have hdescS : S.mem.readLE 834336 8 = 1 ∧ S.mem.readLE 834344 8 = 0 := by
+      exact Memory.accessible_sub s.mem (show s.mem.accessible u8T 256 false = true by rw [h_ut]; janus_assumption) (Or.inl rfl) (by omega) (by omega)
+    have hdescS : S.mem.readLE u8T 8 = 1 ∧ S.mem.readLE (u8T + 8) 8 = 0 := by
       rcases hdesc with hdto | hR
-      · have hOutU : ∀ a n, 834336 ≤ a → a + n ≤ 834336 + 16 →
+      · have hOutU : ∀ a n, u8T ≤ a → a + n ≤ u8T + 16 →
             Outside a n (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp, dp + cap0)]) := by
           intro a n h1 h2
           simp only [outside_append, outside_cons, outside_nil, and_true]
@@ -188,6 +188,7 @@ theorem blk0 (impl : List Segment) (R : RtInv) (ret : Nat)
         · rw [hfr.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
         · rw [hfr.readLE _ _ (hOutU _ _ (by omega) (by omega)), h_rodata _ _ (by decide)]; decide
       · exact hR b L (s.regs 28).toNat S.mem hinv
+    simp only [h_ut, Nat.reduceAdd] at hu3 hdescS
     obtain ⟨hu1, hu2⟩ := hdescS
     clear hdesc
     obtain ⟨gp1, gp2, gp3, gp4⟩ := grow_pre_a64 len.toNat cc.toNat pp.toNat s.sp.toNat hlc hPb hdj hb'
