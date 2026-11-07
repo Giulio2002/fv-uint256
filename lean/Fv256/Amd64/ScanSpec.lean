@@ -65,7 +65,8 @@ def PreB (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat 
 def ScanPre (tyS tyB avx sb st errTy : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (dst tw dw : BitVec 64) (s : State) : Prop :=
   s.regs 0 = dst ∧ s.regs 3 = tw ∧ s.regs 1 = dw ∧ lo + 4992 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 32 ≤ hi ∧
-  ((tw = 0 ∧ Buffer s dst 32 true ∧ (dst.toNat + 32 ≤ lo ∨ hi ≤ dst.toNat) ∧ s.mem.accessible lo (hi - lo) true = true) ∨
+  ((tw = 0 ∧ Buffer s dst 32 true ∧ (dst.toNat + 32 ≤ lo ∨ hi ≤ dst.toNat) ∧ s.mem.accessible lo (hi - lo) true = true ∧ hi ≤ 2 ^ 48 ∧
+      (s.regs 14).toNat + 24 ≤ 2 ^ 48 ∧ s.mem.accessible ((s.regs 14).toNat + 16) 8 false = true ∧ s.mem.readLE ((s.regs 14).toNat + 16) 8 < lo) ∨
    (tw.toNat = tyS ∧ Buffer s dw 16 false ∧ Outside dw.toNat 16 [(lo, hi)] ∧ s.mem.accessible avx 1 false = true ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)] ∧ Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem) ∧
       TopPre0 C R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
       Fv256.IndexByte.PageReadable s.mem (hdrP s dw).toNat (hdrN s dw).toNat) ∨
