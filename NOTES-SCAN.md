@@ -35,3 +35,22 @@ Level B: Scan wrapper: cases src nil / string / []byte / other. Needs `hsci` (th
 Witnesses: `Scan.Witness.nonvacuous` per ISA covering EVERY hypothesis (build the satisfiability of the Pre early: SFD's Mod/Env have been unsatisfiable before, see FV-B9).
 Audit: run a sorry-proof `janus verify` of the statement first (consumer defs only plain defs, no structure/inductive; Res is a tagged triple).
 Pin: 77fb30cc (master lakefile); icall line (d52a1656) is NOT needed for Scan (no abstract callee).
+
+## Status update (later 2026-11-07)
+* Pulled from fv/wj (byte-identical copies, do not edit): lean/Fv256/Amd64/{SfdTopSpec,SfdEnvC,FromDecimalSpec}.lean (SfdTopSpec = fv/wi b982015).
+* lean/Fv256/MulOverflowProg.lean: GENERATED (tools/gen_libprog.py --base Fv256.UmulProg, from ex-amd64-Scan + ex-amd64-MulOverflow; MulOverflow calls umul, so the
+  program is UmulProg + the MulOverflow segment). The MulOverflow SUMMARY over it is NOT proved: the existing Amd64/MulOverflow.lean proof is an Ensures over the
+  MulOverflow extraction (5 aliasing cases, 295-2679 s); to get `Summary MulOverflowProg.program entry ..` re-target it (copy MoCases/A..E to the library program,
+  as ExpProg/ExpSum were) and transfer with `Fv256.CodeIn.lib_summary hcLib`. Exp needs nothing new: `Fv256.Amd64.ExpMain.exp_summary` over ExpProg + lib_summary
+  (see Amd64/Exp.lean line ~55 for the CodeIn side condition); its Pre needs 0xa8 bytes below the call SP writable and StackGuardOK s 0x20.
+* arm64: nothing generated yet (gen_libprog_arm64.py, Arm64/ExpProg exists, MulOverflow arm64 likewise needs a library program + re-targeted proof).
+* DESIGN QUESTIONS for the Scan statement (blocking the audit verdict; not decided):
+  1. hsbts: `slicebytetostring` live contract is stated over an RtContract64 with readiness H (F2's FormatFast: `RtContract64 .. ssAddr rt 4096 H (slicebytetostringSpec ..)`),
+     while the SFD closure uses the allocator model `RtInv R`. The []byte case needs both in ONE statement; ask the engine owner whether `R.rt`/`R.inv` can serve as `rt` and
+     how `H` relates (UnmarshalText/JSON by FV-J2 faces the same question: see wip-j/DecWrappers.draft.md).
+  2. Scan's Pre: take `TopPre C R R2 T b L lo hi dst pS nS (viewS s pS nS)` where viewS replaces regs 3/1 by the string pair read from the header at the data word, so the
+     string facts are reused verbatim; the type-switch adds (tw = 0) / (tw = type:string, header readable) / (tw = type:[]uint8, slice header readable) / (other tw: hash word
+     readable). scanSci's own Pre: TopPre plus `lo + 4800 + 0x80 <= rsp` (frame 0x68 + saved rbp + spills) and the local Int slots rsp+0x28 / rsp+0x48 inside [lo, hi).
+  3. amd64 IndexByteString reads `internal/cpu.X86` (HasAVX2, a writable global NOT copied by the extractor): the hibs summary (IndexByteSpec.IbsPreA) must take the
+     accessibility of that byte as a parameter (address from Extracted.dataAddr) -- FV-S must add it; arm64 has no such dependency.
+* Nothing of the seven segments is proved yet; sorry-proof audit run of the Scan/scanSci statement not done (blocked on 1 and 2).
