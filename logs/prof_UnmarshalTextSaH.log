@@ -1,0 +1,256 @@
+[Elab.command] [0.061029] ✅️ set_option trace.profiler.threshold 500 in
+    set_option janus.calls.trace true in
+    set_option maxRecDepth 100000 in
+    set_option maxHeartbeats 16000000 in
+    theorem br_a (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+        (lo hi : Nat) (z pI nI cI : BitVec 64)
+        (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
+        (hnew :
+          NewobjectLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject")
+            4096 R)
+        (hmg :
+          MallocgcLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096
+            R)
+        (hmv : MemmoveLive64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R)
+        (hwb1 :
+          WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096
+            R 1)
+        (hwb2 :
+          WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096
+            R 2)
+        (hsb :
+          RtLiveContract64 (Extracted.program.link impl) sbAddr 4096 R (slicebytetostringSpec stAddr)
+            slicebytetostringLive)
+        (hhex :
+          ∀ (z hp len : BitVec 64),
+            Summary (Extracted.program.link impl) 4922368 (FromHexPre z hp len) (FromHexPost z hp len))
+        (hsfd :
+          ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
+            SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
+        Summary (Extracted.program.link impl) utEntry
+          (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s) ∧ (nI.toNat : Int) < 2)
+          (fun s s' =>
+            Kept s s' ∧
+              (IsHex s.mem pI.toNat nI.toNat →
+                  (∀ v,
+                      parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+                        s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+                    (∀ e,
+                      parseHex (bytesAt s.mem pI.toNat) nI.toNat = .error e →
+                        s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+                          s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))) ∧
+                (¬IsHex s.mem pI.toNat nI.toNat →
+                    (∀ v,
+                        decParse (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+                          s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+                      (decParse (bytesAt s.mem pI.toNat) nI.toNat = .eof →
+                          (s'.regs 0).toNat = s.mem.readLE cfg.ioEOF 8 ∧
+                            (s'.regs 3).toNat = s.mem.readLE (cfg.ioEOF + 8) 8 ∧ Janus.Spec.val256 s'.mem z.toNat = 0) ∧
+                        (decParse (bytesAt s.mem pI.toNat) nI.toNat = .range →
+                            (s'.regs 0).toNat = s.mem.readLE cfg.errBig 8 ∧
+                              (s'.regs 3).toNat = s.mem.readLE (cfg.errBig + 8) 8 ∧
+                                Janus.Spec.val256 s'.mem z.toNat = Janus.Spec.val256 s.mem z.toNat) ∧
+                          (∀ lo' len',
+                            decParse (bytesAt s.mem pI.toNat) nI.toNat = .syntax lo' len' →
+                              s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab)) ∧
+                  MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) :=
+      by
+      intro s hpc hpre
+      obtain ⟨⟨hpreU, henv⟩, hc1⟩ := hpre
+      have hEnv := hpreU.toS.env
+      obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
+      have hlo4 := hpreU.toS.lo4
+      have hhi4 := hpreU.toS.hi4
+      have h_x15 : s.xmm 15 = 0 := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.1
+      have h_df : s.df = false := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.2
+      have h_rip : s.rip = BitVec.ofNat 64 utEntry := hpc
+      have hbD :
+        (s.regs 4).toNat - 40 = 0 ∨
+          ((s.regs 4).toNat - 40 ≤ 281474976710624 ∧ s.mem.accessible ((s.regs 4).toNat - 40) 32 true = true) :=
+        Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
+      have hbH :
+        (s.regs 4).toNat - 72 = 0 ∨
+          ((s.regs 4).toNat - 72 ≤ 281474976710624 ∧ s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true) :=
+        Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
+      obtain ⟨hib1, hib2⟩ := hpreU.toS.ibuf
+      have hiw := hpreU.toS.iwin
+      have hokD := hpreU.toS.okD
+      have hokH := hpreU.toS.okH
+      have hr3 := hpreU.toS.r3
+      have hr1 := hpreU.toS.r1
+      have hr0 := hpreU.toS.r0
+      have hdA : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 40) 32 := by unfold Apart; omega
+      have hdH : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 72) 32 := by unfold Apart; omega
+      have hdS1 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 - 4096) 4096 := by unfold Apart; omega
+      have hdS2 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 + 8) 24 := by unfold Apart; omega
+      have hHid :
+        Hide
+          (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧
+            HexEnv R lo hi z s ∧
+              (BitVec.toNat (s.regs 14) + 24 ≤ 2 ^ 48 ∧
+                  Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true ∧
+                    (∀ (r : Nat × Nat), r ∈ staticRanges cfg T → Outside r.fst (r.snd - r.fst) [(lo, hi)]) ∧
+                      StaticOK cfg R2 T s.mem ∧ R2.Env s.mem (s.regs 14)) ∧
+                (pI.toNat + nI.toNat ≤ lo ∨ hi ≤ pI.toNat)) :=
+        Hide.mk ⟨hpreU, henv, ⟨e6, e7, e14, e15, e16⟩, hiw⟩
+      clear e6 e7 e14 e15 e16 hiw hpreU henv
+      janus64_run until [sfdEntry] calls [hsb]
+      obtain ⟨hpreU, henv, ⟨e6, e7, e14, e15, e16⟩, hiw⟩ := hHid.get
+      sorry
+janus.calls.trace [closed by simp]: Arm64.Memory.readLE
+    { regs := setRegF (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 4 (s.regs 4 - 104#64)) 5 (s.regs 4 - 8#64),
+        rip := 4599712#64, flags := (subFlags nI (2#64) false).snd, (200 ms)
+janus.calls.trace [closed by closers]: (BitVec.toNat (s.regs 4) - 104) % 8 = 0 (simp 5 ms)
+janus.calls.trace [closed by closers]: 4096 ≤ BitVec.toNat (s.regs 4) - 104 (simp 6 ms)
+janus.calls.trace [closed by closers]: BitVec.toNat (s.regs 4) - 104 ≤ 281474976710624 (simp 7 ms)
+janus.calls.trace [closed by closers]: Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 104 - 4096) 4128 true = true (simp 8 ms)
+janus.calls.trace [closed by closers]: BitVec.toNat (s.regs 4) - 40 = 0 ∨
+  BitVec.toNat (s.regs 4) - 40 ≤ 281474976710624 ∧
+    Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 40) 32 true = true (simp 2 ms)
+janus.calls.trace [closed by closers]: pI.toNat + nI.toNat ≤ 281474976710656 (simp 1 ms)
+janus.calls.trace [closed by closers]: Arm64.Memory.accessible s.mem pI.toNat nI.toNat false = true (simp 32 ms)
+janus.calls.trace [closed by closers]: pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 40 ∨ BitVec.toNat (s.regs 4) - 40 + 32 ≤ pI.toNat (simp 2 ms)
+janus.calls.trace [closed by closers]: pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 104 - 4096 ∨ BitVec.toNat (s.regs 4) - 104 ≤ pI.toNat (simp 2 ms)
+janus.calls.trace [closed by closers]: pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 104 + 8 ∨ BitVec.toNat (s.regs 4) - 104 + 8 + 24 ≤ pI.toNat (simp 2 ms)
+janus.calls.trace [closed by simp]: match (slicebytetostringSpec 5205472).guard with
+| some adj =>
+  GuardOK64
+      { regs := setRegF (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 4 (s.regs 4 - 104#64)) 5 (s.regs 4 - 8#64),
+        ri (21 ms)
+janus.calls.trace [closed by closers]: BitVec.toNat (s.regs 14) ≤ 281474976710632 (simp 6 ms)
+janus.calls.trace [closed by closers]: Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true (simp 7 ms)
+janus.calls.trace [closed by closers]: Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + 4096 < BitVec.toNat (s.regs 4) - 104 (simp 447 ms)
+janus.calls.trace [closed by closers]: BitVec.toNat (s.regs 14) + 16 + 8 ≤ BitVec.toNat (s.regs 4) - 104 - 4096 ∨
+  BitVec.toNat (s.regs 4) - 104 ≤ BitVec.toNat (s.regs 14) + 16 (simp 2 ms)
+janus.calls.trace [closed by closers]: BitVec.toNat (s.regs 14) + 16 ≤ BitVec.toNat (s.regs 4) - 104 ∨
+  BitVec.toNat (s.regs 4) - 104 + 16 ≤ BitVec.toNat (s.regs 14) (simp 2 ms)
+janus.calls.trace [closed by closers]: R.2 sbAddr [BitVec.toNat (s.regs 4) - 40, pI.toNat, nI.toNat] (simp 1567 ms)
+janus.calls.trace [closed by closers]: R.1 b L (BitVec.toNat (s.regs 14))
+  (view R.rt L
+    ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+              (BitVec.toNat (s.regs 4) + 16) 8 p (simp 6 ms)
+janus.calls.trace [closed by closers]: roundupsize nI.toNat true ≤ b (simp 1629 ms)
+janus.calls.trace [closed by closers]: ∀ (r : Nat × Nat),
+  r ∈ L →
+    Outside r.fst (r.snd - r.fst)
+      ([(BitVec.toNat (s.regs 4) - 104 - 4096, BitVec.toNat (s.regs 4) - 104),
+          (BitVec.toNat (s.regs 4) - 104 + 8, BitVec.toNat (simp 2 ms)
+janus.calls.trace [closed by closers]: Outside (BitVec.toNat (s.regs 4) - 104 - 4096) (BitVec.toNat (s.regs 4) - 104 - (BitVec.toNat (s.regs 4) - 104 - 4096))
+  R.rt (simp 1 ms)
+janus.calls.trace [closed by closers]: Outside (BitVec.toNat (s.regs 4) - 104 + 8) 24 R.rt (simp 2 ms)
+janus.calls.trace [closed by closers]: Outside (BitVec.toNat (s.regs 4) - 104) 8 R.rt (simp 1 ms)
+[Elab.async] [40.628334] ✅️ elaborating proof of Fv256.Amd64.UnmarshalTextS.br_a
+  [Elab.definition.value] [40.572846] ✅️ Fv256.Amd64.UnmarshalTextS.br_a
+    [Elab.step] [40.540272] ✅️ 
+          intro s hpc hpre
+          obtain ⟨⟨hpreU, henv⟩, hc1⟩ := hpre
+          have hEnv := hpreU.toS.env
+          obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
+          have hlo4 := hpreU.toS.lo4
+          have hhi4 := hpreU.toS.hi4
+          have h_x15 : s.xmm 15 = 0 := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.1
+          have h_df : s.df = false := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.2
+          have h_rip : s.rip = BitVec.ofNat 64 utEntry := hpc
+          have hbD :
+            (s.regs 4).toNat - 40 = 0 ∨
+              ((s.regs 4).toNat - 40 ≤ 281474976710624 ∧ s.mem.accessible ((s.regs 4).toNat - 40) 32 true = true) :=
+            Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
+          have hbH :
+            (s.regs 4).toNat - 72 = 0 ∨
+              ((s.regs 4).toNat - 72 ≤ 281474976710624 ∧ s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true) :=
+            Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
+          obtain ⟨hib1, hib2⟩ := hpreU.toS.ibuf
+          have hiw := hpreU.toS.iwin
+          have hokD := hpreU.toS.okD
+          have hokH := hpreU.toS.okH
+          have hr3 := hpreU.toS.r3
+          have hr1 := hpreU.toS.r1
+          have hr0 := hpreU.toS.r0
+          have hdA : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 40) 32 := by unfold Apart; omega
+          have hdH : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 72) 32 := by unfold Apart; omega
+          have hdS1 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 - 4096) 4096 := by unfold Apart; omega
+          have hdS2 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 + 8) 24 := by unfold Apart; omega
+          have hHid :
+            Hide
+              (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧
+                HexEnv R lo hi z s ∧
+                  (BitVec.toNat (s.regs 14) + 24 ≤ 2 ^ 48 ∧
+                      Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true ∧
+                        (∀ (r : Nat × Nat), r ∈ staticRanges cfg T → Outside r.fst (r.snd - r.fst) [(lo, hi)]) ∧
+                          StaticOK cfg R2 T s.mem ∧ R2.Env s.mem (s.regs 14)) ∧
+                    (pI.toNat + nI.toNat ≤ lo ∨ hi ≤ pI.toNat)) :=
+            Hide.mk ⟨hpreU, henv, ⟨e6, e7, e14, e15, e16⟩, hiw⟩
+          clear e6 e7 e14 e15 e16 hiw hpreU henv
+          janus64_run until [sfdEntry] calls [hsb]
+          obtain ⟨hpreU, henv, ⟨e6, e7, e14, e15, e16⟩, hiw⟩ := hHid.get
+          sorry
+      [Elab.step] [40.540248] ✅️ 
+            intro s hpc hpre
+            obtain ⟨⟨hpreU, henv⟩, hc1⟩ := hpre
+            have hEnv := hpreU.toS.env
+            obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
+            have hlo4 := hpreU.toS.lo4
+            have hhi4 := hpreU.toS.hi4
+            have h_x15 : s.xmm 15 = 0 := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.1
+            have h_df : s.df = false := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.2
+            have h_rip : s.rip = BitVec.ofNat 64 utEntry := hpc
+            have hbD :
+              (s.regs 4).toNat - 40 = 0 ∨
+                ((s.regs 4).toNat - 40 ≤ 281474976710624 ∧ s.mem.accessible ((s.regs 4).toNat - 40) 32 true = true) :=
+              Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
+            have hbH :
+              (s.regs 4).toNat - 72 = 0 ∨
+                ((s.regs 4).toNat - 72 ≤ 281474976710624 ∧ s.mem.accessible ((s.regs 4).toNat - 72) 32 true = true) :=
+              Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
+            obtain ⟨hib1, hib2⟩ := hpreU.toS.ibuf
+            have hiw := hpreU.toS.iwin
+            have hokD := hpreU.toS.okD
+            have hokH := hpreU.toS.okH
+            have hr3 := hpreU.toS.r3
+            have hr1 := hpreU.toS.r1
+            have hr0 := hpreU.toS.r0
+            have hdA : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 40) 32 := by unfold Apart; omega
+            have hdH : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 72) 32 := by unfold Apart; omega
+            have hdS1 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 - 4096) 4096 := by unfold Apart; omega
+            have hdS2 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 + 8) 24 := by unfold Apart; omega
+            have hHid :
+              Hide
+                (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧
+                  HexEnv R lo hi z s ∧
+                    (BitVec.toNat (s.regs 14) + 24 ≤ 2 ^ 48 ∧
+                        Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true ∧
+                          (∀ (r : Nat × Nat), r ∈ staticRanges cfg T → Outside r.fst (r.snd - r.fst) [(lo, hi)]) ∧
+                            StaticOK cfg R2 T s.mem ∧ R2.Env s.mem (s.regs 14)) ∧
+                      (pI.toNat + nI.toNat ≤ lo ∨ hi ≤ pI.toNat)) :=
+              Hide.mk ⟨hpreU, henv, ⟨e6, e7, e14, e15, e16⟩, hiw⟩
+            clear e6 e7 e14 e15 e16 hiw hpreU henv
+            janus64_run until [sfdEntry] calls [hsb]
+            obtain ⟨hpreU, henv, ⟨e6, e7, e14, e15, e16⟩, hiw⟩ := hHid.get
+            sorry
+        [Elab.step] [40.246814] ✅️ janus64_run until [sfdEntry] calls [hsb]
+Fv256/Amd64/UnmarshalTextSaH.lean:27:8: warning: declaration uses `sorry`
+LEANRC=0
+	Command being timed: "build/lcn.sh auj /srv/fv-uint256-wJ/lean/Fv256/Amd64/UnmarshalTextSaH.lean"
+	User time (seconds): 46.45
+	System time (seconds): 0.43
+	Percent of CPU this job got: 110%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:42.29
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2284456
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 83572
+	Voluntary context switches: 1116
+	Involuntary context switches: 130
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 7064
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+ENDMARK t=42

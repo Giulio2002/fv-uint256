@@ -81,10 +81,10 @@ theorem br_a (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
   have hr3 := hpreU.toS.r3
   have hr1 := hpreU.toS.r1
   have hr0 := hpreU.toS.r0
-  have hdA : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 40 ∨ (s.regs 4).toNat - 40 + 32 ≤ pI.toNat := by omega
-  have hdH : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 72 ∨ (s.regs 4).toNat - 72 + 32 ≤ pI.toNat := by omega
-  have hdS1 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 - 4096 ∨ (s.regs 4).toNat - 104 ≤ pI.toNat := by omega
-  have hdS2 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 + 8 ∨ (s.regs 4).toNat - 104 + 8 + 24 ≤ pI.toNat := by omega
+  have hdA : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 40) 32 := by unfold Apart; omega
+  have hdH : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 72) 32 := by unfold Apart; omega
+  have hdS1 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 - 4096) 4096 := by unfold Apart; omega
+  have hdS2 : Apart pI.toNat nI.toNat ((s.regs 4).toNat - 104 + 8) 24 := by unfold Apart; omega
   janus64_run until [sfdEntry] calls [hsb]
   janus_grab StrAt as hSOA
   janus_grab LiveFrame as hLF

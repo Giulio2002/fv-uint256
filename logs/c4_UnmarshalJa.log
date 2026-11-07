@@ -1,0 +1,73 @@
+Fv256/Amd64/UnmarshalJa.lean:117:16: warning: try 'simp' instead of 'simpa'
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+Fv256/Amd64/UnmarshalJa.lean:125:64: warning: try 'simp' instead of 'simpa'
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+Fv256/Amd64/UnmarshalJa.lean:28:5: warning: Variable name `hif` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hif
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:29:5: warning: Variable name `hnew` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hnew
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:31:5: warning: Variable name `hmg` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmg
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:33:5: warning: Variable name `hmv` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmv
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:35:5: warning: Variable name `hwb1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:37:5: warning: Variable name `hwb2` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb2
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:40:5: warning: Variable name `hhex` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hhex
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalJa.lean:111:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:112:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:113:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:114:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:123:31: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:123:75: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:124:31: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalJa.lean:124:75: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+LEANRC=0

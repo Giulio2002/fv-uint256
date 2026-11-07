@@ -222,3 +222,19 @@ Dev env: build/lcn.sh TAG FILE (tags aut auj afd amfd rfd rmfd; oleans build/ol5
 - arm64 FromDecimal VERIFIED (880 s) and MustFromDecimal VERIFIED (147 s) with Witness.nonvacuous on n10 51d592da (logs/v_rfd.log, v_rmfd.log); rows sent to FV-A, who merged to fv/master 1278113 (amd64 *Hsfd/Main/Audit files NOT merged; they stay on fv/wj) and is re-running both on a fresh cache.
 - amd64 UnmarshalJSON sorry-body audit (new precondition) re-run: reaches the axiom audit and fails only with sorryAx (expected) -> statement OK (logs/audit_uj2.log).
 - Successor TODO: (1) when FV-I5's Fv256.Amd64.SfdLib.hsfd_of_link lands, replace the single sorry in each Amd64/{UnmarshalText,UnmarshalJSON,FromDecimal,MustFromDecimal}Hsfd.lean; (2) run the 4 amd64 verifies (commands in HANDOVER 9 above; extra theorems Witness.hex for UT, Witness.unquoted for UJ); (3) S* speed pass; (4) scripts/no-sorry.sh, COVERAGE rows to FV-A.
+
+# HANDOVER 10 (FV-J6, 2026-11-07 ~11:50)
+## Done
+- Full amd64 UnmarshalJSON/UnmarshalText chain recompiled on n10 against the new UnmarshalJSON precondition (PreU0m/OkOut): Spec, Dec, Hex, DecJ, Q, JSON0, Ja, Jc, Jd, Jq, JSON, JSONAudit, S*, Text, HexDisch, Hsfd, Main: ALL OK (logs/c_chain4.out, c_chain5.out, c_chain6.out). Only sorry = the 4 *Hsfd.lean (hsfd), waiting for Fv256.Amd64.SfdLib.hsfd_of_link (FV-I5); /srv/fv-uint256-wi has no SfdLib yet.
+- SPEED PASS (S* and Ja/Jc/Jd), cause found with trace.profiler + janus.calls.trace (diagnostic only, not committed): 221 of 224 s of Sa was the first `janus64_run until [sfdEntry] calls [hsb]`; ~840 FAILED `janus_omega` calls (0.5-1 s each, inside failing simp discharges of readLE_writeLE_{same,inside,disjoint}) were case-splitting the four disjunction hypotheses hdA/hdH/hdS1/hdS2 (2^4 splits x other disjunctions). FIX: state them as `Apart pI.toNat nI.toNat B K` (`by unfold Apart; omega`), the engine closers still accept them. Hid-wrapping of PreU/Env facts did NOT help (reverted; the sb call precondition needs e8/e9/e10/e11/e12/e17/e18 live).
+  | file | before | after |
+  | UnmarshalTextSa | 193-227 s, 6.4 GB | 32 s, 2.3 GB |
+  | UnmarshalTextSx | ~400 s (HO8: 402) 9 GB | 37 s, 2.3 GB |
+  | UnmarshalTextSX | ~413 s 9 GB | 37 s, 2.3 GB |
+  | UnmarshalTextSb | ~406 s 9 GB | 37 s, 2.3 GB |
+  | UnmarshalTextSc | 208 s 6.4 GB | 33 s, 2.3 GB |
+  | UnmarshalJa / Jc / Jd | 193 / 214 / 207 s | 32 / 37 / 35 s, 2.3 GB |
+  (before = c_chain3/c_chain4 wall times, HO7/HO8; after = logs/c5_*.log, c6_*.log with /usr/bin/time -v). Originals in build/bak_s/.
+- contract-flags check (scripts/contract-flags.sh on fv/master vs build/n10/*/identity.json): for FromDecimal, MustFromDecimal, UnmarshalText, UnmarshalJSON, both ISAs (arm64 FD/MFD extractions + amd64 a-UT, a-UJ, amd64-FD/MFD; no arm64 UT/UJ extractions in this tree) contractPatterns == the script's list exactly (cmpstring ifaceeq mallocgc memmove newobject gcWriteBarrier1/2/3 growslice slicebytetostring concatstring2, same order); unresolvedBranches 0. Note: MustFromDecimal's identity has runtime.gopanic as a stub of kind panic (not in contracts), as the script's flag set does not pass it either: consistent. NO MISMATCH.
+## TODO when SfdLib lands
+Replace sorry in Amd64/{UnmarshalText,UnmarshalJSON,FromDecimal,MustFromDecimal}Hsfd.lean; one `janus verify` per function (see HANDOVER 9: correctness + Witness.nonvacuous (+Witness.hex UT, +Witness.unquoted UJ)), JANUS_CACHE_DIR=/srv/janus-ops/jcache-n10, binary /srv/janus-integ-n10/bin/janus, extractions build/n10/{a-UT,a-UJ,amd64-FromDecimal,amd64-MustFromDecimal}; scripts/no-sorry.sh; COVERAGE rows to main. Also try the Apart trick on FD/MFD/Witness files if any is slow.
