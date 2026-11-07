@@ -176,3 +176,20 @@ theorem xor1_zero (x : BitVec 64) :
     rw [h3]
     simpa using (nx _).2 h
 end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem sub32_eq_zero (n k : Nat) (hn : n < 2 ^ 32) (hk : k < 2 ^ 32) :
+    (BitVec.setWidth 32 (BitVec.setWidth 64 (BitVec.ofNat 32 n)) - BitVec.ofNat 32 k = 0#32) ↔ n = k := by
+  constructor
+  · intro h
+    have h1 := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat] at h1
+    have e1 : n % 2 ^ 32 % 2 ^ 64 = n % 2 ^ 32 := Nat.mod_eq_of_lt (by omega)
+    have e2 : n % 2 ^ 32 = n := Nat.mod_eq_of_lt hn
+    have e3 : k % 2 ^ 32 = k := Nat.mod_eq_of_lt hk
+    rw [e2, e3] at h1
+    have e4 : n % 2 ^ 64 = n := Nat.mod_eq_of_lt (by omega)
+    simp only [e4, e2, e1] at h1
+    omega
+  · intro h; subst h; simp
+end Fv256.FormatFast
