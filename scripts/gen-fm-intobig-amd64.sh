@@ -37,3 +37,4 @@ s=re.sub(r'import Fv256\.Amd64\.TB\.(IntoBig\w+)',r'import Fv256.Amd64.FM.\1',s)
 open(sys.argv[2],'w').write(s)
 PY
 done
+python3 "$(dirname "$0")/patch-fm-intobig-amd64.py" "$D/FM"
