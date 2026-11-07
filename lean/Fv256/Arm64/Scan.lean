@@ -103,8 +103,8 @@ theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
     have ha := hret.aligned
     have hu := hret.user
     refine ⟨⟨hP, hdl⟩, ?_, ?_⟩
-    · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [Nat.mod_eq_of_lt (by omega)]; omega
-    · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [Nat.mod_eq_of_lt (by omega)]; omega
+    · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [Nat.mod_eq_of_lt (show ret < 2 ^ 64 by omega)]; omega
+    · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [Nat.mod_eq_of_lt (show ret < 2 ^ 64 by omega)]; omega
   · intro ret hret s hsu hP s' hq
     exact ⟨⟨hq.1.1, hq.1.2.2.1, hq.1.2.1, hq.1.2.2.2⟩, hq⟩
 

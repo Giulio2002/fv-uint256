@@ -60,6 +60,7 @@ theorem hok_mv : ∀ args, ok mvA args → ∃ d sr k, args = [d, sr, k] ∧ 1 �
   intro args h
   rcases h with ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨_, q, p, sl, h1, h2, rfl⟩ | ⟨h, _⟩
   all_goals first | exact ⟨q, p, sl, rfl, h1, h2⟩ | (exfalso; revert h; simp only [newA, mgA, mvA, w1A, w2A, sbA]; decide)
+set_option maxHeartbeats 8000000 in
 theorem model_mv : MemmoveLive (Extracted.program.ofImpl implA) mvA 4096 R := by janus_live_memmove_upto 19 hok_mv
 theorem model_wb1 : WbLiveContract (Extracted.program.ofImpl implA) w1A 4096 R 1 := by janus_live_wb 1
 theorem model_wb2 : WbLiveContract (Extracted.program.ofImpl implA) w2A 4096 R 2 := by janus_live_wb 2
@@ -67,6 +68,7 @@ theorem hok_sb : ∀ args, ok sbA args → ∃ buf ptr, args = [buf, ptr, 48] :=
   intro args h
   rcases h with ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨_, buf, p, h⟩
   all_goals first | exact ⟨buf, p, h⟩ | (exfalso; revert h; simp only [newA, mgA, mvA, w1A, w2A, sbA]; decide)
+set_option maxHeartbeats 4000000 in
 theorem model_sb : RtLiveContract (Extracted.program.ofImpl implA) sbA 4096 R (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)
     slicebytetostringLive := by
   janus_live_sbts_big 48 48 hok_sb
