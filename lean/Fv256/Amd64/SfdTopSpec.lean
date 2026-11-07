@@ -138,9 +138,9 @@ def TeObj (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (fp fl sp sl : BitVec 64
 open Fv256.C in
 /-- Precondition of `SetFromDecimal(z, s)`: `z` in `RAX`, `s.ptr` in `RBX`, `s.len` in `RCX`; `[lo, hi)` is the stack window
 the call (and everything it calls) may use. -/
-def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS nS : BitVec 64)
+def TopPre0 (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS nS : BitVec 64)
     (s : State) : Prop :=
-  RetOK s ∧ s.regs 0 = z ∧ s.regs 3 = pS ∧ s.regs 1 = nS ∧ Mod C R R2 T L ∧
+  s.regs 0 = z ∧ s.regs 3 = pS ∧ s.regs 1 = nS ∧ Mod C R R2 T L ∧
   Env C R R2 T b L lo hi s ∧ lo + 4800 ≤ (s.regs 4).toNat ∧ (s.regs 4).toNat + 32 ≤ hi ∧
   MultOK C z.toNat lo hi s.mem ∧
   s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
@@ -153,6 +153,13 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   (pS.toNat + nS.toNat ≤ 2 ^ 48 ∧ (nS.toNat = 0 ∨ s.mem.accessible pS.toNat nS.toNat false = true)) ∧ (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
   (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
   ChunkAll C R R2 L b pS.toNat nS.toNat lo hi s.mem
+
+open Fv256.C in
+/-- The internal precondition (of `SfdSummary`): `TopPre0` plus the call-state facts `RetOK` (the caller establishes them).
+The statement of the Extracted-level `Ensures` uses `TopPre0` only; `RetOK` is derived from `CallSetup` and the stack window. -/
+def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (z pS nS : BitVec 64)
+    (s : State) : Prop :=
+  RetOK s ∧ TopPre0 C R R2 T b L lo hi z pS nS s
 
 open Fv256.C in
 /-- Postcondition: the documented result `decParse` of the string's bytes. -/

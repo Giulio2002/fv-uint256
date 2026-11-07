@@ -19,6 +19,19 @@ namespace Fv256.Amd64.SetFromDecimal
 set_option maxRecDepth 100000 in
 theorem entry_eq : Extracted.entry = Fv256.Amd64.SfdTop.sfd := by decide
 
+/-- the call-state facts `RetOK` follow from the ABI call setup and the stack window (so the top-level `Ensures` needs no bound on
+the caller's return address beyond `RetAddr`) -/
+theorem retok_of {p : Janus.Amd64.Program} {ret entry : Nat} {args : List Janus.Amd64.W64} {s : State} {lo hi : Nat}
+    (hret : RetAddr p ret) (hs : CallSetup (p.withExit ret) entry args s) (h1 : lo ≤ (s.regs 4).toNat)
+    (h2 : (s.regs 4).toNat + 8 ≤ hi) (h3 : s.mem.accessible lo (hi - lo) true = true) : Fv256.C.RetOK s := by
+  have h := hs.ret
+  have e : (p.withExit ret).exitAddr = ret := rfl
+  rw [e] at h
+  refine ⟨Janus.Arm64.Memory.accessible_mono _ (Janus.Arm64.Memory.accessible_read_of_write _ h3) h1 (by omega), ?_, hs.zero, hs.df⟩
+  have h4 : GoABI.regSP = 4 := rfl
+  rw [h4] at h
+  rw [h]; have := hret.user; omega
+
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
 theorem correctness (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -32,12 +45,12 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T
     (hcmp : Janus.Contracts.Cmpstring.CmpstringContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.cmpstring") 16) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pS, nS]
-      (fun s => TopPre extCfg R R2 T b L lo hi z pS nS s)
+      (fun s => TopPre0 extCfg R R2 T b L lo hi z pS nS s)
       (fun s s' => TopPost extCfg R R2 T b L lo hi z pS nS s s') := by
   rw [entry_eq]
   exact Fv256.Amd64.SummaryEnsures.ensures_of_summary64
     (Fv256.Amd64.SfdTop.sfd_sum impl R R2 T b L lo hi z pS nS hif hnew hmg hmv hwb1 hwb2 hcmp)
-    (fun ret s hret hs hp => hp)
+    (fun ret s hret hs hp => ⟨retok_of hret hs hp.2.2.2.2.1.1 hp.2.2.2.2.1.2.1 hp.2.2.2.2.1.2.2.2.2.1, hp⟩)
     (fun ret s s' hret hs hp hq => ⟨⟨hq.1.2.1, hq.1.2.2.1, hq.1.2.2.2.1, hq.1.2.2.2.2.1⟩, hq⟩)
 
 namespace Witness
@@ -57,11 +70,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceMode
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pS, nS] s ∧
-    TopPre extCfg R R2 T b L lo hi z pS nS s :=
+    TopPre0 extCfg R R2 T b L lo hi z pS nS s :=
   ⟨implA, R, R0, TD, 0x400, [], loW, hiW, zV, pSV, 1#64, retW, s0,
     by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
-    by rw [addr_cm]; exact hcmp, hret, setup, pre0⟩
+    by rw [addr_cm]; exact hcmp, hret, setup, pre0.2⟩
 
 end Witness
 
