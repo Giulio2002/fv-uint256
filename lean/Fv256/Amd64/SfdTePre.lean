@@ -280,26 +280,6 @@ elab "te_flags" : tactic => withMainContext do
     evalTactic (← `(tactic| try simp only [setRegF_apply, reduceIte, Nat.reduceEqDiff] at $h:ident))
     evalTactic (← `(tactic| try simp (disch := te_disch) only [Janus.Arm64.Memory.readLE_writeLE_self,
       Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Nat.reduceAdd, $[$rules:term],*] at $h:ident))
-  if (← System.FilePath.pathExists "/srv/fv-uint256-wi/build/out/debug_flags") then
-    for d in ← getLCtx do
-      if d.isImplementationDetail then continue
-      let ty ← instantiateMVars d.type
-      if ty.isAppOf ``Janus.LiveFrame || ty.isAppOf ``Janus.MemFrame then
-        let a ← Meta.ppExpr (ty.getArg! 0)
-        let b ← Meta.ppExpr (ty.getArg! 1)
-        let rs ← Meta.ppExpr (ty.getArg! 2)
-        let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
-        let clean := fun (x : String) => (((x.replace "\n" " ").replace "    " " ").replace "  " " ").replace "  " " "
-        h.putStrLn s!"FRAME {ty.getAppFn.constName!} from={(clean (toString a)).take 700} TO={clean (toString b)} rs={(clean (toString rs)).take 400}"
-        h.flush
-    for n in names do
-      let str ← withMainContext do
-        let d ← getLocalDeclFromUserName n
-        let ty ← instantiateMVars d.type
-        pure (toString (← Meta.ppExpr ty))
-      let h ← IO.FS.Handle.mk "/srv/fv-uint256-wi/build/out/marks.txt" IO.FS.Mode.append
-      h.putStrLn s!"FLAG {n}: {str.take 800}"
-      h.flush
   for a in names do
     for b in names do
       if a != b then

@@ -22,5 +22,12 @@ while IFS= read -r f; do
     if [ -n "${ok[$f]+x}" ]; then echo "allowed (WIP): $f"; else echo "FAIL: sorry in $f (not in $allow)"; fail=1; fi
   elif [ -n "${ok[$f]+x}" ]; then echo "note: $f is in $allow but no longer contains sorry (remove it)"; fi
 done < <(find lean/Fv256 -name '*.lean' | sort)
+# no proof may do host IO or depend on host files/environment (the Janus sandbox is read-only: an IO tactic that "works" on a dev machine
+# silently takes other branches in the verifier). Forbidden in lean/** (outside .lake): file system, paths, env, processes, streams, clocks-as-input.
+iopat='IO\.FS|System\.FilePath|FilePath|pathExists|IO\.getEnv|IO\.Process|IO\.appendFile|\breadFile\b|\bwriteFile\b|IO\.getRandom|IO\.getStd|IO\.sleep|IO\.setStd|\bbuiltin_initialize\b|^[[:space:]]*initialize\b|\bunsafe\b|IO\.Prim|IO\.rand'
+while IFS= read -r f; do
+  hits="$(sed 's/--.*$//' "$f" | grep -nE "$iopat" | head -3)"
+  if [ -n "$hits" ]; then echo "FAIL: IO / host dependence in $f: $(echo "$hits" | head -1 | cut -c1-120)"; fail=1; fi
+done < <(find lean -name '*.lean' -not -path '*/.lake/*' | sort)
 [ $fail = 0 ] && echo "no-sorry: OK" || echo "no-sorry: FAILED"
 exit $fail
