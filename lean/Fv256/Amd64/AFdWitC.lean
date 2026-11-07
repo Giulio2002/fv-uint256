@@ -36,6 +36,7 @@ def strBs : List Nat := "123456789012345678901234567890123456789012345678".toLis
 def val (a : Nat) : Nat :=
   if TW ≤ a ∧ a < TW + 48 then (if a = TW then 8 else if a = TW + 20 then 8 else 0)
   else if a = 0x400003 then 0x10
+  else if a = 0x100001 then 0x10
   else if 0x301000 ≤ a ∧ a < 0x301000 + 48 then strBs.getD (a - 0x301000) 0
   else if 0x5b7c50 ≤ a ∧ a < 0x5b7c58 then nb 0x4f1a00 0x5b7c50 a
   else if 0x5b7c58 ≤ a ∧ a < 0x5b7c60 then (if a = 0x5b7c58 then 1 else 0)
@@ -124,6 +125,7 @@ theorem val_big (a : Nat) (h : 0x600000 ≤ a) : val a = 0 := by
   unfold val
   rw [if_neg (show ¬(TW ≤ a ∧ a < TW + 48) by simp only [TW]; omega),
     if_neg (show ¬(a = 0x400003) by omega),
+    if_neg (show ¬(a = 0x100001) by omega),
     if_neg (show ¬(0x301000 ≤ a ∧ a < 0x301000 + 48) by omega),
     if_neg (show ¬(0x5b7c50 ≤ a ∧ a < 0x5b7c58) by omega),
     if_neg (show ¬(0x5b7c58 ≤ a ∧ a < 0x5b7c60) by omega),
@@ -220,23 +222,26 @@ theorem pre0 : Fv256.Amd64.FromDecimal.Pre R (R3 TW) TW 0x400 [] loW hiW pSV nSV
   have hi := initDone0
   unfold Fv256.Amd64.FromDecimal.Pre PreC0
   refine ⟨⟨rfl, rfl, mod0, env0, ?_, ?_, ?_, ?_, mult0, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hi, ?_, ?_, ?_, hm, ?_,
-    ?_, ?_, ?_, hc⟩, dataLoaded0⟩
-  all_goals first | decide | (apply outside_of_decide; decide) | skip
-  · show cfg.newobject = newA ∧ _ ∨ _
-    rw [cfg_lit]; exact Or.inr (Or.inl ⟨rfl, rfl⟩)
-  · intro k h1 h2
-    rw [cfg_lit, rt_eq]
-    have hk : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 := by omega
-    rcases hk with rfl | rfl | rfl | rfl <;> (apply outside_of_decide; decide)
-  · left; rw [rt_eq]; apply outside_of_decide; decide
+    ?_, ?_, hc⟩, dataLoaded0⟩
+  all_goals first
+    | decide
+    | (apply outside_of_decide; decide)
+    | (show cfg.newobject = newA ∧ _ ∨ _
+       rw [cfg_lit]; exact Or.inr (Or.inl ⟨rfl, rfl⟩))
+    | (intro k h1 h2
+       rw [cfg_lit, rt_eq]
+       have hk : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 := by omega
+       rcases hk with rfl | rfl | rfl | rfl <;> (apply outside_of_decide; decide))
+    | (exact ⟨by decide, by decide⟩)
+    | (left; rw [rt_eq]; apply outside_of_decide; decide)
 
 theorem hret : RetAddr (Extracted.program.link implA) retW := RetAddr.of_check (by rw [linked_eq]; decide)
 
 theorem setup : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [pSV, nSV] s0 :=
-  ⟨rfl, by decide, rfl, by decide, by intro i h; match i, h with | 0, _ => rfl | 1, _ => rfl⟩
+  ⟨rfl, by decide, rfl, by decide, by intro i h; match i, h with | 0, _ => rfl | 1, _ => rfl, rfl⟩
 
 /-- The statement of the witness theorem `nonvacuous` (spelled out there). -/
-theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem nonvacuous_core : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (pS nS : BitVec 64) (ret : Nat) (s : State),
     Janus.Contracts.IfaceAmd64.Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
     NewobjectLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
@@ -244,7 +249,7 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
     MemmoveLive64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
     WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
     WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
-    Janus.Contracts.CmpstringAmd64.CmpstringContract64 (Extracted.program.link impl)
+    Janus.Contracts.Cmpstring.CmpstringContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
