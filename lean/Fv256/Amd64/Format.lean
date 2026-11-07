@@ -60,7 +60,8 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
       RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat zv ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
         (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32))
     (hpres : CalleePreservesRt R2 rt stack)
-    (hbig : ∀ S0 S : State, FPre rt stack z tab data fW fP fF fWr S0 → S0.mem.readLE z.toNat 32 = zv →
+    (hbig : ∀ S0 S : State, z.toNat ≠ 0 → FPre rt stack z tab data fW fP fF fWr S0 → S0.mem.readLE z.toNat 32 = zv →
+      NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) →
       S.rip = BitVec.ofNat 64 (Extracted.entry + 0x1cc) → FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S →
       R2.inv b0 [] (S.regs 14).toNat (view R2.rt [] S.mem) →
       ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 72) 8)) S
@@ -170,7 +171,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
         rw [hr14, view_frame hfr hreg hstk hwin]; exact hinv
       have hinv1 := hpres S0 S' b0 ifr i14 hinv0
       have hfi2 : FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S' := by rw [hz7] at hfi; exact hfi
-      obtain ⟨k2, S2, hs2, hr2, hq2⟩ := hbig S0 S' hfpre hzv0 hrip' hfi2 hinv1
+      obtain ⟨k2, S2, hs2, hr2, hq2⟩ := hbig S0 S' hz hfpre hzv0 hnp hrip' hfi2 hinv1
       refine ⟨k + k2, S2, hsteps.trans hs2, hr2, ?_⟩
       obtain ⟨b4, b5, b14, bx, bfr, bP⟩ := hq2
       refine ⟨abi_of (by omega) hrs4 hrbp hr14 hxmm b4 b5 b14 bx, fun h => absurd h hz, fun _ => Or.inr ?_⟩
