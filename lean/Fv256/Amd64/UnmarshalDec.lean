@@ -16,30 +16,30 @@ namespace Fv256.Amd64.UnmarshalDec
 variable (C : SfdCfg)
 
 structure SbPost (R : RtInv) (st b : Nat) (L : List (Nat × Nat)) (s : State) (pI nI r0 r1 : BitVec 64)
-    (M0 m : Janus.Arm64.Memory) : Prop where
+    (M0 m : Janus.Arm64.Memory) (buf : Nat) : Prop where
   mf : MemFrame M0 m (R.rt ++ [((s.regs 4).toNat - 104 - 4096, (s.regs 4).toNat - 104),
         ((s.regs 4).toNat - 104 + 8, (s.regs 4).toNat - 104 + 8 + 24)] ++
-      (if (s.regs 4).toNat - 40 = 0 then [] else [((s.regs 4).toNat - 40, (s.regs 4).toNat - 40 + 32)]))
+      (if buf = 0 then [] else [(buf, buf + 32)]))
   soa : (r1.toNat = (strBytes s.mem pI.toNat nI.toNat).length ∧ r0.toNat + r1.toNat ≤ 2 ^ 48 ∧
       (0 < r1.toNat → s.mem.accessible r0.toNat r1.toNat false = true) ∧
       strBytes m r0.toNat r1.toNat = strBytes s.mem pI.toNat nI.toNat) ∧
-      StrAt R.rt ((s.regs 4).toNat - 40) st pI.toNat r1.toNat r0.toNat M0
-  lf : LiveFrame M0 m L (if (s.regs 4).toNat - 40 = 0 then [] else [((s.regs 4).toNat - 40, (s.regs 4).toNat - 40 + 32)])
-  fr : FreshFrom (if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then
+      StrAt R.rt (buf) st pI.toNat r1.toNat r0.toNat M0
+  lf : LiveFrame M0 m L (if buf = 0 then [] else [(buf, buf + 32)])
+  fr : FreshFrom (if 2 ≤ r1.toNat ∧ (buf = 0 ∨ 32 < r1.toNat) then
         (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) L
   inv : R.inv (b - roundupsize nI.toNat true)
-      (L ++ ((if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then
+      (L ++ ((if 2 ≤ r1.toNat ∧ (buf = 0 ∨ 32 < r1.toNat) then
           (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) ++
-        (if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then []
+        (if 2 ≤ r1.toNat ∧ (buf = 0 ∨ 32 < r1.toNat) then []
          else if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)])))
-      (s.regs 14).toNat (view R.rt (L ++ ((if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then
+      (s.regs 14).toNat (view R.rt (L ++ ((if 2 ≤ r1.toNat ∧ (buf = 0 ∨ 32 < r1.toNat) then
           (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) ++
-        (if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then []
+        (if 2 ≤ r1.toNat ∧ (buf = 0 ∨ 32 < r1.toNat) then []
          else if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]))) m)
 
 theorem sfd_inst {C : SfdCfg} {P : Janus.Amd64.Program} {entry : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat}
     {L : List (Nat × Nat)} {lo : Nat} {z pI nI r0 r1 : BitVec 64} {s : State} {M0 m : Janus.Arm64.Memory} {st : Nat}
-    (_hP : SbPost R st b L s pI nI r0 r1 M0 m)
+    (_hP : SbPost R st b L s pI nI r0 r1 M0 m ((s.regs 4).toNat - 40))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary C P entry R R2 T b' L' lo' hi' z pS' nS') :
     SfdSummary C P entry R R2 T (b - roundupsize nI.toNat true)
@@ -62,7 +62,7 @@ theorem m0_frame {R : RtInv} {sb st : Nat} {R2 : IfaceModel} {T b : Nat} {L : Li
 theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
     {z pI nI : BitVec 64} {s S3 : State} {M0 m : Janus.Arm64.Memory} {r0 r1 : BitVec 64} {retv v5 ra : Nat}
     (hpre : PreU C sb st R R2 T b L lo hi z pI nI s)
-    (hP : SbPost R st b L s pI nI r0 r1 M0 m)
+    (hP : SbPost R st b L s pI nI r0 r1 M0 m ((s.regs 4).toNat - 40))
     (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
       ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra)
     (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = r1) (hr4 : S3.regs 4 = s.regs 4 - 104#64)
@@ -242,7 +242,7 @@ theorem ret_reads {R : RtInv} {lo hi sp v5 vp vz ra ra' : Nat} {s0 M0 m S3m S' :
 theorem dec_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
     {z pI nI : BitVec 64} {s S3 s' : State} {M0 m : Janus.Arm64.Memory} {r0 r1 : BitVec 64} {retv v5 ra : Nat}
     (hpre : PreU C sb st R R2 T b L lo hi z pI nI s)
-    (hP : SbPost R st b L s pI nI r0 r1 M0 m)
+    (hP : SbPost R st b L s pI nI r0 r1 M0 m ((s.regs 4).toNat - 40))
     (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
       ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra)
     (hS3 : S3.mem = m.writeLE ((s.regs 4).toNat - 104) 8 retv)
