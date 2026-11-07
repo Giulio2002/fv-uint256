@@ -61,7 +61,7 @@ theorem dec_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRea
     hH2 S.mem ifr
   janus64_run [i50, hwa, hdlS, hgaS, hH1S, hH2S, hvS, hgS] until [Extracted.entry + 0x145] calls [dec_summary_ext impl rt H z hc]
   -- named by content (never positional rename_i): a new conjunct in dec_summary_ext's post must not shift these
-  janus_grab 4568 as hfrD
+  grab_frame_last 4568 as hfrD
   grab_last_const Fv256.E.DecAt as hDA
   grab_last_const Janus.Spec.strBytes as hSO
   grab_eq s' rip as hrip
@@ -69,6 +69,7 @@ theorem dec_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRea
   grab_eq s' regs 5 as h5
   grab_eq s' regs 14 as h14
   grab_eq s' xmm 15 as hx
+  clear_frame_imps
   obtain ⟨hl1, hl2, hl3, hl4⟩ := hSO
   have h8 : 8 ≤ (S0.regs 4).toNat := by omega
   simp (disch := omega) only [valueAt, Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hvS] at hl1 hl2 hl3 hl4
