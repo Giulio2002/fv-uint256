@@ -11,7 +11,7 @@ set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 theorem fd_to_mul (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State)
-    (hn78 : nS.toNat ≤ 78) (hlo : lo + 4440 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
+    (hn78 : nS.toNat ≤ 78) (hlo : lo + 4448 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
     (S : State) (i d : Nat) (hM : MidInv R R2 T b L lo hi z pS nS s i d S) (hi0 : i ≠ 0) :
     ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (BitVec.ofNat 64 mulE) S
       (fun S3 => S3.regs 0 = s.sp - 88#64 ∧ S3.regs 1 = s.sp - 88#64 ∧ S3.regs 2 = BitVec.ofNat 64 (s.mem.readLE (mulTab + 8 * i) 8) ∧
@@ -51,7 +51,7 @@ set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
 /-- the inline 4-limb add `z += product` after `Mul` returned -/
 theorem fd_add (impl : List Segment) (s S' : State) (z : BitVec 64) (nS : BitVec 64) (i : Nat) (lo hi : Nat)
-    (hlo : lo + 4440 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi) (hzb : z.toNat + 32 ≤ 2 ^ 48)
+    (hlo : lo + 4448 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi) (hzb : z.toNat + 32 ≤ 2 ^ 48)
     (hzlh : z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) (hn78 : nS.toNat ≤ 78) (hrem : 19 * i < nS.toNat)
     (hpc : S'.pc = BitVec.ofNat 64 756900) (hsp : S'.sp = s.sp - 160#64) (hr0 : S'.regs 0 = s.sp - 88#64)
     (hzs : S'.mem.readLE (s.sp.toNat + 8) 8 = z.toNat) (hrm : S'.mem.readLE (s.sp.toNat - 112) 8 = nS.toNat - 19 * i)

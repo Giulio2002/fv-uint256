@@ -192,7 +192,7 @@ def PuPre (p len : BitVec 64) (s : State) : Prop :=
 
 def PuPost (p len : BitVec 64) (s s' : State) : Prop :=
   s'.sp = s.sp ∧ s'.regs 29 = s.regs 29 ∧ s'.regs 28 = s.regs 28 ∧ s'.regs 18 = s.regs 18 ∧
-  MemFrame s.mem s'.mem [(s.sp.toNat - 56, s.sp.toNat), (s.sp.toNat + 8, s.sp.toNat + 16)] ∧
+  MemFrame s.mem s'.mem [(s.sp.toNat - 56, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] ∧
   ((allDec (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat ∧
       (s'.regs 0).toNat = decSum (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat ∧ s'.regs 1 = 0 ∧ s'.regs 2 = 0) ∨
    (¬ allDec (Fv256.C.bytesAt s.mem p.toNat) 0 len.toNat ∧ s'.regs 0 = 0 ∧ (s'.regs 1).toNat = errItab ∧
@@ -238,8 +238,8 @@ theorem pu_sum (impl : List Segment) (p len : BitVec 64) :
     obtain ⟨q1, q2, q3, q4, q5, q6⟩ := hq
     refine ⟨q1, q2, q3, q4, ?_, ?_⟩
     · rw [q5, hM]
-      exact (((Janus.MemFrame.refl s.mem _).writeLE _ (r := (s.sp.toNat - 56, s.sp.toNat)) (by simp)
-        (by omega) (by omega)).writeLE _ (r := (s.sp.toNat - 56, s.sp.toNat)) (by simp) (by omega) (by omega)).writeLE _
+      exact (((Janus.MemFrame.refl s.mem _).writeLE _ (r := (s.sp.toNat - 56, s.sp.toNat - 8)) (by simp)
+        (by omega) (by omega)).writeLE _ (r := (s.sp.toNat - 56, s.sp.toNat - 8)) (by simp) (by omega) (by omega)).writeLE _
         (r := (s.sp.toNat + 8, s.sp.toNat + 16)) (by simp) (by omega) (by omega)
     · rcases q6 with ⟨a, b, c, d⟩ | ⟨a, b, c, d⟩
       · exact Or.inl ⟨hall.mp a, by rw [b, hsum], c, d⟩

@@ -1,7 +1,7 @@
 import Extracted
 import Fv256.Arm64.SfdLink
 import Fv256.Arm64.SfdTopD
-import Fv256.Arm64.SetFromDecimal
+import Fv256.Arm64.SfdPw
 import Fv256.Arm64.ExpMain
 import Fv256.Arm64.MoSa.Top
 import Fv256.IbsA64
@@ -13,7 +13,7 @@ import Fv256.Arm64.ScanSciBase
 `hsfd` (`SetFromDecimal`), `hexp` (`Exp`), `hmo` (`MulOverflow`), `hibs` (`IndexByteString`) over `Extracted.program.link impl`.
 -/
 
-open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.EqHashModel
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.EqHashModel
 open Fv256.Arm64.SfdTopSpec Fv256.Arm64.ScanSciSpec Fv256.Arm64.ScanSci
 
 namespace Fv256.Arm64.ScanDischarge
@@ -105,9 +105,15 @@ set_option maxRecDepth 200000 in
 theorem hexp_of (impl : List Segment) (hI : ImplApart Extracted.program impl) : HExp impl := by
   have hc : CodeIn Fv256.Arm64.ExpProg.program (Extracted.program.link impl) :=
     codeIn_prog_link _ _ impl (by decide) (by decide) (by decide) hI
-  have hdata : ∀ d ∈ Fv256.Arm64.ExpProg.program.data, d ∈ Extracted.program.data := by decide
-  have hdl : ∀ m, Extracted.program.DataLoaded m → Fv256.Arm64.ExpProg.program.DataLoaded m :=
-    fun m h d hd => h d (hdata d hd)
+  have hdata : ∀ d ∈ Fv256.Arm64.ExpProg.program.data, ∃ d' ∈ Extracted.program.data, d'.base = d.base ∧ d'.bytes = d.bytes := by
+    decide
+  have hdl : ∀ m, Extracted.program.DataLoaded m → Fv256.Arm64.ExpProg.program.DataLoaded m := by
+    intro m h d hd
+    obtain ⟨d', hd', hb, hby⟩ := hdata d hd
+    obtain ⟨hreg, hbyt⟩ := h d' hd'
+    refine ⟨by simpa [hb, hby] using hreg, fun i hi => ?_⟩
+    have := hbyt i (by rw [hby]; exact hi)
+    simpa [hb, hby] using this
   intro s hpc ⟨a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, hl⟩
   exact Summary.of_codeIn hc Fv256.Arm64.ExpMain.exp_summary s hpc ⟨a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, hdl _ hl⟩
 

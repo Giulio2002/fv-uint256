@@ -40,7 +40,7 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
     (clo : Nat) (hclo : clo = (chunkBounds nS.toNat 0 i).1) (p len : BitVec 64)
     (hp : p = BitVec.ofNat 64 (pS.toNat + clo)) (hl : len = BitVec.ofNat 64 (nS.toNat - 19 * i - clo))
     (RA : Nat) (hRA : RA = 756796 ∨ RA = 756828) (S1 : State) (hS1 : PwCtx s S i nS RA S1)
-    (S' : State) (hpost : PwPost R R2 T b L (s.sp.toNat - 4440) (s.sp.toNat - 112) p len S1 S')
+    (S' : State) (hpost : PwPost R R2 T b L (s.sp.toNat - 4448) (s.sp.toNat - 112) p len S1 S')
     (hpc' : S'.pc = S1.regs 30)
     (hcont : ∀ (S2 : State) (d : Nat), MidInv R R2 T b L lo hi z pS nS s i d S2 →
       ReachesRet ((Fv256.Arm64.SfdToError.P).link impl) (s.regs 30) S2 (FdPost R R2 T b L lo hi z pS nS s)) :
@@ -75,7 +75,7 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
   rcases hcase with ⟨hA, hv, hz1, hz2, hE', hfrOk⟩ | ⟨hA, hz0, ⟨q, t, hz3, hz2, hobj⟩, hfrE⟩
   · -- digits
     have hr_sp : S'.sp.toNat = s.sp.toNat - 160 := by rw [k1]; exact hsp1
-    have hFo : MemFrame S1.mem S'.mem [(s.sp.toNat - 4440, s.sp.toNat - 112)] := hfrOk
+    have hFo : MemFrame S1.mem S'.mem [(s.sp.toNat - 4448, s.sp.toNat - 112)] := hfrOk
     have hbyt : ∀ k, k < nS.toNat - 19 * i - clo → Fv256.C.bytesAt S1.mem (pS.toNat + clo) k =
         Fv256.C.bytesAt s.mem pS.toNat (clo + k) := by
       intro k hk; unfold Fv256.C.bytesAt
@@ -177,7 +177,7 @@ theorem fd_post_call (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
     have hEnvS' := hEnvS
     obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnvS'
     have hOut : ∀ a n, s.sp.toNat - 112 ≤ a → a + n ≤ hi → lo ≤ a →
-        Outside a n (R.rt ++ R2.priv ++ [(s.sp.toNat - 4440, s.sp.toNat - 112)]) := by
+        Outside a n (R.rt ++ R2.priv ++ [(s.sp.toNat - 4448, s.sp.toNat - 112)]) := by
       intro a n h1 h2 h3
       simp only [outside_append, outside_cons, outside_nil, and_true]
       exact ⟨⟨Outside.of_sub e9 (by omega) (by omega), Outside.of_sub e10 (by omega) (by omega)⟩, by omega⟩
