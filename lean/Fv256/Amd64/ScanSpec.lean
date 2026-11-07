@@ -70,7 +70,7 @@ def ScanPre (tyS tyB avx sb st errTy : Nat) (R : RtInv) (R2 : IfaceModel) (T b :
    (tw.toNat = tyS ∧ Buffer s dw 16 false ∧ Outside dw.toNat 16 [(lo, hi)] ∧ s.mem.accessible avx 1 false = true ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)] ∧ Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem) ∧
       TopPre0 C R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
       Fv256.IndexByte.PageReadable s.mem (hdrP s dw).toNat (hdrN s dw).toNat) ∨
-   (tw.toNat = tyB ∧ Buffer s dw 24 false ∧ Outside dw.toNat 24 [(lo, hi)] ∧ (∀ r ∈ R.rt, s.mem.accessible r.1 (r.2 - r.1) true = true) ∧ s.mem.accessible avx 1 false = true ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)] ∧ Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem) ∧
+   (tw.toNat = tyB ∧ Buffer s dw 24 false ∧ Outside dw.toNat 24 [(lo, hi)] ∧ (∀ r ∈ R.rt, s.mem.accessible r.1 (r.2 - r.1) true = true) ∧ s.mem.accessible avx 1 false = true ∧ (TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)] ∧ Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem ∧ Outside (s.fsBase.toNat - 8) 8 R.rt) ∧
       PreB C sb st R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)) ∧
       PagesB R st lo hi s.mem) ∨
    (tw ≠ 0 ∧ tw.toNat ≠ tyS ∧ tw.toNat ≠ tyB ∧ s.mem.accessible (tw.toNat + 16) 4 false = true ∧ Outside (tw.toNat + 16) 4 [(lo, hi)] ∧ (∀ r ∈ R.rt, s.mem.accessible r.1 (r.2 - r.1) true = true) ∧
