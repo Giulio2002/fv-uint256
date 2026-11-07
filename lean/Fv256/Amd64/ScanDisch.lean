@@ -8,6 +8,7 @@ import Fv256.LinkEq
 import Fv256.Amd64.ExpMain
 import Fv256.Amd64.MoLib.Top
 import Fv256.Amd64.FrameFsDf
+import Fv256.Amd64.SfdLink
 
 /-!
 # `Scan` (amd64): the discharge of the callee summaries (`hibs`, `hexp`, `hmo`) from the library programs, and the two PENDING lemmas
@@ -74,8 +75,22 @@ theorem disch_mo (impl : List Janus.Amd64.Segment) (z x y : BitVec 64) : MoSumm 
   obtain ⟨k, s', hst, hr, ⟨hq1, hq2, hq3, hq4, hq5, hdf⟩, hfs⟩ := h s hpc hp
   exact ⟨k, s', hst, hr, ⟨hq1, hq2, hq3, hq4, hq5⟩, hfs, hdf⟩
 
-/-- **PENDING (FV-I5, `Fv256.Amd64.SfdLib.hsfd_of_link`, not delivered)**: the `SetFromDecimal` summary at its entry in the consumer program,
-from the library proof and the runtime contracts (exactly the statement planned in `NOTES-I.md`). -/
+set_option maxRecDepth 100000 in
+/-- the SetFromDecimal library program (`Fv256.Amd64.SfdProg`, proved Extracted-free in `SfdLib`) is part of the Scan extraction -/
+theorem hLibSfd : Fv256.LinkEq.LibIn Fv256.Amd64.SfdProg.program Extracted.program :=
+  Fv256.Amd64.SfdLink.hLib_of_decide (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)
+
+set_option maxRecDepth 100000 in
+theorem hcaSfd : Fv256.Amd64.SfdLib.ContractsAgree Extracted.program :=
+  Fv256.Amd64.SfdLink.hca_of_decide (by decide)
+
+set_option maxRecDepth 100000 in
+theorem cfg_eq_ext : cfg = Fv256.Amd64.SfdTopCfg.extCfg := by decide
+
+set_option maxRecDepth 100000 in
+theorem sfdEntry_eq : sfdEntry = Fv256.Amd64.SfdProg.sfd := by decide
+
+/-- the `SetFromDecimal` summary at its entry in the Scan program (`hsfd`): `SfdLib.hsfd_of_link` -/
 theorem disch_sfd (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T : Nat)
     (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
     (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
@@ -92,6 +107,8 @@ theorem disch_sfd (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
       (Extracted.program.contractAddr "runtime.cmpstring") 16) :
     ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS' := by
-  sorry
+  intro b' L' lo' hi' z pS' nS'
+  have h := Fv256.Amd64.SfdLib.hsfd_of_link hLibSfd hcaSfd impl R R2 T hif hnew hmg hmv hwb1 hwb2 hcmp b' L' lo' hi' z pS' nS'
+  rw [cfg_eq_ext, sfdEntry_eq]; exact h
 
 end Fv256.Amd64.ScanDisch
