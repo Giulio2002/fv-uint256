@@ -1,0 +1,4 @@
+Invalid: The audit rejected the proof: the statement the precondition constrains the memory word at the entry `RSP` (the saved return address `[RSP]`, e.g. `ErrorfAmd64.RetLow`, in any form: alias, arithmetic, existential): a theorem must not assume a bound on its caller's return address; a consumer discharges such a fact inside its proof from the return address its own `call` pushes (a code address of the extracted program)
+  Stage: theorem audit
+Details:
+janus-audit-f934a4daaa3072b68b56b85e: ERROR the statement the precondition constrains the memory word at the entry `RSP` (the saved return address `[RSP]`, e.g. `ErrorfAmd64.RetLow`, in any form: alias, arithmetic, existential): a theorem must not assume a bound on its caller's return address; a consumer discharges such a fact inside its proof from the return address its own `call` pushes (a code address of the extracted program)

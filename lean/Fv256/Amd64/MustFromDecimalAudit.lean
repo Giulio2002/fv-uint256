@@ -44,7 +44,7 @@ abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(
 open Fv256.C in
 /-- precondition of `MustFromDecimal(s)` (string pointer in `RAX`, length in `RBX`): `FromDecimalSpec.PreC` plus the rodata and `PanicInit` -/
 def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
-  Fv256.Amd64.FromDecimalSpec.PreC cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
+  Fv256.Amd64.FromDecimalSpec.PreC0 cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
   Extracted.program.DataLoaded s.mem ∧ Fv256.Amd64.FromDecimalSpec.PanicInit cfg R R2 lo hi s.mem
 
 set_option maxRecDepth 100000 in

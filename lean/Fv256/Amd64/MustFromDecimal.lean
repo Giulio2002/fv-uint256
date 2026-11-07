@@ -44,7 +44,7 @@ abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(
 open Fv256.C in
 /-- precondition of `MustFromDecimal(s)` (string pointer in `RAX`, length in `RBX`): `FromDecimalSpec.PreC` plus the rodata and `PanicInit` -/
 def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
-  Fv256.Amd64.FromDecimalSpec.PreC cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
+  Fv256.Amd64.FromDecimalSpec.PreC0 cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
   Extracted.program.DataLoaded s.mem ∧ Fv256.Amd64.FromDecimalSpec.PanicInit cfg R R2 lo hi s.mem
 
 set_option maxRecDepth 100000 in
@@ -81,8 +81,9 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
           InRanges t (blockSize 48 false) R.rt ∧ v = ⟨s.mem.readLE (cfg.numErrItab + 8) 8, t⟩)) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨hpreC, hdl, hPI⟩ := hpre
+  obtain ⟨hpreC0, hdl, hPI⟩ := hpre
   refine GoReturns.of_reaches ?_
+  have hpreC := Fv256.Amd64.FromDecimalSpec.PreC.of0 cfg (Fv256.Amd64.FromDecimalSpec.PreC0.retOK cfg hpreC0 h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreC0
   have hpreC' := hpreC
   obtain ⟨hRet, h0, h3, hMod, hEnv, hlo, hhi, hok, hbud, -⟩ := hpreC'
   have hEnv' := hEnv
