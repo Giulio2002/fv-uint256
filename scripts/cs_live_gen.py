@@ -42,38 +42,27 @@ def csIf : State := {{ {S0} with rip := BitVec.ofNat 64 ifA, regs := fun i => if
     ok_mv = okpos(P['mv'], N, f'⟨rfl, {dst}, {src}, 1, by decide, by decide, by decide⟩')
     # new / mallocgc / memmove (LiveAt based)
     d.append(f'''set_option maxRecDepth 100000 in
-theorem csNew_pre : NewobjectPre64 4096 csNew ∧ StackRoom64 csNew 4096 1 ∧
-    LiveAt {R} {ent('runtime.newobject')} [(csNew.regs 0).toNat] [] {B} (newobjectRound64 csNew)
-      (csNew.regs 14).toNat csNew.mem {win('csNew',1)} :=
+theorem csNew_pre : NewobjectLiveSite {R} {ent('runtime.newobject')} 4096 [] {B} csNew :=
   ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩,
     by rw [addr_new]; exact {ok_new}, {inv}, by decide, liveSep_nil _, {sep}⟩
 
 set_option maxRecDepth 100000 in
-theorem csMg_pre : MallocgcPre64 4096 csMg ∧ StackRoom64 csMg 4096 3 ∧
-    LiveAt {R} {ent('runtime.mallocgc')} [(csMg.regs 0).toNat, (csMg.regs 3).toNat, (csMg.regs 1).toNat] [] {B} (mallocgcRound64 csMg)
-      (csMg.regs 14).toNat csMg.mem {win('csMg',3)} :=
+theorem csMg_pre : MallocgcLiveSite {R} {ent('runtime.mallocgc')} 4096 [] {B} csMg :=
   ⟨⟨by decide, by decide, Or.inl (by decide)⟩, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩,
     by rw [addr_mg]; exact {ok_mg}, {inv}, by decide, liveSep_nil _, {sep}⟩
 
 set_option maxRecDepth 100000 in
-theorem csMv_pre : MemPre64 4096 3 csMv ∧
-    LiveMemAt64 {R} {ent('runtime.memmove')} [(csMv.regs 0).toNat, (csMv.regs 3).toNat, (csMv.regs 1).toNat] [] {B} csMv {win('csMv',3)} ∧
-    MemAmd64.Input csMv 4096 3 (csMv.regs 3).toNat (csMv.regs 1).toNat ∧
-    LiveDest64 {R} [] csMv 4096 3 (csMv.regs 0).toNat (csMv.regs 1).toNat :=
+theorem csMv_pre : MemmoveLiveSite {R} {ent('runtime.memmove')} 4096 [] {B} csMv :=
   ⟨by decide, by rw [addr_mv]; exact ⟨{ok_mv}, {inv}, liveSep_nil _, {sep}⟩, by decide,
     by decide, by decide, by rw [{RT}]; simp only [calleeStack64, outside_cons, outside_nil]; decide, Or.inr (by rw [{RT}]; simp only [outside_cons, outside_nil]; decide), by simp only [outside_cons, outside_nil]; decide⟩
 
 set_option maxRecDepth 100000 in
-theorem csW1_pre : CallOK64 csW1 4096 0 ∧ {R}.ok {ent('runtime.gcWriteBarrier1')} [1] ∧
-    {R}.inv {B} [] (csW1.regs 14).toNat (view {R}.rt [] csW1.mem) ∧ LiveSep [] [((csW1.regs 4).toNat - 4096, (csW1.regs 4).toNat + 8)] ∧
-    LiveSep [((csW1.regs 4).toNat - 4096, (csW1.regs 4).toNat + 8)] {R}.rt :=
+theorem csW1_pre : WbLiveSite {R} {ent('runtime.gcWriteBarrier1')} 4096 1 [] {B} csW1 :=
   ⟨by decide, by rw [addr_w1]; exact {ok_w1}, {inv}, liveSep_nil _,
     liveSep_one (by rw [{RT}]; simp only [outside_cons, outside_nil]; decide)⟩
 
 set_option maxRecDepth 100000 in
-theorem csW2_pre : CallOK64 csW2 4096 0 ∧ {R}.ok {ent('runtime.gcWriteBarrier2')} [2] ∧
-    {R}.inv {B} [] (csW2.regs 14).toNat (view {R}.rt [] csW2.mem) ∧ LiveSep [] [((csW2.regs 4).toNat - 4096, (csW2.regs 4).toNat + 8)] ∧
-    LiveSep [((csW2.regs 4).toNat - 4096, (csW2.regs 4).toNat + 8)] {R}.rt :=
+theorem csW2_pre : WbLiveSite {R} {ent('runtime.gcWriteBarrier2')} 4096 2 [] {B} csW2 :=
   ⟨by decide, by rw [addr_w2]; exact {ok_w2}, {inv}, liveSep_nil _,
     liveSep_one (by rw [{RT}]; simp only [outside_cons, outside_nil]; decide)⟩
 
@@ -82,9 +71,7 @@ theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre64 16 csCm :=
   ⟨by decide, by decide, by decide⟩
 
 set_option maxRecDepth 100000 in
-theorem csIf_pre : Janus.Contracts.IfaceAmd64.RTPre {R2} 3 csIf ∧ ((csIf.regs 0).toNat ≠ 0 → (csIf.regs 0).toNat + 16 ≤ 2 ^ 48 ∧
-      csIf.mem.accessible (csIf.regs 0).toNat 16 false = true ∧ (csIf.mem.readLE ((csIf.regs 0).toNat + 8) 8 ≠ 0) ∧
-      Janus.Contracts.Iface.EqOK {R2} csIf.mem (csIf.mem.readLE ((csIf.regs 0).toNat + 8) 8) (csIf.regs 3).toNat (csIf.regs 1).toNat) :=
+theorem csIf_pre : IfaceeqSite {R2} csIf :=
   ⟨⟨by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩,
     fun h => absurd (by decide) h⟩
 ''')
@@ -101,25 +88,13 @@ theorem csSb_pre : RtLivePre64 4096 {R} (slicebytetostringSpec {c['st_addr']}) s
 ''')
     stmt = []
     L = '(Lc : List (Nat × Nat)) (bc : Nat)'
-    stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.newobject')} ∧ NewobjectPre64 4096 s_c ∧ StackRoom64 s_c 4096 1 ∧
-      LiveAt R {ent('runtime.newobject')} [(s_c.regs 0).toNat] Lc bc (newobjectRound64 s_c) (s_c.regs 14).toNat s_c.mem (liveWin64 s_c 4096 1)) ∧
-    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.mallocgc')} ∧ MallocgcPre64 4096 s_c ∧ StackRoom64 s_c 4096 3 ∧
-      LiveAt R {ent('runtime.mallocgc')} [(s_c.regs 0).toNat, (s_c.regs 3).toNat, (s_c.regs 1).toNat] Lc bc (mallocgcRound64 s_c)
-        (s_c.regs 14).toNat s_c.mem (liveWin64 s_c 4096 3)) ∧
-    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.memmove')} ∧ MemPre64 4096 3 s_c ∧
-      LiveMemAt64 R {ent('runtime.memmove')} [(s_c.regs 0).toNat, (s_c.regs 3).toNat, (s_c.regs 1).toNat] Lc bc s_c (liveWin64 s_c 4096 3) ∧
-      MemAmd64.Input s_c 4096 3 (s_c.regs 3).toNat (s_c.regs 1).toNat ∧
-      LiveDest64 R Lc s_c 4096 3 (s_c.regs 0).toNat (s_c.regs 1).toNat) ∧''')
+    stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.newobject')} ∧ NewobjectLiveSite R {ent('runtime.newobject')} 4096 Lc bc s_c) ∧
+    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.mallocgc')} ∧ MallocgcLiveSite R {ent('runtime.mallocgc')} 4096 Lc bc s_c) ∧
+    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.memmove')} ∧ MemmoveLiveSite R {ent('runtime.memmove')} 4096 Lc bc s_c) ∧''')
     for n in (1, 2):
-        stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent(f'runtime.gcWriteBarrier{n}')} ∧ CallOK64 s_c 4096 0 ∧
-      R.ok {ent(f'runtime.gcWriteBarrier{n}')} [{n}] ∧ R.inv bc Lc (s_c.regs 14).toNat (view R.rt Lc s_c.mem) ∧
-      LiveSep Lc [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] ∧
-      LiveSep [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] R.rt) ∧''')
+        stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent(f'runtime.gcWriteBarrier{n}')} ∧ WbLiveSite R {ent(f'runtime.gcWriteBarrier{n}')} 4096 {n} Lc bc s_c) ∧''')
     stmt.append(f'''    (∃ s_c : State, s_c.rip = BitVec.ofNat 64 {ent('runtime.cmpstring')} ∧ Janus.Contracts.Cmpstring.CmpstringPre64 16 s_c) ∧
-    (∃ s_c : State, s_c.rip = BitVec.ofNat 64 {ent('runtime.ifaceeq')} ∧ Janus.Contracts.IfaceAmd64.RTPre R2 3 s_c ∧ ((s_c.regs 0).toNat ≠ 0 →
-      (s_c.regs 0).toNat + 16 ≤ 2 ^ 48 ∧ s_c.mem.accessible (s_c.regs 0).toNat 16 false = true ∧
-      (s_c.mem.readLE ((s_c.regs 0).toNat + 8) 8 ≠ 0) ∧
-      Janus.Contracts.Iface.EqOK R2 s_c.mem (s_c.mem.readLE ((s_c.regs 0).toNat + 8) 8) (s_c.regs 3).toNat (s_c.regs 1).toNat)) ∧''')
+    (∃ s_c : State, s_c.rip = BitVec.ofNat 64 {ent('runtime.ifaceeq')} ∧ IfaceeqSite R2 s_c) ∧''')
     terms = ['⟨[], %s, csNew, csNew_rip, csNew_pre⟩' % B, '⟨[], %s, csMg, csMg_rip, csMg_pre⟩' % B, '⟨[], %s, csMv, csMv_rip, csMv_pre⟩' % B,
              '⟨[], %s, csW1, csW1_rip, csW1_pre⟩' % B, '⟨[], %s, csW2, csW2_rip, csW2_pre⟩' % B,
              '⟨csCm, csCm_rip, csCm_pre⟩', '⟨csIf, csIf_rip, csIf_pre⟩']
