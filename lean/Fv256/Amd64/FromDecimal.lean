@@ -21,36 +21,36 @@ open Fv256.Amd64.SfdTopSpec
 namespace Fv256.Amd64.FromDecimal
 
 /-- the `SfdCfg` of this binary -/
-def cfg : SfdCfg where
-  ioEOF := Extracted.dataAddr.«io.EOF»
-  errBig := Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range»
-  mulTab := Extracted.dataAddr.«github.com/holiman/uint256.multipliers»
-  numErrType := Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»
-  numErrItab := Extracted.dataAddr.«go:itab.*strconv.NumError,error»
-  errItab := Extracted.dataAddr.«go:itab.internal/strconv.Error,error»
-  synConst := Extracted.dataAddr.«.rodata#9967e7a3»
-  strconvErrSyntax := Extracted.dataAddr.«strconv.ErrSyntax»
-  wbFlag := Extracted.dataAddr.«runtime.writeBarrier»
-  fnStr := Extracted.dataAddr.«.rodata#3d2a826c»
-  mallocgc := Extracted.program.contractAddr "runtime.mallocgc"
-  memmove := Extracted.program.contractAddr "runtime.memmove"
-  newobject := Extracted.program.contractAddr "runtime.newobject"
-  wb1 := Extracted.program.contractAddr "runtime.gcWriteBarrier1"
-  wb2 := Extracted.program.contractAddr "runtime.gcWriteBarrier2"
-  maxStr := Extracted.dataAddr.«.rodata#575028b4»
+def cfg : SfdCfg :=
+  (Extracted.dataAddr.«io.EOF»,
+    Extracted.dataAddr.«github.com/holiman/uint256.ErrBig256Range»,
+    Extracted.dataAddr.«github.com/holiman/uint256.multipliers»,
+    Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»,
+    Extracted.dataAddr.«go:itab.*strconv.NumError,error»,
+    Extracted.dataAddr.«go:itab.internal/strconv.Error,error»,
+    Extracted.dataAddr.«.rodata#9967e7a3»,
+    Extracted.dataAddr.«strconv.ErrSyntax»,
+    Extracted.dataAddr.«runtime.writeBarrier»,
+    Extracted.dataAddr.«.rodata#3d2a826c»,
+    Extracted.dataAddr.«.rodata#575028b4»,
+    Extracted.program.contractAddr "runtime.mallocgc",
+    Extracted.program.contractAddr "runtime.memmove",
+    Extracted.program.contractAddr "runtime.newobject",
+    Extracted.program.contractAddr "runtime.gcWriteBarrier1",
+    Extracted.program.contractAddr "runtime.gcWriteBarrier2")
 
 abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 
 open Fv256.C in
 /-- precondition of `FromDecimal(s)` (string pointer in `RAX`, length in `RBX`): `FromDecimalSpec.PreC` plus the rodata -/
 def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
-  Fv256.Amd64.FromDecimalSpec.PreC cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
+  Fv256.Amd64.FromDecimalSpec.PreC0 cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
   Extracted.program.DataLoaded s.mem
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 16000000 in
 open Fv256.C in
-theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_cond (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (pS nS : BitVec 64)
     (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
     (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
@@ -78,7 +78,8 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)])) := by
   intro ret hret s hs hpre
   janus64_intro hs
-  obtain ⟨hpreC, hdl⟩ := hpre
+  obtain ⟨hpreC0, hdl⟩ := hpre
+  have hpreC := Fv256.Amd64.FromDecimalSpec.PreC.of0 cfg (Fv256.Amd64.FromDecimalSpec.PreC0.retOK cfg hpreC0 h_x15 h_df (by rw [h_ret]; exact hret.user)) hpreC0
   have hpreC' := hpreC
   obtain ⟨hRet, h0, h3, hMod, hEnv, hlo, hhi, hok, hbud, -⟩ := hpreC'
   have hEnv' := hEnv
