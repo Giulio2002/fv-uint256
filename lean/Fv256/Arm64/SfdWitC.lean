@@ -61,7 +61,7 @@ def s0 : State :=
 
 theorem cfgE_lit : cfgE = (SfdCfg.mk 0x1b5c10 0x1b5b60 0x1b6540 0xdc840 0xf6940 0xf6920 0xf5940 0x1b5eb0 0x1e34c0 0xeb483
     0xf490b mgA mvA newA w1A w2A) := by
-  unfold cfgE; congr 1 <;> decide
+  rfl
 
 theorem rt_eq : R.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] := rfl
 

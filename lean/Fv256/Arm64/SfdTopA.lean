@@ -11,23 +11,23 @@ namespace Fv256.Arm64.SfdTop
 abbrev sfd : Nat := segAddr Fv256.Arm64.SfdProg.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 
 /-- the addresses of the harness binary -/
-def cfg : SfdCfg where
-  ioEOF := 0x1b5c10
-  errBig := 0x1b5b60
-  mulTab := 0x1b6540
-  numErrType := 0xdc840
-  numErrItab := 0xf6940
-  errItab := 0xf6920
-  synConst := 0xf5940
-  strconvErrSyntax := 0x1b5eb0
-  wbFlag := 0x1e34c0
-  fnStr := 0xeb483
-  maxStr := 0xf490b
-  mallocgc := Fv256.Arm64.SfdProg.program.contractAddr "runtime.mallocgc"
-  memmove := Fv256.Arm64.SfdProg.program.contractAddr "runtime.memmove"
-  newobject := Fv256.Arm64.SfdProg.program.contractAddr "runtime.newobject"
-  wb1 := Fv256.Arm64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1"
-  wb2 := Fv256.Arm64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2"
+def cfg : SfdCfg := SfdCfg.mk
+  (0x1b5c10)
+  (0x1b5b60)
+  (0x1b6540)
+  (0xdc840)
+  (0xf6940)
+  (0xf6920)
+  (0xf5940)
+  (0x1b5eb0)
+  (0x1e34c0)
+  (0xeb483)
+  (0xf490b)
+  (Fv256.Arm64.SfdProg.program.contractAddr "runtime.mallocgc")
+  (Fv256.Arm64.SfdProg.program.contractAddr "runtime.memmove")
+  (Fv256.Arm64.SfdProg.program.contractAddr "runtime.newobject")
+  (Fv256.Arm64.SfdProg.program.contractAddr "runtime.gcWriteBarrier1")
+  (Fv256.Arm64.SfdProg.program.contractAddr "runtime.gcWriteBarrier2")
 
 /-- the state inside `SetFromDecimal`'s frame (80 bytes below the entry `SP`), before `fromDecimal` runs:
 only the window `[lo, hi)` was written, the four spill words hold LR, FP, `z`, `pS`. -/
