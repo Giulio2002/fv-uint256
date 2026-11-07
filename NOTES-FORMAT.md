@@ -37,4 +37,4 @@ Open points for the engine side: the final `Q` with two exits needs `Reaches` wi
 ## Owners
 (i) nil path with typeAssert, (iii) IntoBig + big.Format, final assembly: FV-G. (ii): FV-R2.
 ## Verdicts
-Statement audit (sorry-proof `janus verify` of each statement): to be recorded here.
+Statement audit, sorry-proof `janus verify` with /srv/janus-wr-pin2/bin/janus (d52a1656 build; the /srv/janus-icall/bin/janus binary is stale, built 23:06 before 38396fec, and fails the framework identity check): amd64 Format.correctness with hypotheses typeAssert (TypeAssert at contractAddr "runtime.typeAssert"), four variable-fn ICallContract64 (Width, Precision, Flag, Write), and static ICallContract64 at contractAddr "fmt.Fprint" and contractAddr "math/big.(*Int).Format", P := True: the build and the audit stages passed; the only rejection is the axiom audit (sorryAx), as expected. So the statement shape is accepted by the auditor. (Pitfall: open only Janus.Contracts.IfaceAmd64, not Iface as well, and use Janus.Spec.Type.IfaceModel.)
