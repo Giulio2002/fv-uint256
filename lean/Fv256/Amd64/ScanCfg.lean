@@ -30,6 +30,8 @@ def cfg : SfdCfg :=
 
 abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 abbrev sci : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).scanScientificFromString"
+abbrev expEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).Exp"
+abbrev moEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).MulOverflow"
 abbrev ibsEntry : Nat := segAddr Extracted.program "internal/bytealg.IndexByteString.abi0"
 abbrev avxAddr : Nat := Extracted.dataAddr.«internal/cpu.X86» + 68
 abbrev sbAddr : Nat := Extracted.program.contractAddr "runtime.slicebytetostring"

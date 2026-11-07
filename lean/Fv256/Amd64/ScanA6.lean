@@ -56,13 +56,9 @@ def Inv5 (P : Janus.Amd64.Program) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L 
   decParse (fun k => bytesAt s.mem p.toNat (i + 1 + k)) (n.toNat - (i + 1)) = .ok e ∧
   Janus.Spec.val256 S5.mem dst.toNat = v ∧ Janus.Spec.val256 S5.mem ((s.regs 4).toNat - 40) = e ∧ P.DataLoaded S5.mem
 
-set_option maxRecDepth 100000 in
-/-- segments 6-7: the range test on the exponent, `Exp`, `MulOverflow` -/
-theorem sci_after2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
-    (lo hi : Nat) (dst p n : BitVec 64) (i v e : Nat) (s S5 : State) (hpc : S5.rip = BitVec.ofNat 64 (sci + 0x129))
-    (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
-    (hI : Inv5 Extracted.program R R2 T b L lo hi dst p n i v e s S5) :
-    ReachesRet (Extracted.program.link impl) (retAddrOf s) S5 (SciPost cfg R R2 b L lo hi dst p n s) := by
-  sorry
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.errAcc (h : TopPre0 C R R2 T b L lo hi z p n s) : s.mem.accessible C.errBig 16 false = true :=
+  h.2.2.2.2.2.2.2.2.2.2.1
+theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.errOut (h : TopPre0 C R R2 T b L lo hi z p n s) :
+    Outside C.errBig 16 [(lo, hi), (z.toNat, z.toNat + 32)] := h.2.2.2.2.2.2.2.2.2.2.2.1
 
 end Fv256.Amd64.ScanA

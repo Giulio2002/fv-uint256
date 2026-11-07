@@ -17,6 +17,7 @@ theorem sci_some (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     (lo hi : Nat) (dst p n : BitVec 64) (s S : State) (hpc : S.rip = BitVec.ofNat 64 (sci + 0x53))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0) (hdl : Extracted.program.DataLoaded s.mem)
     (hK : Fv256.Amd64.ScanIbsCall.PostK s S lo hi dst p n)
     (hidx : Fv256.IndexByte.indexOfNat (Fv256.IndexByte.bytesOf s.mem p.toNat) n.toNat 101 ≠ 2 ^ 64 - 1) :
@@ -91,7 +92,7 @@ theorem sci_some (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
           rcases hr with rfl | rfl
           · exact hwin
           · simpa using hT.zacc
-      refine sci_after1 impl R R2 T b L lo hi dst p n i v s _ rfl hsfd hpre hn ?_
+      refine sci_after1 impl R R2 T b L lo hi dst p n i v s _ rfl hsfd hexp hmo hpre hn ?_
       simp only [Kept, retAddrOf, setRegF_apply, setXmmF_apply] at k2 k3 k4' k5' k6 k7
       refine ⟨hS4, ?_, k4', ?_, rfl, ?_, hMF4, cEnv, ?_, ?_, ?_, ?_, ?_, ?_, hsome', hilt, hv', cval, hdlS⟩
       · show S'.regs 5 = s.regs 4 - 8#64

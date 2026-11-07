@@ -16,6 +16,7 @@ theorem sci_after1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     (lo hi : Nat) (dst p n : BitVec 64) (i v : Nat) (s S4 : State) (hpc : S4.rip = BitVec.ofNat 64 (sci + 0xae))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
     (hI : Inv4 cfg Extracted.program R R2 T b L lo hi dst p n i v s S4) :
     ReachesRet (Extracted.program.link impl) (retAddrOf s) S4 (SciPost cfg R R2 b L lo hi dst p n s) := by
@@ -40,11 +41,11 @@ theorem sci_after1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     exact sci_nil impl R R2 T b L lo hi dst p n i v s S4 hpc hpre hn hI0 c.1 (by rw [hbyte]; exact c.2) hbacc c.2
   · by_cases h2 : n.toNat - i = 2
     · have h48 : ¬ bytesAt s.mem p.toNat (i + 1) = 48 := fun h => c ⟨h2, h⟩
-      exact sci_pre2_b impl R R2 T b L lo hi dst p n i v s S4 hpc hsfd hpre hn hI0 (fun h => h48 h.2) h2 h48
+      exact sci_pre2_b impl R R2 T b L lo hi dst p n i v s S4 hpc hsfd hexp hmo hpre hn hI0 (fun h => h48 h.2) h2 h48
     · have hnn : ¬ (n.toNat - (i + 1) = 1 ∧ bytesAt s.mem p.toNat (i + 1) = 48) := fun h => h2 (by omega)
       by_cases hlt : i + 1 < n.toNat
-      · exact sci_pre2_pos impl R R2 T b L lo hi dst p n i v s S4 hpc hsfd hpre hn hI0 hnn h2 hlt
-      · exact sci_pre2_end impl R R2 T b L lo hi dst p n i v s S4 hpc hsfd hpre hn hI0 hnn (by omega)
+      · exact sci_pre2_pos impl R R2 T b L lo hi dst p n i v s S4 hpc hsfd hexp hmo hpre hn hI0 hnn h2 hlt
+      · exact sci_pre2_end impl R R2 T b L lo hi dst p n i v s S4 hpc hsfd hexp hmo hpre hn hI0 hnn (by omega)
 
 
 end Fv256.Amd64.ScanA

@@ -5,7 +5,7 @@ import Fv256.Amd64.ScanIbsCall
 import Fv256.Amd64.ScanSfd
 import Fv256.Amd64.ScanSfd2
 import Fv256.Amd64.ScanIdx
-import Fv256.Amd64.ScanA6
+import Fv256.Amd64.ScanA7
 open Fv256.Amd64.ScanSfd
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I Fv256.C
 open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec Fv256.ScanSpec Fv256.Amd64.ScanCfg
@@ -55,6 +55,7 @@ set_option maxRecDepth 100000 in
 /-- segment 5b (post, exponent text parsed): the state `S'` after `SetFromDecimal(&exp, ..)` returned nil -> `Inv5` at `sci + 0x129` -/
 theorem sci_post2_ok (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst p n : BitVec 64) (i v e : Nat) (s S4 S3 S' : State)
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
     (hI : Inv4 cfg Extracted.program R R2 T b L lo hi dst p n i v s S4)
     (hnn : ¬ (n.toNat - (i + 1) = 1 ∧ bytesAt s.mem p.toNat (i + 1) = 48)) (hlt : i + 1 < n.toNat)
@@ -123,7 +124,7 @@ theorem sci_post2_ok (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
   have hr0 : S'.rip = BitVec.ofNat 64 (sci + 0x118) := hr
   have hc0' : (S'.regs 0).toNat = 0 := hc0
   janus64_run [hc0'] until [sci + 0x129]
-  refine sci_after2 impl R R2 T b L lo hi dst p n i v e s _ rfl hpre hn ?_
+  refine sci_after2 impl R R2 T b L lo hi dst p n i v e s _ rfl hexp hmo hpre hn ?_
   have hslot : ∀ a k, ((s.regs 4).toNat - 112 ≤ a ∧ a + k ≤ (s.regs 4).toNat - 40 ∨ (s.regs 4).toNat - 8 ≤ a) → (s.regs 4).toNat - 88 ≤ a → a + k ≤ hi →
       S'.mem.readLE a k = S4.mem.readLE a k := by
     intro a k hh h1 h2
@@ -245,6 +246,7 @@ theorem sci_call2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
     (lo hi : Nat) (dst p n : BitVec 64) (i v : Nat) (s S4 S3 : State)
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
     (hI : Inv4 cfg Extracted.program R R2 T b L lo hi dst p n i v s S4)
     (hnn : ¬ (n.toNat - (i + 1) = 1 ∧ bytesAt s.mem p.toNat (i + 1) = 48))
@@ -311,7 +313,7 @@ theorem sci_call2 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
           simp [decParse_zero, Res.eof, Res.ok] at hv
       obtain ⟨ho, -, hpoff, hn'⟩ := hpo.2.2.resolve_right (fun ⟨_, h, _⟩ => by omega)
       subst ho
-      exact sci_post2_ok impl R R2 T b L lo hi dst p n i v e s S4 S3 S' hpre0 hn hI hnn hlt hr4 hr5 hr14 hxm hdf hfs hmem hF1 hF2 hz'
+      exact sci_post2_ok impl R R2 T b L lo hi dst p n i v e s S4 S3 S' hexp hmo hpre0 hn hI hnn hlt hr4 hr5 hr14 hxm hdf hfs hmem hF1 hF2 hz'
         hpoff hn' hq hr' hregs hv c0 cval cEnv cMF
     · exact sci_post2_err impl R R2 T b L lo hi dst p n i v s S4 S3 S' hpre0 hn hI hnn off hoff hr4 hr5 hr14 hxm hdf hfs hmem hF1 hF2 hz'
         hpo hq2 hr' hregs hnok
@@ -322,6 +324,7 @@ theorem sci_pre2_pos (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
     (lo hi : Nat) (dst p n : BitVec 64) (i v : Nat) (s S4 : State) (hpc : S4.rip = BitVec.ofNat 64 (sci + 0xae))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
     (hI : Inv4 cfg Extracted.program R R2 T b L lo hi dst p n i v s S4)
     (hnn : ¬ (n.toNat - (i + 1) = 1 ∧ bytesAt s.mem p.toNat (i + 1) = 48))
@@ -346,13 +349,14 @@ theorem sci_pre2_pos (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
       (by rw [(Fv256.Amd64.ScanSfd2.args_pos p n i hpw hlt).1]; omega)
   clear hT hEnv hret0 qEnv qdl
   janus64_run [qi, qn, qp, qret, qrbp, q4, hwin4, hra, hmk, h2] until [sfdEntry]
-  exact sci_call2 impl R R2 T b L lo hi dst p n i v s S4 _ hsfd hpre0 hn hI0 hnn (BitVec.ofNat 64 (i + 1)) (Or.inl ⟨rfl, hlt⟩) rfl rfl rfl rfl rfl q5 q14 qx rfl qfs rfl
+  exact sci_call2 impl R R2 T b L lo hi dst p n i v s S4 _ hsfd hexp hmo hpre0 hn hI0 hnn (BitVec.ofNat 64 (i + 1)) (Or.inl ⟨rfl, hlt⟩) rfl rfl rfl rfl rfl q5 q14 qx rfl qfs rfl
 
 set_option maxRecDepth 100000 in
 theorem sci_pre2_end (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst p n : BitVec 64) (i v : Nat) (s S4 : State) (hpc : S4.rip = BitVec.ofNat 64 (sci + 0xae))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
     (hI : Inv4 cfg Extracted.program R R2 T b L lo hi dst p n i v s S4)
     (hnn : ¬ (n.toNat - (i + 1) = 1 ∧ bytesAt s.mem p.toNat (i + 1) = 48))
@@ -377,12 +381,13 @@ theorem sci_pre2_end (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMo
   have h2 : n.toNat - i ≠ 2 := by omega
   clear hT hEnv hret0 qEnv qdl
   janus64_run [qi, qn, qp, qret, qrbp, q4, hwin4, hra, hmk, h2] until [sfdEntry]
-  exact sci_call2 impl R R2 T b L lo hi dst p n i v s S4 _ hsfd hpre0 hn hI0 hnn 0 (Or.inr ⟨rfl, hend⟩) rfl rfl rfl (by simp [setRegF_apply]) rfl q5 q14 qx rfl qfs rfl
+  exact sci_call2 impl R R2 T b L lo hi dst p n i v s S4 _ hsfd hexp hmo hpre0 hn hI0 hnn 0 (Or.inr ⟨rfl, hend⟩) rfl rfl rfl (by simp [setRegF_apply]) rfl q5 q14 qx rfl qfs rfl
 set_option maxRecDepth 100000 in
 theorem sci_pre2_b (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst p n : BitVec 64) (i v : Nat) (s S4 : State) (hpc : S4.rip = BitVec.ofNat 64 (sci + 0xae))
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
+    (hexp : ExpSumm (Extracted.program.link impl)) (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y)
     (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
     (hI : Inv4 cfg Extracted.program R R2 T b L lo hi dst p n i v s S4)
     (hnn : ¬ (n.toNat - (i + 1) = 1 ∧ bytesAt s.mem p.toNat (i + 1) = 48))
@@ -428,7 +433,7 @@ theorem sci_pre2_b (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     omega
   clear hT hEnv hret0 qEnv qdl
   janus64_run [qi, qn, qp, qret, qrbp, q4, hwin4, hra, hmk, hbyte, hbacc, hb48] until [sfdEntry]
-  exact sci_call2 impl R R2 T b L lo hi dst p n i v s S4 _ hsfd hpre0 hn hI0 hnn (BitVec.ofNat 64 (i + 1)) (Or.inl ⟨rfl, hlt⟩) rfl rfl rfl rfl rfl q5 q14 qx rfl qfs rfl
+  exact sci_call2 impl R R2 T b L lo hi dst p n i v s S4 _ hsfd hexp hmo hpre0 hn hI0 hnn (BitVec.ofNat 64 (i + 1)) (Or.inl ⟨rfl, hlt⟩) rfl rfl rfl rfl rfl q5 q14 qx rfl qfs rfl
 
 
 end Fv256.Amd64.ScanA
