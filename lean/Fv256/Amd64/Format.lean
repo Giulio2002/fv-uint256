@@ -12,6 +12,8 @@ import Fv256.Amd64.FormatBig
 import Fv256.Amd64.FormatWitB
 import Fv256.Amd64.FormatWitN
 import Fv256.Amd64.FormatWitBig
+import Fv256.Amd64.FormatInhabit
+import Fv256.Amd64.FormatInhabitNil
 
 /-!
 # `(*uint256.Int).Format(s fmt.State, ch rune)` (amd64): the assembly

@@ -6,6 +6,7 @@ import Fv256.RlpLemmas
 import Fv256.Arm64.ErlpCases
 import Fv256.Arm64.ErlpEJ
 import Fv256.Arm64.ErlpWit
+import Fv256.Arm64.ErlpInhabit
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.ICall Fv256.Rlp
 

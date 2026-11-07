@@ -12,6 +12,8 @@ import Fv256.Arm64.FormatTransfer
 import Fv256.Arm64.FormatWitB
 import Fv256.Arm64.FormatWitN
 import Fv256.Arm64.FormatWitG
+import Fv256.Arm64.FormatInhabit
+import Fv256.Arm64.FormatInhabitNil
 
 /-!
 # `(*uint256.Int).Format(s fmt.State, ch rune)` (arm64): the assembly
