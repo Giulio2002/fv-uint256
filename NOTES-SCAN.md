@@ -203,3 +203,28 @@ STATE: segments 1-4 done (ScanA0 sci_len0, ScanA1 sci_ibs, ScanA2 sci_none, Scan
 * Level B glue: ScanB4 (scan_bytes, scan_top), ScanB5 (retOK_of_pre, correctness_cond: Ensures, conditional on hibs hsfd hexp hmo), SummaryEnsures (copy of wJ's). SciSumm now takes R R2 T.
 * ScanDisch.lean: disch_ibs (ibs_lib_A via CodeIn), disch_exp, disch_mo (exp/mo summaries strengthened with fsBase/df via `strengthen`) are REAL. PENDING (sorry): `fsdf_lib_steps` (U-FRAME-FSDF; FV-FR proves it, do not change its statement without telling FV-FR) and `disch_sfd` (FV-I5 SfdLib.hsfd_of_link). Scan.correctness (Scan.lean) = correctness_cond + these.
 * Witness files (work/stage -> lean/Fv256/Amd64/): ScanWitA (stubs), ScanWitB (ifaceeq R3 TW, cmpstring), WitModel (R3), ScanWitC (memory with real data, all five ScanPre states, contracts_ok). Witness theorem statements in Scan.lean (Witness, NoE.Witness, Nil.Witness, Byt.Witness, Other.Witness).
+
+## HANDOVER 6: EXACT TARGETS for the two remaining sorries (both in lean/Fv256/Amd64/ScanDisch.lean; nothing else in Scan has a sorry)
+Final check: logs/sc5/v2.sh (verify correctness + 5 witnesses on n10 51d592da, ex3, JANUS_CACHE_DIR=/srv/janus-ops/jcache-n10, bin/janus-n10b, no --keep-workspace). Last result: 5 witnesses verified; correctness fails only at the axiom audit (sorryAx). Then scripts/no-sorry.sh and a COVERAGE row.
+
+### 1. FV-FR: fsBase / df frame (replace `fsdf_lib_steps`)
+Current (FALSE for df, per FV-FR) statement:
+  theorem fsdf_lib_steps {p : Program} (hp : p = Fv256.ExpProg.program ∨ p = Fv256.MulOverflowProg.program) {s s' : State} {k : Nat}
+      (h : Program.Steps p s k s') : s'.fsBase = s.fsBase ∧ s'.df = s.df
+Used by `disch_exp` (needs only fsBase: `s'.fsBase = s.fsBase`) and `disch_mo` (needs `s'.fsBase = s.fsBase ∧ s'.df = s.df`) via `strengthen`.
+Target after restating:
+ (a) fsBase: for every program p and Steps, `s'.fsBase = s.fsBase` (FV-FR's `Steps_fs`); `disch_exp` then uses `(Steps_fs hst)` and Exp's df from exp_summary (already in ExpSumm post).
+ (b) MulOverflow df: add `s'.df = s.df` to the post of `Fv256.Amd64.MoLib.mo_summary` (MoLib/Top.lean), so `disch_mo` takes fsBase from (a) and df from the summary.
+Keep ExpSumm / MoSumm (ScanA7.lean) statements unchanged: ExpSumm post ends `... ∧ MemFrame ... ∧ s'.fsBase = s.fsBase`; MoSumm post is `(ABIReturn s s' ∧ (...)) ∧ s'.fsBase = s.fsBase ∧ s'.df = s.df`. Only the bodies of disch_exp / disch_mo in ScanDisch.lean change; `strengthen`'s F then comes from (a) and the summary.
+
+### 2. FV-I5: disch_sfd (hsfd)
+Must prove exactly (ScanDisch.lean, `disch_sfd`):
+  ∀ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T : Nat)
+    (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
+    (hnew : NewobjectLiveContract64 ... "runtime.newobject" 4096 R) (hmg : MallocgcLiveContract64 ... "runtime.mallocgc" 4096 R)
+    (hmv : MemmoveLive64 ... "runtime.memmove" 4096 R) (hwb1 : WbLiveContract64 ... "runtime.gcWriteBarrier1" 4096 R 1)
+    (hwb2 : WbLiveContract64 ... "runtime.gcWriteBarrier2" 4096 R 2)
+    (hcmp : Janus.Contracts.Cmpstring.CmpstringContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.cmpstring") 16),
+  ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
+    SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS'
+with cfg = Fv256.Amd64.ScanCfg.cfg (equal to SfdTopCfg.extCfg: cfg_lit in ScanWitC.lean checks the literal tuple) and sfdEntry = 0x4b4620 as in the Scan extraction ex3 (build/ex3-amd64-Scan). i.e. SfdLib.hsfd_of_link instantiated at E := Extracted.program (ex3), needing CodeIn64-style containment of the SFD library segments in ex3 and the same six contracts.
