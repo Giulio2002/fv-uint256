@@ -10,7 +10,7 @@ The model implementations of `Janus.Contracts.IfaceSat` (`ifaceeq`, for the inte
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Map Janus.Spec.Type Janus.Contracts
-  Janus.Contracts.Iface Janus.Contracts.IfaceModel Janus.Contracts.Cmpstring Janus.Contracts.IfaceSat
+  Janus.Contracts.Iface Janus.Contracts.IfaceModel Janus.Contracts.Cmpstring Janus.Contracts.IfaceSat Fv256.Arm64.WitModel
 
 namespace Fv256.Arm64.Scan.Witness
 
@@ -32,7 +32,7 @@ theorem model_if : Ifaceeq (Extracted.program.ofImpl implA) ifA (R3 TW) := by
         rfl rfl rfl rfl rfl rfl (MemFrame.refl _ _) ⟨he1, he2, he3, he4⟩ ?_
       simp only [ifaceEqual, ht]
       rw [efaceEqual_R3 (g := s.regs 28) ⟨he1, he2, he3, he4⟩ _ _ (by decide)]
-      simp only [setReg_apply, reduceIte]
+      simp only [setReg_apply, reduceIte, Nat.reduceEqDiff]
       split
       · rename_i heq; simp [heq]
       · rename_i hne; simp [beq_false_of_ne hne, beq_false_of_ne h0]
