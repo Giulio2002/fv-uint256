@@ -41,11 +41,11 @@ theorem probe (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
     (lo hi : Nat) (z pI nI cI : BitVec 64)
     (hsb : RtLiveContract (Extracted.program.link impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, pI, nI, cI]
-      (fun s => PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ Extracted.program.DataLoaded s.mem ∧ (nI.toNat : Int) < 2)
+      (fun s => PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ Extracted.program.DataLoaded s.mem )
       (fun s s' => True) := by
   intro ret hret s hs hpre
   janus_intro hs
-  obtain ⟨hpreU, hdl, hc1⟩ := hpre
+  obtain ⟨hpreU, hdl⟩ := hpre
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   janus_data hdl [e5]
@@ -64,7 +64,7 @@ theorem probe (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
   have hdS1 : pI.toNat + nI.toNat ≤ s.sp.toNat - 112 - 4096 ∨ s.sp.toNat - 112 - 8 ≤ pI.toNat := by omega
   have hdS2 : pI.toNat + nI.toNat ≤ s.sp.toNat - 112 + 8 ∨ s.sp.toNat - 112 + 8 + 24 ≤ pI.toNat := by omega
   janus_run until [sfdEntry, fhEntry] calls [hsb]
-  all_goals trace_state
+  all_goals (trace_state)
   all_goals sorry
 
 end Fv256.Arm64.UnmarshalTextP
