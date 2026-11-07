@@ -1,9 +1,10 @@
 import Extracted
 import Fv256.FormatFastDefsA64
 import Fv256.FormatFastFactsA64
+import Fv256.GrabRetA64
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.ICall
-open Fv256.FormatFastA64
+open Fv256.FormatFastA64 Fv256.GrabRetA64
 
 namespace Fv256.Arm64.FormatFast
 
@@ -34,9 +35,7 @@ theorem wrd_call (impl : List Segment) (rt : List (Nat × Nat)) (stack fW fP fF 
   have hr8 : S.mem.readLE (S0.sp.toNat - 8) 8 = S0.mem.readLE (S0.sp.toNat - 8) 8 :=
     ifr.readLE _ _ (out_fl_save (hout.of_sub (by omega) (by omega)) (by omega) (by omega) hst)
   janus_run [i96, i104, ht30, hta, hwa, hr0, hr8, h0, h1, h2, i4, hstr, hbd, hacc] calls [hWr]
-  rename_i junk f v m ex ep hk1 hk2 hR hb1
-  have hfr : MemFrame S.mem m (rt ++ [(S0.sp.toNat - stack, S0.sp.toNat - 8), (S0.sp.toNat + 8, S0.sp.toNat + 8 + 32)]) := by
-    first | exact hk1 | exact hk2
+  fv_ret_names_a64 junk f v m ex ep hk1 hpr hfr hR
   exact ⟨frame_call ifr (by omega) hfr, _, _, _, hR⟩
 
 /-- the `Write` call of the `x` path (`Format+0x1c8`: after `stringtoslicebyte`; the slice is `(x0, x1, x2) = (ptr, len, cap)`),
@@ -66,9 +65,7 @@ theorem wrh_call (impl : List Segment) (rt : List (Nat × Nat)) (stack fW fP fF 
   have hr8 : S.mem.readLE (S0.sp.toNat - 8) 8 = S0.mem.readLE (S0.sp.toNat - 8) 8 :=
     ifr.readLE _ _ (out_fl_save (hout.of_sub (by omega) (by omega)) (by omega) (by omega) hst)
   janus_run [i96, i104, ht30, hta, hwa, hr0, hr8, h0, h1, h2, i4, hstr, hbd, hacc] calls [hWr]
-  rename_i junk f v m ex ep hk1 hk2 hR hb1
-  have hfr : MemFrame S.mem m (rt ++ [(S0.sp.toNat - stack, S0.sp.toNat - 8), (S0.sp.toNat + 8, S0.sp.toNat + 8 + 32)]) := by
-    first | exact hk1 | exact hk2
+  fv_ret_names_a64 junk f v m ex ep hk1 hpr hfr hR
   exact ⟨frame_call ifr (by omega) hfr, _, _, _, hR⟩
 
 end Fv256.Arm64.FormatFast

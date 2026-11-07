@@ -5,8 +5,13 @@ import Fv256.Arm64.SummaryEnsures
 import Fv256.IntoBigCommon
 import Fv256.Arm64.FormatPrefix
 import Fv256.Arm64.FormatNil
-import Fv256.Arm64.StubFast
+import Fv256.Arm64.FormatFastAll
+import Fv256.Arm64.FormatFastBig
+import Fv256.Arm64.FormatFastHexSum
 import Fv256.Arm64.FormatTransfer
+import Fv256.Arm64.FormatWitB
+import Fv256.Arm64.FormatWitN
+import Fv256.Arm64.FormatWitG
 
 /-!
 # `(*uint256.Int).Format(s fmt.State, ch rune)` (arm64): the assembly
@@ -208,5 +213,97 @@ theorem correctness (impl : List Janus.Segment) (hI : ImplApart Extracted.progra
       simp only [outside_append, outside_cons, outside_nil, and_true] at h3 ⊢
       obtain ⟨⟨h1, h2⟩, h4, h5⟩ := h3
       exact ⟨⟨h1, h2⟩, by omega, by omega⟩
+
+namespace Witness
+
+/-- The fast path (`z = 16`, verb `d`, every query answered plain): all hypotheses of `correctness`, the toy runtime and callees, and the
+precondition hold together. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+    (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧ R.Laws ∧
+    Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2 ∧
+    RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
+      stringtoslicebyteSpec ∧
+    4608 ≤ stack ∧
+    ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fWr 4 stack 120 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes zv (ch.toNat % 2 ^ 32))) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 stack 80 rt (fun _ => [])
+      RFp (Fv256.Arm64.FormatNil.FpArg data) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 120 rt (fun _ => [])
+      RBf (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P zv ∧ sc.regs 1 = tab ∧ sc.regs 2 = data ∧
+        (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+    PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s := Fv256.Arm64.FormatWitB.nonvacuous_core
+
+/-- The nil receiver (`z = 0`). -/
+theorem nil : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+    (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧ R.Laws ∧
+    Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2 ∧
+    RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
+      stringtoslicebyteSpec ∧
+    4608 ≤ stack ∧
+    ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fWr 4 stack 120 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes zv (ch.toNat % 2 ^ 32))) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 stack 80 rt (fun _ => [])
+      RFp (Fv256.Arm64.FormatNil.FpArg data) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 120 rt (fun _ => [])
+      RBf (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P zv ∧ sc.regs 1 = tab ∧ sc.regs 2 = data ∧
+        (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+    PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s := Fv256.Arm64.FormatWitN.nil_core
+
+/-- The big path (`z = 16`, the callees answer "has width"): the toy allocator `R2` is satisfiable and serves `IntoBig`'s requests. -/
+theorem big : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+    (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧ R.Laws ∧
+    Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2 ∧
+    RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
+      stringtoslicebyteSpec ∧
+    4608 ≤ stack ∧
+    ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fWr 4 stack 120 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes zv (ch.toNat % 2 ^ 32))) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 stack 80 rt (fun _ => [])
+      RFp (Fv256.Arm64.FormatNil.FpArg data) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 120 rt (fun _ => [])
+      RBf (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P zv ∧ sc.regs 1 = tab ∧ sc.regs 2 = data ∧
+        (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+    PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s ∧
+    NotPlain RW RP RF data fW fP fF ch (ch.toNat % 2 ^ 32) ∧
+    (∃ (P : Nat) (j0 j1 j2 : BitVec 64), RBf (BitVec.ofNat 64 P) tab data
+      (BitVec.ofNat 64 (if ch.toNat % 2 ^ 32 < 2 ^ 31 then ch.toNat % 2 ^ 32 else ch.toNat % 2 ^ 32 + 18446744069414584320)) j0 j1 j2) := Fv256.Arm64.FormatWitG.big_core
+
+end Witness
 
 end Fv256.Arm64.Format
