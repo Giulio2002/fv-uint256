@@ -270,4 +270,30 @@ theorem hex_of_88 {m : Janus.Arm64.Memory} {p n : Nat} (h1 : ¬ (n : Int) < 2) (
   simp only [Nat.reducePow, Nat.pow_one] at hl
   exact ⟨by omega, h2, Or.inr ((hb_eq _ 88 hl (by decide)).1 h3)⟩
 
+/-- `UnmarshalJSON`: the input is a quoted string (`n >= 2`, first and last byte `"`); the last byte is addressed as the
+code does, `n + p - 1` -/
+abbrev Quoted (m : Janus.Arm64.Memory) (p n : Nat) : Prop :=
+  2 ≤ n ∧ m.readLE p 1 = 34 ∧ m.readLE (n + p - 1) 1 = 34
+
+abbrev Lw (m : Janus.Arm64.Memory) (p n : Nat) : BitVec 8 :=
+  BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (m.readLE (n + p - 1) 1))))
+
+theorem not_q_short {m : Janus.Arm64.Memory} {p n : Nat} (h : (n : Int) < 2) : ¬ Quoted m p n := by
+  intro hh; have := hh.1; omega
+
+theorem not_q_b0 {m : Janus.Arm64.Memory} {p n : Nat} (h : ¬ m.readLE p 1 = 34) : ¬ Quoted m p n :=
+  fun hh => h hh.2.1
+
+theorem not_q_last {m : Janus.Arm64.Memory} {p n : Nat} (h : ¬ (Lw m p n - 34#8 = 0#8)) : ¬ Quoted m p n := by
+  intro hh
+  have hl := Janus.Arm64.Memory.readLE_lt m (n + p - 1) 1
+  simp only [Nat.reducePow, Nat.pow_one] at hl
+  exact h ((hb_eq _ 34 hl (by decide)).2 hh.2.2)
+
+theorem q_of {m : Janus.Arm64.Memory} {p n : Nat} (h1 : ¬ (n : Int) < 2) (h2 : m.readLE p 1 = 34)
+    (h3 : Lw m p n - 34#8 = 0#8) : Quoted m p n := by
+  have hl := Janus.Arm64.Memory.readLE_lt m (n + p - 1) 1
+  simp only [Nat.reducePow, Nat.pow_one] at hl
+  exact ⟨by omega, h2, (hb_eq _ 34 hl (by decide)).1 h3⟩
+
 end Fv256.Amd64.UnmarshalHex
