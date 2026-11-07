@@ -13,3 +13,11 @@ It adds: import Fv256.Arm64.CallSites.Base + `open Fv256.Arm64.CallSites` to bot
 `Returns (`/`GoReturns (` of the thin statement, `cs1..cs7` binders in the thin's `obtain`, and the terms in both proofs.
 Conjunct shape: `∃ s_c : State, s_c.pc = BitVec.ofNat 64 (contractAddr "runtime.X") ∧ XLiveSite R addr 4096 [] 0x400 s_c` (closed L, b).
 Status: see COVERAGE of audits in NOTES-CSA.md.
+
+## IMPORTANT (audit of SetFromDecimal, 00:5x): thin witnesses of the form `obtain ⟨..⟩ := core; exact ⟨..⟩` are REJECTED by the auditor
+independently of the call-site conjuncts: "cannot read the sizes this witness instantiates for the runtime contract(s) ... at position `witness`
+...: the proof term stuck at the constant `Exists.rec`; state the contracts' instantiation as an explicit `Exists.intro`/`⟨…⟩` or a lemma whose value
+is one (U-ICALL-STACK, witness)" (Audit.lean witnessSizes/proofHead, 8615b09c). Fix: `python3 scripts/cs_live_a64.py --inline CORE_FILE nonvacuous_core
+THIN_FILE nonvacuous [CORE_NAMESPACE]` rewrites the thin proof as `refine ⟨<core components>, correctness ..⟩` + `case hX => exact (..)` (adds
+`open CORE_NAMESPACE` after `namespace Witness` when the core lives in another namespace). Run it AFTER the conjunct step. Applies to every
+core-based row (UnmarshalJSON/Text, Scan, Format, ...).
