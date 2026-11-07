@@ -49,8 +49,8 @@ def ok : Nat → List Nat → Prop := fun a args =>
   (a = mgA ∧ args = [1, 0, 0]) ∨ (a = mvA ∧ ∃ q, args = [q, pSA, 1])
 def R : RtInv := toyR [] ok
 
-def cfgE : SfdCfg := SfdCfg.mk 0x1b5c10 0x1b5b60 0x1b6540 0xdc840 0xf6940 0xf6920 0xf5940 0x1b5eb0 0x1e34c0 0xeb483
-    0xf490b mgA mvA newA w1A w2A
+def cfgE : SfdCfg := (0x1b5c10, 0x1b5b60, 0x1b6540, 0xdc840, 0xf6940, 0xf6920, 0xf5940, 0x1b5eb0, 0x1e34c0, 0xeb483,
+    0xf490b, mgA, mvA, newA, w1A, w2A)
 
 def spW : Nat := 0x100000
 def loW : Nat := 0xFEE00

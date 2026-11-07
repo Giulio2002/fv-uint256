@@ -113,7 +113,7 @@ theorem top_pro (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
       · simp [hS2, setRegF_apply, h3])
   · have hn' : nS.toNat ≠ 0 := fun h => hn (BitVec.eq_of_toNat_eq h)
     have hpA' : s.mem.accessible pS.toNat 1 false = true :=
-      Arm64.Memory.accessible_mono _ hp (by omega) (by omega)
+      Arm64.Memory.accessible_mono _ (hp.resolve_left (by omega)) (by omega) (by omega)
     have hbl := Arm64.Memory.readLE_lt s.mem pS.toNat 1
     by_cases hb : s.mem.readLE pS.toNat 1 = 43
     · have hpe : plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = 1 := pe_plus _ _ (by omega) (by rw [hb0]; exact hb)

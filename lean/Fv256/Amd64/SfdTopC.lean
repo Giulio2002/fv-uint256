@@ -29,7 +29,7 @@ theorem top_ls (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
   have hjI := ofNat_toInt j (by omega)
   have hmI := ofNat_toInt (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
   have hacc3 : S.mem.accessible (pS.toNat + (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1 false = true := by
-    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ hp (by omega) (by omega)
+    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ (hp.resolve_left (by omega)) (by omega) (by omega)
   have hbyte3 : S.mem.readLE (pS.toNat + (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1 = 48 := by
     rw [topSt_byte hSt hpW _ (by omega)]; exact hbz
   have hacc4 : S.mem.accessible (pS.toNat + plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) 1 false = true := by
@@ -88,7 +88,7 @@ theorem top_lb (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
   have hjI := ofNat_toInt j (by omega)
   have hmI := ofNat_toInt (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
   have hacc3 : S.mem.accessible (pS.toNat + (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1 false = true := by
-    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ hp (by omega) (by omega)
+    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ (hp.resolve_left (by omega)) (by omega) (by omega)
   have hbyte3 : S.mem.readLE (pS.toNat + (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1 =
       Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) := by
     rw [topSt_byte hSt hpW _ (by omega)]; rfl
@@ -167,7 +167,7 @@ theorem top_ld (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
   have hjI := ofNat_toInt j (by omega)
   have hmI := ofNat_toInt (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
   have hacc3 : S.mem.accessible (pS.toNat + (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1 false = true := by
-    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ hp (by omega) (by omega)
+    rw [topSt_acc hSt]; exact Arm64.Memory.accessible_mono _ (hp.resolve_left (by omega)) (by omega) (by omega)
   have hbyte3 : S.mem.readLE (pS.toNat + (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) 1 =
       Fv256.C.bytesAt s.mem pS.toNat (plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j) := by
     rw [topSt_byte hSt hpW _ (by omega)]; rfl
@@ -220,7 +220,7 @@ theorem top_ld (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
       · rw [hS1]; exact hSt.2.2.2.2.1
       · rw [hpe1, hlen1]; omega
       · rw [hmf1.accessible, topSt_acc hSt, hpe1, hlen1]
-        exact Arm64.Memory.accessible_mono _ hp (by omega) (by omega)
+        exact Arm64.Memory.accessible_mono _ (hp.resolve_left (by omega)) (by omega) (by omega)
       · rw [hk1, hlen1]; omega
       · try simp only [regSP]
         refine ⟨by rw [hs1]; omega, by rw [hs1]; omega, ?_⟩
