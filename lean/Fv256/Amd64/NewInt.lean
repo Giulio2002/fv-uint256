@@ -172,6 +172,8 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4128 24 ∧ Extracted.progr
     ⟨by decide, by decide, by decide⟩, dataLoaded,
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, hH⟩
 
+open Fv256.CallSites
+
 /-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): `s0`'s memory, at the allocator's entry, `RSP` at the call
 frame (`s0`'s `RSP` less 32), `RAX` the type descriptor. -/
 def csNew : Amd64.State :=
@@ -180,7 +182,7 @@ def csNew : Amd64.State :=
 theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr]; rfl
 
 set_option maxRecDepth 100000 in
-theorem csNew_pre : NewobjectPre64 4096 csNew ∧ Ready64 H rt [(csNew.regs 0).toNat] csNew := by
+theorem csNew_pre : NewobjectSite H rt 4096 csNew := by
   have ht : (csNew.regs 0).toNat = intType := by
     have : intType = tyA := by unfold tyA; decide
     rw [this]; decide
@@ -194,7 +196,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
-      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
+      NewobjectSite H rt 4096 s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 4128 24 ∧ Extracted.program.DataLoaded s.mem ∧

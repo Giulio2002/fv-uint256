@@ -28,6 +28,9 @@ theorem liveSep_two {a e c f : Nat} {rt : List (Nat × Nat)} (h1 : Outside a (e 
 
 /-! ### Single-conjunct wrappers of the contracts' preconditions (the auditor matches the whole `pre s_c` against ONE conjunct; reducible for its first `isDefEq`). -/
 
+@[reducible] def NewobjectSite (H : RtReady) (rt : List (Nat × Nat)) (stack : Nat) (s : State) : Prop :=
+  NewobjectPre64 stack s ∧ Ready64 H rt [(s.regs 0).toNat] s
+
 @[reducible] def NewobjectLiveSite (R : RtInv) (addr stack : Nat) (L : List (Nat × Nat)) (b : Nat) (s : State) : Prop :=
   NewobjectPre64 stack s ∧ StackRoom64 s stack 1 ∧
     LiveAt R addr [(s.regs 0).toNat] L b (newobjectRound64 s) (s.regs 14).toNat s.mem (liveWin64 s stack 1)

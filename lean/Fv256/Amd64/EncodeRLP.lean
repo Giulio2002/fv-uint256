@@ -93,6 +93,8 @@ namespace Witness
 
 open Fv256.Inhab
 
+open Fv256.CallSites
+
 /-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): `s0`'s memory at the allocator's entry, `RSP` at the call frame
 (`s0`'s `RSP` less 56), `RAX` the `big.Int` type descriptor. -/
 def csNew : Amd64.State :=
@@ -101,7 +103,7 @@ def csNew : Amd64.State :=
 theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr]; rfl
 
 set_option maxRecDepth 100000 in
-theorem csNew_pre : NewobjectPre64 4096 csNew ∧ Ready64 H rt [(csNew.regs 0).toNat] csNew := by
+theorem csNew_pre : NewobjectSite H rt 4096 csNew := by
   have ht : (csNew.regs 0).toNat = tyA := by decide
   refine ⟨⟨by decide, by decide, by decide⟩, ?_⟩
   show H [(csNew.regs 0).toNat] _ _ (rtView rt s0.mem)
@@ -133,7 +135,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
-      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
+      NewobjectSite H rt 4096 s_c) ∧
     ICallContract64 (Extracted.program.link impl) fn 4 stack 56 rt (fun _ => []) R
       (fun sc => sc.regs 0 = w ∧
         StrOut sc.mem (sc.regs 3).toNat (sc.regs 1).toNat (rlpBytes (rlpVal sc.mem z.toNat)) ∧

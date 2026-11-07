@@ -153,7 +153,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
 
 namespace Witness
 
-open Fv256.Amd64.DivModW
+open Fv256.Amd64.DivModW Fv256.CallSites
 
 /-- Non-vacuity of `correctness`: every hypothesis holds together for a concrete runtime (a toy allocator at
 `runtime.newobject`'s address), a concrete call of `DivMod` (distinct `z`, `x`, `y`, `m`), and the call returns. -/
@@ -161,7 +161,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     (ret : Nat) (s : Amd64.State),
     NewobjectContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
-      (NewobjectPre64 4096 s_c ∧ Ready64 H rt [(s_c.regs 0).toNat] s_c)) ∧
+      NewobjectSite H rt 4096 s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, x, y, m] s ∧
     (StackGuardOK s 0x198 ∧ StackWritable s 4256 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
