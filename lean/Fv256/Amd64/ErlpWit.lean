@@ -73,7 +73,7 @@ theorem hnew : NewobjectContract64 (Extracted.program.link impl)
 /-- the abstract writer's return state -/
 theorem wret_of {st : Nat} (s : State) (R : Nat → W64) (F : Flags) (h0 : R 0 = s.regs 1) (h3 : R 3 = 0) (h1 : R 1 = 0)
     (h4 : R 4 = s.regs 4 + 8#64) (h5 : R 5 = s.regs 5) (h14 : R 14 = s.regs 14) :
-    ICallRet64 4 st rt (fun _ => []) R0 s { s with regs := R, flags := F, rip := retAddrOf s } := by
+    ICallRetP64 4 st rt (fun _ => []) R0 (fun _ _ => True) s { s with regs := R, flags := F, rip := retAddrOf s } := by
   refine ⟨R, F, s.xmm, s.ymmHi, s.mem, s.zmmHi, s.kreg, ?_, MemFrame.refl _ _, by simp, ?_⟩
   · simp only [retState64]
     congr 1
@@ -92,7 +92,7 @@ theorem wret_of {st : Nat} (s : State) (R : Nat → W64) (F : Flags) (h0 : R 0 =
       · subst e1; simp [h1]
       simp [e0, e3, e1]
     · funext i; split <;> simp_all
-  · exact ⟨h0, h3, h1⟩
+  · exact ⟨⟨h0, h3, h1⟩, trivial⟩
 
 theorem hw (z w : BitVec 64) : ICallContract64 (Extracted.program.link impl) A0 4 stack 56 rt (fun _ => []) R0 (WP z w) := by
   intro s hpc ⟨⟨hr, _, hst, _, hw⟩, _⟩

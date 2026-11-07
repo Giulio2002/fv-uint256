@@ -82,7 +82,7 @@ theorem hnew : NewobjectContract (Extracted.program.link impl)
 /-- the abstract writer's return state -/
 theorem wret_of {st : Nat} (s : State) (R : Nat → W64) (F : Flags) (h0 : R 0 = s.regs 2) (h1 : R 1 = 0) (h2 : R 2 = 0)
     (h18 : R 18 = s.regs 18) (h28 : R 28 = s.regs 28) (h29 : R 29 = s.regs 29) (hF : F = s.flags) :
-    ICallRet 4 st rt (fun _ => []) R0 s { s with regs := R, flags := F, pc := s.regs 30 } := by
+    ICallRetP 4 st rt (fun _ => []) R0 (fun _ _ => True) s { s with regs := R, flags := F, pc := s.regs 30 } := by
   refine ⟨R, F, s.vregs, s.mem, s.excl, s.exclPass, ?_, MemFrame.refl _ _, by simp, ?_⟩
   · simp only [retStateX]
     congr 1
@@ -91,7 +91,7 @@ theorem wret_of {st : Nat} (s : State) (R : Nat → W64) (F : Flags) (h0 : R 0 =
     by_cases h : i = 18 ∨ i = 28 ∨ i = 29
     · rcases h with rfl | rfl | rfl <;> simp [h18, h28, h29]
     · simp only [h, ite_false, List.getD_nil]
-  · exact ⟨h0, h1, h2⟩
+  · exact ⟨⟨h0, h1, h2⟩, trivial⟩
 
 theorem hw (z w : BitVec 64) : ICallContract (Extracted.program.link impl) A0 4 stack 96 rt (fun _ => []) R0 (WP z w) := by
   intro s hpc ⟨⟨hr1, hr2, _⟩, _⟩
