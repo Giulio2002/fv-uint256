@@ -12,6 +12,7 @@ The model implementations of `Janus.Contracts.IfaceSatAmd64` (`ifaceeq`, for the
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Map Janus.Spec.Type Janus.Contracts
   Janus.Contracts.IfaceAmd64 Janus.Contracts.IfaceModel Janus.Contracts.Cmpstring Janus.Contracts.IfaceSatAmd64
   Janus.Contracts.CmpstringSatAmd64
+  Janus.Contracts.Iface
 
 namespace Fv256.Amd64.SetFromDecimal.Witness
 
@@ -19,6 +20,7 @@ set_option maxRecDepth 100000
 set_option linter.unusedSimpArgs false
 
 theorem model_if : Ifaceeq (Extracted.program.link implA) ifA R0 := by
+  rw [linked_eq]
   intro s hpc ⟨hpre, hok⟩
   obtain ⟨⟨he1, he2, hd⟩, ⟨hg1, hg2, hg3⟩, hal, hd1, hd2, hst, hx15, hdf, hra, hout⟩ := hpre
   simp only [R0_depth, R0_priv, outside_cons, outside_nil, and_true] at hout hd1 hd2 hst
@@ -84,7 +86,7 @@ theorem loop (s : State) (hr : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47)
       R 4 = s.regs 4 → R 5 = s.regs 5 → R 14 = s.regs 14 →
       StrOK s.mem a la → StrOK s.mem b lb →
       strCmp s.mem a b la lb = strCmp s.mem (s.regs 0).toNat (s.regs 1).toNat (s.regs 3).toNat (s.regs 7).toNat →
-      ReachesRet (Extracted.program.link implA) (retAddrOf s) { s with regs := R, flags := F, rip := BitVec.ofNat 64 cmA } (CmpRet64 16 s) := by
+      ReachesRet linked (retAddrOf s) { s with regs := R, flags := F, rip := BitVec.ofNat 64 4204160 } (CmpRet64 16 s) := by
   intro la
   induction la with
   | zero =>
@@ -129,7 +131,7 @@ theorem loop (s : State) (hr : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47)
         · intro h; have := congrArg BitVec.toNat h
           simp only [BitVec.toNat_sub, BitVec.toNat_ofNat, BitVec.toNat_ofNat] at this; omega
         · intro h; rw [h]; simp
-      janus64_run [h0, h1, h3, h7, h4] until [cmA]
+      janus64_run [h0, h1, h3, h7, h4] until [4204160]
       all_goals simp only [e _ hx, e _ hy, hsub, Nat.mod_eq_of_lt (by omega : s.mem.readLE a 1 < 4294967296),
         Nat.mod_eq_of_lt (by omega : s.mem.readLE b 1 < 4294967296)] at *
       all_goals first
@@ -156,13 +158,14 @@ theorem loop (s : State) (hr : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47)
 
 /-- The byte loop meets the contract. -/
 theorem hcmp : CmpstringContract64 (Extracted.program.link implA) cmA 16 := by
+  rw [linked_eq]
   intro s hpc ⟨⟨hr, _, hst, _, hw⟩, hsa, hsb⟩
   have hacc : s.mem.accessible (s.regs 4).toNat 8 false = true :=
     Janus.Arm64.Memory.accessible_mono _ (Janus.Arm64.Memory.accessible_read_of_write _ hw) (by omega) (by omega)
   have key := loop s hr hacc (by omega) (s.regs 3).toNat s.regs s.flags (s.regs 0).toNat (s.regs 1).toNat
     (s.regs 7).toNat (by simp) (by simp) (by simp) (by simp) (s.regs 3).isLt (s.regs 7).isLt rfl rfl rfl
     hsa hsb rfl
-  have hs : ({ s with regs := s.regs, flags := s.flags, rip := BitVec.ofNat 64 cmA } : State) = s := by
+  have hs : ({ s with regs := s.regs, flags := s.flags, rip := BitVec.ofNat 64 4204160 } : State) = s := by
     cases s; simp only at hpc ⊢; rw [hpc]
   rw [hs] at key
   exact key
