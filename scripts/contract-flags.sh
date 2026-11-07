@@ -6,6 +6,8 @@ contract_flags() {
     IntoBig|ToBig) echo "--contract runtime.gcWriteBarrier1 --contract runtime.gcWriteBarrier2 --contract runtime.newobject";;
     DivMod|EncodeRLP) echo "--contract runtime.newobject";;
     Value) echo "--contract runtime.convTstring --contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic";;
+    MarshalText) echo "--contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic --contract runtime.stringtoslicebyte";;
+    MarshalJSON) echo "--contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic --contract runtime.concatbyte3";;
     Hex) echo "--contract runtime.slicebytetostring";;
     Dec|String|PrettyDec) echo "--contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic";;
     Format) echo "--contract runtime.gcWriteBarrier1 --contract runtime.gcWriteBarrier2 --contract runtime.newobject --contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic --contract fmt.Fprint --contract math/big.(*Int).Format --contract runtime.stringtoslicebyte --contract runtime.typeAssert";;
