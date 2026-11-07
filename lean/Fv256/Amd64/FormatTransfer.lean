@@ -327,10 +327,15 @@ theorem view_frame {rs : List (Nat × Nat)} {m m' : Memory} {r stack : Nat} (hfr
       rw [pfl_out] at hp; omega
     rw [inRs_of_outside hw hin.1 hin.2]; simp
 
+/-- layout facts about the callee-owned ranges `rt` (state-level, so the statement has no pure premise on `rt`) -/
+def PreRt (rt : List (Nat × Nat)) : Prop :=
+  (∀ r ∈ rt, 32 ≤ r.1) ∧ (∀ d ∈ Extracted.program.data, Outside d.base d.bytes.length rt) ∧
+  Outside 5163273 256 rt ∧ Outside 5176582 256 rt ∧ Outside 5142664 256 rt
+
 /-- the assembly precondition, at the entry state `s` -/
 def PreF (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat)) (stack b0 : Nat) (fW fP fF fWr zv : Nat)
     (z tab data : BitVec 64) (s : State) : Prop :=
-  PreCommon rt stack s ∧
+  PreRt rt ∧ PreCommon rt stack s ∧
   (z.toNat = 0 → PreNilE R rt stack tab s ∧
     (tab.toNat ≠ 0 → H [descA, tyOf s tab] (s.regs 14).toNat ((s.regs 4).toNat - 80) (rtView R.priv s.mem))) ∧
   (z.toNat ≠ 0 → PreFastE rt stack z tab data fW fP fF fWr s ∧ PreFastX H rt stack z s ∧

@@ -45,13 +45,11 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
       (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»))
     (hst : RtContract64 (Extracted.program.ofImpl impl) stAddr rt 4096 H stringtoslicebyteSpec)
     (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res)
-    (h4568 : 4568 ≤ stack) (hrt32 : ∀ r ∈ rt, 32 ≤ r.1)
-    (hdrt : ∀ d ∈ Extracted.program.data, Outside d.base d.bytes.length rt)
-    (ht1 : Outside 5163273 256 rt) (ht2 : Outside 5176582 256 rt) (ht3 : Outside 5142664 256 rt)
+    (h4568 : 4568 ≤ stack)
     (z tab data ch : BitVec 64)
-    (hW : ICallContract64 (Extracted.program.link impl) fW 1 stack 80 rt (fun _ => []) RW (fun _ => True))
-    (hP : ICallContract64 (Extracted.program.link impl) fP 1 stack 80 rt (fun _ => []) RP (fun _ => True))
-    (hF : ICallContract64 (Extracted.program.link impl) fF 2 stack 80 rt (fun _ => []) RF (fun _ => True))
+    (hW : ICallContract64 (Extracted.program.link impl) fW 1 stack 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2))
+    (hP : ICallContract64 (Extracted.program.link impl) fP 1 stack 80 rt (fun _ => []) RP (fun _ => True) (RtPreserves64 R2))
+    (hF : ICallContract64 (Extracted.program.link impl) fF 2 stack 80 rt (fun _ => []) RF (fun _ => True) (RtPreserves64 R2))
     (hWr : ICallContract64 (Extracted.program.link impl) fWr 4 stack 80 rt (fun _ => []) RWr
       (FastWP data (Fv256.FormatSpec.fastBytes zv (ch.toNat % 2 ^ 32))))
     (hFp : ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 stack 80 rt (fun _ => [])
@@ -59,7 +57,6 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
     (hBf : ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 80 rt (fun _ => [])
       RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat zv ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
         (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32))
-    (hpres : CalleePreservesRt R2 rt stack)
     (hbig : ∀ S0 S : State, z.toNat ≠ 0 → FPre rt stack z tab data fW fP fF fWr S0 → S0.mem.readLE z.toNat 32 = zv →
       NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) →
       S.rip = BitVec.ofNat 64 (Extracted.entry + 0x1cc) → FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S →
@@ -85,7 +82,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
       PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s)
     (Q := fun s s' => ABIReturn s s' ∧ _) ?_ (fun ret s hret hs hp => ⟨ret, hret, hs, hp⟩) (fun _ _ _ _ _ _ h => h)
   intro s hrip ⟨ret, hret, hs, hpre⟩
-  obtain ⟨hc, hnil, hfast⟩ := hpre
+  obtain ⟨⟨hrt32, hdrt, ht1, ht2, ht3⟩, hc, hnil, hfast⟩ := hpre
   have hr0 : s.regs 0 = z := hs.args 0 (by simp)
   have hr3 : s.regs 3 = tab := hs.args 1 (by simp)
   have hr1 : s.regs 1 = data := hs.args 2 (by simp)
@@ -148,8 +145,10 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
       exact hfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
     have hxS0 : S0.xmm 15 = 0 := by rw [hxmm]; exact hx0
     have hdfS0 : S0.df = false := by rw [hdf]; exact hdf0
+    have hwR' : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) R2.rt := by
+      rw [hrn, show (s.regs 4).toNat - 72 - 8 - stack = (s.regs 4).toNat - 80 - stack by omega]; exact hwin
     have hret47 : S0.mem.readLE ((S0.regs 4).toNat + 72) 8 < 2 ^ 47 := by rw [hra]; exact hretv
-    have hrt := fast_amd64 impl rt H stack fW fP fF fWr RW RP RF RWr z tab data hI hW hP hF S0 hWr' hcL hcP hc2L hrt32 hr hfpre
+    have hrt := fast_amd64 impl R2 rt H stack fW fP fF fWr RW RP RF RWr z tab data hI hW hP hF S0 hWr' hcL hcP hc2L hrt32 hr hfpre hwR'
       h4568 xdl hdrt ht1 ht2 ht3 xg1 xg2 xg3 xgo xgd hxS0 hdfS0 xH1 xH2 xH3 xH4 xH5 hret47
     obtain ⟨k, S', hsteps, t, ht, hrip', hq'⟩ := hrt
     simp only [List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false] at ht
@@ -163,13 +162,13 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
       refine ⟨hfr.trans hfrm (fun a n h => ?_), hwr, hph, hch⟩
       simp only [outside_append] at h
       exact ⟨h.2, h.1⟩
-    · obtain ⟨hfi, hnp⟩ := hq'
+    · obtain ⟨hfi, hk, hnp⟩ := hq'
       rw [hz7] at hnp
       have hfi' := hfi
       obtain ⟨i4, i5, i14, ix, idf, ifs, ifr, i50, i58, i60, i68⟩ := hfi'
       have hinv0 : R2.inv b0 [] (S0.regs 14).toNat (view R2.rt [] S0.mem) := by
         rw [hr14, view_frame hfr hreg hstk hwin]; exact hinv
-      have hinv1 := hpres S0 S' b0 ifr i14 hinv0
+      have hinv1 : R2.inv b0 [] (S'.regs 14).toNat (view R2.rt [] S'.mem) := by rw [i14]; exact hk b0 [] hinv0
       have hfi2 : FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S' := by rw [hz7] at hfi; exact hfi
       obtain ⟨k2, S2, hs2, hr2, hq2⟩ := hbig S0 S' hz hfpre hzv0 hnp hrip' hfi2 hinv1
       refine ⟨k + k2, S2, hsteps.trans hs2, hr2, ?_⟩

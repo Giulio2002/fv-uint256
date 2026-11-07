@@ -80,6 +80,40 @@ end Fv256.FormatFast
 namespace Fv256.FormatFast
 open Janus.Amd64
 
+/-- the runtime invariant of `R2` survives from `S` to `S'` (for every budget and live set), the goroutine register being `S.regs 14` -/
+def RPres (R2 : Janus.Contracts.RtInv) (S S' : Janus.Amd64.State) : Prop :=
+  ∀ b L, R2.inv b L (S.regs 14).toNat (Janus.Contracts.view R2.rt L S.mem) →
+    R2.inv b L (S.regs 14).toNat (Janus.Contracts.view R2.rt L S'.mem)
+
+theorem RPres.refl (R2 : Janus.Contracts.RtInv) (S : Janus.Amd64.State) : RPres R2 S S := fun _ _ h => h
+
+theorem RPres.trans {R2 : Janus.Contracts.RtInv} {S1 S2 S3 : Janus.Amd64.State} (h12 : RPres R2 S1 S2) (h23 : RPres R2 S2 S3)
+    (e : S2.regs 14 = S1.regs 14) : RPres R2 S1 S3 := by
+  intro b L h
+  have := h12 b L h
+  rw [← e] at this ⊢
+  exact h23 b L this
+
+theorem RPres.of_mem {R2 : Janus.Contracts.RtInv} {S S' : Janus.Amd64.State} (hm : S'.mem = S.mem) : RPres R2 S S' := by
+  intro b L h; rw [hm]; exact h
+
+/-- one stage of the query chain: `S0 → S` preserved, the call `S → S'` preserved, a register-only step `S' → S''` -/
+theorem rpres_step {R2 : Janus.Contracts.RtInv} {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat}
+    {S0 S S' S'' : Janus.Amd64.State} (hk : RPres R2 S0 S) (hq : RPres R2 S S') (hm : S''.mem = S'.mem)
+    (hi : FInv rt stack z tab data ch S0 S) (hi2 : FInv rt stack z tab data ch S0 S') : RPres R2 S0 S'' :=
+  ((hk.trans hq hi.2.2.1).trans (RPres.of_mem hm) hi2.2.2.1)
+
+/-- the `preserves` fact of an icall (call state `sc`, same goroutine and same view as `S`), as `RPres` -/
+theorem rpres_call {R2 : Janus.Contracts.RtInv} {S S' sc : Janus.Amd64.State} {m : Janus.Arm64.Memory}
+    (hpr : Janus.Contracts.ICall.RtPreserves64 R2 sc m) (hsc14 : sc.regs 14 = S.regs 14)
+    (hv : ∀ L, Janus.Contracts.view R2.rt L sc.mem = Janus.Contracts.view R2.rt L S.mem)
+    (h14 : S'.regs 14 = S.regs 14) (hm : S'.mem = m) : RPres R2 S S' := by
+  intro b L h
+  rw [hm]
+  have := hpr b L (by rw [hsc14, hv]; exact h)
+  rw [hsc14] at this
+  exact this
+
 theorem sub8_toNat (x : BitVec 64) (h : 8 ≤ x.toNat) : (x - 8#64).toNat = x.toNat - 8 := by
   rw [BitVec.toNat_sub]; simp; omega
 

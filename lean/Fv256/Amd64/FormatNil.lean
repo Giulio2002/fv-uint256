@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.GrabRet
 import Fv256.SpecFormat
 
 /-!
@@ -135,7 +136,7 @@ theorem tail (impl : List Amd64.Segment) (R : IfaceModel) (rt : List (Nat × Nat
   have hr64 : S1.mem.readLE ((S0.regs 4).toNat + 64) 8 = S0.mem.readLE ((S0.regs 4).toNat + 64) 8 :=
     mfr.readLE _ _ (hT.of_sub (by omega) (by omega))
   janus64_run [hr72, hr64, hr47, e1, e2, e3, e4, e4', Janus.Spec.strBytes_writeLE] calls [hFp]
-  rename_i junk f x yh m zh kr hkeep hfr hR
+  fv_ret_names junk f x yh m zh kr hpr hfr hR
   have hS1 : S1.regs 3 = BitVec.ofNat 64 (wOf R S0 tab) := by rw [← m3]; simp
   have hA : S0.regs 4 + 48#64 = BitVec.ofNat 64 ((S0.regs 4).toNat + 48) := by
     apply BitVec.eq_of_toNat_eq; rw [BitVec.toNat_add]; simp
