@@ -61,7 +61,7 @@ theorem pd_iter1 (s : State) (b c y sepb : Nat) (M : Memory) (hpc : s.pc = BitVe
         Fv256.B.wv S'.mem (b + 320) 4 = y / 10 ^ 19 ∧ Fv256.B.wv S'.mem (b + 352) 4 = 10 ^ 19 ∧
         (∀ k, k < decLen (y % 10 ^ 19) → S'.mem.readLE (b + 80 + decLen (y % 10 ^ 19) - 1 - k) 1 = 48 + y / 10 ^ k % 10) ∧
         S'.mem.readLE (b + 416) 1 = sepb ∧
-        MemFrame M S'.mem [(b - 368, b + 99), (b + 232, b + 392)] ∧ TabsOK S'.mem) := by
+        MemFrame M S'.mem [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)] ∧ TabsOK S'.mem) := by
   have hc1 : pdE + 0x5000 < 2 ^ 47 := by decide
   tabs_data hd [hw]
   have hdnz : ¬ (M.readLE (b + 352) 8 + 18446744073709551616 * M.readLE (b + 352 + 8) 8 +
@@ -77,21 +77,23 @@ theorem pd_iter1 (s : State) (b c y sepb : Nat) (M : Memory) (hpc : s.pc = BitVe
   rename_i ha hpcA hspA h18 h28 h29 h30 hregs hq hrm hfr
   simp [setReg] at h18 h28 h29 h30 hspA
   rename State => sU
-  have hwr : ∀ r ∈ [(b - 368, b + 99), (b + 232, b + 392)], s.mem.accessible r.1 (r.2 - r.1) true = true := by
+  have hwr : ∀ r ∈ [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)], s.mem.accessible r.1 (r.2 - r.1) true = true := by
     intro r hr
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
-    rcases hr with rfl | rfl
+    rcases hr with rfl | rfl | rfl
     · exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
     · exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
-  have wr : ∀ {m1 m2 : Memory} {a k v : Nat}, MemFrame m1 m2 [(b - 368, b + 99), (b + 232, b + 392)] →
-      ((b - 368 ≤ a ∧ a + k ≤ b + 99) ∨ (b + 232 ≤ a ∧ a + k ≤ b + 392)) →
-      MemFrame m1 (m2.writeLE a k v) [(b - 368, b + 99), (b + 232, b + 392)] := by
+    · exact accessible_sub hw (Or.inr rfl) (by omega) (by omega)
+  have wr : ∀ {m1 m2 : Memory} {a k v : Nat}, MemFrame m1 m2 [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)] →
+      ((b - 368 ≤ a ∧ a + k ≤ b - 8) ∨ (b + 8 ≤ a ∧ a + k ≤ b + 99) ∨ (b + 232 ≤ a ∧ a + k ≤ b + 392)) →
+      MemFrame m1 (m2.writeLE a k v) [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)] := by
     intro m1 m2 a k v h hr
-    rcases hr with hr | hr
+    rcases hr with hr | hr | hr
     · exact h.writeLE v (List.mem_cons_self ..) hr.1 hr.2
-    · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_singleton_self _)) hr.1 hr.2
-  have hfrM : MemFrame s.mem sU.mem [(b - 368, b + 99), (b + 232, b + 392)] := by
-    refine MemFrame.trans (rs := [(b - 368, b + 99), (b + 232, b + 392)]) (rs' := [(b - 368, b + 99), (b + 232, b + 392)]) ?_ (hfr.mono ?_)
+    · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_cons_self ..)) hr.1 hr.2
+    · exact h.writeLE v (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ (List.mem_singleton_self _))) hr.1 hr.2
+  have hfrM : MemFrame s.mem sU.mem [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)] := by
+    refine MemFrame.trans (rs := [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)]) (rs' := [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)]) ?_ (hfr.mono ?_)
       (fun a n h => ⟨h, h⟩)
     · repeat' first
         | exact MemFrame.refl _ _
@@ -243,8 +245,8 @@ theorem pd_iter1 (s : State) (b c y sepb : Nat) (M : Memory) (hpc : s.pc = BitVe
       have := Fv256.E.digit_mod y k 19 (by omega)
       omega
     · exact hs416
-    · refine MemFrame.trans (rs := [(b - 368, b + 99), (b + 232, b + 392)]) (rs' := [(b - 368, b + 99), (b + 232, b + 392)]) hfrM
-        (MemFrame.trans (rs := [(b - 368, b + 99), (b + 232, b + 392)]) (rs' := [(b - 368, b + 99), (b + 232, b + 392)]) ?_ (bfr.mono ?_)
+    · refine MemFrame.trans (rs := [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)]) (rs' := [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)]) hfrM
+        (MemFrame.trans (rs := [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)]) (rs' := [(b - 368, b - 8), (b + 8, b + 99), (b + 232, b + 392)]) ?_ (bfr.mono ?_)
           (fun a n h => ⟨h, h⟩)) (fun a n h => ⟨h, h⟩)
       · repeat' first
           | exact MemFrame.refl _ _
