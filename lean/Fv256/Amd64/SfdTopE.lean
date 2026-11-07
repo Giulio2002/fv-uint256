@@ -1,0 +1,107 @@
+import Fv256.Amd64.SfdTopD
+
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64
+  Fv256.Amd64.SfdEnv Fv256.Amd64.SfdToError Fv256.Amd64.SfdBridge Fv256.Amd64.SfdPw Fv256.I Fv256.Amd64.SfdFd
+  Fv256.Amd64.SfdTopSpec Fv256.Amd64.SfdTopCfg Fv256.Amd64.SfdTopBr
+
+namespace Fv256.Amd64.SfdTop
+
+theorem bytes_congr (m m' : Janus.Arm64.Memory) (p n : Nat) (h : ∀ j, j < n → m'.readLE (p + j) 1 = m.readLE (p + j) 1) :
+    (allDec (Fv256.C.bytesAt m' p) 0 n ↔ allDec (Fv256.C.bytesAt m p) 0 n) ∧
+      decSum (Fv256.C.bytesAt m' p) 0 n = decSum (Fv256.C.bytesAt m p) 0 n := by
+  refine ⟨?_, decSum_congr _ _ 0 n (fun k _ hk => h k (by omega))⟩
+  unfold allDec
+  constructor
+  · intro H k h1 h2; have := H k h1 h2; simpa [Fv256.C.bytesAt, h k h2] using this
+  · intro H k h1 h2; have := H k h1 h2; simpa [Fv256.C.bytesAt, h k h2] using this
+
+theorem multOK_frame (C : SfdCfg) {z lo hi : Nat} {m m' : Janus.Arm64.Memory} (hf : MemFrame m m' [(lo, hi)])
+    (h : MultOK C z lo hi m) : MultOK C z lo hi m' := by
+  obtain ⟨a, o, H⟩ := h
+  have o' := o
+  simp only [outside_cons, outside_nil, and_true] at o'
+  refine ⟨by rw [hf.accessible]; exact a, o, fun k hk1 hk2 => ?_⟩
+  obtain ⟨h1, h2, h3, h4⟩ := H k hk1 hk2
+  have h4' := h4
+  simp only [outside_cons, outside_nil, and_true] at h4'
+  have e1 : m'.readLE (C.mulTab + 8 * k) 8 = m.readLE (C.mulTab + 8 * k) 8 :=
+    hf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
+  rw [e1, hf.accessible]
+  refine ⟨h1, h2, ?_, h4⟩
+  unfold Janus.Spec.val256 at h3 ⊢
+  rw [hf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact h3
+
+theorem outside_hi {a n lo hi hi' z : Nat} (h : Outside a n [(lo, hi), (z, z + 32)]) (hh : hi' ≤ hi) :
+    Outside a n [(lo, hi'), (z, z + 32)] := by
+  simp only [outside_cons, outside_nil, and_true] at h ⊢
+  omega
+
+theorem multOK_hi (C : SfdCfg) {z lo hi hi' : Nat} {m : Janus.Arm64.Memory} (h : MultOK C z lo hi m) (hh : hi' ≤ hi) :
+    MultOK C z lo hi' m := by
+  obtain ⟨a, o, H⟩ := h
+  refine ⟨a, outside_hi o hh, fun k hk1 hk2 => ?_⟩
+  obtain ⟨h1, h2, h3, h4⟩ := H k hk1 hk2
+  exact ⟨h1, h2, h3, outside_hi h4 hh⟩
+
+theorem chunkAll_hi (C : SfdCfg) {R : RtInv} {R2 : IfaceModel} {L : List (Nat × Nat)} {b pS nS lo hi hi' : Nat}
+    {m : Janus.Arm64.Memory} (h : ChunkAll C R R2 L b pS nS lo hi m) (hh : hi' ≤ hi) : ChunkAll C R R2 L b pS nS lo hi' m := by
+  intro sp sl hs1 hs2 hl1 hl2
+  obtain ⟨c1, c2, c3, c4, c5, c6, c7, c8⟩ := h sp sl hs1 hs2 hl1 hl2
+  exact ⟨c1, c2, c3, c4, c5, by omega, c7, c8⟩
+
+theorem chunkAll_frame (C : SfdCfg) {R : RtInv} {R2 : IfaceModel} {L : List (Nat × Nat)} {b pS nS lo hi : Nat}
+    {m m' : Janus.Arm64.Memory} (hf : MemFrame m m' [(lo, hi)]) (h : ChunkAll C R R2 L b pS nS lo hi m)
+    {pS' nS' : Nat} (h1 : pS ≤ pS') (h2 : pS' + nS' ≤ pS + nS) : ChunkAll C R R2 L b pS' nS' lo hi m' := by
+  intro sp sl hs1 hs2 hl1 hl2
+  obtain ⟨c1, c2, c3, c4, c5, c6, c7, c8⟩ := h sp sl (by omega) (by omega) hl1 hl2
+  exact ⟨c1, c2, c3, by rw [hf.accessible]; exact c4, c5, c6, c7, c8⟩
+
+theorem fdpre_of (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (Sc : State) (k len : Nat) (hmf : MemFrame s.mem Sc.mem [(lo, hi)])
+    (hEnvSc : Fv256.Amd64.SfdEnv.Env R R2 T b L lo hi Sc)
+    (h4 : Sc.regs 4 = s.regs 4 - 72#64) (h14 : Sc.regs 14 = s.regs 14) (hret : Fv256.C.RetOK Sc)
+    (hk : k + len ≤ nS.toNat) (hlen : len ≤ 78)
+    (r0 : Sc.regs 0 = z) (r3 : Sc.regs 3 = pS + BitVec.ofNat 64 k) (r1 : Sc.regs 1 = BitVec.ofNat 64 len)
+    (hfin : allDec (Fv256.C.bytesAt s.mem (pS.toNat + k)) 0 len →
+      decSum (Fv256.C.bytesAt s.mem (pS.toNat + k)) 0 len < 2 ^ 256) :
+    FdPre R R2 T b L lo ((s.regs 4).toNat - 40) z (pS + BitVec.ofNat 64 k) (BitVec.ofNat 64 len) Sc := by
+  obtain ⟨_, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hEnv0 := env_to hEnv
+  have hEnv' := hEnv0
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
+  have hnS := nS.isLt
+  have hs72 : (Sc.regs 4).toNat = (s.regs 4).toNat - 72 := by rw [h4]; exact bv_sub_c _ 72 (by decide) (by omega)
+  have hpk : (pS + BitVec.ofNat 64 k).toNat = pS.toNat + k := add_toNat pS k (by simp only [Nat.reducePow]; omega)
+  have hlN : (BitVec.ofNat 64 len).toNat = len := by simp only [BitVec.toNat_ofNat, Nat.reducePow]; omega
+  refine ⟨hret, r0, r3, r1, by rw [hlN]; exact hlen, mod_to hMod, ?_, by rw [hs72]; omega, by rw [hs72]; omega, ?_, ?_, ?_, ?_, ?_,
+    hzR, hzP, hzS, (by rw [h14]; exact hzg), ⟨by rw [hpk, hlN]; omega, ?_⟩, ?_, ?_, ?_, ?_⟩
+  · exact Env.shrink hEnvSc (Nat.le_refl _) (by omega) (by rw [hs72]; omega) (by rw [hs72]; omega)
+  · exact mult_to (multOK_hi extCfg (multOK_frame extCfg hmf hMult) (by omega))
+  · rw [hmf.accessible]; exact hEOF
+  · exact outside_hi hEOFo (by omega)
+  · exact ⟨hzw, by rw [hmf.accessible]; exact hz⟩
+  · omega
+  · by_cases hl0 : len = 0
+    · left; rw [hlN]; exact hl0
+    · right; rw [hpk, hlN, hmf.accessible]
+      exact Arm64.Memory.accessible_mono _ (hp.resolve_left (by omega)) (by omega) (by omega)
+  · by_cases hl0 : len = 0
+    · left; rw [hlN]; exact hl0
+    · right; rw [hpk, hlN]
+      have := hpW.resolve_left (by omega)
+      omega
+  · by_cases hl0 : len = 0
+    · left; rw [hlN]; exact hl0
+    · right; rw [hpk, hlN]
+      have := hpz.resolve_left (by omega)
+      omega
+  · rw [hpk, hlN]
+    exact chunk_to (chunkAll_hi extCfg (chunkAll_frame extCfg hmf hCA (by omega) (by omega)) (by omega))
+  · intro hd
+    have hbc := bytes_congr s.mem Sc.mem (pS.toNat + k) len (fun j hj =>
+      hmf.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; have := hpW.resolve_left (by omega); omega))
+    rw [hpk, hlN] at *
+    exact hbc.2 ▸ hfin (hbc.1.1 hd)
+
+end Fv256.Amd64.SfdTop
