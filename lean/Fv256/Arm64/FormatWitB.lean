@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.FormatCS
 import Fv256.Arm64.FormatTransfer
 import Fv256.Arm64.FormatWitA
 
@@ -109,7 +110,7 @@ theorem hexdig16 {n : Nat} (h : Fv256.C.hexDigits 16 n) : n = 2 := by
 
 theorem hw_of {a : List Nat} (ha : (∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) (g sp : Nat) {X : List (Nat × Nat)}
     {M : Memory} (hMF : MemFrame s0.mem M X) : Hw a g sp (rtView rtT M) := by
-  refine ⟨ha, ?_, ?_⟩
+  refine ⟨Or.inl ha, ?_, ?_⟩
   · rw [rtView_acc, hMF.accessible]; decide
   · rw [rtView_acc, hMF.accessible]; decide
 
@@ -204,9 +205,21 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : IfaceModel) (H : RtRead
         (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
-    PreF R H R2 rt 4608 0x400 fa fa fa fa 16 z tab data s ) := by
+    PreF R H R2 rt 4608 0x400 fa fa fa fa 16 z tab data s ) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Arm64.FormatCS.TypeAssertSite R H s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre rt 4096 H stringtoslicebyteSpec s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 fa ∧ ICallPre 1 4608 120 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 fa ∧ ICallPre 1 4608 120 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 fa ∧ ICallPre 2 4608 120 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 fa ∧ ICallPre 4 4608 120 rt (Fv256.FormatFastA64.FastWP data (Fv256.FormatSpec.fastBytes 16 (ch.toNat % 2 ^ 32))) s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "fmt.Fprint") ∧ ICallPre 5 4608 80 rt (Fv256.Arm64.FormatNil.FpArg data) s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "math/big.(*Int).Format") ∧ ICallPre 4 4608 120 rt (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P 16 ∧ sc.regs 1 = tab ∧ sc.regs 2 = data ∧ (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) s_c) := by
   refine ⟨implAll, R0, Hw, R2, rtT, amA, R0z, R0z, zV, tabV, dataV, chV, ret, s0,
     ⟨implOK, Janus.Contracts.IfaceModel.R0_laws, by rw [addr_ta]; exact model_ta, by rw [addr_new]; exact model_new, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2, model1, model2, by decide⟩,
-    ⟨stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun s b L h => h), stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun s b L h => h), stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun s b L h => h), stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun _ => trivial), by rw [addr_fp]; exact stub_gen fpAddr (Or.inr (Or.inl rfl)) _ _ _ _ _ _ (fun _ => trivial), by rw [addr_bf]; exact stub_gen bfAddr (Or.inr (Or.inr rfl)) _ _ _ _ _ _ (fun _ => trivial), by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩⟩
+    ⟨stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun s b L h => h), stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun s b L h => h), stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun s b L h => h), stub_gen amA (Or.inl rfl) _ _ _ _ _ _ (fun _ => trivial), by rw [addr_fp]; exact stub_gen fpAddr (Or.inr (Or.inl rfl)) _ _ _ _ _ _ (fun _ => trivial), by rw [addr_bf]; exact stub_gen bfAddr (Or.inr (Or.inr rfl)) _ _ _ _ _ _ (fun _ => trivial), by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩, Fv256.Arm64.FormatCS.csAll16 tabV dataV chV rfl⟩
 
 end Fv256.Arm64.FormatWitB
