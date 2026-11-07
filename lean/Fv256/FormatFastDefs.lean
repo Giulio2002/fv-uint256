@@ -114,3 +114,65 @@ theorem finv_of {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} 
   exact ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, hdf.trans adf, hfs.trans afs, hm ▸ afr, hm ▸ r50, hm ▸ r58,
     hm ▸ r60, hm ▸ r68⟩
 end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the invariant survives an icall: the callee returned in memory `m` (a frame of the call-state memory), registers as `retState64` leaves them -/
+theorem finv_call {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {rv e : Nat} (hi : FInv rt stack z tab data ch S0 S) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (hout : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt) (he : e ≤ (S0.regs 4).toNat + 32)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m
+      (rt ++ [((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat - 8), ((S0.regs 4).toNat - 8 + 8, e)]))
+    (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
+    (hdf : S'.df = S.df) (hfs : S'.fsBase = S.fsBase) (hm : S'.mem = m) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, adf, afs, afr, r50, r58, r60, r68⟩ := hi
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a n, (S0.regs 4).toNat + 0x50 ≤ a → a + n ≤ (S0.regs 4).toNat + 0x6c →
+      m.readLE a n = S.mem.readLE a n := by
+    intro a n h1 h2
+    rw [hfr.readLE a n (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, by omega, trivial⟩)]
+    exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)
+  refine ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, hdf.trans adf, hfs.trans afs, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r50
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r58
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem nx (b : Nat) : (b ^^^ 1 = 0 ↔ b = 1) := by
+  constructor
+  · intro h
+    have : b = (b ^^^ 1) ^^^ 1 := by rw [Nat.xor_assoc]; simp
+    rw [h] at this; simpa using this
+  · intro h; subst h; rfl
+
+theorem xor1_zero (x : BitVec 64) :
+    (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 x ^^^ 1#32)) = 0#8) ↔ x.toNat % 256 = 1 := by
+  have h3 : (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 x ^^^ 1#32))).toNat = (x.toNat % 256) ^^^ 1 := by
+    simp only [BitVec.toNat_setWidth, BitVec.toNat_xor]
+    have e1 : (1#32).toNat = 1 := rfl
+    rw [e1]
+    rw [Nat.mod_mod_of_dvd _ (Nat.pow_dvd_pow 2 (by decide : 8 ≤ 64)), Nat.xor_mod_two_pow,
+      Nat.mod_mod_of_dvd _ (Nat.pow_dvd_pow 2 (by decide : 8 ≤ 32))]
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    rw [h3] at this
+    exact (nx _).1 (by simpa using this)
+  · intro h
+    apply BitVec.eq_of_toNat_eq
+    rw [h3]
+    simpa using (nx _).2 h
+end Fv256.FormatFast
