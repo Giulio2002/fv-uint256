@@ -140,6 +140,39 @@ theorem env_sub {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)
     exact RtInv.inv_frame' (ws := [(lo, hi)]) hF (fun r hr => by
       simp only [List.mem_singleton] at hr; subst hr; exact Or.inl e9) e17
 
+/-- the environment of the window `[lo, hi3)` after further stores in `[lo, hi)`: from the environment `hEnv4` of an earlier state `S4`
+(same window) and the original environment `hEnv` of the wider window (for the facts about static data and the runtime) -/
+theorem env_sub2 {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat} {s S4 S3 : State}
+    (hMod : Mod C R R2 T L) (hEnv : Env C R R2 T b L lo hi s) (hEnv4 : Env C R R2 T b L lo hi3 S4)
+    (hF : MemFrame S4.mem S3.mem [(lo, hi)])
+    (hr14 : S3.regs 14 = S4.regs 14) (hr14s : S4.regs 14 = s.regs 14) (hh3 : hi3 ≤ hi) (h4 : lo ≤ (S3.regs 4).toNat)
+    (h4' : (S3.regs 4).toNat + 8 ≤ hi3) (h8 : (S3.regs 4).toNat % 8 = 0) :
+    Env C R R2 T b L lo hi3 S3 := by
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
+  obtain ⟨f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18⟩ := hEnv4
+  obtain ⟨m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11⟩ := hMod
+  have hgz : (S3.regs 14).toNat = (S4.regs 14).toNat := by rw [hr14]
+  have e13' : (S4.regs 14).toNat + 16 + 8 ≤ lo ∨ hi ≤ (S4.regs 14).toNat + 16 := by rw [hr14s]; exact e13
+  refine ⟨h4, h4', f3, h8, ?_, by rw [hgz]; exact f6, ?_, ?_, f9, f10, by rw [hgz]; exact f11,
+    by rw [hgz]; exact f12, by rw [hgz]; exact f13, f14, ?_, ?_, ?_, f18⟩
+  · rw [hF.accessible]; exact f5
+  · rw [hgz, hF.accessible]; exact f7
+  · rw [hgz, hF.readLE _ _ (by
+      simp only [outside_cons, outside_nil, and_true]
+      have := e13'; omega)]; exact f8
+  · refine StaticOK.frame f15 hF ?_
+    intro r hr
+    exact e14 r hr
+  · rw [hr14]; refine m1.env_frame _ _ _ f16 (Janus.Spec.Map.Agrees.of_memFrame hF ?_)
+    intro a ha
+    obtain ⟨r, hr, h1, h2⟩ := ha
+    have a1 := MemFrame.outside_mem e10 hr
+    simp only [outside_cons, outside_nil, and_true]
+    omega
+  · rw [hgz]
+    exact RtInv.inv_frame' (ws := [(lo, hi)]) hF (fun r hr => by
+      simp only [List.mem_singleton] at hr; subst hr; exact Or.inl e9) f17
+
 /-- the bytes of the string are the same in the call state `S3` as in the entry state `s` -/
 theorem str_same {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
     {dst p n : BitVec 64} {s : State} {M3 : Janus.Arm64.Memory}
