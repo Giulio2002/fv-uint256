@@ -8,6 +8,7 @@ import Fv256.GrabLive
 import Fv256.Amd64.ScanB1
 import Fv256.Amd64.ScanB2b
 import Fv256.Amd64.ScanBSb
+import Fv256.Amd64.ScanB2c
 
 /-!
 # `Scan` (amd64), Level B segment: a `[]byte` source (`string(src)` through `runtime.slicebytetostring`, then the same call as for `string`)
@@ -67,49 +68,22 @@ theorem bytes_seg1 (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × N
     by simp [setRegF_apply], by simp [setRegF_apply], rfl, rfl, rfl, by simp [h0]⟩
 
 set_option maxRecDepth 100000 in
-/-- the call of `slicebytetostring` from `Scan` (a small context so that the engine's proof of the callee precondition fits the budget);
-the continuation `hk` receives the results of the contract and the state at the entry of `scanScientificFromString` -/
+/-- the call of `slicebytetostring` from `Scan`, stated over the abstract entry state `S0` (no store chain in the context): the callee
+precondition `hP` is an explicit hypothesis (proved by `sb_pre`); the continuation `hk` receives the results of the contract and the
+state at the entry of `scanScientificFromString` -/
 theorem bytes_call2 (impl : List Janus.Amd64.Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat))
     (s S0 : State) (dw dst : BitVec 64) (Q : State → Prop)
     (hsb : RtLiveContract64 (Extracted.program.link impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive)
-    (hrip : S0.rip = BitVec.ofNat 64 sbAddr) (hr0 : S0.regs 0 = s.regs 4 - 40#64) (hr1 : S0.regs 1 = hdrN s dw) (hr3 : S0.regs 3 = hdrP s dw)
-    (hr4 : S0.regs 4 = s.regs 4 - 72#64) (hr5 : S0.regs 5 = s.regs 4 - 8#64) (hr14 : S0.regs 14 = s.regs 14) (hx : S0.xmm 15 = s.xmm 15)
-    (hdf0 : S0.df = s.df) (hfs : S0.fsBase = s.fsBase)
-    (hmem : S0.mem = ((((s.mem.writeLE ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE ((s.regs 4).toNat + 16) 8 5002336).writeLE
-      ((s.regs 4).toNat + 24) 8 dw.toNat).writeLE ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930331)
-    (hs8 : ((s.regs 4).toNat - 72) % 8 = 0)
-    (hbuf' : (s.regs 4).toNat - 40 = 0 ∨ ((s.regs 4).toNat - 40 ≤ 281474976710624 ∧
-      s.mem.accessible ((s.regs 4).toNat - 40) 32 true = true))
-    (hib1' : s.mem.readLE dw.toNat 8 + s.mem.readLE (dw.toNat + 8) 8 ≤ 281474976710656)
-    (hib2' : s.mem.accessible (s.mem.readLE dw.toNat 8) (s.mem.readLE (dw.toNat + 8) 8) false = true)
-    (hdS1 : s.mem.readLE dw.toNat 8 + s.mem.readLE (dw.toNat + 8) 8 ≤ (s.regs 4).toNat - 72 - 4096 ∨ (s.regs 4).toNat - 72 ≤ s.mem.readLE dw.toNat 8)
-    (hdS2 : s.mem.readLE dw.toNat 8 + s.mem.readLE (dw.toNat + 8) 8 ≤ (s.regs 4).toNat - 64 ∨ (s.regs 4).toNat - 40 ≤ s.mem.readLE dw.toNat 8)
-    (hdS3 : s.mem.readLE dw.toNat 8 + s.mem.readLE (dw.toNat + 8) 8 ≤ (s.regs 4).toNat - 72 + 8 ∨
-      (s.regs 4).toNat - 72 + 8 + 24 ≤ s.mem.readLE dw.toNat 8)
-    (hdA : s.mem.readLE dw.toNat 8 + s.mem.readLE (dw.toNat + 8) 8 ≤ (s.regs 4).toNat - 40 ∨ (s.regs 4).toNat - 40 + 32 ≤ s.mem.readLE dw.toNat 8)
-    (hgm : S0.mem.readLE ((s.regs 14).toNat + 16) 8 = s.mem.readLE ((s.regs 14).toNat + 16) 8)
-    (hg1 : (s.regs 14).toNat + 16 + 8 ≤ (s.regs 4).toNat - 72 - 4096 ∨ (s.regs 4).toNat - 72 ≤ (s.regs 14).toNat + 16)
-    (hg2 : (s.regs 14).toNat + 16 ≤ (s.regs 4).toNat - 72 ∨ (s.regs 4).toNat - 72 + 16 ≤ (s.regs 14).toNat)
-    (hLsep : ∀ r ∈ L, Outside r.fst (r.snd - r.fst)
-      ([((s.regs 4).toNat - 72 - 4096, (s.regs 4).toNat - 72), ((s.regs 4).toNat - 72 + 8, (s.regs 4).toNat - 72 + 8 + 24)] ++
-        [((s.regs 4).toNat - 72, (s.regs 4).toNat - 72 + 8)]))
-    (hokD' : R.ok sbAddr [(s.regs 4).toNat - 40, s.mem.readLE dw.toNat 8, s.mem.readLE (dw.toNat + 8) 8])
-    (hcost' : roundupsize (s.mem.readLE (dw.toNat + 8) 8) true ≤ b)
-    (hinvS : R.inv b L (s.regs 14).toNat (view R.rt L (((((s.mem.writeLE ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE ((s.regs 4).toNat + 16) 8 5002336).writeLE
-      ((s.regs 4).toNat + 24) 8 dw.toNat).writeLE ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930331)))
-    (f1 : ((((((s.mem.writeLE ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE ((s.regs 4).toNat + 16) 8 5002336).writeLE
-      ((s.regs 4).toNat + 24) 8 dw.toNat).writeLE ((s.regs 4).toNat + 8) 8 dst.toNat).writeLE ((s.regs 4).toNat - 72) 8 4930331)).readLE
-      ((18446744073709551544 + (s.regs 4).toNat) % 18446744073709551616) 8 < 140737488355328)
-    (f2 : (18446744073709551544 + (s.regs 4).toNat) % 8 = 0)
-    (f3 : 4096 ≤ (18446744073709551544 + (s.regs 4).toNat) % 18446744073709551616)
-    (f4 : (18446744073709551544 + (s.regs 4).toNat) % 18446744073709551616 ≤ 281474976710624)
-    (f5 : s.mem.accessible ((18446744073709551544 + (s.regs 4).toNat) % 18446744073709551616 - 4096) 4128 true = true)
-    (f6 : (18446744073709551576 + (s.regs 4).toNat) % 18446744073709551616 = 0 ∨
-      (18446744073709551576 + (s.regs 4).toNat) % 18446744073709551616 ≤ 281474976710624 ∧
-        s.mem.accessible ((18446744073709551576 + (s.regs 4).toNat) % 18446744073709551616) 32 true = true)
-    (f7 : (hdrP s dw).toNat + (hdrN s dw).toNat ≤ 281474976710656)
-    (f8 : 0 < (hdrN s dw).toNat → s.mem.accessible (hdrP s dw).toNat (hdrN s dw).toNat false = true)
-    (f9 : ¬(s.regs 4).toNat - 40 = 0 → Spec.Disjoint (hdrP s dw).toNat (hdrN s dw).toNat ((s.regs 4).toNat - 40) 32)
+    (hrip : S0.rip = BitVec.ofNat 64 sbAddr)
+    (hP : RtLivePre64 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive sbAddr L b S0)
+    (hargs : argWords64 S0 3 = [(s.regs 4).toNat - 40, (hdrP s dw).toNat, (hdrN s dw).toNat])
+    (hsp0 : (S0.regs 4).toNat = (s.regs 4).toNat - 72)
+    (hstr : strBytes S0.mem (hdrP s dw).toNat (hdrN s dw).toNat = strBytes s.mem (hdrP s dw).toNat (hdrN s dw).toNat)
+    (hreg0 : S0.mem.regions = s.mem.regions) (hr14 : S0.regs 14 = s.regs 14)
+    (hr4 : S0.regs 4 = s.regs 4 - 72#64) (hr5 : S0.regs 5 = s.regs 4 - 8#64) (hx : S0.xmm 15 = s.xmm 15)
+    (hdf0 : S0.df = s.df) (hfs : S0.fsBase = s.fsBase) (hxs : s.xmm 15 = 0) (hds : s.df = false)
+    (hra : S0.mem.readLE (S0.regs 4).toNat 8 = 4930331)
+    (hacc8 : S0.mem.accessible ((s.regs 4).toNat - 72) 88 true = true)
     (hk : ∀ (S3 : State) (m M0 : Janus.Arm64.Memory) (r0 r1 : BitVec 64),
       Fv256.Amd64.ScanBSb.SbPost R stAddr b L s (hdrP s dw) (hdrN s dw) r0 r1 M0 m ((s.regs 4).toNat - 40) →
       M0 = S0.mem → S3.rip = BitVec.ofNat 64 sci → S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8) → S3.regs 3 = r0 → S3.regs 1 = r1 →
@@ -117,7 +91,21 @@ theorem bytes_call2 (impl : List Janus.Amd64.Segment) (R : RtInv) (b : Nat) (L :
       S3.fsBase = s.fsBase → S3.mem = m.writeLE ((s.regs 4).toNat - 72) 8 4930347 → m.regions = s.mem.regions →
       ReachesRet (Extracted.program.link impl) (retAddrOf s) S3 Q) :
     ReachesRet (Extracted.program.link impl) (retAddrOf s) S0 Q := by
-  sorry
+  refine ReachesRet.call_regions (hsb L b) hrip hP ?_
+  intro s' hr hq hreg
+  obtain ⟨r0, r1, r2, junk, f, x, yh, m, zh, kr, hs', hSb⟩ :=
+    Fv256.Amd64.ScanB.sb_post R L b s S0 s' _ _ _ hargs rfl hsp0 hstr hreg0 hr14 hq
+  subst hs'
+  have hret : retAddrOf S0 = 4930331#64 := by
+    unfold retAddrOf; rw [hra]
+  have hacm : m.accessible ((s.regs 4).toNat - 72) 88 true = true := by rw [hSb.mf.accessible]; exact hacc8
+  have hregc := hreg
+  clear hq hreg
+  have hsp8 : (s.regs 4).toNat < 2 ^ 64 := (s.regs 4).isLt
+  janus64_run [hret, hr4, hr5, hr14, hx, hdf0, hfs, hacm] until [sci]
+  exact hk _ m S0.mem r0 r1 hSb rfl (by first | rfl | decide) (by simp [setRegF_apply, callRegs64_apply, hr4, hr5, hr14]) (by simp [setRegF_apply, callRegs64_apply, hr4, hr5, hr14]) (by simp [setRegF_apply, callRegs64_apply, hr4, hr5, hr14])
+    (by simp [setRegF_apply, callRegs64_apply, hr4, hr5, hr14]) (by simp [setRegF_apply, callRegs64_apply, hr4, hr5, hr14]) (by simp [setRegF_apply, callRegs64_apply, hr4, hr5, hr14]) (by simp [hxs, hx]) (by simp [hds, hdf0]) (by simp [hfs])
+    rfl (hregc.trans hreg0)
 
 set_option maxRecDepth 100000 in
 /-- Scan, `[]byte` source: the call of `slicebytetostring`, then `bytes_tail` -/
@@ -183,5 +171,59 @@ theorem bytes_call (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     have := e18 r hr
     simp only [outside_append, outside_cons, outside_nil, and_true] at this ⊢
     omega
-  -- TODO(successor): apply bytes_call2 (explicit-context call of slicebytetostring), then bytes_tail (ScanB2b)
-  sorry
+  have hlo4 := hPre.lo4
+  have hhi4 := hPre.hi4
+  have hx15 : s.xmm 15 = 0 := by have h := hret; unfold RetOK at h; exact h.2.2.1
+  have hdfs : s.df = false := by have h := hret; unfold RetOK at h; exact h.2.2.2
+  have hacS : ∀ a n w, S0.mem.accessible a n w = s.mem.accessible a n w := by
+    intro a n w; rw [hmem]; simp
+  have hsp0 : (S0.regs 4).toNat = (s.regs 4).toNat - 72 := by
+    rw [hr4]; simp [BitVec.toNat_sub]; omega
+  have hra : S0.mem.readLE (S0.regs 4).toNat 8 = 4930331 := by
+    rw [hsp0, hmem, Janus.Arm64.Memory.readLE_writeLE_self]
+  have hreg0 : S0.mem.regions = s.mem.regions := by rw [hmem]; simp
+  have hstr : strBytes S0.mem (hdrP s dw).toNat (hdrN s dw).toNat = strBytes s.mem (hdrP s dw).toNat (hdrN s dw).toNat := by
+    apply Janus.Spec.strBytes_congr
+    intro i hi
+    rw [hmem]
+    simp (disch := omega) only [Janus.Arm64.Memory.bytes_writeLE_outside]
+  have hargs : argWords64 S0 3 = [(s.regs 4).toNat - 40, (hdrP s dw).toNat, (hdrN s dw).toNat] := by
+    apply Fv256.Amd64.ScanB.argw3
+    · rw [hr0]; simp [BitVec.toNat_sub]; omega
+    · rw [hr3]
+    · rw [hr1]
+  have hM0f := Fv256.Amd64.ScanBSb.m0_frame cfg hPre hmem
+  have hLsep' : LiveSep L ([((S0.regs 4).toNat - 4096, (S0.regs 4).toNat), ((S0.regs 4).toNat + 8, (S0.regs 4).toNat + 8 + 8 * 3)] ++
+        [((S0.regs 4).toNat, (S0.regs 4).toNat + 8)]) := by
+    intro r hr
+    have := e18 r hr
+    simp only [outside_append, outside_cons, outside_nil, and_true, hsp0] at this ⊢
+    omega
+  have hP : RtLivePre64 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive sbAddr L b S0 := by
+    refine Fv256.Amd64.ScanB.sb_pre R L b S0 _ _ _ hargs ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ hLsep' ?_
+    · rw [hra]; decide
+    · omega
+    · omega
+    · omega
+    · rw [hacS, hsp0]
+      exact Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)
+    · exact Or.inr ⟨by omega, by rw [hacS]; exact hbuf⟩
+    · exact ⟨hib1, fun _ => by rw [hacS]; exact hib2⟩
+    · intro _; unfold Spec.Disjoint; omega
+    · simp only [outside_cons, outside_nil, and_true, hsp0]; omega
+    · rw [hr14]; exact e6
+    · rw [hacS, hr14]; exact e7
+    · rw [hr14, hgm, hsp0]; omega
+    · simp only [outside_cons, outside_nil, and_true, hsp0, hr14]; omega
+    · exact hokD
+    · have := hM0f
+      exact RtInv.inv_frame hM0f (fun r hr => by simp only [List.mem_singleton] at hr; subst hr; exact Outside.of_sub e9 (Nat.le_refl _) (Nat.le_refl _)) (by rw [hr14]; exact e17)
+    · exact hcost
+    · intro r hr
+      simp only [List.mem_append, List.mem_cons, List.mem_nil_iff, or_false, hsp0] at hr
+      rcases hr with (rfl | rfl) | rfl <;> exact Outside.of_sub e9 (by simp only; omega) (by simp only; omega)
+  refine bytes_call2 impl R b L s S0 dw dst _ hsb hrip hP hargs hsp0 hstr hreg0 hr14 hr4 hr5 hx hdf0 hfs hx15 hdfs hra
+    (by rw [hacS]; exact Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)) ?_
+  intro S3 m M0 r0 r1 hSb hM0 hrip' hr0' hr3' hr1' hr4' hr5' hr14' hx' hdf' hfs' hS3 hmreg
+  exact bytes_tail impl R R2 T b L lo hi dst tw dw s S3 m M0 r0 r1 (s.regs 5).toNat 5002336 dw.toNat hdl hret hsci htw hPre hav hPg htls hrtA hSb rfl
+    (hM0.trans hmem) hrip' hr0' hr3' hr1' hr4' hr5' hr14' hx' hdf' hfs' hS3 hmreg
