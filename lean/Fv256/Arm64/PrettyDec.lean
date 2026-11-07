@@ -39,7 +39,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (prettyBytes (sep.toNat % 256) (val256 s.mem z.toNat)) ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8), (s.sp.toNat + 16, s.sp.toNat + 17)])) := by
   rw [← pdE_entry]
-  refine Fv256.Arm64.Dec.ensures_of_summary (Fv256.Arm64.Pd.pd_summary_E _ hLib rfl impl rt H z sep hc) ?_ ?_
+  refine Fv256.Arm64.Pd.ensures_of_summary' (Fv256.Arm64.Pd.pd_summary_E _ hLib rfl impl rt H z sep hc) ?_ ?_
   · intro ret s hret hs ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩
     have hl : s.regs 30 = BitVec.ofNat 64 ret := hs.lr
     have hrl : (s.regs 30).toNat = ret := by

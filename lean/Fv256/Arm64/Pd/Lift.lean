@@ -37,4 +37,19 @@ theorem pd_summary_E (st : Nat) {E : Janus.Program} (hE : Fv256.Arm64.LinkEq.Lib
   intro s hpc ⟨h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11⟩
   exact hsum s hpc ⟨h0, h1, h2, h3, Fv256.Arm64.LinkEq.DataLoaded.of_subset hE.data h4, h5, h6, h7, h8, h9, h10, h11⟩
 
+/-- A function `Summary` gives the `Ensures` form (over a linked program). -/
+theorem ensures_of_summary' {p : Janus.Program} {entry : Nat} {args : List W64}
+    {spre pre : State → Prop} {Q post : State → State → Prop}
+    (hsum : Summary p entry spre Q)
+    (hpre : ∀ ret s, RetAddr p ret → CallSetup (p.withExit ret) entry args s → pre s → spre s)
+    (hpost : ∀ ret s s', RetAddr p ret → CallSetup (p.withExit ret) entry args s → pre s → Q s s' →
+      ABIReturn s s' ∧ post s s') :
+    Ensures p entry args pre post := by
+  intro ret hret s hs hp
+  obtain ⟨k, s', hst, hr, hq⟩ := hsum s hs.pc (hpre ret s hret hs hp)
+  refine returns_of_steps (Janus.Program.Steps.withExit hst hret.fetch_none) ?_ (hpost ret s s' hret hs hp hq)
+  rw [hr, hs.lr]
+  simp only [Janus.Program.withExit, BitVec.toNat_ofNat]
+  exact Nat.mod_eq_of_lt hret.lt64
+
 end Fv256.Arm64.Pd
