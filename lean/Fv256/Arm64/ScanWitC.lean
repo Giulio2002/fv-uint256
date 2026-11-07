@@ -31,10 +31,13 @@ def hdrW : Nat := 0x302000
 def slW : Nat := 0x303000
 def bufW : Nat := 0x304000
 def retW : Nat := 0x1000
+def str2W : Nat := 0x305000
+def hdr2W : Nat := 0x306000
 
 /-- the scientific input of the string witness: 12 digits, `e`, exponent 5 -/
 def strBs : List Nat := "123456789012e5".toList.map Char.toNat
 /-- the input of the `[]byte` witness: 46 digits, `e`, exponent 5 (48 bytes) -/
+def strBs2 : List Nat := "1234567890123".toList.map Char.toNat
 def bytBs : List Nat := "1234567890123456789012345678901234567890123456e5".toList.map Char.toNat
 
 /-- byte `a - base` of the little-endian number `v` -/
@@ -46,6 +49,9 @@ def val (a : Nat) : Nat :=
   else if strW ≤ a ∧ a < strW + 16 then strBs.getD (a - strW) 0
   else if hdrW ≤ a ∧ a < hdrW + 8 then nb strW hdrW a
   else if hdrW + 8 ≤ a ∧ a < hdrW + 16 then nb strBs.length (hdrW + 8) a
+  else if str2W ≤ a ∧ a < str2W + 16 then strBs2.getD (a - str2W) 0
+  else if hdr2W ≤ a ∧ a < hdr2W + 8 then nb str2W hdr2W a
+  else if hdr2W + 8 ≤ a ∧ a < hdr2W + 16 then nb strBs2.length (hdr2W + 8) a
   else if slW ≤ a ∧ a < slW + 8 then nb bufW slW a
   else if slW + 8 ≤ a ∧ a < slW + 16 then nb 48 (slW + 8) a
   else if slW + 16 ≤ a ∧ a < slW + 24 then nb 48 (slW + 16) a
@@ -65,7 +71,7 @@ def byteAt (a : Nat) : Nat :=
 def mem0 : Memory :=
   ⟨fun a => BitVec.ofNat 8 (byteAt a),
    (Extracted.program.data.map fun d => (⟨d.base, d.bytes.length, false⟩ : Region)) ++
-   [⟨TW, 48, false⟩, ⟨0xFD000, 0x4000, true⟩, ⟨gW, 0x100, false⟩, ⟨zW, 32, true⟩, ⟨strW, 0x1000, false⟩, ⟨hdrW, 16, false⟩,
+   [⟨TW, 48, false⟩, ⟨0xFD000, 0x4000, true⟩, ⟨gW, 0x100, false⟩, ⟨zW, 32, true⟩, ⟨strW, 0x1000, false⟩, ⟨hdrW, 16, false⟩, ⟨str2W, 0x1000, false⟩, ⟨hdr2W, 16, false⟩,
     ⟨slW, 24, false⟩, ⟨bufW, 0x1000, false⟩, ⟨0xf8000, 0x1000, false⟩, ⟨BUMP, 0x1000, true⟩, ⟨HEAP, HSIZE, true⟩,
     ⟨0x1b5c10, 16, false⟩, ⟨0x1b5b60, 16, false⟩, ⟨0x1b5eb0, 16, false⟩, ⟨0x1e34c0, 4, false⟩, ⟨0x1b6540, 40, false⟩,
     ⟨multW, 128, false⟩]⟩
@@ -145,6 +151,9 @@ theorem val_big (a : Nat) (h : 0x600000 ≤ a) : val a = 0 := by
     if_neg (show ¬(strW ≤ a ∧ a < strW + 16) by simp only [strW]; omega),
     if_neg (show ¬(hdrW ≤ a ∧ a < hdrW + 8) by simp only [hdrW]; omega),
     if_neg (show ¬(hdrW + 8 ≤ a ∧ a < hdrW + 16) by simp only [hdrW]; omega),
+    if_neg (show ¬(str2W ≤ a ∧ a < str2W + 16) by simp only [str2W]; omega),
+    if_neg (show ¬(hdr2W ≤ a ∧ a < hdr2W + 8) by simp only [hdr2W]; omega),
+    if_neg (show ¬(hdr2W + 8 ≤ a ∧ a < hdr2W + 16) by simp only [hdr2W]; omega),
     if_neg (show ¬(slW ≤ a ∧ a < slW + 8) by simp only [slW]; omega),
     if_neg (show ¬(slW + 8 ≤ a ∧ a < slW + 16) by simp only [slW]; omega),
     if_neg (show ¬(slW + 16 ≤ a ∧ a < slW + 24) by simp only [slW]; omega),

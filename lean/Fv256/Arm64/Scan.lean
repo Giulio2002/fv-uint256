@@ -17,6 +17,9 @@ import Fv256.Arm64.ScanByt
 import Fv256.Arm64.ScanOther
 import Fv256.Arm64.ScanDischarge
 import Fv256.Arm64.SummaryEnsures
+import Fv256.Arm64.ScanWitC
+import Fv256.Arm64.ScanWitN
+import Fv256.Arm64.ScanWitO
 
 /-!
 # `(*uint256.Int).Scan(src any) error` (arm64)
@@ -107,5 +110,174 @@ theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
     · rw [h30]; simp only [BitVec.toNat_ofNat]; rw [Nat.mod_eq_of_lt (show ret < 2 ^ 64 by omega)]; omega
   · intro ret hret s hsu hP s' hq
     exact ⟨⟨hq.1.1, hq.1.2.2.1, hq.1.2.1, hq.1.2.2.2⟩, hq⟩
+
+end Fv256.Arm64.Scan
+
+namespace Fv256.Arm64.Scan
+
+namespace Witness
+
+/-- Non-vacuity (string "123456789012e5": both SfdCalls, the Exp and MulOverflow path): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
+binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
+`correctness` and its whole precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
+    ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
+      Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
+    Extracted.program.DataLoaded s.mem :=
+  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
+    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
+    Fv256.Arm64.Scan.Witness.twS, Fv256.Arm64.Scan.Witness.dwS, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS,
+    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
+    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS, Fv256.Arm64.Scan.Witness.preS,
+    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+
+end Witness
+
+namespace NoE.Witness
+
+/-- Non-vacuity (string without an exponent "1234567890123"): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
+binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
+`correctness` and its whole precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
+    ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
+      Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
+    Extracted.program.DataLoaded s.mem :=
+  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
+    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
+    Fv256.Arm64.Scan.Witness.twS, Fv256.Arm64.Scan.Witness.dwS2, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2,
+    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
+    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2, Fv256.Arm64.Scan.Witness.preN,
+    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+
+end NoE.Witness
+
+namespace Nil.Witness
+
+/-- Non-vacuity (nil): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
+binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
+`correctness` and its whole precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
+    ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
+      Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
+    Extracted.program.DataLoaded s.mem :=
+  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
+    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
+    0#64, 0#64, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st 0#64 0#64,
+    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
+    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup 0#64 0#64, Fv256.Arm64.Scan.Witness.preNil,
+    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+
+end Nil.Witness
+
+namespace Byt.Witness
+
+/-- Non-vacuity ([]byte of 48 bytes, 46 digits and e5, through the live slicebytetostring): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
+binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
+`correctness` and its whole precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
+    ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
+      Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
+    Extracted.program.DataLoaded s.mem :=
+  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
+    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
+    Fv256.Arm64.Scan.Witness.twB, Fv256.Arm64.Scan.Witness.dwSl, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl,
+    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
+    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl, Fv256.Arm64.Scan.Witness.preByt,
+    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+
+end Byt.Witness
+
+namespace Other.Witness
+
+/-- Non-vacuity (unsupported type (the type descriptor of uint8)): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
+binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
+`correctness` and its whole precondition. -/
+theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
+    ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
+      Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
+    Extracted.program.DataLoaded s.mem :=
+  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
+    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
+    Fv256.Arm64.Scan.Witness.twU, 0#64, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twU 0#64,
+    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
+    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
+    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twU 0#64, Fv256.Arm64.Scan.Witness.preOther,
+    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+
+end Other.Witness
 
 end Fv256.Arm64.Scan
