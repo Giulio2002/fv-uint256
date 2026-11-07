@@ -200,8 +200,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d m : BitVec 64), RetAdd
         Apart y.toNat 32 (s.sp.toNat - 552) 600 ∧ Apart d.toNat 32 (s.sp.toNat - 552) 600 ∧
         Apart m.toNat 32 (s.sp.toNat - 552) 600 ∧
         Apart z.toNat 32 m.toNat 32 ∧ Apart x.toNat 32 m.toNat 32 ∧ Apart y.toNat 32 m.toNat 32 ∧
-        Apart d.toNat 32 m.toNat 32 ∧ Apart m.toNat 32 ((s.regs 28).toNat + 16) 8 ∧ m.toNat ≠ 0) :=
-  ⟨ret, s0, z, x, x, x, m, hret, setup, hpre⟩
+        Apart d.toNat 32 m.toNat 32 ∧ Apart m.toNat 32 ((s.regs 28).toNat + 16) 8 ∧ m.toNat ≠ 0) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ s'.regs 1 = m ∧
+        (s'.regs 2).toNat = (if Fv256.F.muldivOv (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem d.toNat)
+          then 1 else 0) ∧
+        val256 s'.mem z.toNat = Fv256.F.muldivSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem d.toNat) ∧
+        val256 s'.mem m.toNat = Fv256.F.mulmodSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem d.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32), (s.sp.toNat - 552, s.sp.toNat - 8),
+          (s.sp.toNat + 8, s.sp.toNat + 48)] :=
+  ⟨ret, s0, z, x, x, x, m, hret, setup, hpre,
+    correctness z x x x m ret hret s0 setup hpre⟩
 
 end Witness
 

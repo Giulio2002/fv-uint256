@@ -145,8 +145,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d m : BitVec 64), RetAdd
         Apart z.toNat 32 m.toNat 32 ∧ Apart x.toNat 32 m.toNat 32 ∧
         Apart y.toNat 32 m.toNat 32 ∧ Apart d.toNat 32 m.toNat 32 ∧
         m.toNat ≠ 0 ∧ Apart m.toNat 32 ((s.regs regG).toNat + 16) 8 ∧
-        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x218) 0x248) :=
-  ⟨ret, s0, z, x, x, x, m, hret, setup, hpre⟩
+        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x218) 0x248) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ s'.regs 3 = m ∧ valueAt s' m 32 = Fv256.F.mulmodSpec (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) ∧
+        (s'.regs 1).toNat % 256 = (if Fv256.F.muldivOv (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) then 1 else 0) ∧
+        valueAt s' z 32 = Fv256.F.muldivSpec (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32), ((s.regs regSP).toNat - 0x218, (s.regs regSP).toNat + 0x30)] :=
+  ⟨ret, s0, z, x, x, x, m, hret, setup, hpre,
+    correctness z x x x m ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ s'.regs 3 = m ∧ (s'.regs 1).toNat % 256 = 0 ∧ valueAt s' z 32 = 0 ∧ valueAt s' m 32 = 0 := by

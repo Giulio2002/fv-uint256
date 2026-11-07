@@ -91,8 +91,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
       Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Alias z x ∧ Alias z y ∧ Alias x y ∧
       (z.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ z.toNat) ∧
       (x.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ x.toNat) ∧
-      (y.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ y.toNat)) :=
-  ⟨ret, s0, z, x, x, hret, setup, hpre⟩
+      (y.toNat + 32 ≤ (s.regs regSP).toNat - 152 ∨ (s.regs regSP).toNat + 16 ≤ y.toNat)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        (s'.regs 3).toNat % 256 = (if Spec.W ≤ valueAt s x 32 * valueAt s y 32 then 1 else 0) ∧
+        valueAt s' z 32 = Spec.mul (valueAt s x 32) (valueAt s y 32) ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168 :=
+  ⟨ret, s0, z, x, x, hret, setup, hpre,
+    correctness z x x ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

@@ -4371,8 +4371,12 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extr
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s ∧
     (StackGuardOK s 40 ∧ StackWritable s 80 8 ∧ Buffer s z 32 true ∧
       (z.toNat + 32 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat + 8 ≤ z.toNat) ∧
-      ((s.regs 14).toNat + 16 + 8 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat ≤ (s.regs 14).toNat + 16)) :=
-  ⟨ret, s0, z, n, hret, setup, hpre⟩
+      ((s.regs 14).toNat + 16 + 8 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat ≤ (s.regs 14).toNat + 16)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        valueAt s' z 32 = Spec.srsh (valueAt s z 32) n.toNat ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 80) 80 :=
+  ⟨ret, s0, z, n, hret, setup, hpre,
+    correctness z n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by

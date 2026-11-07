@@ -93,8 +93,11 @@ theorem hpre : Pre z x x x s0 := by
     first | (unfold regSP regG; decide) | (unfold regSP; decide) | (unfold regG; decide) | decide
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y m : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y, m] s ∧ Pre z x y m s :=
-  ⟨ret, s0, z, x, x, x, hret, setup, hpre⟩
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y, m] s ∧ Pre z x y m s ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ s'.mem.readLE z.toNat 32 = Fv256.F.addmodSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32) (s.mem.readLE m.toNat 32) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x348, (s.regs regSP).toNat + 0x28)] :=
+  ⟨ret, s0, z, x, x, x, hret, setup, hpre,
+    correctness z x x x ret hret s0 setup hpre⟩
 
 end Witness
 

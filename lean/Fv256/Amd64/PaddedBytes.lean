@@ -328,8 +328,13 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     Outside ((s.regs 4).toNat - 4136) 4160 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
     Buffer s z 32 false ∧ Outside z.toNat 32 rt ∧
     (z.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ z.toNat) ∧
-    H [byteType, n.toNat, n.toNat] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem)) :=
-  ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre⟩
+    H [byteType, n.toNat, n.toNat] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ (s'.regs 3).toNat = n.toNat ∧ (s'.regs 1).toNat = n.toNat ∧
+        (0 < n.toNat → InRanges ptr n.toNat rt ∧ s'.mem.accessible ptr n.toNat true = true) ∧
+        Spec.fromBE (fun i => s'.mem.readLE (ptr + i) 1) n.toNat = valueAt s z 32 % 2 ^ (8 * n.toNat) ∧
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)]) :=
+  ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre,
+    correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
 
 
 /-- The theorem fires: for this call and this allocator, `PaddedBytes(5)` returns a fresh 5-byte slice in `rt`. -/

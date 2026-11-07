@@ -92,8 +92,15 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw : BitVec 64), RetAddr E
     (StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s b 32 false ∧ s.mem.readLE b.toNat 1 < 2 ∧
       s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = (2 : BitVec 64).toNat ∧
       Buffer s pw (8 * (2 : BitVec 64).toNat) false ∧
-      Disjoint z 32 b 32 ∧ Disjoint z 32 pw (8 * (2 : BitVec 64).toNat) ∧ Disjoint z 32 (s.regs regSP) 8) :=
-  ⟨ret, s0, z, b, pw, hret, setup, hpre⟩
+      Disjoint z 32 b 32 ∧ Disjoint z 32 pw (8 * (2 : BitVec 64).toNat) ∧ Disjoint z 32 (s.regs regSP) 8) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (if Fv256.C.fromBigOv 2.toNat then 1 else 0) ∧
+        valueAt s' z 32 =
+          Fv256.C.fromBig (s.mem.readLE b.toNat 1 == 1)
+            (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) 2.toNat) ∧
+        Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
+  ⟨ret, s0, z, b, pw, hret, setup, hpre,
+    correctness z b pw (2 : BitVec 64) ret hret s0 setup hpre⟩
+
 
 /-- The call returns, without overflow (low byte of `RAX` is 0), and `z` holds `-(5 + 2^64)` modulo `2^256`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

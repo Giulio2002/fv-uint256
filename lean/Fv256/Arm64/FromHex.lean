@@ -338,8 +338,16 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         Disjoint hp.toNat len.toNat (s.sp.toNat - 4144) 4168 ∧
         s.mem.accessible errBase 96 false = true ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
         Outside errBase 96 rt ∧ Disjoint errBase 96 (s.sp.toNat - 4144) 4168 ∧ Outside tabBase 256 rt ∧
-        Outside ((s.regs 28).toNat + 16) 8 rt ∧ Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4144) 4168) :=
-  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre⟩
+        Outside ((s.regs 28).toNat + 16) 8 rt ∧ Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4144) 4168) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
+          ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
+            s'.mem.accessible ptr 32 true = true ∧ val256 s'.mem ptr = v ∧ s'.regs 1 = 0 ∧ s'.regs 2 = 0) ∧
+        (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
+          s'.regs 0 = 0 ∧ s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+          s'.regs 2 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
+  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre,
+    correctness impl rt H hpp 4 hnew ret hret s0 setup pre⟩
 
 end Witness
 

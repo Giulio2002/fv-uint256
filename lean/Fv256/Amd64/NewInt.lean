@@ -180,8 +180,14 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 4128 24 ∧ Extracted.program.DataLoaded s.mem ∧
     Outside ((s.regs 4).toNat - 4128) 4152 rt ∧ (s.regs 4).toNat % 8 = 0 ∧
-    H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 32) (rtView rt s.mem)) :=
-  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre⟩
+    H [intType] (s.regs 14).toNat ((s.regs 4).toNat - 32) (rtView rt s.mem)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
+        s'.mem.accessible ptr 32 true = true ∧
+        s'.mem.readLE ptr 32 = Spec.setU z.toNat ∧
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat + 24)]) :=
+  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre,
+    correctness impl rt H arg hnew ret hret s0 setup pre⟩
+
 
 
 /-- The theorem fires: for this call and this allocator, `NewInt` returns a fresh object in `rt` holding the expected value. -/

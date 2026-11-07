@@ -141,8 +141,12 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
       s.mem.accessible (s.sp.toNat - 504) 472 true = true ∧
       ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 504 ∨ s.sp.toNat - 32 ≤ (s.regs 28).toNat + 16) ∧
       Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧
-      Disjoint z.toNat 32 (s.sp.toNat - 504) 472 ∧ Disjoint x.toNat 32 (s.sp.toNat - 504) 472) :=
-  ⟨ret, s0, z, x, hret, setup, hpre⟩
+      Disjoint z.toNat 32 (s.sp.toNat - 504) 472 ∧ Disjoint x.toNat 32 (s.sp.toNat - 504) 472) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem z.toNat) (val256 s.mem x.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 504, s.sp.toNat - 32)] :=
+  ⟨ret, s0, z, x, hret, setup, hpre,
+    correctness z x ret hret s0 setup hpre⟩
 
 end Witness
 

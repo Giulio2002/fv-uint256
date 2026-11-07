@@ -61,8 +61,10 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s
 theorem hpre : Ptr32 s0.mem x false := ⟨by decide, by decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ Ptr32 s.mem x false :=
-  ⟨ret, s0, x, hret, setup, hpre⟩
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ Ptr32 s.mem x false ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat = Spec.byteLen (val256 s.mem x.toNat) :=
+  ⟨ret, s0, x, hret, setup, hpre,
+    correctness x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 0 := by

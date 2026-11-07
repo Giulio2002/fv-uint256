@@ -64,8 +64,11 @@ theorem hpre : Ptr32 s0.mem x false ∧ GuardOK s0 0 ∧ StackOK s0 88 0 ∧ Dis
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧
-    (Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0) :=
-  ⟨ret, s0, x, hret, setup, hpre⟩
+    (Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s.mem x.toNat) ∧
+        MemFrame s.mem s'.mem [(s.sp.toNat - 88, s.sp.toNat)] :=
+  ⟨ret, s0, x, hret, setup, hpre,
+    correctness x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s0.mem x.toNat) ∧

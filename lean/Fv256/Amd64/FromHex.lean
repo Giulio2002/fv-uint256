@@ -387,8 +387,16 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
         (hp.toNat + len.toNat ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ hp.toNat) ∧
         s.mem.accessible errBase 96 false = true ∧ (∀ e, e < 6 → s.mem.readLE (errAddrOf e) 8 ≠ 0) ∧
         Outside errBase 96 rt ∧ ((errBase + 96) ≤ (s.regs 4).toNat - 4144 ∨ (s.regs 4).toNat + 24 ≤ errBase) ∧
-        Outside tabBase 256 rt) :=
-  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre⟩
+        Outside tabBase 256 rt) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
+          ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
+            s'.mem.accessible ptr 32 true = true ∧ Janus.Spec.val256 s'.mem ptr = v ∧ s'.regs 3 = 0 ∧ s'.regs 1 = 0) ∧
+        (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
+          s'.regs 0 = 0 ∧ s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+          s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
+        Janus.MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4144, (s.regs 4).toNat + 24)]) :=
+  ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre,
+    correctness impl rt H hpp 4 hnew ret hret s0 setup pre⟩
 
 end Witness
 

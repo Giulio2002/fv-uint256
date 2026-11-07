@@ -76,8 +76,12 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m : BitVec 64), RetAddr Ex
         Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 856) 856 ∧
         Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem m false ∧
         Apart z.toNat 32 (s.sp.toNat - 856) 856 ∧ Apart x.toNat 32 (s.sp.toNat - 856) 856 ∧
-        Apart m.toNat 32 (s.sp.toNat - 856) 856 ) :=
-  ⟨ret, s0, z, x, m, hret, setup, hpre⟩
+        Apart m.toNat 32 (s.sp.toNat - 856) 856 ) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Fv256.F.mulmodSpec (val256 s.mem z.toNat) (val256 s.mem x.toNat) (val256 s.mem m.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8)] :=
+  ⟨ret, s0, z, x, m, hret, setup, hpre,
+    correctness z x m ret hret s0 setup hpre⟩
 
 end Witness
 

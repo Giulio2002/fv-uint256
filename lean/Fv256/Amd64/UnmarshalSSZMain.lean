@@ -695,9 +695,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceMode
     ConvT64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.convT64") Ri H ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, bp, len, cap] s ∧
-    Pre R Ri H L bud e tp tl z bp len cap s ∧ len.toNat ≠ 32 :=
-  ⟨implAt, R0e, R0, Htrue, [], 176, evData, textAddr, 22, retA, s0, _, _, 300, 512, R0_laws, hf0, hconv0, hret0, setup, pre0,
-    by decide⟩
+    Pre R Ri H L bud e tp tl z bp len cap s ∧ len.toNat ≠ 32 ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (Post R Ri L bud e tp tl z bp len cap) s s' := by
+  refine ⟨implAt, R0e, R0, Htrue, [], 176, evData, textAddr, 22, retA, s0, _, _, 300, 512, R0_laws, hf0, hconv0, hret0, setup, pre0, ?w6,
+    correctness implAt R0e R0 R0_laws Htrue hf0 hconv0 ([]) 176 evData textAddr 22 _ _ 300 512 retA hret0 s0 setup pre0⟩
+  case w6 => exact by decide
 
 end Witness
 

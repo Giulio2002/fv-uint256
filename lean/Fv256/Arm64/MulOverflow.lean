@@ -85,8 +85,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
     (GuardOK s 0 ∧ StackOK s 240 16 ∧ Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
       Aliasing z x ∧ Aliasing z y ∧ Aliasing x y ∧
       Disjoint z.toNat 32 (s.sp.toNat - 240) 256 ∧ Disjoint x.toNat 32 (s.sp.toNat - 240) 256 ∧
-      Disjoint y.toNat 32 (s.sp.toNat - 240) 256) :=
-  ⟨ret, s0, z, x, x, hret, setup, hpre⟩
+      Disjoint y.toNat 32 (s.sp.toNat - 240) 256) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        (s'.regs 1).toNat = (if Spec.W ≤ val256 s.mem x.toNat * val256 s.mem y.toNat then 1 else 0) ∧
+        val256 s'.mem z.toNat = Spec.mul (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 240) 256 :=
+  ⟨ret, s0, z, x, x, hret, setup, hpre,
+    correctness z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ (s'.regs 1).toNat = 0 ∧ val256 s'.mem z.toNat = 0 := by

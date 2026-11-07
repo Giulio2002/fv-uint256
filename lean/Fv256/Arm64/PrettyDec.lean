@@ -158,8 +158,13 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
       ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4608 ∨ s.sp.toNat + 24 ≤ (s.regs 28).toNat + 16) ∧
       (val256 s.mem z.toNat ≠ 0 →
         H [0, s.sp.toNat - 168 - plen (val256 s.mem z.toNat), plen (val256 s.mem z.toNat)]
-          (s.regs 28).toNat (s.sp.toNat - 400) (rtView rt s.mem))) :=
-  ⟨implAt, rtW, H1, ret, s0, argz, 44, model, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+          (s.regs 28).toNat (s.sp.toNat - 400) (rtView rt s.mem))) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (prettyBytes (sep.toNat % 256) (val256 s.mem z.toNat)) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8), (s.sp.toNat + 16, s.sp.toNat + 17)]) := by
+  refine ⟨implAt, rtW, H1, ret, s0, argz, 44, model, ?w1, ?w2, pre,
+    correctness implAt rtW H1 argz 44 model ret ?w1 s0 ?w2 pre⟩
+  case w1 => exact by rw [linked_eq]; exact hret
+  case w2 => exact by rw [linked_eq]; exact setup
 
 end Witness
 

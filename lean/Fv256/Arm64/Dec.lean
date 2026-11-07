@@ -129,8 +129,13 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         (s.regs 28).toNat (s.sp.toNat - 384) (rtView rt s.mem)) ∧
     (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
       H [0, s.sp.toNat - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
-        (s.regs 28).toNat (s.sp.toNat - 384 - 96) (rtView rt s.mem))) :=
-  ⟨implAt, rtW, H0, ret, s0, arg, model, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+        (s.regs 28).toNat (s.sp.toNat - 384 - 96) (rtView rt s.mem))) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat + 8)]) := by
+  refine ⟨implAt, rtW, H0, ret, s0, arg, model, ?w1, ?w2, pre,
+    correctness implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
+  case w1 => exact by rw [linked_eq]; exact hret
+  case w2 => exact by rw [linked_eq]; exact setup
 
 end Witness
 

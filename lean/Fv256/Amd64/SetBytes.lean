@@ -223,8 +223,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
         (z.toNat + 32 ≤ ptr.toNat + len.toNat - used len.toNat ∨ ptr.toNat + len.toNat ≤ z.toNat) ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 88 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
         (ptr.toNat + len.toNat ≤ (s.regs regSP).toNat - 88 ∨ (s.regs regSP).toNat + 24 ≤ ptr.toNat + len.toNat - used len.toNat) ∧
-        ((s.regs 14).toNat + 16 + 8 ≤ (s.regs regSP).toNat - 88 ∨ (s.regs regSP).toNat + 24 ≤ (s.regs 14).toNat + 16)) :=
-  ⟨ret, s0, z, ptr, 10, 10, hret, setup, hpre⟩
+        ((s.regs 14).toNat + 16 + 8 ≤ (s.regs regSP).toNat - 88 ∨ (s.regs regSP).toNat + 24 ≤ (s.regs 14).toNat + 16)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        valueAt s' z 32 =
+          Spec.fromBE (fun i => s.mem.readLE (ptr.toNat + len.toNat - used len.toNat + i) 1) (used len.toNat) ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 88) 112 :=
+  ⟨ret, s0, z, ptr, 10, 10, hret, setup, hpre,
+    correctness z ptr 10 10 ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧

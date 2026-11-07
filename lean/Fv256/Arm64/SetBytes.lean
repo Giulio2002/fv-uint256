@@ -220,8 +220,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
       Disjoint z.toNat 32 (ptr.toNat + len.toNat - used len.toNat) (used len.toNat) ∧
       Disjoint z.toNat 32 (s.sp.toNat - 88) 160 ∧
       Disjoint (ptr.toNat + len.toNat - used len.toNat) (used len.toNat) (s.sp.toNat - 88) 160 ∧
-      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 88) 160) :=
-  ⟨ret, s0, z, ptr, 10, 10, hret, setup, hpre⟩
+      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 88) 160) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        val256 s'.mem z.toNat =
+          Spec.fromBE (fun i => s.mem.readLE (ptr.toNat + len.toNat - used len.toNat + i) 1) (used len.toNat) ∧
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 88) 160 :=
+  ⟨ret, s0, z, ptr, 10, 10, hret, setup, hpre,
+    correctness z ptr 10 10 ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧

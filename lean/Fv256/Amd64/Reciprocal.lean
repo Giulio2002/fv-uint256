@@ -70,8 +70,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (m : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [m] s ∧
     (StackGuardOK s 0x1b8 ∧ 0x248 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x240 0x30 ∧ Buffer s m 32 false ∧
       Apart m.toNat 32 ((s.regs regSP).toNat - 0x240) 0x270 ∧
-      Apart ((s.regs regG).toNat + 16) 8 ((s.regs regSP).toNat - 0x240) 0x270) :=
-  ⟨ret, s0, m, hret, setup, hpre⟩
+      Apart ((s.regs regG).toNat + 16) 8 ((s.regs regSP).toNat - 0x240) 0x270) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (valueAt s m 32 < 2 ^ 192 → s'.mem.readLE ((s.regs regSP).toNat + 8) 40 = 0) ∧
+        (2 ^ 192 ≤ valueAt s m 32 → Fv256.F.RecipWeak (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
+        (2 ^ 193 ≤ valueAt s m 32 → Fv256.F.RecipOK (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
+        MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)] :=
+  ⟨ret, s0, m, hret, setup, hpre,
+    correctness m ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.mem.readLE ((s0.regs regSP).toNat + 8) 40 = 0 := by

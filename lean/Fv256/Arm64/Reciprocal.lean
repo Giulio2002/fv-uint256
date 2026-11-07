@@ -95,8 +95,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (m : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [m] s ∧
     (GuardOK s 0x90 ∧ StackOK s 0x118 0x30 ∧
       ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 0x118 ∨ s.sp.toNat + 0x30 ≤ (s.regs 28).toNat + 16) ∧
-      Ptr32 s.mem m false ∧ Disjoint m.toNat 32 (s.sp.toNat - 0x118) 0x148) :=
-  ⟨ret, s0, m, hret, setup, hpre⟩
+      Ptr32 s.mem m false ∧ Disjoint m.toNat 32 (s.sp.toNat - 0x118) 0x148) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (val256 s.mem m.toNat < 2 ^ 192 → s'.mem.readLE (s.sp.toNat + 8) 40 = 0) ∧
+        (2 ^ 192 ≤ val256 s.mem m.toNat → Fv256.F.RecipWeak (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
+        (2 ^ 193 ≤ val256 s.mem m.toNat → Fv256.F.RecipOK (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
+        MemFrame s.mem s'.mem [(s.sp.toNat - 0x118, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 0x30)] :=
+  ⟨ret, s0, m, hret, setup, hpre,
+    correctness m ret hret s0 setup hpre⟩
 
 end Witness
 

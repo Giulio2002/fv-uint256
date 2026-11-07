@@ -460,8 +460,20 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         Outside ((s.regs 28).toNat + 16) 8 rt ∧ Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4144) 4168 ∧
         (∀ e, e < 6 → s.mem.accessible (s.mem.readLE (errAddrOf e) 8 + 8) 8 false = true ∧
           Outside (s.mem.readLE (errAddrOf e) 8 + 8) 8 rt ∧
-          Disjoint (s.mem.readLE (errAddrOf e) 8 + 8) 8 (s.sp.toNat - 4144) 4168)) :=
-  ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ⟨trivial, pre⟩⟩
+          Disjoint (s.mem.readLE (errAddrOf e) 8 + 8) 8 (s.sp.toNat - 4144) 4168)) ∧
+    GoReturns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
+      match o with
+      | .returned s' => ABIReturn s s' ∧ (∃ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v) ∧
+        (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
+          ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
+            s'.mem.accessible ptr 32 true = true ∧ val256 s'.mem ptr = v) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)])
+      | .panicked v s' => ∃ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e ∧
+        v = ⟨s.mem.readLE (s.mem.readLE (errAddrOf e) 8 + 8) 8, s.mem.readLE (errAddrOf e + 8) 8⟩
+      | .goexited _ => False := by
+  refine ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ?w3,
+    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup ?w3⟩
+  case w3 => exact ⟨trivial, pre⟩
 
 end Witness
 

@@ -145,8 +145,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw : BitVec 64), RetAddr E
       ((2 : BitVec 64).toNat = 0 ∨ s.mem.readLE (pw.toNat + 8 * ((2 : BitVec 64).toNat - 1)) 8 ≠ 0) ∧
       (z.toNat + 32 ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ z.toNat) ∧
       (x.toNat + 32 ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ x.toNat) ∧
-      (pw.toNat + 8 * (2 : BitVec 64).toNat ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ pw.toNat)) :=
-  ⟨ret, s0, z, x, pw, hret, setup, hpre⟩
+      (pw.toNat + 8 * (2 : BitVec 64).toNat ≤ (s.regs regSP).toNat - 72 ∨ (s.regs regSP).toNat + 16 ≤ pw.toNat)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = BitVec.ofInt 64
+          (Fv256.C.cmpBig (valueAt s z 32)
+            (Fv256.C.bigVal (s.mem.readLE x.toNat 1 == 1)
+              (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) 2.toNat))) ∧
+        Janus.MemFrame s.mem s'.mem [((s.regs regSP).toNat + 8, (s.regs regSP).toNat + 16),
+          ((s.regs regSP).toNat - 72, (s.regs regSP).toNat)] :=
+  ⟨ret, s0, z, x, pw, hret, setup, hpre,
+    correctness z x pw (2 : BitVec 64) ret hret s0 setup hpre⟩
+
 
 /-- `0` compared with `-(5 + 2^64)`: the result is `+1`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

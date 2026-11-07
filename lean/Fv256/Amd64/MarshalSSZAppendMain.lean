@@ -295,8 +295,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : 
         (len.toNat + 8 ≤ cap.toNat → s.mem.accessible dp.toNat cap.toNat true = true ∧
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
-        4 * Kc len.toNat ≤ b ∧ Fv256.Amd64.Msa.Ready R ga u8T 4 (len.toNat + 8) cap.toNat) :=
-  ⟨implAt, R, 0x1000, [], zV, dpV, 0, 32, ret, s0, by rw [addr_gr]; exact model_gr, hret, setup, pre⟩
+        4 * Kc len.toNat ≤ b ∧ Fv256.Amd64.Msa.Ready R ga u8T 4 (len.toNat + 8) cap.toNat) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
+  refine ⟨implAt, R, 0x1000, [], zV, dpV, 0, 32, ret, s0, ?w0, hret, setup, pre,
+    correctness implAt R 0x1000 ([]) zV dpV 0 32 ?w0 ret hret s0 setup pre⟩
+  case w0 => exact by rw [addr_gr]; exact model_gr
 
 end Witness
 
@@ -469,8 +472,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : 
         (len.toNat + 8 ≤ cap.toNat → s.mem.accessible dp.toNat cap.toNat true = true ∧
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
-        4 * Kc len.toNat ≤ b ∧ Fv256.Amd64.Msa.Ready R ga u8T 4 (len.toNat + 8) cap.toNat) :=
-  ⟨implAt, R, 0x1000, [], zV, dpV, 32, 32, ret, s0, by rw [addr_gr]; exact model_gr, hret, setup, pre⟩
+        4 * Kc len.toNat ≤ b ∧ Fv256.Amd64.Msa.Ready R ga u8T 4 (len.toNat + 8) cap.toNat) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
+  refine ⟨implAt, R, 0x1000, [], zV, dpV, 32, 32, ret, s0, ?w0, hret, setup, pre,
+    correctness implAt R 0x1000 ([]) zV dpV 32 32 ?w0 ret hret s0 setup pre⟩
+  case w0 => exact by rw [addr_gr]; exact model_gr
 
 end Grow.Witness
 

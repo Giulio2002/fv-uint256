@@ -68,8 +68,11 @@ theorem hpre : Ptr32 s0.mem z false ∧ Ptr s0.mem dest 20 true ∧ Disjoint z.t
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z dest : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, dest] s ∧
-    (Ptr32 s.mem z false ∧ Ptr s.mem dest 20 true ∧ Disjoint z.toNat 32 dest.toNat 20) :=
-  ⟨ret, s0, z, dest, hret, setup, hpre⟩
+    (Ptr32 s.mem z false ∧ Ptr s.mem dest 20 true ∧ Disjoint z.toNat 32 dest.toNat 20) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (dest.toNat + i) 1) 20 = val256 s.mem z.toNat % 2 ^ 160 ∧
+        OnlyWrites s.mem s'.mem dest.toNat 20 :=
+  ⟨ret, s0, z, dest, hret, setup, hpre,
+    correctness z dest ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ Fv256.Spec.fromBE (fun i => s'.mem.readLE (dest.toNat + i) 1) 20 = val256 s0.mem z.toNat % 2 ^ 160 ∧

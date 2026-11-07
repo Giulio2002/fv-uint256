@@ -245,7 +245,14 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R
         (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
-    PreF R H R2 rt 4608 0x400 fa fa fa fa 16 z tab data s ) := Fv256.Arm64.FormatWitB.nonvacuous_core
+    PreF R H R2 rt 4608 0x400 fa fa fa fa 16 z tab data s ) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → NilPost R rt 4608 Rd tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt 4608 fa fa fa Rc Rc Rc Rc data ch s s' ∨
+          BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
+  obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩ := Fv256.Arm64.FormatWitB.nonvacuous_core
+  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16,
+    correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
+
 
 /-- The nil receiver (`z = 0`). -/
 theorem nil : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
@@ -273,7 +280,14 @@ theorem nil : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtI
         (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
-    PreF R H R2 rt 4608 0x400 fa fa fa fa 0 z tab data s ) := Fv256.Arm64.FormatWitN.nil_core
+    PreF R H R2 rt 4608 0x400 fa fa fa fa 0 z tab data s ) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → NilPost R rt 4608 Rd tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt 4608 fa fa fa Rc Rc Rc Rc data ch s s' ∨
+          BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
+  obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩ := Fv256.Arm64.FormatWitN.nil_core
+  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16,
+    correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (0) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
+
 
 /-- The big path (`z = 16`, the callees answer "has width"): the toy allocator `R2` is satisfiable and serves `IntoBig`'s requests. -/
 theorem big : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
@@ -304,7 +318,13 @@ theorem big : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtI
     PreF R H R2 rt 4608 0x400 fa fa fa fa 16 z tab data s ∧
     NotPlain Rc Rc Rc data fa fa fa ch (ch.toNat % 2 ^ 32) ∧
     (∃ (P : Nat) (j0 j1 j2 : BitVec 64), Rd (BitVec.ofNat 64 P) tab data
-      (BitVec.ofNat 64 (if ch.toNat % 2 ^ 32 < 2 ^ 31 then ch.toNat % 2 ^ 32 else ch.toNat % 2 ^ 32 + 18446744069414584320)) j0 j1 j2) ) := Fv256.Arm64.FormatWitG.big_core
+      (BitVec.ofNat 64 (if ch.toNat % 2 ^ 32 < 2 ^ 31 then ch.toNat % 2 ^ 32 else ch.toNat % 2 ^ 32 + 18446744069414584320)) j0 j1 j2) ) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → NilPost R rt 4608 Rd tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt 4608 fa fa fa Rc Rc Rc Rc data ch s s' ∨
+          BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
+  obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18⟩ := Fv256.Arm64.FormatWitG.big_core
+  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18,
+    correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 end Witness
 

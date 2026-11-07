@@ -98,8 +98,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
     (32 ≤ len.toNat ∧ StackWritable s 8 24 ∧ Buffer s z 32 false ∧ Buffer s ptr 32 true ∧
         (z.toNat + 32 ≤ ptr.toNat ∨ ptr.toNat + 32 ≤ z.toNat) ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
-        (ptr.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ ptr.toNat)) :=
-  ⟨ret, s0, z, ptr, 32, 32, hret, setup, hpre⟩
+        (ptr.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ ptr.toNat)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (ptr.toNat + i) 1) 32 = valueAt s z 32 ∧
+        Util.OnlyWrites2 s.mem s'.mem ptr.toNat 32 ((s.regs regSP).toNat - 8) 32 :=
+  ⟨ret, s0, z, ptr, 32, 32, hret, setup, hpre,
+    correctness z ptr 32 32 ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧

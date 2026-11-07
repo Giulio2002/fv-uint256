@@ -115,8 +115,11 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pS, nS] s ∧
-    TopPre cfgE R R2 T b L lo hi z pS nS s :=
-  nonvacuous_core
+    TopPre cfgE R R2 T b L lo hi z pS nS s ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ TopPost cfgE R R2 T b L lo hi z pS nS s s' := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9⟩ := nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9,
+    correctness impl R R2 T b L lo hi z pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
 
 end Witness
 

@@ -336,8 +336,13 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
     (GuardOK s 0 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
     Outside (s.sp.toNat - 4144) 4168 rt ∧ Ptr32 s.mem z false ∧ Outside z.toNat 32 rt ∧
     Disjoint z.toNat 32 (s.sp.toNat - 4144) 4168 ∧
-    H [byteType, n.toNat, n.toNat] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem)) :=
-  ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre⟩
+    H [byteType, n.toNat, n.toNat] (s.regs 28).toNat (s.sp.toNat - 48) (rtView rt s.mem)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ (s'.regs 1).toNat = n.toNat ∧ (s'.regs 2).toNat = n.toNat ∧
+        (0 < n.toNat → InRanges ptr n.toNat rt ∧ s'.mem.accessible ptr n.toNat true = true) ∧
+        Spec.fromBE (fun i => s'.mem.readLE (ptr + i) 1) n.toNat = val256 s.mem z.toNat % 2 ^ (8 * n.toNat) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
+  ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre,
+    correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
 
 
 /-- The theorem fires: for `n = 5` the call returns a slice of length and capacity 5 inside a fresh object. -/

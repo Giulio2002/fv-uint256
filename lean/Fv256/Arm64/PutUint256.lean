@@ -100,8 +100,12 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s ∧
     (GuardOK s 0 ∧ StackOK s 24 24 ∧ 32 ≤ len.toNat ∧ Ptr32 s.mem z false ∧ Ptr s.mem ptr 32 true ∧
       Disjoint z.toNat 32 ptr.toNat 32 ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
-      Disjoint ptr.toNat 32 (s.sp.toNat - 24) 48) :=
-  ⟨ret, s0, z, ptr, 32, 32, hret, setup, hg, hst, hpre⟩
+      Disjoint ptr.toNat 32 (s.sp.toNat - 24) 48) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (ptr.toNat + i) 1) 32 = val256 s.mem z.toNat ∧
+        Util.OnlyWrites2 s.mem s'.mem ptr.toNat 32 (s.sp.toNat - 24) 48 := by
+  refine ⟨ret, s0, z, ptr, 32, 32, hret, setup, ?w2,
+    correctness z ptr 32 32 ret hret s0 setup ?w2⟩
+  case w2 => exact ⟨hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧

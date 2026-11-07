@@ -54,8 +54,10 @@ theorem hpre : StackWritable s0 0 8 ∧ Buffer s0 z 32 false ∧ Buffer s0 x 32 
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧
-    (StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false) :=
-  ⟨ret, s0, z, x, hret, setup, hpre⟩
+    (StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0) = BitVec.ofInt 64 (Spec.cmp (valueAt s z 32) (valueAt s x 32)) :=
+  ⟨ret, s0, z, x, hret, setup, hpre,
+    correctness z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0) = 0#64 := by

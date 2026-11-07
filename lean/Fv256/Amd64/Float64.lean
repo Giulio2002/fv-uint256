@@ -67,8 +67,11 @@ theorem hpre : StackGuardOK s0 0 ∧ StackWritable s0 80 8 ∧ Buffer s0 x 32 fa
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 80 8 ∧ Buffer s x 32 false ∧
-      (x.toNat + 32 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧ GoMXCSR s) :=
-  ⟨ret, s0, x, hret, setup, hpre⟩
+      (x.toNat + 32 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧ GoMXCSR s) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsNearest (valueAt s x 32) ∧
+        MemFrame s.mem s'.mem [((s.regs regSP).toNat - 80, (s.regs regSP).toNat + 8)] :=
+  ⟨ret, s0, x, hret, setup, hpre,
+    correctness x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsNearest (valueAt s0 x 32) ∧

@@ -425,9 +425,15 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec
         R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
         R.inv b [] (s.regs 28).toNat (view R.rt [] s.mem) ∧
         blockSize 32 false + blockSize 32 true ≤ b ∧
-        (z.toNat ≠ 0 → Ptr s.mem z 32 false ∧ Outside z.toNat 32 R.rt ∧ Disjoint z.toNat 32 (s.sp.toNat - 4192) 4192)) :=
-  ⟨implAt, R, 0x400, zV, ret, s0, implOK, by rw [addr_new]; exact model_new, by rw [addr_w1]; exact model_wb1,
-    by rw [addr_w2]; exact model_wb2, hret, setup, pre⟩
+        (z.toNat ≠ 0 → Ptr s.mem z 32 false ∧ Outside z.toNat 32 R.rt ∧ Disjoint z.toNat 32 (s.sp.toNat - 4192) 4192)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → s'.regs 0 = 0) ∧
+        (z.toNat ≠ 0 → ∃ P : Nat, (s'.regs 0).toNat = P ∧ BigObj s'.mem P (val256 s.mem z.toNat)) ∧
+        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4192, s.sp.toNat)]) := by
+  refine ⟨implAt, R, 0x400, zV, ret, s0, implOK, ?w1, ?w2, ?w3, hret, setup, pre,
+    correctness implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
+  case w1 => exact by rw [addr_new]; exact model_new
+  case w2 => exact by rw [addr_w1]; exact model_wb1
+  case w3 => exact by rw [addr_w2]; exact model_wb2
 
 end Witness
 

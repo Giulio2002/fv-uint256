@@ -70,16 +70,12 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» avxAddr sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW,
-    Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV,
-    Fv256.Amd64.Scan.Witness.twS, Fv256.Amd64.Scan.Witness.dwS, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS,
-    Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Amd64.Scan.Witness.hret, Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS, Fv256.Amd64.Scan.Witness.preS,
-    Fv256.Amd64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW, Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV, Fv256.Amd64.Scan.Witness.twS, Fv256.Amd64.Scan.Witness.dwS, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS, Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Amd64.Scan.Witness.hret, ?w9, Fv256.Amd64.Scan.Witness.preS, Fv256.Amd64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Amd64.Scan.Witness.implA Fv256.Amd64.Scan.Witness.R (Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW) Fv256.Amd64.Scan.Witness.TW 0x400 ([]) Fv256.Amd64.Scan.Witness.loW Fv256.Amd64.Scan.Witness.hiW Fv256.Amd64.Scan.Witness.zV Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS Fv256.Amd64.Scan.Witness.contracts_ok.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Amd64.Scan.Witness.retW Fv256.Amd64.Scan.Witness.hret (Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS) ?w9 ⟨Fv256.Amd64.Scan.Witness.preS, Fv256.Amd64.Scan.Witness.dataLoaded0⟩⟩
+  case w9 => exact Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS
 
 end Witness
 
@@ -103,16 +99,12 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» avxAddr sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW,
-    Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV,
-    Fv256.Amd64.Scan.Witness.twS, Fv256.Amd64.Scan.Witness.dwS2, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS2,
-    Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Amd64.Scan.Witness.hret, Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS2, Fv256.Amd64.Scan.Witness.preN,
-    Fv256.Amd64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW, Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV, Fv256.Amd64.Scan.Witness.twS, Fv256.Amd64.Scan.Witness.dwS2, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS2, Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Amd64.Scan.Witness.hret, ?w9, Fv256.Amd64.Scan.Witness.preN, Fv256.Amd64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Amd64.Scan.Witness.implA Fv256.Amd64.Scan.Witness.R (Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW) Fv256.Amd64.Scan.Witness.TW 0x400 ([]) Fv256.Amd64.Scan.Witness.loW Fv256.Amd64.Scan.Witness.hiW Fv256.Amd64.Scan.Witness.zV Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS2 Fv256.Amd64.Scan.Witness.contracts_ok.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Amd64.Scan.Witness.retW Fv256.Amd64.Scan.Witness.hret (Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS2) ?w9 ⟨Fv256.Amd64.Scan.Witness.preN, Fv256.Amd64.Scan.Witness.dataLoaded0⟩⟩
+  case w9 => exact Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twS Fv256.Amd64.Scan.Witness.dwS2
 
 end NoE.Witness
 
@@ -136,16 +128,12 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» avxAddr sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW,
-    Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV,
-    0#64, 0#64, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st 0#64 0#64,
-    Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Amd64.Scan.Witness.hret, Fv256.Amd64.Scan.Witness.setup 0#64 0#64, Fv256.Amd64.Scan.Witness.preNil,
-    Fv256.Amd64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW, Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV, 0#64, 0#64, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st 0#64 0#64, Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Amd64.Scan.Witness.hret, ?w9, Fv256.Amd64.Scan.Witness.preNil, Fv256.Amd64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Amd64.Scan.Witness.implA Fv256.Amd64.Scan.Witness.R (Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW) Fv256.Amd64.Scan.Witness.TW 0x400 ([]) Fv256.Amd64.Scan.Witness.loW Fv256.Amd64.Scan.Witness.hiW Fv256.Amd64.Scan.Witness.zV (0#64) (0#64) Fv256.Amd64.Scan.Witness.contracts_ok.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Amd64.Scan.Witness.retW Fv256.Amd64.Scan.Witness.hret (Fv256.Amd64.Scan.Witness.st 0#64 0#64) ?w9 ⟨Fv256.Amd64.Scan.Witness.preNil, Fv256.Amd64.Scan.Witness.dataLoaded0⟩⟩
+  case w9 => exact Fv256.Amd64.Scan.Witness.setup 0#64 0#64
 
 end Nil.Witness
 
@@ -169,16 +157,12 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» avxAddr sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW,
-    Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV,
-    Fv256.Amd64.Scan.Witness.twB, Fv256.Amd64.Scan.Witness.dwB, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twB Fv256.Amd64.Scan.Witness.dwB,
-    Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Amd64.Scan.Witness.hret, Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twB Fv256.Amd64.Scan.Witness.dwB, Fv256.Amd64.Scan.Witness.preByt,
-    Fv256.Amd64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW, Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV, Fv256.Amd64.Scan.Witness.twB, Fv256.Amd64.Scan.Witness.dwB, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twB Fv256.Amd64.Scan.Witness.dwB, Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Amd64.Scan.Witness.hret, ?w9, Fv256.Amd64.Scan.Witness.preByt, Fv256.Amd64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Amd64.Scan.Witness.implA Fv256.Amd64.Scan.Witness.R (Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW) Fv256.Amd64.Scan.Witness.TW 0x400 ([]) Fv256.Amd64.Scan.Witness.loW Fv256.Amd64.Scan.Witness.hiW Fv256.Amd64.Scan.Witness.zV Fv256.Amd64.Scan.Witness.twB Fv256.Amd64.Scan.Witness.dwB Fv256.Amd64.Scan.Witness.contracts_ok.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Amd64.Scan.Witness.retW Fv256.Amd64.Scan.Witness.hret (Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twB Fv256.Amd64.Scan.Witness.dwB) ?w9 ⟨Fv256.Amd64.Scan.Witness.preByt, Fv256.Amd64.Scan.Witness.dataLoaded0⟩⟩
+  case w9 => exact Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twB Fv256.Amd64.Scan.Witness.dwB
 
 end Byt.Witness
 
@@ -202,16 +186,12 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» avxAddr sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW,
-    Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV,
-    Fv256.Amd64.Scan.Witness.twU, 0#64, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twU 0#64,
-    Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Amd64.Scan.Witness.hret, Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twU 0#64, Fv256.Amd64.Scan.Witness.preOther,
-    Fv256.Amd64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Amd64.Scan.Witness.implA, Fv256.Amd64.Scan.Witness.R, Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW, Fv256.Amd64.Scan.Witness.TW, 0x400, [], Fv256.Amd64.Scan.Witness.loW, Fv256.Amd64.Scan.Witness.hiW, Fv256.Amd64.Scan.Witness.zV, Fv256.Amd64.Scan.Witness.twU, 0#64, Fv256.Amd64.Scan.Witness.retW, Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twU 0#64, Fv256.Amd64.Scan.Witness.contracts_ok.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Amd64.Scan.Witness.hret, ?w9, Fv256.Amd64.Scan.Witness.preOther, Fv256.Amd64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Amd64.Scan.Witness.implA Fv256.Amd64.Scan.Witness.R (Fv256.Amd64.WitModel.R3 Fv256.Amd64.Scan.Witness.TW) Fv256.Amd64.Scan.Witness.TW 0x400 ([]) Fv256.Amd64.Scan.Witness.loW Fv256.Amd64.Scan.Witness.hiW Fv256.Amd64.Scan.Witness.zV Fv256.Amd64.Scan.Witness.twU (0#64) Fv256.Amd64.Scan.Witness.contracts_ok.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Amd64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Amd64.Scan.Witness.retW Fv256.Amd64.Scan.Witness.hret (Fv256.Amd64.Scan.Witness.st Fv256.Amd64.Scan.Witness.twU 0#64) ?w9 ⟨Fv256.Amd64.Scan.Witness.preOther, Fv256.Amd64.Scan.Witness.dataLoaded0⟩⟩
+  case w9 => exact Fv256.Amd64.Scan.Witness.setup Fv256.Amd64.Scan.Witness.twU 0#64
 
 end Other.Witness
 

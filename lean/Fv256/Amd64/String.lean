@@ -147,8 +147,13 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         (s.regs 14).toNat ((s.regs 4).toNat - 24 - 0x178 - 8) (rtView rt s.mem)) ∧
     (100 ≤ s.mem.readLE z.toNat 32 → s.mem.readLE z.toNat 32 < 2 ^ 64 →
       H [0, (s.regs 4).toNat - 24 - 384 - 0x20 + (24 - decLen (s.mem.readLE z.toNat 32)), decLen (s.mem.readLE z.toNat 32)]
-        (s.regs 14).toNat ((s.regs 4).toNat - 24 - 384 - 0x58) (rtView rt s.mem))) :=
-  ⟨implAt, rtW, H0, ret, s0, arg, model, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+        (s.regs 14).toNat ((s.regs 4).toNat - 24 - 384 - 0x58) (rtView rt s.mem))) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4592, (s.regs 4).toNat + 8)]) := by
+  refine ⟨implAt, rtW, H0, ret, s0, arg, model, ?w1, ?w2, pre,
+    correctness implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
+  case w1 => exact by rw [linked_eq]; exact hret
+  case w2 => exact by rw [linked_eq]; exact setup
 
 end Witness
 

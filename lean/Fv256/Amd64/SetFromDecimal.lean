@@ -79,11 +79,17 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceMode
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pS, nS] s ∧
-    TopPre0 extCfg R R2 T b L lo hi z pS nS s :=
-  ⟨implA, R, R0, TD, 0x400, [], loW, hiW, zV, pSV, nSV, retW, s0,
-    by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
-    by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
-    by rw [addr_cm]; exact hcmp, hret, setup, pre0.2⟩
+    TopPre0 extCfg R R2 T b L lo hi z pS nS s ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ TopPost extCfg R R2 T b L lo hi z pS nS s s' := by
+  refine ⟨implA, R, R0, TD, 0x400, [], loW, hiW, zV, pSV, nSV, retW, s0, ?w0, ?w1, ?w2, ?w3, ?w4, ?w5, ?w6, hret, setup, pre0.2,
+    correctness implA R R0 TD 0x400 ([]) loW hiW zV pSV nSV ?w0 ?w1 ?w2 ?w3 ?w4 ?w5 ?w6 retW hret s0 setup pre0.2⟩
+  case w0 => exact by rw [addr_if]; exact model_if
+  case w1 => exact by rw [addr_new]; exact model_new
+  case w2 => exact by rw [addr_mg]; exact model_mg
+  case w3 => exact by rw [addr_mv]; exact model_mv
+  case w4 => exact by rw [addr_w1]; exact model_wb1
+  case w5 => exact by rw [addr_w2]; exact model_wb2
+  case w6 => exact by rw [addr_cm]; exact hcmp
 
 end Witness
 

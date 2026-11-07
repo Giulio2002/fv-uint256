@@ -106,8 +106,13 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         tab.toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (tab.toNat + 24) 8 false = true ∧ Outside (tab.toNat + 24) 8 rt ∧
         s.mem.readLE (tab.toNat + 24) 8 = fn ∧
         H [tyBig] (s.regs 28).toNat (s.sp.toNat - 64) (rtView rt s.mem) ∧
-        H [tyOne] (s.regs 28).toNat (s.sp.toNat - 64) (rtView rt s.mem)) :=
-  ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, hw zA wA, hret, setup, pre⟩
+        H [tyOne] (s.regs 28).toNat (s.sp.toNat - 64) (rtView rt s.mem)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (∃ ptr len cap n e1 e2, R w ptr len cap n e1 e2 ∧ s'.regs 0 = e1 ∧ s'.regs 1 = e2) ∧
+        (z ≠ 0 → s'.mem.readLE z.toNat 32 = s.mem.readLE z.toNat 32) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 64 - stack, s.sp.toNat + 32)]) := by
+  refine ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, ?w1, hret, setup, pre,
+    correctness impl rt H A0 stack R0 zA tabA wA hnew ?w1 retA hret s0 setup pre⟩
+  case w1 => exact hw zA wA
 
 end Witness
 

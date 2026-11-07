@@ -123,8 +123,19 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    Fv256.Arm64.FromDecimal.Pre R R2 T b L lo hi pS nS s :=
-  Fv256.Arm64.FdWit.nonvacuous_core
+    Fv256.Arm64.FromDecimal.Pre R R2 T b L lo hi pS nS s ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (∀ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v →
+          ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 R.rt ∧ val256 s'.mem ptr = v ∧ s'.regs 1 = 0 ∧ s'.regs 2 = 0) ∧
+        (decParse (bytesAt s.mem pS.toNat) nS.toNat = .eof →
+          s'.regs 0 = 0 ∧ (s'.regs 1).toNat = s.mem.readLE cfg.ioEOF 8 ∧ (s'.regs 2).toNat = s.mem.readLE (cfg.ioEOF + 8) 8) ∧
+        (decParse (bytesAt s.mem pS.toNat) nS.toNat = .range →
+          s'.regs 0 = 0 ∧ (s'.regs 1).toNat = s.mem.readLE cfg.errBig 8 ∧ (s'.regs 2).toNat = s.mem.readLE (cfg.errBig + 8) 8) ∧
+        (∀ lo' len', decParse (bytesAt s.mem pS.toNat) nS.toNat = .syntax lo' len' →
+          s'.regs 0 = 0 ∧ s'.regs 1 = BitVec.ofNat 64 cfg.numErrItab) ∧
+        MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9⟩ := Fv256.Arm64.FdWit.nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9,
+    correctness impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
 
 end Witness
 

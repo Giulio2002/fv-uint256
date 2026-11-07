@@ -76,7 +76,28 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreU0 Fv256.Amd64.UnmarshalTextS.cfg Fv256.Amd64.UnmarshalTextS.sbAddr Fv256.Amd64.UnmarshalTextS.stAddr R R2 T b L lo hi z pI nI s ∧
-    HexEnv R lo hi z s := Fv256.Amd64.UtWit.nonvacuous_core
+    HexEnv R lo hi z s ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (IsHex s.mem pI.toNat nI.toNat →
+          (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+            s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+          (∀ e, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .error e →
+            s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+            s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))) ∧
+        (¬ IsHex s.mem pI.toNat nI.toNat →
+          (∀ v, decParse (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+            s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+          (decParse (bytesAt s.mem pI.toNat) nI.toNat = .eof →
+            (s'.regs 0).toNat = s.mem.readLE cfg.ioEOF 8 ∧ (s'.regs 3).toNat = s.mem.readLE (cfg.ioEOF + 8) 8 ∧
+            Janus.Spec.val256 s'.mem z.toNat = 0) ∧
+          (decParse (bytesAt s.mem pI.toNat) nI.toNat = .range →
+            (s'.regs 0).toNat = s.mem.readLE cfg.errBig 8 ∧ (s'.regs 3).toNat = s.mem.readLE (cfg.errBig + 8) 8 ∧
+            Janus.Spec.val256 s'.mem z.toNat = Janus.Spec.val256 s.mem z.toNat) ∧
+          (∀ lo' len', decParse (bytesAt s.mem pI.toNat) nI.toNat = .syntax lo' len' →
+            s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab)) ∧
+        MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, hp10⟩ := Fv256.Amd64.UtWit.nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, hp10,
+    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup ⟨hp9, hp10⟩⟩
 
 set_option maxRecDepth 100000 in
 theorem hex : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -94,7 +115,28 @@ theorem hex : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreU0 Fv256.Amd64.UnmarshalTextS.cfg Fv256.Amd64.UnmarshalTextS.sbAddr Fv256.Amd64.UnmarshalTextS.stAddr R R2 T b L lo hi z pI nI s ∧
-    HexEnv R lo hi z s ∧ IsHex s.mem pI.toNat nI.toNat := Fv256.Amd64.UtWit.hex_core
+    HexEnv R lo hi z s ∧ IsHex s.mem pI.toNat nI.toNat ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (IsHex s.mem pI.toNat nI.toNat →
+          (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+            s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+          (∀ e, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .error e →
+            s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+            s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8))) ∧
+        (¬ IsHex s.mem pI.toNat nI.toNat →
+          (∀ v, decParse (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+            s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+          (decParse (bytesAt s.mem pI.toNat) nI.toNat = .eof →
+            (s'.regs 0).toNat = s.mem.readLE cfg.ioEOF 8 ∧ (s'.regs 3).toNat = s.mem.readLE (cfg.ioEOF + 8) 8 ∧
+            Janus.Spec.val256 s'.mem z.toNat = 0) ∧
+          (decParse (bytesAt s.mem pI.toNat) nI.toNat = .range →
+            (s'.regs 0).toNat = s.mem.readLE cfg.errBig 8 ∧ (s'.regs 3).toNat = s.mem.readLE (cfg.errBig + 8) 8 ∧
+            Janus.Spec.val256 s'.mem z.toNat = Janus.Spec.val256 s.mem z.toNat) ∧
+          (∀ lo' len', decParse (bytesAt s.mem pI.toNat) nI.toNat = .syntax lo' len' →
+            s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab)) ∧
+        MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, hp10, hp11⟩ := Fv256.Amd64.UtWit.hex_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, hp10, hp11,
+    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup ⟨hp9, hp10⟩⟩
 
 end Witness
 

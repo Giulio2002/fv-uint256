@@ -61,8 +61,12 @@ theorem hpre : Ptr32 s0.mem z true ∧ Ptr32 s0.mem x false ∧ Ptr32 s0.mem x f
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y] s ∧
     (Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
-      Aliasing z x ∧ Aliasing z y ∧ Aliasing x y) :=
-  ⟨ret, s0, z, x, x, hret, setup, hpre⟩
+      Aliasing z x ∧ Aliasing z y ∧ Aliasing x y) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Spec.and (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+        OnlyWrites s.mem s'.mem z.toNat 32 :=
+  ⟨ret, s0, z, x, x, hret, setup, hpre,
+    correctness z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by

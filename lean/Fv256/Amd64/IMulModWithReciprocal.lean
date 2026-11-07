@@ -68,8 +68,12 @@ theorem hpre : Pre z x m mu s0 := by
   constructor <;> decide
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m mu : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m, mu] s ∧ Pre z x m mu s :=
-  ⟨ret, s0, z, x, m, mu, hret, setup, hpre⟩
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m, mu] s ∧ Pre z x m mu s ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x320, (s.regs regSP).toNat)] :=
+  ⟨ret, s0, z, x, m, mu, hret, setup, hpre,
+    correctness z x m mu ret hret s0 setup hpre⟩
 
 end Witness
 

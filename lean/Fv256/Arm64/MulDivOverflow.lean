@@ -192,8 +192,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d : BitVec 64), RetAddr 
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 552 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16) ∧
         Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧ Ptr32 s.mem d false ∧
         Disjoint z.toNat 32 (s.sp.toNat - 552) 592 ∧ Disjoint x.toNat 32 (s.sp.toNat - 552) 592 ∧
-        Disjoint y.toNat 32 (s.sp.toNat - 552) 592 ∧ Disjoint d.toNat 32 (s.sp.toNat - 552) 592) :=
-  ⟨ret, s0, z, x, x, x, hret, setup, hpre⟩
+        Disjoint y.toNat 32 (s.sp.toNat - 552) 592 ∧ Disjoint d.toNat 32 (s.sp.toNat - 552) 592) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        (s'.regs 1).toNat = (if Fv256.F.muldivOv (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem d.toNat) then 1 else 0) ∧
+        val256 s'.mem z.toNat = Fv256.F.muldivSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem d.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 552, s.sp.toNat + 40)] :=
+  ⟨ret, s0, z, x, x, x, hret, setup, hpre,
+    correctness z x x x ret hret s0 setup hpre⟩
 
 end Witness
 

@@ -90,8 +90,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y m mu : BitVec 64), RetAd
         Apart m.toNat 32 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
         Apart mu.toNat 40 (((s.regs regSP).toNat) - 0x2e8) 0x318 ∧
         Fv256.F.MuOK (valueAt s m 32) (s.mem.readLE mu.toNat 40) ∧
-        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x2e8) 0x318) :=
-  ⟨ret, s0, z, x, y, m, mu, hret, setup, hpre⟩
+        Apart ((s.regs regG).toNat + 16) 8 (((s.regs regSP).toNat) - 0x2e8) 0x318) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s x 32) (valueAt s y 32) (valueAt s m 32) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x2e8, (s.regs regSP).toNat),
+          ((s.regs regSP).toNat + 8, (s.regs regSP).toNat + 0x30)] :=
+  ⟨ret, s0, z, x, y, m, mu, hret, setup, hpre,
+    correctness z x y m mu ret hret s0 setup hpre⟩
 
 end Witness
 

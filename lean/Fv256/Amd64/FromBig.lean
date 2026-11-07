@@ -211,8 +211,18 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
           s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
           Buffer s pw (8 * len.toNat) false ∧ Outside x.toNat 32 rt ∧ Outside pw.toNat (8 * len.toNat) rt ∧
           (x.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ x.toNat) ∧
-          (pw.toNat + 8 * len.toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ pw.toNat))) :=
-  ⟨impl, rt, H, xp, pw, 2, ret, s0, hnew, hret, setup, ⟨trivial, trivial, pre⟩⟩
+          (pw.toNat + 8 * len.toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ pw.toNat))) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (x.toNat = 0 → s'.regs 0 = 0 ∧ s'.regs 3 = 0) ∧
+        (x.toNat ≠ 0 → ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
+          s'.mem.accessible ptr 32 true = true ∧
+          s'.mem.readLE ptr 32 =
+            Fv256.C.fromBig (s.mem.readLE x.toNat 1 == 1)
+              (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) len.toNat) ∧
+          (s'.regs 3).toNat % 256 = (if Fv256.C.fromBigOv len.toNat then 1 else 0) ∧
+          MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)])) := by
+  refine ⟨impl, rt, H, xp, pw, 2, ret, s0, hnew, hret, setup, ?w3,
+    correctness impl rt H xp pw 2 hnew ret hret s0 setup ?w3⟩
+  case w3 => exact ⟨trivial, trivial, pre⟩
 
 end Witness
 

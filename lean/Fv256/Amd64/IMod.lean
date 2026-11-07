@@ -96,8 +96,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
       Buffer s x 32 false ∧
       (z.toNat + 32 ≤ (s.regs regSP).toNat - 0x200 ∨ (s.regs regSP).toNat + 0x10 ≤ z.toNat) ∧
       (x.toNat + 32 ≤ (s.regs regSP).toNat - 0x200 ∨ (s.regs regSP).toNat + 0x10 ≤ x.toNat) ∧
-      ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x200 ∨ (s.regs regSP).toNat + 0x10 ≤ (s.regs regG).toNat + 16)) :=
-  ⟨ret, s0, z, x, hret, setup, hpre⟩
+      ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x200 ∨ (s.regs regSP).toNat + 0x10 ≤ (s.regs regG).toNat + 16)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = Fv256.B.modSpec (valueAt s z 32) (valueAt s x 32) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x200, (s.regs regSP).toNat + 0x10)] :=
+  ⟨ret, s0, z, x, hret, setup, hpre,
+    correctness z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by

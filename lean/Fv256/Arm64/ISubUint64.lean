@@ -55,8 +55,12 @@ theorem hpre : Ptr32 s0.mem z true :=
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, n] s ∧
-    Ptr32 s.mem z true :=
-  ⟨ret, s0, z, n, hret, setup, hpre⟩
+    Ptr32 s.mem z true ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Spec.subU (val256 s.mem z.toNat) n.toNat ∧
+        OnlyWrites s.mem s'.mem z.toNat 32 :=
+  ⟨ret, s0, z, n, hret, setup, hpre,
+    correctness z n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by

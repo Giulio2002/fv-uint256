@@ -308,8 +308,16 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
       (z = m ∨ Disjoint32 z.toNat m.toNat) ∧
       ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16) ∧
       Outside ((s.regs 28).toNat + 16) 8 rt ∧
-      H [intType] (s.regs 28).toNat (s.sp.toNat - 160) (rtView rt s.mem)) :=
-  ⟨implW, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW⟩
+      H [intType] (s.regs 28).toNat (s.sp.toNat - 160) (rtView rt s.mem)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        ∃ m' : Nat, (s'.regs 1).toNat = m' ∧ (z ≠ m → m' = m.toNat) ∧
+          (z = m → InRanges m' 32 rt ∧ m' % 16 = 0 ∧ s'.mem.accessible m' 32 true = true) ∧
+          val256 s'.mem z.toNat = Fv256.B.divSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+          val256 s'.mem m' = Fv256.B.modSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+          MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
+            (s.sp.toNat - 4256, s.sp.toNat + 40)]) :=
+  ⟨implW, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW,
+    correctness implW rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
 
 end Witness
 

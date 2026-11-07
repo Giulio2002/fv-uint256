@@ -84,8 +84,12 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m mu : BitVec 64), RetAddr
         Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem m false ∧ (mu.toNat + 40 ≤ 2 ^ 48 ∧ s.mem.accessible mu.toNat 40 false = true) ∧
         Apart z.toNat 32 (s.sp.toNat - 824) 824 ∧ Apart x.toNat 32 (s.sp.toNat - 824) 824 ∧
         Apart m.toNat 32 (s.sp.toNat - 824) 824 ∧ Apart mu.toNat 40 (s.sp.toNat - 824) 824 ∧
-        Fv256.F.MuOK (val256 s.mem m.toNat) (s.mem.readLE mu.toNat 40)) :=
-  ⟨ret, s0, z, x, m, mu, hret, setup, hpre⟩
+        Fv256.F.MuOK (val256 s.mem m.toNat) (s.mem.readLE mu.toNat 40)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        val256 s'.mem z.toNat = Fv256.F.mulmodSpec (val256 s.mem z.toNat) (val256 s.mem x.toNat) (val256 s.mem m.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 824, s.sp.toNat - 8)] :=
+  ⟨ret, s0, z, x, m, mu, hret, setup, hpre,
+    correctness z x m mu ret hret s0 setup hpre⟩
 
 end Witness
 

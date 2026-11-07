@@ -43,8 +43,10 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s
 theorem hpre : True := trivial
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ True :=
-  ⟨ret, s0, x, hret, setup, hpre⟩
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ True ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat = Spec.sizeSSZ :=
+  ⟨ret, s0, x, hret, setup, hpre,
+    correctness x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 32 := by

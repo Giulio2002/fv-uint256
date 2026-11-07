@@ -75,8 +75,11 @@ theorem hpre : Pre z x s0 :=
     by unfold regSP regG; decide⟩
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧ Pre z x s :=
-  ⟨ret, s0, z, x, hret, setup, hpre⟩
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧ Pre z x s ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ Fv256.F.IsSqrt (valueAt s x 32) (valueAt s' z 32) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x1f0, (s.regs regSP).toNat + 0x18)] :=
+  ⟨ret, s0, z, x, hret, setup, hpre,
+    correctness z x ret hret s0 setup hpre⟩
 
 end Witness
 

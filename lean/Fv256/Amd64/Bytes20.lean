@@ -79,8 +79,11 @@ theorem hpre : StackWritable s0 40 40 ∧ Buffer s0 z 32 false ∧
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z] s ∧
     (StackWritable s 40 40 ∧ Buffer s z 32 false ∧
-      (z.toNat + 32 ≤ (s.regs regSP).toNat - 40 ∨ (s.regs regSP).toNat + 40 ≤ z.toNat)) :=
-  ⟨ret, s0, z, hret, setup, hpre⟩
+      (z.toNat + 32 ≤ (s.regs regSP).toNat - 40 ∨ (s.regs regSP).toNat + 40 ≤ z.toNat)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE ((s.regs regSP).toNat + 8 + i) 1) 20 = valueAt s z 32 % 2 ^ 160 ∧
+        Util.OnlyWrites2 s.mem s'.mem ((s.regs regSP).toNat + 8) 20 ((s.regs regSP).toNat - 40) 40 :=
+  ⟨ret, s0, z, hret, setup, hpre,
+    correctness z ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧

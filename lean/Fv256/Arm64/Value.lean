@@ -395,9 +395,16 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (ret : Nat) (s : Stat
           ∃ (L : List (Nat × Nat)) (b : Nat),
             LiveAt R cvAddr [p, l] L b (convTstringLive.cost [p, l] M) (s.regs 28).toNat M
               [(s.sp.toNat - 32 - 4096, s.sp.toNat - 32 - 8), (s.sp.toNat - 32 + 8, s.sp.toNat - 32 + 8 + 8 * 2)] ∧
-            (InRanges p l R.rt → InRanges p l L))) ∧ 100 ≤ val256 s.mem z.toNat :=
-  ⟨implAt, RW, ret, s0, arg, hc0, hc2, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre,
-    by rw [hz]; decide⟩
+            (InRanges p l R.rt → InRanges p l L))) ∧ 100 ≤ val256 s.mem z.toNat ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = Extracted.dataAddr.«type:string#f88732b8» ∧
+        (∃ p l, BoxWords' R.rt s'.mem (s'.regs 1).toNat [p, l] ∧ StrOut s'.mem p l (decBytes (val256 s.mem z.toNat))) ∧
+        s'.regs 2 = 0 ∧ s'.regs 3 = 0 ∧
+        MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) := by
+  refine ⟨implAt, RW, ret, s0, arg, hc0, hc2, ?w2, ?w3, pre, ?w5,
+    correctness implAt RW arg hc0 hc2 ret ?w2 s0 ?w3 ⟨pre, ?w5⟩⟩
+  case w2 => exact by rw [linked_eq]; exact hret
+  case w3 => exact by rw [linked_eq]; exact setup
+  case w5 => exact by rw [hz]; decide
 
 end Witness
 

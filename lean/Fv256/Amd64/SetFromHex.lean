@@ -213,8 +213,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z hp len : BitVec 64), RetAddr
       (z.toNat + 32 ≤ (s.regs 4).toNat - 48 ∨ (s.regs 4).toNat + 24 ≤ z.toNat) ∧
       (hp.toNat + len.toNat ≤ (s.regs 4).toNat - 48 ∨ (s.regs 4).toNat + 24 ≤ hp.toNat) ∧
       (z.toNat + 32 ≤ errBase ∨ (errBase + 96) ≤ z.toNat) ∧
-      ((errBase + 96) ≤ (s.regs 4).toNat - 48 ∨ (s.regs 4).toNat + 24 ≤ errBase)) :=
-  ⟨ret, s0, zp, hpp, 4, hret, setup, hpre⟩
+      ((errBase + 96) ≤ (s.regs 4).toNat - 48 ∨ (s.regs 4).toNat + 24 ≤ errBase)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
+          s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+        (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
+          s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+          s'.regs 3 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
+        Janus.MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs 4).toNat + 16, (s.regs 4).toNat + 24),
+          ((s.regs 4).toNat - 48, (s.regs 4).toNat)] :=
+  ⟨ret, s0, zp, hpp, 4, hret, setup, hpre,
+    correctness zp hpp 4 ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 /-- `"0x1f"` parses to `31`: the call returns no error and stores `31`. -/

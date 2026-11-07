@@ -223,8 +223,15 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
     (GuardOK s 0 ∧ StackOK s 4176 24 ∧ Extracted.program.DataLoaded s.mem ∧
     Outside (s.sp.toNat - 4176) 4200 rt ∧ Ptr32 s.mem z false ∧ Outside z.toNat 32 rt ∧
     Disjoint z.toNat 32 (s.sp.toNat - 4176) 4200 ∧
-    H [intType] (s.regs 28).toNat (s.sp.toNat - 80) (rtView rt s.mem)) :=
-  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre⟩
+    H [intType] (s.regs 28).toNat (s.sp.toNat - 80) (rtView rt s.mem)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧ s'.mem.accessible ptr 32 true = true ∧
+        (s'.regs 0).toNat = ptr + (if Spec.byteLen (val256 s.mem z.toNat) = 0 then 0 else 32 - Spec.byteLen (val256 s.mem z.toNat)) ∧
+        (s'.regs 1).toNat = Spec.byteLen (val256 s.mem z.toNat) ∧ (s'.regs 2).toNat = Spec.byteLen (val256 s.mem z.toNat) ∧
+        Spec.fromBE (fun i => s'.mem.readLE (ptr + (if Spec.byteLen (val256 s.mem z.toNat) = 0 then 0 else 32 - Spec.byteLen (val256 s.mem z.toNat)) + i) 1) (Spec.byteLen (val256 s.mem z.toNat)) = val256 s.mem z.toNat ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4176, s.sp.toNat + 24)]) :=
+  ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre,
+    correctness impl rt H arg hnew ret hret s0 setup pre⟩
+
 
 
 /-- The theorem fires: for the number `0x1234` the call returns a slice of length 2 inside a fresh object. -/

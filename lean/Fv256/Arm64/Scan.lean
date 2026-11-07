@@ -135,16 +135,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
-    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
-    Fv256.Arm64.Scan.Witness.twS, Fv256.Arm64.Scan.Witness.dwS, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS,
-    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS, Fv256.Arm64.Scan.Witness.preS,
-    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW, Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV, Fv256.Arm64.Scan.Witness.twS, Fv256.Arm64.Scan.Witness.dwS, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS, Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Arm64.Scan.Witness.retAddr, ?w10, Fv256.Arm64.Scan.Witness.preS, Fv256.Arm64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS) ?w10 ⟨Fv256.Arm64.Scan.Witness.preS, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+  case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS
 
 end Witness
 
@@ -168,16 +164,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
-    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
-    Fv256.Arm64.Scan.Witness.twS, Fv256.Arm64.Scan.Witness.dwS2, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2,
-    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2, Fv256.Arm64.Scan.Witness.preN,
-    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW, Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV, Fv256.Arm64.Scan.Witness.twS, Fv256.Arm64.Scan.Witness.dwS2, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2, Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Arm64.Scan.Witness.retAddr, ?w10, Fv256.Arm64.Scan.Witness.preN, Fv256.Arm64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2 Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2) ?w10 ⟨Fv256.Arm64.Scan.Witness.preN, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+  case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2
 
 end NoE.Witness
 
@@ -201,16 +193,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
-    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
-    0#64, 0#64, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st 0#64 0#64,
-    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup 0#64 0#64, Fv256.Arm64.Scan.Witness.preNil,
-    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW, Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV, 0#64, 0#64, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st 0#64 0#64, Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Arm64.Scan.Witness.retAddr, ?w10, Fv256.Arm64.Scan.Witness.preNil, Fv256.Arm64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV (0#64) (0#64) Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st 0#64 0#64) ?w10 ⟨Fv256.Arm64.Scan.Witness.preNil, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+  case w10 => exact Fv256.Arm64.Scan.Witness.setup 0#64 0#64
 
 end Nil.Witness
 
@@ -234,16 +222,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
-    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
-    Fv256.Arm64.Scan.Witness.twB, Fv256.Arm64.Scan.Witness.dwSl, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl,
-    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl, Fv256.Arm64.Scan.Witness.preByt,
-    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW, Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV, Fv256.Arm64.Scan.Witness.twB, Fv256.Arm64.Scan.Witness.dwSl, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl, Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Arm64.Scan.Witness.retAddr, ?w10, Fv256.Arm64.Scan.Witness.preByt, Fv256.Arm64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl) ?w10 ⟨Fv256.Arm64.Scan.Witness.preByt, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+  case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl
 
 end Byt.Witness
 
@@ -267,16 +251,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [dst, tw, dw] s ∧
     ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» sbAddr stAddr
       Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s ∧
-    Extracted.program.DataLoaded s.mem :=
-  ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW,
-    Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV,
-    Fv256.Arm64.Scan.Witness.twU, 0#64, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twU 0#64,
-    Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1,
-    Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2,
-    Fv256.Arm64.Scan.Witness.retAddr, Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twU 0#64, Fv256.Arm64.Scan.Witness.preOther,
-    Fv256.Arm64.Scan.Witness.dataLoaded0⟩
+    Extracted.program.DataLoaded s.mem ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ScanPost cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65»
+          Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s s' := by
+  refine ⟨Fv256.Arm64.Scan.Witness.implA, Fv256.Arm64.Scan.Witness.R, Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW, Fv256.Arm64.Scan.Witness.TW, 0x400, [], Fv256.Arm64.Scan.Witness.loW, Fv256.Arm64.Scan.Witness.hiW, Fv256.Arm64.Scan.Witness.zV, Fv256.Arm64.Scan.Witness.twU, 0#64, Fv256.Arm64.Scan.Witness.retW, Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twU 0#64, Fv256.Arm64.Scan.Witness.implOK, Fv256.Arm64.Scan.Witness.contracts_ok.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1, Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2, Fv256.Arm64.Scan.Witness.retAddr, ?w10, Fv256.Arm64.Scan.Witness.preOther, Fv256.Arm64.Scan.Witness.dataLoaded0,
+    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twU (0#64) Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twU 0#64) ?w10 ⟨Fv256.Arm64.Scan.Witness.preOther, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+  case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twU 0#64
 
 end Other.Witness
 

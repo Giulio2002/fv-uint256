@@ -76,8 +76,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z dest : BitVec 64), RetAddr E
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, dest] s ∧
     (StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s dest 32 true ∧
       (z.toNat + 32 ≤ dest.toNat ∨ dest.toNat + 32 ≤ z.toNat) ∧
-      (dest.toNat + 32 ≤ (s.regs regSP).toNat ∨ (s.regs regSP).toNat + 8 ≤ dest.toNat)) :=
-  ⟨ret, s0, z, dest, hret, setup, hpre⟩
+      (dest.toNat + 32 ≤ (s.regs regSP).toNat ∨ (s.regs regSP).toNat + 8 ≤ dest.toNat)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (dest.toNat + i) 1) 32 = valueAt s z 32 ∧
+        Janus.Spec.OnlyWrites s.mem s'.mem dest.toNat 32 :=
+  ⟨ret, s0, z, dest, hret, setup, hpre,
+    correctness z dest ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ Fv256.Spec.fromBE (fun i => s'.mem.readLE (dest.toNat + i) 1) 32 = valueAt s0 z 32 ∧

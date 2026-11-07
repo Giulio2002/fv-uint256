@@ -136,8 +136,15 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw : BitVec 64), RetAddr E
       Ptr s.mem pw (8 * (2 : BitVec 64).toNat) false ∧
       ((2 : BitVec 64).toNat = 0 ∨ s.mem.readLE (pw.toNat + 8 * ((2 : BitVec 64).toNat - 1)) 8 ≠ 0) ∧
       Disjoint z.toNat 32 (s.sp.toNat - 72) 88 ∧ Disjoint x.toNat 32 (s.sp.toNat - 72) 88 ∧
-      Disjoint pw.toNat (8 * (2 : BitVec 64).toNat) (s.sp.toNat - 72) 88 ∧ s.regs 29 = s.sp - 8#64) :=
-  ⟨ret, s0, z, x, pw, hret, setup, hpre⟩
+      Disjoint pw.toNat (8 * (2 : BitVec 64).toNat) (s.sp.toNat - 72) 88 ∧ s.regs 29 = s.sp - 8#64) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = BitVec.ofInt 64
+          (Fv256.C.cmpBig (val256 s.mem z.toNat)
+            (Fv256.C.bigVal (s.mem.readLE x.toNat 1 == 1)
+              (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) 2.toNat))) ∧
+        MemFrame s.mem s'.mem [(s.sp.toNat + 8, s.sp.toNat + 16), (s.sp.toNat - 72, s.sp.toNat)] :=
+  ⟨ret, s0, z, x, pw, hret, setup, hpre,
+    correctness z x pw (2 : BitVec 64) ret hret s0 setup hpre⟩
+
 
 /-- `0` compared with `-(5 + 2^64)`: the result is `+1`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

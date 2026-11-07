@@ -232,8 +232,22 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
           s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
           Buffer s pw (8 * len.toNat) false ∧ Outside x.toNat 32 rt ∧ Outside pw.toNat (8 * len.toNat) rt ∧
           (x.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ x.toNat) ∧
-          (pw.toNat + 8 * len.toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ pw.toNat))) :=
-  ⟨impl, rt, H, xp, (Janus.Contracts.PanicModel.P0 [] 0), pw, 2, ret, s0, hnew, hret, setup, ⟨trivial, trivial, trivial, pre⟩⟩
+          (pw.toNat + 8 * len.toNat ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ pw.toNat))) ∧
+    GoReturns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
+      match o with
+      | .returned s' => ABIReturn s s' ∧ (x.toNat = 0 ∨ len.toNat ≤ 4) ∧
+        (x.toNat = 0 → s'.regs 0 = 0) ∧
+        (x.toNat ≠ 0 → ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
+          s'.mem.accessible ptr 32 true = true ∧
+          s'.mem.readLE ptr 32 =
+            Fv256.C.fromBig (s.mem.readLE x.toNat 1 == 1)
+              (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) len.toNat) ∧
+          MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)]))
+      | .panicked v s' => x.toNat ≠ 0 ∧ 4 < len.toNat ∧ v = ⟨panicType, panicData⟩
+      | .goexited _ => False := by
+  refine ⟨impl, rt, H, xp, (Janus.Contracts.PanicModel.P0 [] 0), pw, 2, ret, s0, hnew, hret, setup, ?w3,
+    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H xp pw 2 hnew ret hret s0 setup ?w3⟩
+  case w3 => exact ⟨trivial, trivial, trivial, pre⟩
 
 end Witness
 

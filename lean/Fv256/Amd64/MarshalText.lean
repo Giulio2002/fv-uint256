@@ -325,8 +325,15 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
       MemFrame s.mem M (rt ++ [((s.regs 4).toNat - 4608, (s.regs 4).toNat + 8)]) →
       StrOut M p l (decBytes (s.mem.readLE z.toNat 32)) →
       DecAt rt 5163273 5176582 5134938 p l →
-      H [0, p, l] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt M))) :=
-  ⟨implAt, rtT, Hw, ret, s0, arg, model1, model2, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+      H [0, p, l] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt M))) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ BytesHold s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (s'.regs 1).toNat (decBytes (valueAt s z 32)) ∧
+        s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4608, (s.regs 4).toNat + 8)]) := by
+  refine ⟨implAt, rtT, Hw, ret, s0, arg, model1, model2, ?w2, ?w3, pre,
+    correctness implAt rtT Hw arg model1 model2 ret ?w2 s0 ?w3 pre⟩
+  case w2 => exact by rw [linked_eq]; exact hret
+  case w3 => exact by rw [linked_eq]; exact setup
+
 
 
 /-! ### The large-value path (`z = 10^7`: eight digits, `FormatUint` path, both runtime calls made) -/
@@ -497,9 +504,15 @@ theorem big : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRe
       StrOut M p l (decBytes (s.mem.readLE z.toNat 32)) →
       DecAt rt 5163273 5176582 5134938 p l →
       H [0, p, l] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt M))) ∧
-    100 ≤ s.mem.readLE z.toNat 32 :=
-  ⟨implAt8, rtT, Hw8, ret, s08, arg, model1_8, model2_8, by rw [linked_eq8]; exact hret8, by rw [linked_eq8]; exact setup8, pre8,
-    by rw [hz8]; decide⟩
+    100 ≤ s.mem.readLE z.toNat 32 ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ BytesHold s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (s'.regs 1).toNat (decBytes (valueAt s z 32)) ∧
+        s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧
+        MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4608, (s.regs 4).toNat + 8)]) := by
+  refine ⟨implAt8, rtT, Hw8, ret, s08, arg, model1_8, model2_8, ?w2, ?w3, pre8, ?w5,
+    correctness implAt8 rtT Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 ⟨pre8, ?w5⟩⟩
+  case w2 => exact by rw [linked_eq8]; exact hret8
+  case w3 => exact by rw [linked_eq8]; exact setup8
+  case w5 => exact by rw [hz8]; decide
 
 end Witness
 

@@ -206,8 +206,15 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z hp len : BitVec 64), RetAddr
       Disjoint z.toNat 32 hp.toNat len.toNat ∧ Disjoint z.toNat 32 (s.sp.toNat - 72) 96 ∧
       Disjoint hp.toNat len.toNat (s.sp.toNat - 72) 96 ∧ Disjoint z.toNat 32 errBase 96 ∧
       Disjoint errBase 96 (s.sp.toNat - 72) 96 ∧
-      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 72) 96) :=
-  ⟨ret, s0, zp, hpp, 4, hret, setup, pre⟩
+      Disjoint ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 72) 96) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
+          s'.regs 0 = 0 ∧ s'.regs 1 = 0 ∧ val256 s'.mem z.toNat = v) ∧
+        (∀ e, parseHex (bytesAt s.mem hp.toNat) len.toNat = .error e →
+          s'.regs 0 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e) 8) ∧
+          s'.regs 1 = BitVec.ofNat 64 (s.mem.readLE (errAddrOf e + 8) 8)) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat + 16, s.sp.toNat + 24), (s.sp.toNat - 72, s.sp.toNat)] :=
+  ⟨ret, s0, zp, hpp, 4, hret, setup, pre,
+    correctness zp hpp 4 ret hret s0 setup pre⟩
 
 set_option maxRecDepth 100000 in
 /-- `"0x1f"` parses to `31`: the call returns no error and stores `31`. -/

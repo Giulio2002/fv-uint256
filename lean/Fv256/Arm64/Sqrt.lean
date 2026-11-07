@@ -107,8 +107,11 @@ theorem hpreW : Pre zW xW s0 := by
     (unfold Disjoint; decide)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧ Pre z x s :=
-  ⟨retW, s0, zW, xW, hretW, setupW, hpreW⟩
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧ Pre z x s ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ Fv256.F.IsSqrt (val256 s.mem x.toNat) (val256 s'.mem z.toNat) ∧
+        MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 488, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24)] :=
+  ⟨retW, s0, zW, xW, hretW, setupW, hpreW,
+    correctness zW xW retW hretW s0 setupW hpreW⟩
 
 end Witness
 

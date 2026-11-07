@@ -459,8 +459,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
       (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
       Tabs64 s.mem ∧ TabsBig s.mem ∧
       (P64 + P64sz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ P64) ∧
-      (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB)) :=
-  ⟨ret, s0, x, hret, setup, hpre⟩
+      (PB + PBsz ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ PB)) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (valueAt s x 32 = 0 → (s'.regs 0).toNat = 0) ∧
+        (valueAt s x 32 ≠ 0 → 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) :=
+  ⟨ret, s0, x, hret, setup, hpre,
+    correctness x ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

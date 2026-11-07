@@ -63,7 +63,23 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    (Fv256.Amd64.MFdWit.pinPanicRuntime P ∧ Fv256.Amd64.MustFromDecimal.Pre R R2 T b L lo hi pS nS s) := Fv256.Amd64.MFdWit.nonvacuous_core
+    (Fv256.Amd64.MFdWit.pinPanicRuntime P ∧ Fv256.Amd64.MustFromDecimal.Pre R R2 T b L lo hi pS nS s) ∧
+    GoReturns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
+      match o with
+      | .returned s' => ABIReturn s s' ∧ (∃ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v) ∧
+        (∀ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v →
+          ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 R.rt ∧ val256 s'.mem ptr = v) ∧
+        MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)])
+      | .panicked v s' => (decParse (bytesAt s.mem pS.toNat) nS.toNat = .eof ∧
+          v = ⟨s.mem.readLE (s.mem.readLE cfg.ioEOF 8 + 8) 8, s.mem.readLE (cfg.ioEOF + 8) 8⟩) ∨
+        (decParse (bytesAt s.mem pS.toNat) nS.toNat = .range ∧
+          v = ⟨s.mem.readLE (s.mem.readLE cfg.errBig 8 + 8) 8, s.mem.readLE (cfg.errBig + 8) 8⟩) ∨
+        (∃ lo' len' t : Nat, decParse (bytesAt s.mem pS.toNat) nS.toNat = .syntax lo' len' ∧
+          InRanges t (blockSize 48 false) R.rt ∧ v = ⟨s.mem.readLE (cfg.numErrItab + 8) 8, t⟩)
+      | .goexited _ => False := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, hret, hsetup, hp8⟩ := Fv256.Amd64.MFdWit.nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, hret, hsetup, hp8,
+    correctness P impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 ret hret s hsetup hp8⟩
 
 end Witness
 

@@ -440,8 +440,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧
     (GuardOK s 0 ∧ StackOK s 32 0 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem x false ∧
       Disjoint x.toNat 32 (s.sp.toNat - 32) 32 ∧ Tabs64 s.mem ∧ TabsBig s.mem ∧
-      Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32) :=
-  ⟨ret, s0, x, hret, setup, hpre⟩
+      Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (val256 s.mem x.toNat = 0 → (s'.regs 0).toNat = 0) ∧
+        (val256 s.mem x.toNat ≠ 0 → 10 ^ (s'.regs 0).toNat ≤ val256 s.mem x.toNat ∧ val256 s.mem x.toNat < 10 ^ ((s'.regs 0).toNat + 1)) :=
+  ⟨ret, s0, x, hret, setup, hpre,
+    correctness x ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>

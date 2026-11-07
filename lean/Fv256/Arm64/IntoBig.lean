@@ -213,9 +213,13 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z bp : Bit
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, bp] s ∧
-    Pre R b z bp s ∧ PreX z bp s :=
-  ⟨implAt, R, 0x400, zV, bpV, ret, s0, by rw [addr_new]; exact model_new, by rw [addr_w1]; exact model_wb1,
-    by rw [addr_w2]; exact model_wb2, hret, setup, pre, preX⟩
+    Pre R b z bp s ∧ PreX z bp s ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Post R z bp s s' := by
+  refine ⟨implAt, R, 0x400, zV, bpV, ret, s0, ?w0, ?w1, ?w2, hret, setup, pre, preX,
+    correctness implAt R 0x400 zV bpV ?w0 ?w1 ?w2 ret hret s0 setup ⟨pre, preX⟩⟩
+  case w0 => exact by rw [addr_new]; exact model_new
+  case w1 => exact by rw [addr_w1]; exact model_wb1
+  case w2 => exact by rw [addr_w2]; exact model_wb2
 
 end Witness
 

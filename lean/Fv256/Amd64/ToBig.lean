@@ -325,9 +325,15 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : 
         R.inv b [] (s.regs 14).toNat (view R.rt [] s.mem) ∧
         blockSize 32 false + blockSize 32 true ≤ b ∧
         (z.toNat ≠ 0 → Buffer s z 32 false ∧ Outside z.toNat 32 R.rt ∧
-          Janus.Spec.Disjoint z.toNat 32 ((s.regs 4).toNat - 4168) 4168)) :=
-  ⟨implAt, R, 0x400, zV, ret, s0, implOK, by rw [addr_new]; exact model_new, by rw [addr_w1]; exact model_wb1,
-    by rw [addr_w2]; exact model_wb2, hret, setup, pre⟩
+          Janus.Spec.Disjoint z.toNat 32 ((s.regs 4).toNat - 4168) 4168)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → s'.regs 0 = 0) ∧
+        (z.toNat ≠ 0 → ∃ P : Nat, (s'.regs 0).toNat = P ∧ BigObj s'.mem P (val256 s.mem z.toNat)) ∧
+        MemFrame s.mem s'.mem (R.rt ++ [((s.regs 4).toNat - 4168, (s.regs 4).toNat)]) := by
+  refine ⟨implAt, R, 0x400, zV, ret, s0, implOK, ?w1, ?w2, ?w3, hret, setup, pre,
+    correctness implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
+  case w1 => exact by rw [addr_new]; exact model_new
+  case w2 => exact by rw [addr_w1]; exact model_wb1
+  case w3 => exact by rw [addr_w2]; exact model_wb2
 
 end Witness
 

@@ -143,8 +143,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreU Fv256.Arm64.UnmarshalText.cfg Fv256.Arm64.UnmarshalText.sbAddr Fv256.Arm64.UnmarshalText.stAddr R R2 T b L lo hi z pI nI s ∧
-    HexEnv R lo hi z s :=
-  Fv256.Arm64.UnmarshalTextWit.nonvacuous_core
+    HexEnv R lo hi z s ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ UTPost Fv256.Arm64.UnmarshalText.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11⟩ := Fv256.Arm64.UnmarshalTextWit.nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11,
+    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 h9 ret hret s hsetup ⟨hp10, hp11⟩⟩
+
 
 /-- Non-vacuity on the hex path: the same runtime and contracts, the input is a 48-byte `0x…` string (`IsHex`). -/
 theorem hex : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -163,8 +167,11 @@ theorem hex : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreU Fv256.Arm64.UnmarshalText.cfg Fv256.Arm64.UnmarshalText.sbAddr Fv256.Arm64.UnmarshalText.stAddr R R2 T b L lo hi z pI nI s ∧
-    HexEnv R lo hi z s ∧ IsHex s.mem pI.toNat nI.toNat :=
-  Fv256.Arm64.UnmarshalTextWit.hex_core
+    HexEnv R lo hi z s ∧ IsHex s.mem pI.toNat nI.toNat ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ UTPost Fv256.Arm64.UnmarshalText.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12⟩ := Fv256.Arm64.UnmarshalTextWit.hex_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12,
+    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 h9 ret hret s hsetup ⟨hp10, hp11⟩⟩
 
 end Witness
 

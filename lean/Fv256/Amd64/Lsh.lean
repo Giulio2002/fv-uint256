@@ -1604,8 +1604,12 @@ theorem hpre : StackWritable s0 0 8 ∧ Buffer s0 z 32 true ∧ Buffer s0 x 32 f
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x n : BitVec 64), RetAddr Extracted.program ret ∧
     CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, n] s ∧
     (StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧
-      Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x) :=
-  ⟨ret, s0, z, x, n, hret, setup, hpre⟩
+      Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x) ∧
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
+        valueAt s' z 32 = Spec.lsh (valueAt s x 32) n.toNat ∧
+        Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
+  ⟨ret, s0, z, x, n, hret, setup, hpre,
+    correctness z x n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
