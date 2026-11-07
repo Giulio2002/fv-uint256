@@ -38,7 +38,7 @@ def bytes (a : Nat) : Byte :=
   | none => 0
 
 def mem0 : Memory :=
-  ⟨bytes, [⟨sp0 - 4688, 4736 + 16, true⟩, ⟨g0, 0x100, false⟩, ⟨zA, 32, false⟩, ⟨tabA, 0x40, false⟩,
+  ⟨bytes, [⟨sp0 - 4688, 4736 + 16, true⟩, ⟨g0, 0x100, false⟩, ⟨zA, 32, false⟩, ⟨tabA, 0x40, false⟩, ⟨Fv256.Amd64.IntoBig.flagAddr, 8, false⟩,
     ⟨hA, 8, true⟩, ⟨hB, 8, true⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩] ++ dregs⟩
 
 def zV : BitVec 64 := BitVec.ofNat 64 zA
@@ -161,13 +161,27 @@ theorem inv0 : R2.inv 0x400 [] (s0.regs 14).toNat (view R2.rt [] s0.mem) := by
   have e4 : ¬ i = BUMP + 3 := by simp only [BUMP]; omega
   rw [if_neg e1, if_neg e2, if_neg e3, if_neg e4]
 
+open Fv256.Amd64.IntoBig Fv256.Amd64.FormatBig in
+theorem preBig : PreBigE R2 0x400 zV s0 := by
+  have rt_eq : R2.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] := rfl
+  refine ⟨by decide, ?_, by decide, ?_, ?_, ?_, ?_, ?_, ?_, ?_, by decide⟩
+  · rw [rt_eq]; simp only [s0, g0, outside_cons, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [outside_cons, outside_nil, and_true]; decide
+  · rw [rt_eq]; simp only [zV, zA, outside_cons, outside_nil, and_true]; decide
+  · rw [addr_new]; exact Or.inl ⟨rfl, Or.inl rfl⟩
+  · rw [addr_new]; exact Or.inl ⟨rfl, Or.inr rfl⟩
+  · rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩)
+  · rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩)
+
 open Janus.Contracts.IfaceSatAmd64 in
 theorem pre : PreF R0 Hw R2 rtT stackN 0x400 amA amA amA amA 16 zV tabV dataV s0 := by
-  refine ⟨preRt, preCommon, fun h => absurd h (by decide), fun _ => ⟨preFastE, preFastX, hzv, inv0, ?_⟩⟩
-  show Outside _ _ (Janus.Contracts.Toy.toyRt [])
-  simp only [Janus.Contracts.Toy.toyRt, List.map_nil, List.append_nil, s0, sp0, stackN, outside_cons, outside_nil, and_true,
-    HEAP, HEND, HSIZE, BUMP, WBUF]
-  decide
+  refine ⟨preRt, preCommon, fun h => absurd h (by decide), fun _ => ⟨preFastE, preFastX, hzv, inv0, ?_, ?_⟩⟩
+  · show Outside _ _ (Janus.Contracts.Toy.toyRt [])
+    simp only [Janus.Contracts.Toy.toyRt, List.map_nil, List.append_nil, s0, sp0, stackN, outside_cons, outside_nil, and_true,
+      HEAP, HEND, HSIZE, BUMP, WBUF]
+    decide
+  · exact preBig
 
 open Janus.Contracts.IfaceSatAmd64 Fv256.FormatFast Fv256.Amd64.FormatFast Janus.Spec.Type in
 theorem nonvacuous_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
@@ -193,31 +207,13 @@ theorem nonvacuous_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : 
     ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 80 rt (fun _ => [])
       RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat zv ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
         (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
-    (∀ S0 S : State, z.toNat ≠ 0 → FPre rt stack z tab data fW fP fF fWr S0 → S0.mem.readLE z.toNat 32 = zv →
-      NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) →
-      S.rip = BitVec.ofNat 64 (Extracted.entry + 0x1cc) → FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S →
-      R2.inv b0 [] (S.regs 14).toNat (view R2.rt [] S.mem) →
-      ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 72) 8)) S
-        (BigQ R2 rt stack RBf tab data ch S0)) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
     PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s := by
-  have hbig : ∀ S0 S : State, zV.toNat ≠ 0 → FPre rtT stackN zV tabV dataV amA amA amA amA S0 → S0.mem.readLE zV.toNat 32 = 16 →
-      NotPlain R0z R0z R0z dataV tabV chV amA amA (chV.toNat % 2 ^ 32) →
-      S.rip = BitVec.ofNat 64 (Extracted.entry + 0x1cc) → FInv rtT stackN zV tabV dataV (chV.toNat % 2 ^ 32) S0 S →
-      R2.inv 0x400 [] (S.regs 14).toNat (view R2.rt [] S.mem) →
-      ReachesRet (Extracted.program.link implAll) (BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 72) 8)) S
-        (BigQ R2 rtT stackN R0z tabV dataV chV S0) := by
-    intro S0 S _ _ _ hnp
-    exfalso
-    simp [NotPlain, PlainHist, WRes, PRes, FRes, R0z, fz, fx, chV] at hnp
-    obtain ⟨j0, j3, ⟨-, h3⟩, hn⟩ := hnp
-    subst h3
-    simp at hn
   refine ⟨implAll, Janus.Contracts.IfaceModel.R0, Hw, R2, rtT, amA, amA, amA, amA, stackN, 0x400, 16, R0z, R0z, R0z, R0z, R0z, R0z, zV, tabV, dataV, chV, ret, s0,
     implOK, Janus.Contracts.IfaceModel.R0_laws, model_ta, model_new, model_wb1, model_wb2, model1, model2, by decide,
     stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h),
     stub_am _ _ _ _ _ _ (fun _ => trivial), stub_fp _ _ _ _ _ _ (fun _ => trivial), stub_bf _ _ _ _ _ _ (fun _ => trivial),
-    hbig, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+    by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
 
 end Fv256.Amd64.FormatWitB

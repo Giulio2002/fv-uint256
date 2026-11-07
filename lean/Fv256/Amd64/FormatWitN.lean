@@ -95,25 +95,13 @@ theorem nil_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady
     ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 80 rt (fun _ => [])
       RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat zv ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
         (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
-    (∀ S0 S : State, z.toNat ≠ 0 → FPre rt stack z tab data fW fP fF fWr S0 → S0.mem.readLE z.toNat 32 = zv →
-      NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) →
-      S.rip = BitVec.ofNat 64 (Extracted.entry + 0x1cc) → FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S →
-      R2.inv b0 [] (S.regs 14).toNat (view R2.rt [] S.mem) →
-      ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 72) 8)) S
-        (BigQ R2 rt stack RBf tab data ch S0)) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
     PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s := by
-  have hbig : ∀ S0 S : State, (0 : BitVec 64).toNat ≠ 0 → FPre rtT stackN 0 0 0 amA amA amA amA S0 → S0.mem.readLE (0 : BitVec 64).toNat 32 = 0 →
-      NotPlain R0z R0z R0z 0 0 chV amA amA (chV.toNat % 2 ^ 32) →
-      S.rip = BitVec.ofNat 64 (Extracted.entry + 0x1cc) → FInv rtT stackN 0 0 0 (chV.toNat % 2 ^ 32) S0 S →
-      R2.inv 0x400 [] (S.regs 14).toNat (view R2.rt [] S.mem) →
-      ReachesRet (Extracted.program.link implAll) (BitVec.ofNat 64 (S0.mem.readLE ((S0.regs 4).toNat + 72) 8)) S
-        (BigQ R2 rtT stackN R0z 0 0 chV S0) := fun S0 S h => absurd h (by decide)
   refine ⟨implAll, Janus.Contracts.IfaceModel.R0, Hw, R2, rtT, amA, amA, amA, amA, stackN, 0x400, 0, R0z, R0z, R0z, R0z, R0z, R0z, 0, 0, 0, chV, ret, s0N,
     implOK, Janus.Contracts.IfaceModel.R0_laws, model_ta, model_new, model_wb1, model_wb2, model1, model2, by decide,
     stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h),
     stub_am _ _ _ _ _ _ (fun _ => trivial), stub_fp _ _ _ _ _ _ (fun _ => trivial), stub_bf _ _ _ _ _ _ (fun _ => trivial),
-    hbig, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setupN, preN⟩
+    by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setupN, preN⟩
 
 end Fv256.Amd64.FormatWitN

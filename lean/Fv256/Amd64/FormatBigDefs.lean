@@ -31,6 +31,18 @@ def BigR2 (R2 : RtInv) (b0 : Nat) (z : BitVec 64) (S0 : State) : Prop :=
   R2.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
   blockSize 32 false + blockSize 32 true ≤ b0
 
+/-- `BigR2`'s facts at the ENTRY state `s` of `Format` (before the prologue: `RSP = S0.RSP + 72`), the part of `PreF` that serves the big path -/
+def PreBigE (R2 : RtInv) (b0 : Nat) (z : BitVec 64) (s : State) : Prop :=
+  s.mem.readLE ((s.regs 14).toNat + 16) 8 + 4136 < (s.regs 4).toNat - 72 ∧
+  Outside ((s.regs 14).toNat + 16) 8 R2.rt ∧
+  s.mem.accessible flagAddr 4 false = true ∧ Outside bigType 16 R2.rt ∧ Outside arrType 16 R2.rt ∧
+  Outside z.toNat 32 R2.rt ∧
+  R2.ok (Extracted.program.contractAddr "runtime.newobject") [bigType] ∧
+  R2.ok (Extracted.program.contractAddr "runtime.newobject") [arrType] ∧
+  R2.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
+  R2.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
+  blockSize 32 false + blockSize 32 true ≤ b0
+
 /-- the state-level result of the big path from the `Format+0x1cc` state `S` (frame of `S0`): returned (`RSP` restored, `RBP` restored from
 the saved slot), the registers `R14`, `X15` kept, memory changed only in the runtime's ranges, the callee windows, the spill area and
 the 8-byte slot, and the `(*big.Int).Format` results satisfy `RBf` -/

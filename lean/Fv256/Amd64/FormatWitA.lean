@@ -300,8 +300,13 @@ theorem stub_bf (nargs stack above : Nat) (rt : List (Nat × Nat)) (P : State �
 
 
 open Janus.Contracts.Toy Janus.Contracts.LiveSatAmd64 Janus.Contracts.LiveStubAmd64 in
-/-- the requests the witness runtime serves: none (the fast path allocates nothing) -/
-def okR : Nat → List Nat → Prop := fun _ _ => False
+/-- the requests the witness runtime serves: `IntoBig`'s (the big path's allocations) -/
+def okR : Nat → List Nat → Prop := fun a args =>
+  (a = newA ∧ (args = [Fv256.Amd64.IntoBig.bigType] ∨ args = [Fv256.Amd64.IntoBig.arrType])) ∨ (a = w1A ∧ args = [1]) ∨ (a = w2A ∧ args = [2])
+
+theorem addr_new : Extracted.program.contractAddr "runtime.newobject" = newA := by decide
+theorem addr_w1 : Extracted.program.contractAddr "runtime.gcWriteBarrier1" = w1A := by decide
+theorem addr_w2 : Extracted.program.contractAddr "runtime.gcWriteBarrier2" = w2A := by decide
 
 open Janus.Contracts.Toy Janus.Contracts.LiveSatAmd64 Janus.Contracts.LiveStubAmd64 in
 def R2 : RtInv := toyR [] okR
