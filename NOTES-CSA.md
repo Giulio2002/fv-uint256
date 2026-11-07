@@ -72,3 +72,8 @@ started (log /srv/fv-uint256-csa-aud/run-IntoBig-full.log, ENDMARK line at end; 
 - IntoBig timings: audit cold pin framework build 1251 s; audit warm ~25 s. Full verify timings: pending.
 - Open items: FV-WRUN compile fixes (rebase onto fv/wrun when told); report to main + FV-A2 (a66f673964e9e7ef5) with rows/timings; delete /srv/janus-ops/jcache-csa at the end; never push.
 - FV-CSB (amd64, /srv/fv-uint256-csb) already told about the Site-wrapper finding.
+
+# FV-CSA2 update (2026-11-08)
+- arm64 IntoBig FULL verify (non-stub, pin 8615b09c, fwstore warm): correctness AND Witness.nonvacuous `verified`, "Non-vacuity: shown ... contract hypotheses included"; rc=0, 482 s. (coordinator confirmed from the last block of build/log-arm64-IntoBig; that log accumulates stub runs, read only the last block.)
+- ToBig wired (cs-apply-tobig.sh, copy of IntoBig block); queue: scripts/csa-q.sh ISA FN audit|full (flock-serialised, writes /srv/fv-uint256-csa-aud/q/ISA-FN-MODE.out with VERDICT line). batch2 (8 newobject files + Dec, String, ToBig) running -> /srv/fv-uint256-csa-aud/batch2.log.
+- Forks (handovers NOTES-CSA-{A,B,C1,C2}.md): A = Hex PrettyDec MarshalJSON/Text Value MarshalSSZ* PaddedBytes EncodeRLP; B = Format; C1 = FromDecimal MustFromDecimal SetFromDecimal (+ scripts/cs_live_a64.py); C2 = UnmarshalJSON UnmarshalText Scan.
