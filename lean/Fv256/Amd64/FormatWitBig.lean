@@ -163,6 +163,8 @@ theorem inv0 : R2.inv 0x400 [] (s0.regs 14).toNat (view R2.rt [] s0.mem) := by
   have e4 : ¬ i = BUMP + 3 := by simp only [BUMP]; omega
   rw [if_neg e1, if_neg e2, if_neg e3, if_neg e4]
 
+theorem rtb_eq : R2.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] := rfl
+
 open Fv256.Amd64.IntoBig Fv256.Amd64.FormatBig in
 theorem preBig : PreBigE R2 0x400 zV s0 := by
   refine ⟨by decide, ?_, by decide, ?_, ?_, ?_, ?_, ?_, ?_, ?_, by decide⟩

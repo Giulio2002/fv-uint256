@@ -171,7 +171,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.
       have hfi2 : FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S' := by rw [hz7] at hfi; exact hfi
       have hbr := bigR2_of hbe hstk hrs4 hr14 hfr hzd'
       have hdl' : Extracted.program.DataLoaded S'.mem :=
-        dataLoaded_FL xdl hreg' hdrt (by simpa using hfpre.2.2.2.2.2.2.2.2.1) ifr
+        dataLoaded_FL xdl hreg' hdrt (by simpa using hfpre.2.2.2.2.2.2.2.1) ifr
       obtain ⟨k2, S2, hs2, hr2, hq2⟩ := Fv256.Amd64.FormatBig.big_path impl hI R2 b0 hnew hwb1 hwb2 rt stack fW fP fF fWr zv RBf z tab data ch hBf
         S0 S' hz hfpre hzv0 hrip' hfi2 h4568 hwR' hdl' xg1 xg2 xgo xgd hxS0 hdfS0 hbr hret47 hinv1
       refine ⟨k + k2, S2, hsteps.trans hs2, hr2, ?_⟩
