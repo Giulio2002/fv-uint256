@@ -504,4 +504,43 @@ theorem pageR_sub {m : Janus.Arm64.Memory} {a l p n : Nat} (h : Fv256.IndexByte.
   · right
     refine ⟨by omega, Janus.Arm64.Memory.accessible_sub m h4 (Or.inl rfl) (by omega) (by omega)⟩
 
+
+/-- `TlsG`, `InitDone` and the TLS slot survive the `slicebytetostring` call (frame `R.rt ++ window`) -/
+theorem tls_frame2 {R : RtInv} {R2 : IfaceModel} {lo hi hi3 : Nat} {dst : BitVec 64} {s S : State}
+    (hF : MemFrame s.mem S.mem (R.rt ++ [(lo, hi)]))
+    (hfs : S.fsBase = s.fsBase) (h14 : S.regs 14 = s.regs 14) (hh3 : hi3 ≤ hi)
+    (heofW : Outside C.ioEOF 16 [(lo, hi), (dst.toNat, dst.toNat + 32)]) (heofR : Outside C.ioEOF 16 R.rt)
+    (hbigW : Outside C.errBig 16 [(lo, hi), (dst.toNat, dst.toNat + 32)]) (hbigR : Outside C.errBig 16 R.rt)
+    (htls : TlsG s ∧ Outside (s.fsBase.toNat - 8) 8 [(lo, hi)] ∧ Fv256.Amd64.FromDecimalSpec.InitDone C R2 s.mem ∧
+      Outside (s.fsBase.toNat - 8) 8 R.rt) :
+    TlsG S ∧ Outside (S.fsBase.toNat - 8) 8 [(lo, hi3)] ∧ Fv256.Amd64.FromDecimalSpec.InitDone C R2 S.mem := by
+  obtain ⟨hT, ho, hi0, hor⟩ := htls
+  have ho' := ho
+  simp only [outside_cons, outside_nil, and_true] at ho' heofW hbigW
+  have hso : Outside (s.fsBase.toNat - 8) 8 (R.rt ++ [(lo, hi)]) := by
+    rw [outside_append]; exact ⟨hor, by simp only [outside_cons, outside_nil, and_true]; exact ho'⟩
+  refine ⟨⟨?_, ?_, ?_⟩, ?_, ?_⟩
+  · rw [hfs]; exact hT.base
+  · rw [hfs, hF.accessible]; exact hT.readable
+  · rw [hfs, hF.readLE _ _ hso, h14]; exact hT.g
+  · rw [hfs]; simp only [outside_cons, outside_nil, and_true]; omega
+  · obtain ⟨i1, i2, i3, i4, i5⟩ := hi0
+    have r1 : ∀ a, (a = C.ioEOF ∨ a = C.ioEOF + 8 ∨ a = C.errBig ∨ a = C.errBig + 8) → S.mem.readLE a 8 = s.mem.readLE a 8 := by
+      intro a ha
+      refine hF.readLE a 8 ?_
+      rw [outside_append]
+      refine ⟨?_, ?_⟩
+      · rcases ha with rfl | rfl | rfl | rfl
+        · exact Outside.of_sub heofR (Nat.le_refl _) (by omega)
+        · exact Outside.of_sub heofR (by omega) (by omega)
+        · exact Outside.of_sub hbigR (Nat.le_refl _) (by omega)
+        · exact Outside.of_sub hbigR (by omega) (by omega)
+      · simp only [outside_cons, outside_nil, and_true]
+        rcases ha with rfl | rfl | rfl | rfl <;> omega
+    refine ⟨?_, ?_, ?_, ?_, i5⟩
+    · rw [r1 _ (Or.inl rfl)]; exact i1
+    · rw [r1 _ (Or.inr (Or.inl rfl))]; exact i2
+    · rw [r1 _ (Or.inr (Or.inr (Or.inl rfl)))]; exact i3
+    · rw [r1 _ (Or.inr (Or.inr (Or.inr rfl)))]; exact i4
+
 end Fv256.Amd64.ScanBSb
