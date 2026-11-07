@@ -39,8 +39,11 @@ def PageReadable (m : Janus.Arm64.Memory) (p n : Nat) : Prop :=
 /-! ## amd64 -/
 
 /-- precondition at the entry of `IndexByteString.abi0` (amd64): arguments in `[RSP+8, RSP+32)`, the result slot `[RSP+32, RSP+40)`
-writable, the string apart from the result slot -/
-def IbsPreA (p n : BitVec 64) (c : Nat) (s : Janus.Amd64.State) : Prop :=
+writable, the string apart from the result slot.  `avx` is the address of the writable global `internal/cpu.X86.HasAVX2` (the
+extractor does not copy it, its value is not fixed): only its READABILITY is assumed, never its value, so the summary holds for both
+the SSE2 path (`HasAVX2 = 0`) and the AVX2 path (`HasAVX2 = 1`).  A consumer passes `Extracted.dataAddr.«internal/cpu.X86» + 68`. -/
+def IbsPreA (avx : Nat) (p n : BitVec 64) (c : Nat) (s : Janus.Amd64.State) : Prop :=
+  s.mem.accessible avx 1 false = true ∧ s.mem.accessible (s.regs 4).toNat 32 false = true ∧
   s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 ∧ (s.regs 4).toNat % 8 = 0 ∧ (s.regs 4).toNat + 40 ≤ 2 ^ 48 ∧
   s.mem.readLE ((s.regs 4).toNat + 8) 8 = p.toNat ∧ s.mem.readLE ((s.regs 4).toNat + 16) 8 = n.toNat ∧
   s.mem.readLE ((s.regs 4).toNat + 24) 1 = c % 256 ∧
@@ -54,12 +57,12 @@ def IbsPostA (p n : BitVec 64) (c : Nat) (s s' : Janus.Amd64.State) : Prop :=
   Janus.MemFrame s.mem s'.mem [((s.regs 4).toNat + 32, (s.regs 4).toNat + 40)]
 
 /-- the summary of `IndexByteString.abi0` on the program `P` (amd64) -/
-def IbsSummaryA (P : Janus.Amd64.Program) (entry : Nat) (p n : BitVec 64) (c : Nat) : Prop :=
-  Janus.Amd64.Tactic.Summary P entry (IbsPreA p n c) (IbsPostA p n c)
+def IbsSummaryA (P : Janus.Amd64.Program) (entry avx : Nat) (p n : BitVec 64) (c : Nat) : Prop :=
+  Janus.Amd64.Tactic.Summary P entry (IbsPreA avx p n c) (IbsPostA p n c)
 
 /-- for every string and byte -/
-def IbsLibA (P : Janus.Amd64.Program) (entry : Nat) : Prop :=
-  ∀ (p n : BitVec 64) (c : Nat), IbsSummaryA P entry p n c
+def IbsLibA (P : Janus.Amd64.Program) (entry avx : Nat) : Prop :=
+  ∀ (p n : BitVec 64) (c : Nat), IbsSummaryA P entry avx p n c
 
 /-! ## arm64 -/
 

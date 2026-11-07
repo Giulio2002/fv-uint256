@@ -67,3 +67,8 @@ MulOverflow: library programs + retargeted cases generated (Amd64|Arm64/MoLib/{A
 Fv256.Amd64.MoLib.mo_summary (over Fv256.MulOverflowProg.program, entry 0x4b7360) and Fv256.Arm64.MoLib.mo_summary (over Fv256.Arm64.MulOverflowProg.program, entry 0xbadb0).
 Pre = `∃ ret, RetAddr .. ∧ CallSetup (program.withExit ret) entry [z,x,y] s ∧ <MulOverflow Ensures pre>`, Post = `ABIReturn s s' ∧ <Ensures post>`. Transfer with Fv256.CodeIn.lib_summary (CodeIn proof as in Amd64/Exp.lean).
 Case proofs are mechanical sed-retargets of MoCases (not janus verify runs).
+
+## hibs amd64 taken from FV-X (fv/wx 3ce79d4): lean/Fv256/{IndexByteSpec,IbsProgA,IbsProg64,IbsMath,IbsA,IbsAWit}.lean + tools/gen_libprog*.py (--no-stubs). Not rebuilt here.
+`Fv256.IndexByte.ibs_lib_A : IbsLibA Fv256.IbsProgA.program 0x402bc0 0x5df444`; consumer passes avx := Extracted.dataAddr.«internal/cpu.X86» + 68 (= 0x5df444, rfl/decide).
+IbsPreA also needs `s.mem.accessible (s.regs 4).toNat 32 false = true` (caller frame [RSP,RSP+32) readable: args just stored there). Segments "internal/bytealg.IndexByteString.abi0", "indexbytebody"; transfer via codeIn64_of_sub / lib_summary.
+arm64 hibs: pending from FV-X.
