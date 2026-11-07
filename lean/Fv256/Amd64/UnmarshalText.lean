@@ -73,7 +73,7 @@ theorem scratch (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) 
   have hdH : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 72 ∨ (s.regs 4).toNat - 72 + 32 ≤ pI.toNat := by omega
   have hdS1 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 - 4096 ∨ (s.regs 4).toNat - 104 ≤ pI.toNat := by omega
   have hdS2 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 + 8 ∨ (s.regs 4).toNat - 104 + 8 + 24 ≤ pI.toNat := by omega
-  janus64_run until [Extracted.entry + 0x36] calls [hsb]
+  janus64_run until [Extracted.entry + 0x36, Extracted.entry + 0x56] calls [hsb]
   trace_state
   all_goals sorry
 
