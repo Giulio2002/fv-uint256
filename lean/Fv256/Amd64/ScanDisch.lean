@@ -7,13 +7,14 @@ import Fv256.CodeIn
 import Fv256.LinkEq
 import Fv256.Amd64.ExpMain
 import Fv256.Amd64.MoLib.Top
+import Fv256.Amd64.FrameFsDf
 
 /-!
 # `Scan` (amd64): the discharge of the callee summaries (`hibs`, `hexp`, `hmo`) from the library programs, and the two PENDING lemmas
 
 * `disch_ibs`: `IndexByteString` (`IbsLibA`, `ibs_lib_A`), transferred with `CodeIn.lib_summary_link`.
 * `disch_exp`, `disch_mo`: `ExpMain.exp_summary` / `MoLib.mo_summary` strengthened by the frame facts `fsBase`, `df` (the single pending lemma
-  `fsdf_lib_steps`, upstream U-FRAME-FSDF), then transferred.
+  `Fv256.FrameFsDf.Steps_fs` + the `df` conjunct of `mo_summary`), then transferred.
 * `disch_sfd`: `SetFromDecimal` (the single pending lemma, FV-I5's `SfdLib.hsfd_of_link`).
 -/
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.IfaceAmd64 Fv256.I Fv256.C
@@ -41,13 +42,6 @@ theorem disch_ibs (impl : List Janus.Amd64.Segment) :
   intro p n c
   exact Fv256.CodeIn.lib_summary_link impl hcIbs (Fv256.IndexByte.ibs_summary_A p n c)
 
-/-- **PENDING (upstream U-FRAME-FSDF)**: ordinary steps of the two library programs `Exp` and `MulOverflow` keep `fsBase` and `df`
-(`Exec` writes `fsBase` only on FFI paths and `df` only by `popf`/`setDF`, none of which occur in this code). -/
-theorem fsdf_lib_steps {p : Janus.Amd64.Program}
-    (hp : p = Fv256.ExpProg.program ∨ p = Fv256.MulOverflowProg.program) {s s' : State} {k : Nat}
-    (h : Janus.Amd64.Program.Steps p s k s') : s'.fsBase = s.fsBase ∧ s'.df = s.df := by
-  sorry
-
 /-- a library summary, strengthened by a frame fact that holds along every run of the library program -/
 theorem strengthen {p : Janus.Amd64.Program} {entry : Nat} {pre : State → Prop} {post : State → State → Prop}
     (hsum : Summary p entry pre post) (F : State → State → Prop)
@@ -62,7 +56,7 @@ set_option maxRecDepth 100000 in
 theorem disch_exp (impl : List Janus.Amd64.Segment) : ExpSumm (Extracted.program.link impl) := by
   have h := Fv256.CodeIn.lib_summary_link impl hcExp
     (strengthen Fv256.Amd64.ExpMain.exp_summary (fun s s' => s'.fsBase = s.fsBase)
-      (fun hst => (fsdf_lib_steps (Or.inl rfl) hst).1))
+      (fun hst => Fv256.FrameFsDf.Steps_fs hst))
   intro s hpc hp
   obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, hdl⟩ := hp
   obtain ⟨k, s', hst, hr, hq, hfs⟩ := h s hpc
@@ -74,11 +68,11 @@ set_option maxRecDepth 100000 in
 /-- `MulOverflow` (`hmo`) -/
 theorem disch_mo (impl : List Janus.Amd64.Segment) (z x y : BitVec 64) : MoSumm (Extracted.program.link impl) z x y := by
   have h := Fv256.CodeIn.lib_summary_link impl hcMo
-    (strengthen (Fv256.Amd64.MoLib.mo_summary z x y) (fun s s' => s'.fsBase = s.fsBase ∧ s'.df = s.df)
-      (fun hst => fsdf_lib_steps (Or.inr rfl) hst))
+    (strengthen (Fv256.Amd64.MoLib.mo_summary z x y) (fun s s' => s'.fsBase = s.fsBase)
+      (fun hst => Fv256.FrameFsDf.Steps_fs hst))
   intro s hpc hp
-  obtain ⟨k, s', hst, hr, hq, hfs⟩ := h s hpc hp
-  exact ⟨k, s', hst, hr, hq, hfs⟩
+  obtain ⟨k, s', hst, hr, ⟨hq1, hq2, hq3, hq4, hq5, hdf⟩, hfs⟩ := h s hpc hp
+  exact ⟨k, s', hst, hr, ⟨hq1, hq2, hq3, hq4, hq5⟩, hfs, hdf⟩
 
 /-- **PENDING (FV-I5, `Fv256.Amd64.SfdLib.hsfd_of_link`, not delivered)**: the `SetFromDecimal` summary at its entry in the consumer program,
 from the library proof and the runtime contracts (exactly the statement planned in `NOTES-I.md`). -/

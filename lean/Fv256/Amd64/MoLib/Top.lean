@@ -35,7 +35,7 @@ theorem correctness (z x y : BitVec 64) :
       (fun s s' => s'.regs 0 = z ∧
         (s'.regs 3).toNat % 256 = (if Spec.W ≤ valueAt s x 32 * valueAt s y 32 then 1 else 0) ∧
         valueAt s' z 32 = Spec.mul (valueAt s x 32) (valueAt s y 32) ∧
-        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168) := by
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168 ∧ s'.df = s.df) := by
   intro ret hret s hs ⟨hg, hst, hal, hz, hx, hy, hzx, hzy, hxy, hd1, hd2, hd3⟩
   rcases hzx with hzx | hzx
   · subst hzx
@@ -65,7 +65,7 @@ theorem mo_summary (z x y : BitVec 64) :
       (fun s s' => ABIReturn s s' ∧ (s'.regs 0 = z ∧
         (s'.regs 3).toNat % 256 = (if Spec.W ≤ valueAt s x 32 * valueAt s y 32 then 1 else 0) ∧
         valueAt s' z 32 = Spec.mul (valueAt s x 32) (valueAt s y 32) ∧
-        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168)) :=
+        Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168 ∧ s'.df = s.df)) :=
   Ensures.toSummary (correctness z x y) (by decide)
 
 end Fv256.Amd64.MoLib
