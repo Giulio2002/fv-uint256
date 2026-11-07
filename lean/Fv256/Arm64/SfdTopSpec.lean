@@ -150,7 +150,7 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
     (s : State) : Prop :=
   (s.regs 30).toNat % 4 = 0 ∧ (s.regs 30).toNat < 2 ^ 48 ∧
   s.regs 0 = z ∧ s.regs 1 = pS ∧ s.regs 2 = nS ∧ Mod C R R2 T L ∧
-  Env C R R2 T b L lo hi s ∧ lo + 4520 ≤ s.sp.toNat ∧ s.sp.toNat + 32 ≤ hi ∧
+  Env C R R2 T b L lo hi s ∧ lo + 4528 ≤ s.sp.toNat ∧ s.sp.toNat + 32 ≤ hi ∧
   MultOK C z.toNat lo hi s.mem ∧
   s.mem.accessible C.ioEOF 16 false = true ∧ Outside C.ioEOF 16 [(lo, hi), (z.toNat, z.toNat + 32)] ∧
   s.mem.accessible C.maxStr 78 false = true ∧ Outside C.maxStr 78 [(lo, hi), (z.toNat, z.toNat + 32)] ∧ Outside C.maxStr 78 R.rt ∧
@@ -159,7 +159,7 @@ def TopPre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo
   Ptr32 s.mem z true ∧ (z.toNat + 32 ≤ lo ∨ hi ≤ z.toNat) ∧ (Outside z.toNat 32 R.rt ∨ InRanges z.toNat 32 L) ∧
   Outside z.toNat 32 R2.priv ∧ (∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z.toNat, z.toNat + 32)]) ∧
   ((s.regs 28).toNat + 16 + 8 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs 28).toNat + 16) ∧
-  s.mem.accessible pS.toNat nS.toNat false = true ∧ pS.toNat + nS.toNat ≤ 2 ^ 48 ∧
+  (nS.toNat = 0 ∨ s.mem.accessible pS.toNat nS.toNat false = true) ∧ pS.toNat + nS.toNat ≤ 2 ^ 48 ∧
   (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ lo ∨ hi ≤ pS.toNat) ∧
   (nS.toNat = 0 ∨ pS.toNat + nS.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat) ∧
   ChunkAll C R R2 L b pS.toNat nS.toNat lo hi s.mem
