@@ -280,3 +280,38 @@ theorem dataLoaded_frame {p : Janus.Amd64.Program} {m m' : Janus.Arm64.Memory} {
   rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at e
   rw [e]; exact h2 i hi
 end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+theorem RT.here {p : Janus.Amd64.Program} {S : Janus.Amd64.State} {T : List (Nat × (Janus.Amd64.State → Prop))}
+    (t : Nat × (Janus.Amd64.State → Prop)) (ht : t ∈ T) (hr : S.rip = BitVec.ofNat 64 t.1) (hq : t.2 S) : RT p S T :=
+  ⟨0, S, .refl S, t, ht, hr, hq⟩
+
+open Janus.Contracts.ICall in
+/-- the `Width` call answered with result byte `j3` (low byte of `RBX`) -/
+def WRes (RW : Res) (data tab rW j3 : BitVec 64) : Prop := ∃ j0 j1, RW data tab data rW j0 j3 j1
+
+open Janus.Contracts.ICall in
+/-- the `Precision` call (receiver `data`, `RBX` = `b3` left over from `Width`) answered with `p j3` -/
+def PRes (RP : Res) (data b3 : BitVec 64) (fP : Nat) (p : BitVec 64 → Prop) : Prop :=
+  ∃ r7 j0 j3 j1, RP data b3 (BitVec.ofNat 64 fP) r7 j0 j3 j1 ∧ p j3
+
+open Janus.Contracts.ICall in
+/-- the `Flag(c)` call answered with a result `RAX = j0` satisfying `p j0` -/
+def FRes (RF : Res) (data : BitVec 64) (fF c : Nat) (p : BitVec 64 → Prop) : Prop :=
+  ∃ r7 j0 j3 j1, RF data (BitVec.ofNat 64 c) (BitVec.ofNat 64 fF) r7 j0 j3 j1 ∧ p j0
+
+/-- the machine reads `Flag('+')`, `Flag(' ')`, `Flag('0')` as true iff the result byte is nonzero -/
+def fz (j0 : BitVec 64) : Prop := j0.toNat % 256 = 0
+/-- the machine reads `Flag('-')`, `Flag('#')` as true iff the result byte is exactly 1 -/
+def fx (j0 : BitVec 64) : Prop := j0.toNat % 256 ≠ 1
+
+open Janus.Contracts.ICall in
+/-- every query answered "plain": no width, no precision, none of the five flags (as the machine decides) -/
+def PlainHist (RW RP RF : Res) (data tab rW j3 : BitVec 64) (fP fF : Nat) : Prop :=
+  ((((((WRes RW data tab rW j3 ∧ j3.toNat % 256 = 0) ∧ PRes RP data j3 fP (fun j => j.toNat % 256 = 0)) ∧
+    FRes RF data fF 0x2b fz) ∧ FRes RF data fF 0x20 fz) ∧ FRes RF data fF 0x2d fx) ∧ FRes RF data fF 0x30 fz) ∧
+    FRes RF data fF 0x23 fx
+
+end Fv256.FormatFast
