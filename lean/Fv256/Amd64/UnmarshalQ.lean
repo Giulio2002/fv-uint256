@@ -292,4 +292,72 @@ theorem hexenv_shrink {R : RtInv} {lo hi hi3 : Nat} {z : BitVec 64} {s : State} 
     omega
   exact ⟨t1, t2, sh t3, t4, t5, sh t6, t7, t8⟩
 
+
+/-- the precondition of the inner `UnmarshalText` call (window `[lo, hi3)`, `hi3 = sp - 56`) and its hex environment -/
+theorem call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat}
+    {z pI nI pI' nI' : BitVec 64} {s S : State}
+    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s) (hq : QPre C sb R b lo pI nI s) (hn2 : 2 ≤ nI.toNat)
+    (henv : HexEnv R lo hi z s)
+    (hr0 : S.regs 0 = z) (hr3 : S.regs 3 = pI') (hr1 : S.regs 1 = nI')
+    (hp' : pI'.toNat = pI.toNat + 1) (hn' : nI'.toNat = nI.toNat - 2)
+    (hr4 : S.regs 4 = s.regs 4 - 80#64)
+    (hr14 : S.regs 14 = s.regs 14) (hx15 : S.xmm 15 = 0) (hdf : S.df = false)
+    (hret : S.mem.readLE ((s.regs 4).toNat - 80) 8 < 2 ^ 47)
+    (hF : MemFrame s.mem S.mem [(lo, hi)]) (hh3 : hi3 = (s.regs 4).toNat - 56) :
+    PreU C sb st R R2 T b L lo hi3 z pI' nI' S ∧ HexEnv R lo hi3 z S := by
+  have h24 := hpre.toS.hi4
+  have h4 := hpre.toS.lo4
+  have hsp : (S.regs 4).toNat = (s.regs 4).toNat - 80 := by
+    rw [hr4]; have := (s.regs 4).isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  have hb := hpre.toS.env
+  have hlo := hb.1
+  refine ⟨preU_shrink C (hi3 := hi3) (toppre_ut C hpre hq hn2 hr0 hr3 hr1 hp' hn' hr4 hr14 hx15 hdf hret hF) (by omega) (by omega),
+    hexenv_shrink (hi3 := hi3) (hexenv_frame henv hF) (by omega)⟩
+
+
+/-- after the inner call: the caller's saved slots are intact and the callee's postcondition transfers to the caller's entry memory -/
+theorem json_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi3 : Nat}
+    {z pI nI pI' nI' : BitVec 64} {s S s' : State}
+    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s) (hn2 : 2 ≤ nI.toNat)
+    (henv : HexEnv R lo hi z s)
+    (hp' : pI'.toNat = pI.toNat + 1) (hn' : nI'.toNat = nI.toNat - 2)
+    (hF : MemFrame s.mem S.mem [(lo, hi)]) (hh3 : hi3 = (s.regs 4).toNat - 56)
+    (hpost : UTP C R R2 lo hi3 z pI'.toNat nI'.toNat S.mem s')
+    (hS_ret : S.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8)
+    (hS_rbp : S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat) :
+    s'.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+    s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
+    UTP C R R2 lo hi z (pI.toNat + 1) (nI.toNat - 2) s.mem s' := by
+  have hp := hpre.toS
+  have h24 := hp.hi4
+  have h4 := hp.lo4
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, -⟩ := hp.env
+  have hzw := hp.zwin
+  have hiw := hp.iwin
+  have hFr := hpost.2.2
+  have hout : ∀ a, (s.regs 4).toNat - 8 ≤ a → a + 8 ≤ (s.regs 4).toNat + 8 →
+      Outside a 8 (R.rt ++ R2.priv ++ [(lo, hi3), (z.toNat, z.toNat + 32)]) := by
+    intro a h1 h2
+    simp only [outside_append, outside_cons, outside_nil, and_true]
+    refine ⟨⟨Outside.of_sub e9 (by omega) (by omega), Outside.of_sub e10 (by omega) (by omega)⟩, by omega, by omega⟩
+  have hsl : (s.regs 4).toNat + 8 ≤ hi := by omega
+  refine ⟨?_, ?_, ?_⟩
+  · rw [hFr.readLE _ _ (hout _ (by omega) (by omega))]; exact hS_ret
+  · rw [hFr.readLE _ _ (hout _ (by omega) (by omega))]; exact hS_rbp
+  · rw [hp', hn'] at hpost
+    obtain ⟨t1, t2, t3, t4, t5, t6, t7, t8⟩ := henv
+    have hEOF : Outside C.ioEOF 16 [(lo, hi)] := by
+      have := hp.eofW
+      simp only [outside_cons, outside_nil, and_true] at this ⊢
+      omega
+    have hBIG : Outside C.errBig 16 [(lo, hi)] := by
+      have := hp.bigW
+      simp only [outside_cons, outside_nil, and_true] at this ⊢
+      omega
+    have hERR : Outside 5995344 96 [(lo, hi)] := by
+      have := t6
+      simp only [outside_cons, outside_nil, and_true] at this ⊢
+      omega
+    exact utp_frame C hF hEOF hBIG hERR hzw (by omega) (by omega) hpost
+
 end Fv256.Amd64.UnmarshalQ
