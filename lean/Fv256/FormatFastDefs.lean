@@ -389,3 +389,14 @@ theorem finvD_call1 {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 
   · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
   · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
 end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+/-- the `[2:]` offset arithmetic of the `x` path: for `3 ≤ len ≤ 66` the added offset is `2` -/
+theorem hexoff (n : Nat) (h1 : 3 ≤ n) (h2 : n ≤ 66) :
+    (((0#64 - (BitVec.ofNat 64 n - 2#64)).sshiftRight 63).toNat % 4294967296 &&& 2) = 2 := by
+  have key : ∀ k : Fin 64, (((0#64 - (BitVec.ofNat 64 (k.val + 3) - 2#64)).sshiftRight 63).toNat % 4294967296 &&& 2) = 2 := by
+    decide +kernel
+  obtain ⟨k, hk⟩ : ∃ k : Fin 64, k.val + 3 = n := ⟨⟨n - 3, by omega⟩, by simp; omega⟩
+  subst hk
+  exact key k
+end Fv256.FormatFast
