@@ -38,3 +38,9 @@ Open points for the engine side: the final `Q` with two exits needs `Reaches` wi
 (i) nil path with typeAssert, (iii) IntoBig + big.Format, final assembly: FV-G. (ii): FV-R2.
 ## Verdicts
 Statement audit, sorry-proof `janus verify` with /srv/janus-wr-pin2/bin/janus (d52a1656 build; the /srv/janus-icall/bin/janus binary is stale, built 23:06 before 38396fec, and fails the framework identity check): amd64 Format.correctness with hypotheses typeAssert (TypeAssert at contractAddr "runtime.typeAssert"), four variable-fn ICallContract64 (Width, Precision, Flag, Write), and static ICallContract64 at contractAddr "fmt.Fprint" and contractAddr "math/big.(*Int).Format", P := True: the build and the audit stages passed; the only rejection is the axiom audit (sorryAx), as expected. So the statement shape is accepted by the auditor. (Pitfall: open only Janus.Contracts.IfaceAmd64, not Iface as well, and use Janus.Spec.Type.IfaceModel.)
+
+## Recipes from the EncodeRLP worker (FV-R2), for whoever writes (ii)
+1. Prefer two plain lemmas over one disjunctive Q: `plain` (Width/Precision/Flag results all false and ch in {d,v,s,x}) -> Write -> ret, and `notplain` -> ReachesRet to +0x1cc. The branch conditions are proved per result value by `by_cases` on the stepper's exact test form.
+2. Cut every lemma at a callee return (one icall each) and pass the mid state as an abstract S1 with its facts as hypotheses; this keeps each declaration under about 200k heartbeats. Models: /srv/fv-uint256-wr/lean/Fv256/Amd64/ErlpP1b.lean, ErlpCall.lean, ErlpS1m.lean; recipes in /srv/fv-uint256-wr/NOTES-R.md (HANDOVER section at its end).
+3. The Write P pin: give the engine length / strBytes / bound / accessible as separate facts, oriented `(len expr) = n`.
+STATUS: (ii) is NOT started by anyone (FV-R2's context ran out before writing code). It needs a new owner.
