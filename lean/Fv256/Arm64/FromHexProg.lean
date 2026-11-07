@@ -28,9 +28,7 @@ def stubs : List Stub := [
   { name := "runtime.morestack_noctxt.abi0", addr := 0x88540, kind := .morestack },
   { name := "runtime.panicBounds", addr := 0x8a710, kind := .panic },
   { name := "runtime.panicdivide", addr := 0x507a0, kind := .panic },
-  { name := "runtime.panicunsafestringlen", addr := 0x7f520, kind := .panic },
-  { name := "runtime.panicunsafestringnilptr", addr := 0x7f560, kind := .panic },
-  { name := "syscall", addr := 0x8b574, kind := .syscall } ]
+  { name := "runtime.panicunsafestringlen", addr := 0x7f520, kind := .panic } ]
 
 def data : List DataSegment := [
  ]

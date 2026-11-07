@@ -16,27 +16,33 @@ namespace Fv256.Arm64.UnmarshalSpecJ
 
 variable (C : SfdCfg)
 
+/-- the input is a quoted string: `n ≥ 2`, first and last byte are `"` (the last byte is `input[n-1]`) -/
+abbrev Quoted (m : Janus.Arm64.Memory) (p n : Nat) : Prop :=
+  2 ≤ n ∧ m.readLE p 1 = 34 ∧ m.readLE (p + n - 1) 1 = 34
+
 def PreJ (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (z pI nI : BitVec 64) (s : State) : Prop :=
   PreU C sb st R R2 T b L lo hi z pI nI s ∧
-  (lo + 4720 ≤ s.sp.toNat) ∧
-  (R.ok sb [s.sp.toNat - 152, pI.toNat + 1, nI.toNat - 2]) ∧
-  (R.ok sb [s.sp.toNat - 120, pI.toNat + 1, nI.toNat - 2]) ∧
-  (roundupsize (nI.toNat - 2) true ≤ b) ∧
-  (∀ sl, 1 ≤ sl → sl ≤ 19 → sl ≤ nI.toNat - 2 → R.ok C.mallocgc [sl, 0, 0] ∧ (∀ q p, R.ok C.memmove [q, p, sl]) ∧
-    blockSize sl true + blockSize 48 false ≤ b - roundupsize (nI.toNat - 2) true)
+  (Quoted s.mem pI.toNat nI.toNat →
+    (lo + 4720 ≤ s.sp.toNat) ∧
+    (R.ok sb [s.sp.toNat - 152, pI.toNat + 1, nI.toNat - 2]) ∧
+    (R.ok sb [s.sp.toNat - 120, pI.toNat + 1, nI.toNat - 2]) ∧
+    (roundupsize (nI.toNat - 2) true ≤ b) ∧
+    (∀ sl, 1 ≤ sl → sl ≤ 19 → sl ≤ nI.toNat - 2 → R.ok C.mallocgc [sl, 0, 0] ∧ (∀ q p, R.ok C.memmove [q, p, sl]) ∧
+      blockSize sl true + blockSize 48 false ≤ b - roundupsize (nI.toNat - 2) true))
 
 theorem sub_arith (p n : Nat) (h : 2 ≤ n) : p + 1 + (n - 2) ≤ p + n := by omega
 
 theorem preU_sub {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
     {z pI nI pI' nI' : BitVec 64} {s S : State}
-    (hpre : PreJ C sb st R R2 T b L lo hi z pI nI s) (hn2 : 2 ≤ nI.toNat)
+    (hpre : PreJ C sb st R R2 T b L lo hi z pI nI s) (hQ : Quoted s.mem pI.toNat nI.toNat) (hn2 : 2 ≤ nI.toNat)
     (hp' : pI'.toNat = pI.toNat + 1) (hn' : nI'.toNat = nI.toNat - 2)
     (hr0 : S.regs 0 = z) (hr1 : S.regs 1 = pI') (hr2 : S.regs 2 = nI')
     (hsp : S.sp = s.sp - 80#64) (hr28 : S.regs 28 = s.regs 28)
     (hF : MemFrame s.mem S.mem [(lo, hi)]) :
     PreU C sb st R R2 T b L lo hi z pI' nI' S := by
-  obtain ⟨hp0, hlo5, hokH, hokD, hcost, hchunk⟩ := hpre
+  obtain ⟨hp0, hext⟩ := hpre
+  obtain ⟨hlo5, hokH, hokD, hcost, hchunk⟩ := hext hQ
   have hp := hp0.toS
   obtain ⟨-, -, -, hMod, hEnv, hlo, hhi, -, -, -, hstW, hstR, hstP, hstZ, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo,
     hMr, hMb, hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, -⟩ := hp
