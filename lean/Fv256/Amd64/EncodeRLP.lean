@@ -2,21 +2,13 @@ import Extracted
 import Fv256.Spec
 import Fv256.Util
 import Fv256.RlpSpec
+import Fv256.Amd64.ErlpCases
+import Fv256.Amd64.ErlpEJ
+import Fv256.Amd64.ErlpWit
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janus.Contracts.ICall Fv256.Rlp
 
 namespace Fv256.Amd64.EncodeRLP
-
-theorem rlpVal_zero (m : Memory) : rlpVal m 0 = 0 := by simp [rlpVal]
-theorem rlpVal_zero_bv (m : Memory) : rlpVal m (BitVec.toNat (0 : BitVec 64)) = 0 := by simp [rlpVal]
-theorem rlpBytes_zero : rlpBytes 0 = [0x80] := by simp [rlpBytes]
-theorem strBytes_write1 (m : Memory) (p v : Nat) : Spec.strBytes (m.writeLE p 1 v) p 1 = [v % 256] := by
-  simp [Spec.strBytes, Janus.Arm64.Memory.bytes_writeLE]
-
-
-/-- the type descriptors the two kinds of allocation use (`[33]byte`, then `[1]byte`): inside the extraction's data object -/
-def tyBig : Nat := dataBase Extracted.program 0
-def tyOne : Nat := dataBase Extracted.program 0 + 0xC0
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 32000000 in
@@ -58,12 +50,13 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   by_cases hz0 : z = 0
   · subst hz0
     janus64_run until [Extracted.entry + 0x1df] calls [hnew.pos, hw]
-    rename_i p0 j0 f0 x0' y0 m0 zh0 k0 hfr0 hin0 hle0 hac0 h80 h160 hzb0 hrt0
+    janus_grab InRanges as hin0
     have hdj := InRanges.disjoint hin0 hout
     have hdt := InRanges.disjoint hin0 htr
     janus64_run [rlpVal_zero, rlpVal_zero_bv, rlpBytes_zero, strBytes_write1] calls [hnew.pos, hw]
-    refine ⟨⟨_, _, _, _, _, _, ‹R _ _ _ _ _ _ _›, rfl, rfl⟩, fun h => h.elim, ?_⟩
-    janus_frame
+    refine ⟨?_, fun h => h.elim, ?_⟩
+    · exact ⟨_, _, _, _, _, _, by janus_assumption_reducible, rfl, rfl⟩
+    · janus_frame
   · obtain ⟨⟨hzn, hza⟩, hzo, hzd⟩ := hz.resolve_left hz0
     have hzne : ¬ z.toNat = 0 := fun h => hz0 (BitVec.eq_of_toNat_eq (by simpa using h))
     have x0 := Util.readLE8_lt s.mem z.toNat
@@ -75,7 +68,51 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     have c2 := Util.clz_bl 64 _ x2
     have c3 := Util.clz_bl 64 _ x3
     janus64_run until [Extracted.entry + 0xa0]
-    all_goals trace_state
-    all_goals sorry
+    all_goals (
+      refine erlp_cases impl rt H fn stack R z tab w ret hret hnew hw s _ h4104 hfn hwb hwn hwa hout htw htr hfn' hta htb hH1 hH2
+        hd hal h_ret hzo hzd hzne hzn hza ?_
+      refine ej_of rfl ?_ ?_ rfl rfl rfl rfl ?_ rfl (by omega) (by omega)
+      · exact h_a0
+      · apply BitVec.eq_of_toNat_eq
+        have z0 : s.mem.readLE (z.toNat) 8 = 0 → Spec.bitLen (s.mem.readLE (z.toNat) 8) = 0 := fun h => by simp [Spec.bitLen, h]
+        have nz0 : s.mem.readLE (z.toNat) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (z.toNat) 8) := fun h => by simp [Spec.bitLen, h]
+        have z1 : s.mem.readLE (z.toNat + 8) 8 = 0 → Spec.bitLen (s.mem.readLE (z.toNat + 8) 8) = 0 := fun h => by simp [Spec.bitLen, h]
+        have nz1 : s.mem.readLE (z.toNat + 8) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (z.toNat + 8) 8) := fun h => by simp [Spec.bitLen, h]
+        have z2 : s.mem.readLE (z.toNat + 16) 8 = 0 → Spec.bitLen (s.mem.readLE (z.toNat + 16) 8) = 0 := fun h => by simp [Spec.bitLen, h]
+        have nz2 : s.mem.readLE (z.toNat + 16) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (z.toNat + 16) 8) := fun h => by simp [Spec.bitLen, h]
+        have z3 : s.mem.readLE (z.toNat + 24) 8 = 0 → Spec.bitLen (s.mem.readLE (z.toNat + 24) 8) = 0 := fun h => by simp [Spec.bitLen, h]
+        have nz3 : s.mem.readLE (z.toNat + 24) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (z.toNat + 24) 8) := fun h => by simp [Spec.bitLen, h]
+        rw [Util.readLE_32, Util.bl_4 _ _ _ _ x0 x1 x2]
+        simp only [setRegF, Nat.reduceEqDiff, ite_false, ite_true, if_false, BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod, ne_eq]
+        (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod]) <;> first | omega | (trace_state; sorry)
+      · first | rfl | simp [h_df])
+
+namespace Witness
+
+/-- **Non-vacuity**: the toy allocator, the toy writer (`(len, nil)`), and a concrete call state (`*z = 0x011234`, 17 bits: the
+multi-byte path) meet every hypothesis of `correctness`, contracts included. -/
+theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
+    (z tab w : BitVec 64) (ret : Nat) (s : State),
+    NewobjectContract64 (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
+    ICallContract64 (Extracted.program.link impl) fn 4 stack 56 rt (fun _ => []) R
+      (fun sc => sc.regs 0 = w ∧
+        StrOut sc.mem (sc.regs 3).toNat (sc.regs 1).toNat (rlpBytes (rlpVal sc.mem z.toNat)) ∧
+        (sc.regs 7).toNat = (sc.regs 1).toNat) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, w] s ∧
+    (4104 ≤ stack ∧ fn < 2 ^ 47 ∧
+        StackGuardOK s 0 ∧ StackWritable s (56 + stack) 32 ∧ SPAligned s ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside ((s.regs 4).toNat - 56 - stack) (stack + 88) rt ∧
+        (z = 0 ∨ (Buffer s z 32 false ∧ Outside z.toNat 32 rt ∧
+          (z.toNat + 32 ≤ (s.regs 4).toNat - 56 - stack ∨ (s.regs 4).toNat + 32 ≤ z.toNat))) ∧
+        (tab.toNat + 32 ≤ (s.regs 4).toNat - 56 - stack ∨ (s.regs 4).toNat + 32 ≤ tab.toNat + 24) ∧
+        tab.toNat + 32 ≤ 2 ^ 48 ∧ s.mem.accessible (tab.toNat + 24) 8 false = true ∧ Outside (tab.toNat + 24) 8 rt ∧
+        s.mem.readLE (tab.toNat + 24) 8 = fn ∧
+        H [tyBig] (s.regs 14).toNat ((s.regs 4).toNat - 56) (rtView rt s.mem) ∧
+        H [tyOne] (s.regs 14).toNat ((s.regs 4).toNat - 56) (rtView rt s.mem)) :=
+  ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, hw zA wA, hret, setup, pre⟩
+
+end Witness
 
 end Fv256.Amd64.EncodeRLP

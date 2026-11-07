@@ -105,4 +105,83 @@ theorem hw (z w : BitVec 64) : ICallContract64 (Extracted.program.link impl) A0 
     apply wret_of
     all_goals simp [setRegF]
 
+def retA : Nat := 0x200000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x300000
+def zp : Nat := 0x30800
+def tabp : Nat := 0x31000
+def dsegs : List DataSegment := Extracted.data
+
+/-- the memory: the zeroed heap, the return address, `*z = 0x011234` (a 17-bit number), the itab word `tab+24 = A0`, the data objects -/
+def bytes (a : Nat) : Byte :=
+  if heap ≤ a ∧ a < heap + 0x10000 then 0 else
+  if a = sp0 + 2 then 0x20 else
+  if a = zp then 0x34 else if a = zp + 1 then 0x12 else if a = zp + 2 then 0x01 else
+  if a = tabp + 26 then 0x70 else
+  match dsegs.find? (fun d => decide (d.base ≤ a ∧ a < d.base + d.bytes.length)) with
+  | some d => BitVec.ofNat 8 (d.bytes.getD (a - d.base) 0)
+  | none => 0
+
+def dregs : List Region := dsegs.map (fun d => ⟨d.base, d.bytes.length, false⟩)
+
+def zA : BitVec 64 := BitVec.ofNat 64 zp
+def tabA : BitVec 64 := BitVec.ofNat 64 tabp
+def wA : BitVec 64 := 0x777
+
+def s0 : Amd64.State :=
+  { regs := fun i => if i = 0 then zA else if i = 3 then tabA else if i = 1 then wA else if i = 4 then BitVec.ofNat 64 sp0
+      else if i = 14 then BitVec.ofNat 64 g0 else 0,
+    rip := BitVec.ofNat 64 Extracted.entry, flags := ⟨none, none, none, none, none, none⟩, xmm := fun _ => 0,
+    mem := ⟨bytes, [⟨sp0 - 4160, 4192, true⟩, ⟨g0, 0x100, false⟩, ⟨heap, 0x10000, true⟩, ⟨zp, 0x100, false⟩,
+      ⟨tabp, 0x100, false⟩] ++ dregs⟩ }
+
+theorem hret : RetAddr linked retA := RetAddr.of_check (by decide)
+
+theorem setup : CallSetup (linked.withExit retA) Extracted.entry [zA, tabA, wA] s0 :=
+  ⟨rfl, by decide, rfl, by decide, by
+    intro i h
+    match i, h with
+    | 0, _ => rfl
+    | 1, _ => rfl
+    | 2, _ => rfl, rfl⟩
+
+set_option maxRecDepth 100000 in
+theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
+  unfold Amd64.Program.DataLoaded
+  decide
+
+set_option maxRecDepth 100000 in
+theorem hH (ty : Nat) (hty : ty = tyA ∨ ty = tyB) :
+    H [ty] (s0.regs 14).toNat ((s0.regs 4).toNat - 56) (rtView rt s0.mem) := by
+  have hbase : ∀ d ∈ dsegs, 0x20000 ≤ d.base := by simp only [dsegs]; decide
+  refine ⟨⟨by rw [rtView_accessible]; decide, fun i hi => ?_⟩, ty, rfl, ?_, ?_⟩
+  · show (if _ then bytes (heap + i) else 0) = 0
+    split
+    · have hh : heap = 65536 := rfl
+      simp only [bytes]
+      rw [if_pos (show heap ≤ heap + i ∧ heap + i < heap + 0x10000 from ⟨by omega, by omega⟩)]
+    · rfl
+  · rcases hty with rfl | rfl
+    · exact ⟨(tyA, tyA + 16), by simp [rt], Nat.le_refl _, Nat.le_refl _⟩
+    · exact ⟨(tyB, tyB + 16), by simp [rt], Nat.le_refl _, Nat.le_refl _⟩
+  · rcases hty with rfl | rfl <;> decide
+
+set_option maxRecDepth 100000 in
+theorem pre : 4104 ≤ stack ∧ A0 < 2 ^ 47 ∧
+    StackGuardOK s0 0 ∧ StackWritable s0 (56 + stack) 32 ∧ SPAligned s0 ∧ Extracted.program.DataLoaded s0.mem ∧
+    Outside ((s0.regs 4).toNat - 56 - stack) (stack + 88) rt ∧
+    (zA = 0 ∨ (Buffer s0 zA 32 false ∧ Outside zA.toNat 32 rt ∧
+      (zA.toNat + 32 ≤ (s0.regs 4).toNat - 56 - stack ∨ (s0.regs 4).toNat + 32 ≤ zA.toNat))) ∧
+    (tabA.toNat + 32 ≤ (s0.regs 4).toNat - 56 - stack ∨ (s0.regs 4).toNat + 32 ≤ tabA.toNat + 24) ∧
+    tabA.toNat + 32 ≤ 2 ^ 48 ∧ s0.mem.accessible (tabA.toNat + 24) 8 false = true ∧ Outside (tabA.toNat + 24) 8 rt ∧
+    s0.mem.readLE (tabA.toNat + 24) 8 = A0 ∧
+    H [tyBig] (s0.regs 14).toNat ((s0.regs 4).toNat - 56) (rtView rt s0.mem) ∧
+    H [tyOne] (s0.regs 14).toNat ((s0.regs 4).toNat - 56) (rtView rt s0.mem) :=
+  ⟨by decide, by decide, ⟨by decide, by decide, by unfold stackguard0 stackguard0Offset regG regSP; decide⟩,
+    ⟨by decide, by decide, by decide⟩, by simp only [SPAligned]; decide, dataLoaded,
+    by simp only [rt, outside_cons, outside_nil]; decide,
+    Or.inr ⟨⟨by decide, by decide⟩, by simp only [rt, outside_cons, outside_nil]; decide, Or.inl (by decide)⟩,
+    Or.inl (by decide), by decide, by decide, by simp only [rt, outside_cons, outside_nil]; decide, by decide,
+    hH tyBig (Or.inl rfl), hH tyOne (Or.inr rfl)⟩
+
 end Fv256.Amd64.EncodeRLP.Witness
