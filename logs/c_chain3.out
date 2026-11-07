@@ -8,3 +8,9 @@ DONE UnmarshalTextS t=1 LEANRC=0
 DONE UnmarshalText t=1 LEANRC=0
 DONE UnmarshalHexDisch t=2 LEANRC=0
 DONE UnmarshalJSON0 t=0 LEANRC=0
+DONE UnmarshalJa t=198 LEANRC=0
+DONE UnmarshalJc t=271 LEANRC=0
+DONE UnmarshalJd t=212 LEANRC=0
+DONE UnmarshalJq t=4 LEANRC=0
+DONE UnmarshalJSON t=1 LEANRC=0
+ENDMARK
