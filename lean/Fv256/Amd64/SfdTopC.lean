@@ -117,4 +117,35 @@ theorem top_lb (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     · simp [hS2, setRegF_apply, h1]
     · simp [hS2, setRegF_apply, h2])
 
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 20000 in
+/-- the whole stripped number is zeros: keep the last `'0'` -/
+theorem top_lend (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (S : State) (j : Nat) (hpc : S.rip = BitVec.ofNat 64 (sfd + 0xe0))
+    (hI : LoopInv R R2 T b L lo hi z pS nS s j S) (hjm : nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat ≤ j) :
+    ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x12a)) S
+      (TailInv R R2 T b L lo hi z pS nS s (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat - 1)) := by
+  obtain ⟨hSt, h0, h3, h1, h2, h6, m1, m2, hlt, hjle, hzs⟩ := hI
+  obtain ⟨⟨hra1, hra2, hx15, hdf⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
+  have hnS := nS.isLt
+  have hpe := Fv256.TopMath.plusEnd_le (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat
+  have hjeq : j = nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat := by omega
+  have hjI := ofNat_toInt j (by omega)
+  have hmI := ofNat_toInt (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
+  have hsp : startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat = nS.toNat - 1 :=
+    Fv256.TopMath.startPos_b _ _ hlt (fun k hk1 hk2 => by
+      have := hzs (k - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) (by omega)
+      rwa [show plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + (k - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) = k by omega] at this)
+  janus64_run [hpc, h1, h2, h3, h6, hjI, hmI] until [sfd + 0x12a]
+  all_goals (
+    refine name_state (P := TailInv R R2 T b L lo hi z pS nS s (nS.toNat - plusEnd (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat - 1)) ?_
+    intro S2 hS2
+    refine ⟨topSt_congr hSt (by simp [hS2, setRegF_apply]) (by simp [hS2, setRegF_apply]) (by simp [hS2, setRegF_apply])
+      (by rw [hS2]) (by rw [hS2]) (by rw [hS2]) (by rw [hS2]), ?_, ?_, ?_, ?_, by omega, by omega⟩
+    · simp [hS2, setRegF_apply, h0]
+    · simp [hS2, setRegF_apply, h3]
+    · simp [hS2, setRegF_apply, h1]
+    · simp [hS2, setRegF_apply]; congr 1; omega)
+
 end Fv256.Amd64.SfdTop
