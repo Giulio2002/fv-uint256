@@ -14,8 +14,8 @@ open Fv256.Amd64.SfdTopSpec Fv256.Amd64.ScanSpec Fv256.ScanSpec Fv256.Amd64.Scan
 namespace Fv256.Amd64.ScanB
 
 /-- the summary of `scanScientificFromString` (Level A), as a callee summary at its entry -/
-def SciSumm (P : Janus.Amd64.Program) : Prop :=
-  ∀ (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64),
+def SciSumm (P : Janus.Amd64.Program) (R : RtInv) (R2 : IfaceModel) (T : Nat) : Prop :=
+  ∀ (b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (dst p n : BitVec 64),
     Summary P sci (fun s => SciPre cfg avxAddr R R2 T b L lo hi dst p n s ∧ Extracted.program.DataLoaded s.mem)
       (fun s s' => SciPost cfg R R2 b L lo hi dst p n s s')
 
@@ -24,7 +24,7 @@ set_option maxRecDepth 100000 in
 theorem scan_str (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst tw dw : BitVec 64) (s : State) (hpc : s.rip = BitVec.ofNat 64 Extracted.entry) (hret : RetOK s)
     (hdl : Extracted.program.DataLoaded s.mem)
-    (hsci : SciSumm (Extracted.program.link impl))
+    (hsci : SciSumm (Extracted.program.link impl) R R2 T)
     (hpre : ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extracted.dataAddr.«type:[]uint8#7efbbf65» avxAddr sbAddr stAddr
           Extracted.dataAddr.«type:errors.errorString#8e8100b7» R R2 T b L lo hi dst tw dw s)
     (htw : tw.toNat = Extracted.dataAddr.«type:string#f88732b8») :
@@ -68,7 +68,7 @@ theorem scan_str (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel)
     have hne : (5008128 : Nat) ≠ 0 := by decide
     clear hTop hdl e1' e2' e3 e4' e5' e6' e7' e8'
     janus64_run [hs3, hs1, hhash, hha, e7, e6, e8, hne] until [sci]
-    refine ReachesRet.call_regions (hsci R R2 T b L lo ((s.regs 4).toNat - 40) dst (hdrP s dw) (hdrN s dw)) rfl ?_ ?_
+    refine ReachesRet.call_regions (hsci b L lo ((s.regs 4).toNat - 40) dst (hdrP s dw) (hdrN s dw)) rfl ?_ ?_
     · have hlo' : lo ≤ (s.regs 4).toNat := by omega
       refine ⟨Fv256.Amd64.ScanBPre.sciPre_str cfg hTopH hlo ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ htls, ?_⟩
       · refine (((MemFrame.of_writeLE s.mem _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)

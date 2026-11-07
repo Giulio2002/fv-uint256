@@ -76,7 +76,7 @@ set_option maxRecDepth 100000 in
 theorem bytes_tail (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst tw dw : BitVec 64) (s S3 : State) (m M0 : Janus.Arm64.Memory) (r0 r1 : BitVec 64) (v5 vt vd : Nat)
     (hdl : Extracted.program.DataLoaded s.mem) (hret : RetOK s)
-    (hsci : SciSumm (Extracted.program.link impl))
+    (hsci : SciSumm (Extracted.program.link impl) R R2 T)
     (htw : tw.toNat = Extracted.dataAddr.«type:[]uint8#7efbbf65»)
     (hPre : PreBS cfg sbAddr stAddr R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) s)
     (hav : s.mem.accessible avxAddr 1 false = true) (hPg : PagesB R stAddr lo hi s.mem)
@@ -97,7 +97,7 @@ theorem bytes_tail (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
           Extracted.dataAddr.«go:itab.*errors.errorString,error» R R2 b L lo hi dst tw dw s) := by
   obtain ⟨hpre, hdl3, hbytes, hF⟩ := bytes_pre R R2 T b L lo hi dst dw s S3 m M0 r0 r1 v5 vt vd hdl hPre hav hPg htls hrtA hSb hM0c hr0 hr3 hr1
     hr4 hr14 hx15 hdf hfs hS3 hmreg
-  refine ReachesRet.call_regions (hsci R R2 T _ _ lo ((s.regs 4).toNat - 40) dst r0 (hdrN s dw)) hrip ⟨hpre, hdl3⟩ ?_
+  refine ReachesRet.call_regions (hsci _ _ lo ((s.regs 4).toNat - 40) dst r0 (hdrN s dw)) hrip ⟨hpre, hdl3⟩ ?_
   intro S' hr hq hreg
   obtain ⟨hK, hSP, hMF⟩ := hq
   obtain ⟨k1, k4, k5, k14, kx, kdf, kfs⟩ := hK

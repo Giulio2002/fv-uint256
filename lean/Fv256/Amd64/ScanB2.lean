@@ -113,7 +113,7 @@ theorem bytes_call (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     (lo hi : Nat) (dst tw dw : BitVec 64) (s S0 : State) (hret : RetOK s)
     (hdl : Extracted.program.DataLoaded s.mem)
     (hsb : RtLiveContract64 (Extracted.program.link impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive)
-    (hsci : SciSumm (Extracted.program.link impl))
+    (hsci : SciSumm (Extracted.program.link impl) R R2 T)
     (htw : tw.toNat = Extracted.dataAddr.«type:[]uint8#7efbbf65»)
     (hPreV : PreB cfg sbAddr stAddr R R2 T b L lo hi dst (hdrP s dw) (hdrN s dw) (viewS s (hdrP s dw) (hdrN s dw)))
     (hav : s.mem.accessible avxAddr 1 false = true) (hPg : PagesB R stAddr lo hi s.mem)
