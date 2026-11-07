@@ -194,11 +194,7 @@ theorem top_epi (impl : List Segment) (s S1 : State) (pcE : Nat) (hE : pcE = 0xb
     rw [hx29]; exact (BitVec.ofNat_toNat _ _).trans (BitVec.setWidth_eq _)
   rcases hE with rfl | rfl
   · janus_run [hpc, hret, h29, hacc, hx29, hx30, hsp, hal, h8, hl2, hl1]
-    all_goals trace_state
-    all_goals sorry
   · janus_run [hpc, hret, h29, hacc, hx29, hx30, hsp, hal, h8, hl2, hl1]
-    all_goals trace_state
-    all_goals sorry
 
 open Fv256.Arm64.SegCompose in
 set_option maxHeartbeats 64000000 in

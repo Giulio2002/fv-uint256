@@ -1,2 +1,1 @@
 # path	owner	note  (must be empty at final release)
-lean/Fv256/Arm64/SfdTopC.lean	FV-B9	dead theorem top_epi with sorry (unused; in SetFromDecimal import closure) - delete before release
