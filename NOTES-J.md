@@ -243,3 +243,8 @@ Replace sorry in Amd64/{UnmarshalText,UnmarshalJSON,FromDecimal,MustFromDecimal}
 - Merged fv/wi 73467f9 (commit 8350d8b; lake files kept ours, SfdTopSpec/SfdFdLem taken from wi). Stale Extracted-free oleans in build/ol51 deleted (closure of changed files) and rebuilt via mkol51.
 - All four Amd64/*Hsfd.lean closed with hsfd_of_link (hLib/hca by decide, cfg_eq by `unfold cfg extCfg; rfl` (decide has no Decidable instance), entry_eq by decide). Whole chain + witnesses + Main files compile (logs/c_chain7*.out, c_chain8.out). No sorry left.
 - janus verify runs HELD until main says FV-I7's SfdTeSum0/1 split has landed.
+
+## FINAL (FV-J6, 2026-11-07): amd64 FD/MFD/UT/UJ VERIFIED on n10 51d592da
+- Binary /srv/janus-fvA-pin51d/bin/janus (built at 51d592da; /srv/janus-integ-n10/bin/janus has moved to edcc7b3b and fails the framework identity check), JANUS_CACHE_DIR=/srv/janus-ops/jcache-n10, `lake update janus` run in lean/, no --keep-workspace. Script logs/v_amd.sh, summary logs/v_amd.out.
+- FromDecimal 190 s (logs/v_a_fd.log), MustFromDecimal 182 s (v_a_mfd.log), UnmarshalText 243 s incl Witness.hex (v_a_ut.log), UnmarshalJSON 326 s incl Witness.unquoted (v_a_uj.log). Each: correctness + Witness.nonvacuous verified.
+- RELEASE=1 scripts/no-sorry.sh: OK. Merge note: merging fv/wi dropped the 4 amd64 *Main.lean (restored).
