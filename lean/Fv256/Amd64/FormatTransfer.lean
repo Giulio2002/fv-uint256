@@ -1,6 +1,7 @@
 import Extracted
 import Fv256.FormatFastDefs
 import Fv256.Amd64.FormatNil
+import Fv256.Amd64.FormatNilRodata
 import Fv256.DecAt
 import Fv256.IntoBigCommon
 import Fv256.Amd64.FormatFastPre
@@ -180,7 +181,7 @@ def PreNilE (R : IfaceModel) (rt : List (Nat × Nat)) (stack : Nat) (tab : BitVe
     tab.toNat + 0x14 ≤ 2 ^ 48 ∧ s.mem.accessible tab.toNat 0x14 false = true ∧ tyOf s tab ≠ 0 ∧ R.IsType (tyOf s tab) ∧
     (taCanFail s.mem descA = true ∨ (R.itab (taInter s.mem descA) (tyOf s tab)).isSome) ∧
     Outside (tab.toNat + 8) 8 (PFL (s.regs 4).toNat)) ∧
-  s.mem.readLE hdrA 8 = litA ∧ s.mem.readLE (hdrA + 8) 8 = 5 ∧ StrOut s.mem litA 5 Fv256.FormatSpec.nilText ∧
+  Extracted.program.DataLoaded s.mem ∧
   Outside hdrA 16 (NilFLE R rt (s.regs 4).toNat stack) ∧ Outside litA 5 (NilFLE R rt (s.regs 4).toNat stack)
 
 theorem callerOK_of {R : IfaceModel} (hl : R.Laws) {s S0 : State} (h : CallerOK R s 80 48)
@@ -227,7 +228,8 @@ theorem nilpre_of {R : IfaceModel} (hl : R.Laws) {rt : List (Nat × Nat)} {stack
     (h60 : S0.mem.readLE ((s.regs 4).toNat - 72 + 0x60) 8 = data.toNat)
     (hfr : MemFrame s.mem S0.mem (PFL (s.regs 4).toNat)) : NilPre R rt stack tab data S0 := by
   obtain ⟨-, hal, hstk, hhi, hacc, hout⟩ := hc
-  obtain ⟨hco, hdesc, hdo, htab, q1, q2, q3, q4, q5⟩ := hn
+  obtain ⟨hco, hdesc, hdo, htab, qd, q4, q5⟩ := hn
+  obtain ⟨q1, q2, q3⟩ := nil_rodata qd
   have hrn : (S0.regs 4).toNat = (s.regs 4).toNat - 72 := by
     rw [hr4, BitVec.toNat_sub]; have := (s.regs 4).isLt; simp; omega
   have hn5 : S0.regs 5 = S0.regs 4 + 64#64 := by
