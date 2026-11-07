@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Arm64.SfdTopD
 import Fv256.Arm64.SfdWitReg
 import Fv256.Arm64.SfdLink
@@ -16,6 +17,8 @@ The proof transfers `SfdTop.sfd_sum` (SetFromDecimal, library program `SfdProg`)
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.EqHashModel
   Fv256.Arm64.SfdTopSpec Fv256.Arm64.UnmarshalSpec Fv256.Arm64.UnmarshalHex Fv256.Arm64.UnmarshalPost Fv256.Arm64.FromHexLib Fv256.Arm64.UnmarshalJPost Fv256.Arm64.UnmarshalSpecJ
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.UnmarshalJSONMain
 
@@ -144,9 +147,18 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R2 T b L lo hi z pI nI s ∧
     HexEnv R lo hi z s ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring") ∧ Janus.Contracts.Cmpstring.CmpstringPre 16 s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalJSON.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalJSON.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalJSON.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ JPost Fv256.Arm64.UnmarshalJSON.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
-  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11⟩ := Fv256.Arm64.UnmarshalJSONWit.nonvacuous_core
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8⟩ := Fv256.Arm64.UnmarshalJSONWit.nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11,
+    hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8,
     correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 h9 ret hret s hsetup ⟨hp10, hp11⟩⟩
 
 
@@ -168,9 +180,18 @@ theorem unquoted : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
     PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R2 T b L lo hi z pI nI s ∧
     HexEnv R lo hi z s ∧ ¬ Quoted s.mem pI.toNat nI.toNat ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 L b s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring") ∧ Janus.Contracts.Cmpstring.CmpstringPre 16 s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalJSON.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalJSON.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalJSON.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ JPost Fv256.Arm64.UnmarshalJSON.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
-  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12⟩ := Fv256.Arm64.UnmarshalJSONWit.unquoted_core
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12, hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8⟩ := Fv256.Arm64.UnmarshalJSONWit.unquoted_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12,
+    hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8,
     correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 h9 ret hret s hsetup ⟨hp10, hp11⟩⟩
 
 end Witness
