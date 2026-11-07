@@ -108,4 +108,37 @@ theorem byt_pre0 {p : Janus.Program} {sb st : Nat} {R : RtInv} {R2 : IfaceModel}
     · exact hw _ _ (by omega) (by omega)
     · exact hw _ _ (by omega) (by omega)
 
+
+set_option maxRecDepth 100000 in
+/-- the `sci` post for the copy gives the documented result for the slice -/
+theorem byt_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L L' : List (Nat × Nat)} {lo hi hi3 : Nat}
+    {z pI nI r0 : BitVec 64} {s S2 S3 : State}
+    (hpre : PreB C sb st R R2 T b L lo hi z pI nI s) (hlo : lo + 4720 ≤ s.sp.toNat) (hhi : s.sp.toNat + 32 ≤ hi)
+    (hF : MemFrame s.mem S2.mem (R.rt ++ [(lo, hi)]))
+    (hbytes : ∀ k, k < nI.toNat → S2.mem.readLE (r0.toNat + k) 1 = s.mem.readLE (pI.toNat + k) 1)
+    (hr048 : r0.toNat + nI.toNat ≤ 2 ^ 48) (hLsub : ∀ r ∈ L, r ∈ L') (hh3 : hi3 ≤ hi)
+    (hpost : SciPost C R R2 T b' L' lo hi3 z r0 nI S2 S3) :
+    ScanStrPost C R R2 L R.rt lo hi z pI nI s S3 := by
+  obtain ⟨hMod, hEnv, hok, hcost, hstW, hstR, hstP, hstZ, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
+    hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hRW, hchunk⟩ := hpre
+  have hEnv' := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
+  have hF' : MemFrame s.mem S2.mem (R.rt ++ [(lo, hi), (z.toNat, z.toNat + 32)]) :=
+    hF.mono (fun a n h => by simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact ⟨h.1, h.2.1⟩)
+  have o1 : Outside C.ioEOF 16 (R.rt ++ [(lo, hi)]) := by
+    simp only [outside_append, outside_cons, outside_nil, and_true] at hE2 hE3 ⊢; exact ⟨hE3, hE2.1⟩
+  have o2 : Outside C.errBig 16 (R.rt ++ [(lo, hi)]) := by
+    simp only [outside_append, outside_cons, outside_nil, and_true] at hB2 hB3 ⊢; exact ⟨hB3, hB2.1⟩
+  have hsy := e14 (C.strconvErrSyntax, C.strconvErrSyntax + 16) (by simp [staticRanges])
+  have hsr := hMod.2.2.2.2.2.2.2.1 (C.strconvErrSyntax, C.strconvErrSyntax + 16) (by simp [staticRanges])
+  simp only [outside_cons, outside_nil, and_true, Nat.add_sub_cancel_left] at hsy hsr
+  have o3 : Outside C.strconvErrSyntax 16 (R.rt ++ [(lo, hi)]) := by
+    simp only [outside_append, outside_cons, outside_nil, and_true]; exact ⟨hsr, hsy⟩
+  exact str_post C (W := R.rt) hF' (fun a n h => by simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact ⟨h.1.1, h.2⟩)
+    hbytes (by have := hibuf.2; omega) hr048
+    (hF.readLE _ _ (Outside.of_sub o1 (Nat.le_refl _) (by omega))) (hF.readLE _ _ (Outside.of_sub o1 (by omega) (by omega)))
+    (hF.readLE _ _ (Outside.of_sub o2 (Nat.le_refl _) (by omega))) (hF.readLE _ _ (Outside.of_sub o2 (by omega) (by omega)))
+    (hF.readLE _ _ (Outside.of_sub o3 (Nat.le_refl _) (by omega))) (hF.readLE _ _ (Outside.of_sub o3 (by omega) (by omega)))
+    hLsub hh3 hpost
+
 end Fv256.Arm64.ScanByt1

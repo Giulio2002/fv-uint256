@@ -58,7 +58,7 @@ theorem str_tail (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b 
   have hsp3 : S3.sp = s.sp - 80#64 := by rw [k1, hsp]
   refine ⟨⟨by simp, by simp [setReg_apply], by simp [setReg_apply, k3, h28], by simp [setReg_apply, k4, h18]⟩, ?_⟩
   refine strpost_congr cfg (S3 := S3) rfl (by simp [setReg_apply]) (by simp [setReg_apply]) ?_
-  exact str_post cfg (W := []) hF (fun a n h => by simp only [outside_append, List.nil_append] at h ⊢; exact h.2) (fun k hk => hF.readLE _ _ (str_out2 hPW hPZ hk)) hP48 hP48 io1 io2 er1 er2 sy1 sy2 hpost'
+  exact str_post cfg (W := []) hF (fun a n h => by simp only [outside_append, List.nil_append] at h ⊢; exact h.2) (fun k hk => hF.readLE _ _ (str_out2 hPW hPZ hk)) hP48 hP48 io1 io2 er1 er2 sy1 sy2 (fun r hr => hr) (Nat.le_refl _) hpost'
 
 theorem scan_str (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst tw dw : BitVec 64) (s : State) (hpc : s.pc = BitVec.ofNat 64 scanEntry)
