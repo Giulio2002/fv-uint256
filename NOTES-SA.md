@@ -56,3 +56,7 @@ Scripts: build/va.sh LOG THM... (janus verify of lean/Fv256/Arm64/Scan.lean, ex2
 * DataLoaded after a runtime call needs regions equality (`set_option janus.callRegions true` -> hrg1) and R.rt writable (dl_frame).
 ## Remaining
 verify run of correctness (compile of Scan.lean + discharges), witnesses (satisfiability: ScanPre per case incl. new conjuncts + DataLoaded + contracts), COVERAGE row.
+
+## FV-SA3 FINAL (2026-11-07): verify run build/va7.log (n10 51d592da, extraction build/ex3-arm64-Scan with growslice+concatstring2 contracts)
+`janus verify` verified Scan.correctness + Witness.nonvacuous (string "123456789012e5", Exp+MulOverflow path) + NoE (no 'e') + Nil + Byt (48-byte []byte via live sbts) + Other (unsupported type). scripts/no-sorry.sh OK.
+Extraction MUST include --contract runtime.growslice and runtime.concatstring2 (as the SFD one), else ImplApart is unsatisfiable (osyield/syscall stub in Extracted segments).
