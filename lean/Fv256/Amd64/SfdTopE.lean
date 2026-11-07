@@ -147,7 +147,8 @@ def FdCtx (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo 
 
 theorem c1_post (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
-    (S Sc : State) (k len ret : Nat) (hSt : TopSt R R2 T b L lo hi z pS s S)
+    (S Sc : State) (k len ret : Nat) (p' n' : BitVec 64) (hp' : p' = pS + BitVec.ofNat 64 k) (hn' : n' = BitVec.ofNat 64 len)
+    (hSt : TopSt R R2 T b L lo hi z pS s S)
     (h4 : Sc.regs 4 = s.regs 4 - 72#64) (h5 : Sc.regs 5 = S.regs 5) (h14 : Sc.regs 14 = S.regs 14) (hx : Sc.xmm 15 = S.xmm 15)
     (hdf : Sc.df = S.df) (hfs : Sc.fsBase = S.fsBase) (hm : Sc.mem = S.mem.writeLE ((s.regs 4).toNat - 72) 8 ret)
     (hret : ret < 2 ^ 47) (r0 : Sc.regs 0 = z) (r3 : Sc.regs 3 = pS + BitVec.ofNat 64 k) (r1 : Sc.regs 1 = BitVec.ofNat 64 len)
@@ -157,8 +158,9 @@ theorem c1_post (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)
     (hq1 : k ≤ startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
     (hq2 : startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat < nS.toNat → k = startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat)
     (hlq : len = nS.toNat - startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat) :
-    FdPre R R2 T b L lo ((s.regs 4).toNat - 40) z (pS + BitVec.ofNat 64 k) (BitVec.ofNat 64 len) Sc ∧
+    FdPre R R2 T b L lo ((s.regs 4).toNat - 40) z p' n' Sc ∧
       FdCtx R R2 T b L lo hi z pS nS s ret Sc := by
+  subst hp' hn'
   have hpre' := hpre
   obtain ⟨⟨hra1, hra2, hx15, hdf0⟩, h0', h3', h1', hMod, hEnv, hlo, hhi, hMult, hEOF, hEOFo, hErr, hErro, hMax, hMaxo, hMaxR, hMaxV, ⟨hzw, hz⟩, hzW, hzR, hzP, hzS, hzg, ⟨hpw, hp⟩, hpW, hpz, hCA⟩ := hpre
   have hEnv0 := env_to hEnv
@@ -203,7 +205,7 @@ theorem top_c1 (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
   have hS4 : (S.regs 4).toNat = (s.regs 4).toNat - 64 := by rw [hSt.1]; exact bv_sub_c _ 64 (by decide) (by omega)
   janus64_run [hpc, h1, hmI, hS4] until [Fv256.Amd64.SfdFd.fd]
   all_goals (
-    refine c1_post R R2 T b L lo hi z pS nS s hpre' S _ k _ 4933361 hSt ?h4 ?h5 ?h14 ?hx rfl rfl rfl (by decide) ?r0 ?r3 ?r1
+    refine c1_post R R2 T b L lo hi z pS nS s hpre' S _ k _ 4933361 _ _ rfl rfl hSt ?h4 ?h5 ?h14 ?hx rfl rfl rfl (by decide) ?r0 ?r3 ?r1
       (by omega) (by omega) ?hfin hk1 hk2 rfl
     case h4 => simp only [setRegF_apply]; simp [hSt.1]; bv_omega
     case h5 => simp [setRegF_apply]
