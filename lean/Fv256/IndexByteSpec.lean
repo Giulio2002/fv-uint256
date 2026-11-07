@@ -50,11 +50,12 @@ def IbsPreA (avx : Nat) (p n : BitVec 64) (c : Nat) (s : Janus.Amd64.State) : Pr
   s.mem.accessible ((s.regs 4).toNat + 32) 8 true = true ∧
   PageReadable s.mem p.toNat n.toNat ∧ (n.toNat = 0 ∨ p.toNat + n.toNat ≤ (s.regs 4).toNat + 32 ∨ (s.regs 4).toNat + 40 ≤ p.toNat)
 
-/-- postcondition (amd64): the result slot holds the index; `RSP + 8`, `RBP` kept; memory changed only in the result slot -/
+/-- postcondition (amd64): the result slot holds the index; `RSP + 8`, `RBP`, the `FS` base and the direction flag kept; memory changed only in the result slot -/
 def IbsPostA (p n : BitVec 64) (c : Nat) (s s' : Janus.Amd64.State) : Prop :=
   s'.mem.readLE ((s.regs 4).toNat + 32) 8 = indexOfNat (bytesOf s.mem p.toNat) n.toNat c ∧
   s'.regs 4 = s.regs 4 + 8#64 ∧ s'.regs 5 = s.regs 5 ∧
-  Janus.MemFrame s.mem s'.mem [((s.regs 4).toNat + 32, (s.regs 4).toNat + 40)]
+  Janus.MemFrame s.mem s'.mem [((s.regs 4).toNat + 32, (s.regs 4).toNat + 40)] ∧
+  s'.fsBase = s.fsBase ∧ s'.df = s.df
 
 /-- the summary of `IndexByteString.abi0` on the program `P` (amd64) -/
 def IbsSummaryA (P : Janus.Amd64.Program) (entry avx : Nat) (p n : BitVec 64) (c : Nat) : Prop :=

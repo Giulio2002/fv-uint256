@@ -1,0 +1,3357 @@
+⚠ [23/330] Replayed Janus.Program
+warning: Janus/Program.lean:208:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Program.lean:212:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [32/330] Replayed Janus.Tactic.Basic
+warning: Janus/Tactic/Basic.lean:960:20: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [38/330] Replayed Janus.Tactic.Common
+warning: Janus/Tactic/Common.lean:549:12: Variable name `fn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _fn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Tactic/Common.lean:2321:13: Variable name `L` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _L
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [44/330] Replayed Janus.Tactic.ReadOverlap
+warning: Janus/Tactic/ReadOverlap.lean:139:29: Variable name `base` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _base
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [45/330] Replayed Janus.Tactic.Core
+warning: Janus/Tactic/Core.lean:1139:8: Variable name `h` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Tactic/Core.lean:1375:16: Variable name `hlt` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hlt
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [50/330] Replayed Janus.Contracts.Alloc
+warning: Janus/Contracts/Alloc.lean:314:6: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [51/330] Replayed Janus.FFI
+warning: Janus/FFI.lean:711:33: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/FFI.lean:711:56: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/FFI.lean:711:68: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [52/330] Replayed Janus.FFISat
+warning: Janus/FFISat.lean:26:71: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/FFISat.lean:31:34: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/FFISat.lean:36:41: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [65/330] Replayed Janus.Float.Convert
+warning: Janus/Float/Convert.lean:661:6: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [67/330] Replayed Janus.Amd64.FloatConvert
+warning: Janus/Amd64/FloatConvert.lean:214:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/FloatConvert.lean:235:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [68/330] Replayed Janus.Spec.String
+warning: Janus/Spec/String.lean:241:41: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Spec/String.lean:245:39: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Spec/String.lean:261:24: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Spec/String.lean:269:20: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Spec/String.lean:273:20: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [79/330] Replayed Janus.Amd64.DecodeCrypto
+warning: Janus/Amd64/DecodeCrypto.lean:98:26: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [89/330] Replayed Janus.Amd64.Exec
+warning: Janus/Amd64/Exec.lean:520:21: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Amd64/Exec.lean:521:54: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Amd64/Exec.lean:521:64: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Amd64/Exec.lean:521:54: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Amd64/Exec.lean:521:64: `if_true` has been deprecated: Use `ite_true` instead
+⚠ [90/330] Replayed Janus.Amd64.Program
+warning: Janus/Amd64/Program.lean:101:23: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Amd64/Program.lean:102:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [96/330] Replayed Janus.Amd64.Tactic
+warning: Janus/Amd64/Tactic.lean:2308:16: Variable name `hlt` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hlt
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [99/330] Replayed Janus.Contracts.String
+warning: Janus/Contracts/String.lean:99:15: This simp argument is unused:
+  Nat.reducePow
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Nat.pow_one] at hb
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [102/330] Replayed Janus.Contracts.Sat
+warning: Janus/Contracts/Sat.lean:479:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:484:65: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [moveSliceSpec, arg, calleeStack, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:491:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:496:70: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [moveSliceNoCapSpec, arg, calleeStack, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:503:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:515:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Copied]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:520:70: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [typedslicecopySpec, arg, calleeStack, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:527:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:532:69: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [makeslicecopySpec, arg, calleeStack, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:632:65: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [growsliceSpec, arg, calleeStack, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Sat.lean:656:68: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [growsliceBufSpec, arg, calleeStack, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [103/330] Replayed Janus.Contracts.SatAmd64
+warning: Janus/Contracts/SatAmd64.lean:91:80: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/SatAmd64.lean:131:32: This simp argument is unused:
+  BitVec.toNat_ofNat
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [wstate, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:159:50: This simp argument is unused:
+  retAddrOf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:441:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:446:67: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [moveSliceSpec, arg, calleeStack64, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:453:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:458:72: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [moveSliceNoCapSpec, arg, calleeStack64, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:465:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:477:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Copied]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:482:72: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [typedslicecopySpec, arg, calleeStack64, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:489:8: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:494:71: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [makeslicecopySpec, arg, calleeStack64, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:574:67: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [growsliceSpec, arg, calleeStack64, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SatAmd64.lean:598:70: This simp argument is unused:
+  outside_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [growsliceBufSpec, arg, calleeStack64, wstate, TYP, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [106/330] Replayed Janus.Contracts.AllocSat
+warning: Janus/Contracts/AllocSat.lean:60:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/AllocSat.lean:248:14: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [107/330] Replayed Janus.Contracts.AllocSatAmd64
+warning: Janus/Contracts/AllocSatAmd64.lean:48:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/AllocSatAmd64.lean:40:32: Variable name `hsz` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hsz
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [112/330] Replayed Janus.Spec.SwissMap
+warning: Janus/Spec/SwissMap.lean:142:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Spec/SwissMap.lean:340:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [117/330] Replayed Janus.Contracts.CmpstringSatAmd64
+warning: Janus/Contracts/CmpstringSatAmd64.lean:72:63: Variable name `hnw` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hnw
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [122/330] Replayed Janus.Contracts.Live
+warning: Janus/Contracts/Live.lean:1168:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/Live.lean:1169:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Live.lean:1250:6: Variable name `r` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [126/330] Replayed Janus.Amd64.TacticAVX
+warning: Janus/Amd64/TacticAVX.lean:157:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Amd64/TacticAVX.lean:166:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/TacticAVX.lean:213:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Amd64/TacticAVX.lean:222:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/TacticAVX.lean:318:2: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Janus/Amd64/TacticAVX.lean:360:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Amd64/TacticAVX.lean:361:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/TacticAVX.lean:366:40: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [128/330] Replayed Janus.Amd64.X87Lemmas
+warning: Janus/Amd64/X87Lemmas.lean:52:43: Variable name `he` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _he
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Amd64/X87Lemmas.lean:90:46: Variable name `he` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _he
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Amd64/X87Lemmas.lean:106:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/X87Lemmas.lean:108:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/X87Lemmas.lean:131:6: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/X87Lemmas.lean:187:35: Variable name `ha` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _ha
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Amd64/X87Lemmas.lean:187:64: Variable name `hb` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hb
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Amd64/X87Lemmas.lean:222:22: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/X87Lemmas.lean:222:49: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Amd64/X87Lemmas.lean:240:6: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/X87Lemmas.lean:240:33: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [132/330] Replayed Janus.Amd64.FFI
+warning: Janus/Amd64/FFI.lean:457:66: `if_true` has been deprecated: Use `ite_true` instead
+⚠ [139/330] Replayed Janus.Amd64.TacticAVX2
+warning: Janus/Amd64/TacticAVX2.lean:197:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/TacticAVX2.lean:206:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/TacticAVX2.lean:257:50: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Amd64/TacticAVX2.lean:266:50: `if_false` has been deprecated: Use `ite_false` instead
+⚠ [143/330] Replayed Janus.Contracts.LiveToy
+warning: Janus/Contracts/LiveToy.lean:157:87: This simp argument is unused:
+  BUMP
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [HEAP, HSIZE] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveToy.lean:157:99: This simp argument is unused:
+  HSIZE
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BUMP, HEAP] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveToy.lean:159:36: This simp argument is unused:
+  BUMP
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [HEAP, HSIZE] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveToy.lean:159:48: This simp argument is unused:
+  HSIZE
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BUMP, HEAP] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [146/330] Replayed Janus.Contracts.LiveSat
+warning: Janus/Contracts/LiveSat.lean:19:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveSat.lean:20:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveSat.lean:23:12: This simp argument is unused:
+  List.getD_cons_succ
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSat.lean:215:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveSat.lean:216:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveSat.lean:503:5: Variable name `hok'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hok'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/LiveSat.lean:536:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveSat.lean:537:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveSat.lean:571:29: Variable name `hty` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hty
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/LiveSat.lean:583:13: This simp argument is unused:
+  slicebytetostringtmpSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ha, ha'.1, ha'.2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSat.lean:597:21: This simp argument is unused:
+  wsp_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wspn, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSat.lean:597:29: This simp argument is unused:
+  wspn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wsp_eq, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSat.lean:597:35: This simp argument is unused:
+  wsp
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wsp_eq, wspn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSat.lean:810:28: This simp argument is unused:
+  wsp_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [calleeStack, wspn, outside_cons, outside_nil, and_true, wst, wstate]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSat.lean:826:28: This simp argument is unused:
+  wsp_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [calleeStack, wspn, outside_cons, outside_nil, and_true, wst, wstate]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [150/330] Replayed Janus.Contracts.IfaceAmd64
+warning: Janus/Contracts/IfaceAmd64.lean:111:10: This simp argument is unused:
+  BitVec.getLsbD_setWidth
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.getLsbD_or, BitVec.getLsbD_and, hm, hi, show i < 64 by omega]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceAmd64.lean:111:35: This simp argument is unused:
+  BitVec.getLsbD_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.getLsbD_setWidth, BitVec.getLsbD_and, hm, hi, show i < 64 by omega]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceAmd64.lean:111:54: This simp argument is unused:
+  BitVec.getLsbD_and
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.getLsbD_setWidth, BitVec.getLsbD_or, hm, hi, show i < 64 by omega]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceAmd64.lean:111:74: This simp argument is unused:
+  hm
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.getLsbD_setWidth, BitVec.getLsbD_or, BitVec.getLsbD_and, hi, show i < 64 by omega]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceAmd64.lean:112:6: This simp argument is unused:
+  show i < 64 by omega
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.getLsbD_setWidth, BitVec.getLsbD_or, BitVec.getLsbD_and, hm, hi]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [153/330] Replayed Janus.Contracts.LiveSatAmd64
+warning: Janus/Contracts/LiveSatAmd64.lean:352:29: Variable name `hty` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hty
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/LiveSatAmd64.lean:366:13: This simp argument is unused:
+  slicebytetostringtmpSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ha, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSatAmd64.lean:839:34: This simp argument is unused:
+  wspn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [calleeStack64, w4, outside_cons, outside_nil, and_true, tyB, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveSatAmd64.lean:862:34: This simp argument is unused:
+  wspn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [calleeStack64, w4, outside_cons, outside_nil, and_true, tyB, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [158/330] Replayed Janus.Contracts.LiveStubGrow
+warning: Janus/Contracts/LiveStubGrow.lean:104:57: This simp argument is unused:
+  List.getD_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [List.getD_cons_succ, List.getD_cons_zero, hsz, hnoscan, hargs1, hargs2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubGrow.lean:184:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubGrow.lean:268:42: Variable name `c0` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _c0
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [159/330] Replayed Janus.Contracts.LiveStubGrowAmd64
+warning: Janus/Contracts/LiveStubGrowAmd64.lean:81:57: This simp argument is unused:
+  List.getD_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [List.getD_cons_succ, List.getD_cons_zero, hsz, hnoscan]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubGrowAmd64.lean:160:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubGrowAmd64.lean:232:44: Variable name `c0` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _c0
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [162/330] Replayed Janus.Contracts.EqHashModel
+warning: Janus/Contracts/EqHashModel.lean:180:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/EqHashModel.lean:184:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/EqHashModel.lean:246:23: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/EqHashModel.lean:247:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [163/330] Replayed Janus.Contracts.InternalCall
+warning: Janus/Contracts/InternalCall.lean:62:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/InternalCall.lean:71:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/InternalCall.lean:80:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/InternalCall.lean:80:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/InternalCall.lean:84:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/InternalCall.lean:84:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [168/330] Replayed Janus.Contracts.InternalCallAmd64
+warning: Janus/Contracts/InternalCallAmd64.lean:45:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/InternalCallAmd64.lean:63:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/InternalCallAmd64.lean:69:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/InternalCallAmd64.lean:69:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/InternalCallAmd64.lean:70:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/InternalCallAmd64.lean:70:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [169/330] Replayed Janus.Contracts.CallPreAmd64
+warning: Janus/Contracts/CallPreAmd64.lean:16:20: Ambiguous namespace `Tactic`: this `open` refers to all of `_root_.Janus.Amd64.Tactic`, `_root_.Lean.Elab.Tactic`, `_root_.Lean.Meta.Tactic`, `_root_.Lean.Tactic`, while `_root_.Janus.Tactic` is silently not opened because the `open` occurs inside `namespace Janus.Amd64`. Specify the namespace unambiguously, e.g. `_root_.Janus.Amd64.Tactic`. The warning can sometimes also be addressed by moving the `open` outside of the surrounding `namespace`.
+
+Note: This linter can be disabled with `set_option linter.ambiguousOpen false`
+⚠ [175/330] Replayed Janus.Contracts.IfaceSat
+warning: Janus/Contracts/IfaceSat.lean:99:102: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:126:102: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:152:102: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:188:102: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:238:104: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:290:18: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:290:45: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:290:72: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:333:38: This simp argument is unused:
+  Nat.reduceEqDiff
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg_apply, reduceIte, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:488:30: This simp argument is unused:
+  h0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg, efaceEqual]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSat.lean:516:30: This simp argument is unused:
+  h0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setReg, ifaceEqual]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [181/330] Replayed Janus.Contracts.IfaceSatAmd64
+warning: Janus/Contracts/IfaceSatAmd64.lean:104:75: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:133:75: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:162:75: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:202:75: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:254:78: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:255:18: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:298:79: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:299:18: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:299:45: This simp argument is unused:
+  BOX
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:489:33: This simp argument is unused:
+  h0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF, efaceEqual]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/IfaceSatAmd64.lean:528:33: This simp argument is unused:
+  h0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF, ifaceEqual]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [186/330] Replayed Janus.Contracts.Syscall
+warning: Janus/Contracts/Syscall.lean:87:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Syscall.lean:427:21: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/Syscall.lean:428:21: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Syscall.lean:430:23: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/Syscall.lean:431:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [189/330] Replayed Janus.Contracts.SyscallAmd64
+warning: Janus/Contracts/SyscallAmd64.lean:63:21: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/SyscallAmd64.lean:64:21: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/SyscallAmd64.lean:66:23: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/SyscallAmd64.lean:67:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [198/330] Replayed Janus.Amd64.FFISat
+warning: Janus/Amd64/FFISat.lean:20:71: Variable name `f` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _f
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Amd64/FFISat.lean:73:30: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/FFISat.lean:73:69: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Amd64/FFISat.lean:81:42: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/FFISat.lean:81:81: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Amd64/FFISat.lean:92:43: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Amd64/FFISat.lean:92:82: `if_true` has been deprecated: Use `ite_true` instead
+⚠ [200/330] Replayed Janus.Contracts.Print
+warning: Janus/Contracts/Print.lean:108:25: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/Print.lean:125:25: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/Print.lean:385:10: This simp argument is unused:
+  BitVec.toNat_not
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_sub, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:574:49: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/Print.lean:602:54: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Print.lean:600:79: This simp argument is unused:
+  ge_iff_le
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [h1, h2, decide_true, Bool.and_true, hM' i h1 h2, Bool.true_and, show i - s < w by omega]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:752:56: This simp argument is unused:
+  List.reverse_append
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [digits9, List.range_succ, List.range_zero, List.append_assoc, List.map, List.reverse_nil,
+    List.reverse_cons, List.nil_append, List.cons_append, List.singleton_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:753:76: This simp argument is unused:
+  List.singleton_append
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [digits9, List.range_succ, List.range_zero, List.reverse_append, List.append_assoc, List.map,
+    List.reverse_nil, List.reverse_cons, List.nil_append, List.cons_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:774:56: This simp argument is unused:
+  List.append_assoc
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [digits9, List.range_succ, List.range_zero, List.map, List.reverse_nil, List.reverse_cons,
+    List.nil_append, List.cons_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:794:6: This simp argument is unused:
+  List.map_cons
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readBytes, List.range_succ, List.range_zero, List.map, List.nil_append, List.map_append,
+    List.map_nil, Memory.writeLE]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:794:21: This simp argument is unused:
+  List.map_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readBytes, List.range_succ, List.range_zero, List.map, List.nil_append, List.map_append,
+    List.map_cons, Memory.writeLE]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Print.lean:816:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/Print.lean:817:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [201/330] Replayed Janus.Contracts.PrintSat
+warning: Janus/Contracts/PrintSat.lean:105:16: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Janus/Contracts/PrintSat.lean:105:16: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Janus/Contracts/PrintSat.lean:105:16: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Janus/Contracts/PrintSat.lean:105:16: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Janus/Contracts/PrintSat.lean:113:10: This simp argument is unused:
+  hN
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [readBytes]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintSat.lean:119:30: This simp argument is unused:
+  setReg_apply
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintSat.lean:120:25: This simp argument is unused:
+  setReg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [202/330] Replayed Janus.Contracts.PrintAmd64
+warning: Janus/Contracts/PrintAmd64.lean:148:41: This simp argument is unused:
+  hj
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BitVec.getLsbD_sshiftRight, decide_true, BitVec.getLsbD_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintAmd64.lean:148:45: This simp argument is unused:
+  decide_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BitVec.getLsbD_sshiftRight, hj, BitVec.getLsbD_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintAmd64.lean:154:29: This simp argument is unused:
+  Bool.not_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [h', ite_true, Bool.false_and, Bool.and_false]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintAmd64.lean:154:44: This simp argument is unused:
+  Bool.false_and
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [h', ite_true, Bool.not_true, Bool.and_false]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintAmd64.lean:154:60: This simp argument is unused:
+  Bool.and_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [h', ite_true, Bool.not_true, Bool.false_and]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PrintAmd64.lean:183:49: Variable name `hl` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hl
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PrintAmd64.lean:187:36: Variable name `hb` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hb
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [205/330] Replayed Janus.Spec.Stack
+warning: Janus/Spec/Stack.lean:909:33: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [207/330] Replayed Janus.Contracts.StackSat
+warning: Janus/Contracts/StackSat.lean:104:29: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSat.lean:111:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSat.lean:111:27: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSat.lean:163:28: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+warning: Janus/Contracts/StackSat.lean:179:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSat.lean:180:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSat.lean:183:49: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSat.lean:186:46: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSat.lean:189:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSat.lean:192:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSat.lean:193:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSat.lean:195:76: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSat.lean:278:36: This simp argument is unused:
+  List.mem_singleton
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [pool, List.mem_cons, List.not_mem_nil, or_false] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [209/330] Replayed Janus.Contracts.StackSatAmd64
+warning: Janus/Contracts/StackSatAmd64.lean:110:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSatAmd64.lean:111:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSatAmd64.lean:114:49: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSatAmd64.lean:117:46: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSatAmd64.lean:120:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSatAmd64.lean:123:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/StackSatAmd64.lean:124:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/StackSatAmd64.lean:126:76: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [210/330] Replayed Janus.Contracts.Panic
+warning: Janus/Contracts/Panic.lean:68:6: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Panic.lean:733:26: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/Panic.lean:734:26: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [211/330] Replayed Janus.Contracts.PanicAmd64
+warning: Janus/Contracts/PanicAmd64.lean:48:6: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicAmd64.lean:584:26: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicAmd64.lean:585:26: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [212/330] Replayed Janus.Contracts.PanicModel
+warning: Janus/Contracts/PanicModel.lean:339:111: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:340:77: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:340:84: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:341:77: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:341:84: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:342:77: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:342:84: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:345:42: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:345:100: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:345:158: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:348:99: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:348:106: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:349:45: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:352:55: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:352:62: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:352:113: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:352:120: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:352:171: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:352:178: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:355:95: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:355:102: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:356:73: This simp argument is unused:
+  recAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, tabAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:356:80: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicModel.lean:356:144: This simp argument is unused:
+  tabAt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [panAt, recAt, B] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [214/330] Replayed Janus.Contracts.PanicSat
+warning: Janus/Contracts/PanicSat.lean:257:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSat.lean:253:15: This simp argument is unused:
+  hne
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append,
+    setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSat.lean:253:20: This simp argument is unused:
+  false_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append,
+    setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSat.lean:253:66: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append,
+    setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSat.lean:254:84: This simp argument is unused:
+  List.cons_append
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.nil_append, setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSat.lean:255:6: This simp argument is unused:
+  List.nil_append
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, setReg]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSat.lean:255:23: This simp argument is unused:
+  setReg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSat.lean:276:5: Variable name `hdo` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hdo
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSat.lean:544:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSat.lean:595:26: This simp argument is unused:
+  P0_depth
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hsp, hspn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [215/330] Replayed Janus.Contracts.PanicSatLoop
+warning: Janus/Contracts/PanicSatLoop.lean:181:24: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/PanicSatLoop.lean:183:29: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicSatLoop.lean:181:33: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [recTake, if_true] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatLoop.lean:222:56: Variable name `hbd` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hbd
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatLoop.lean:367:30: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatLoop.lean:376:28: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatLoop.lean:389:5: Variable name `hfsp` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hfsp
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [216/330] Replayed Janus.Contracts.PanicSatDecode
+warning: Janus/Contracts/PanicSatDecode.lean:53:21: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:57:21: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatDecode.lean:134:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:140:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatDecode.lean:175:18: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:179:18: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:205:32: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatDecode.lean:217:5: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatDecode.lean:236:30: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:271:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:289:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatDecode.lean:347:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatDecode.lean:357:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatDecode.lean:396:4: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Janus/Contracts/PanicSatDecode.lean:507:34: This simp argument is unused:
+  List.mem_singleton
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [R2, List.mem_cons, List.not_mem_nil, or_false] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [217/330] Replayed Janus.Contracts.PanicSatEngine
+warning: Janus/Contracts/PanicSatEngine.lean:161:46: Variable name `r'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _r'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatEngine.lean:856:74: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicSatEngine.lean:879:101: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicSatEngine.lean:884:80: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/PanicSatEngine.lean:886:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatEngine.lean:998:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatEngine.lean:1007:14: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatEngine.lean:1013:14: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatEngine.lean:1127:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatEngine.lean:1127:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [218/330] Replayed Janus.Contracts.PanicSatEntry
+warning: Janus/Contracts/PanicSatEntry.lean:501:77: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatEntry.lean:504:76: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatEntry.lean:516:96: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatEntry.lean:519:76: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatEntry.lean:637:18: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatEntry.lean:673:16: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatEntry.lean:640:34: This simp argument is unused:
+  List.mem_singleton
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [R2, List.mem_cons, List.not_mem_nil, or_false] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [220/330] Replayed Janus.Contracts.PanicWitness
+warning: Janus/Contracts/PanicWitness.lean:33:8: Variable name `s'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _s'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicWitness.lean:62:39: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicWitness.lean:177:6: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicWitness.lean:188:12: This simp argument is unused:
+  Program.fetchIn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitness.lean:189:10: This simp argument is unused:
+  Program.fetchIn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitness.lean:326:29: This simp argument is unused:
+  recItems
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [frameOf, frameItems, FuncInfo.named, gT, P0_defers, sstate, defers_g, FrameOK]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitness.lean:335:29: This simp argument is unused:
+  recItems
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [frameOf, frameItems, FuncInfo.named, gT, P0_defers, sstate, defers_g, FrameOK]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitness.lean:342:30: This simp argument is unused:
+  recItems
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [retFrame, frameItems, P0_defers, P0_saved, sstate, defers_g, saved_g, gOf, FrameOK]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [221/330] Replayed Janus.Contracts.PanicSatAmd64
+warning: Janus/Contracts/PanicSatAmd64.lean:251:5: Variable name `hdo` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hdo
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatAmd64.lean:302:15: This simp argument is unused:
+  Nat.mod_eq_of_lt (BitVec.isLt _)
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [List.map_cons, List.map_nil, List.cons_append, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:374:17: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatAmd64.lean:368:15: This simp argument is unused:
+  hne
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:368:20: This simp argument is unused:
+  false_or
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:368:66: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:369:50: This simp argument is unused:
+  Nat.mod_eq_of_lt (BitVec.isLt _)
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, List.cons_append, List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:369:84: This simp argument is unused:
+  List.cons_append
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:370:6: This simp argument is unused:
+  List.nil_append
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hne, false_or, ne_eq, not_true_eq_false, or_false, ite_false, show min 0 8 = 0 from rfl,
+    show PanicModel.recFns _ k 0 = [] from rfl, Nat.mod_eq_of_lt (BitVec.isLt _), List.cons_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:567:12: This simp argument is unused:
+  hflag
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64.lean:625:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatAmd64.lean:672:26: This simp argument is unused:
+  P0_depth
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hsp, hspn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [222/330] Replayed Janus.Contracts.PanicSatAmd64Loop
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:138:24: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:140:29: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:138:33: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [recTake, if_true] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:182:51: Variable name `hbd` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hbd
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:233:51: This simp argument is unused:
+  Nat.shiftRight_eq_div_pow
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:283:8: This simp argument is unused:
+  Nat.shiftRight_eq_div_pow
+
+Hint: Omit it from the simp argument list.
+  [apply] simp at h0
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:310:30: This simp argument is unused:
+  B
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:356:30: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:365:28: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatAmd64Loop.lean:379:5: Variable name `hfsp` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hfsp
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [224/330] Replayed Janus.Contracts.PanicSatAmd64Steps
+warning: Janus/Contracts/PanicSatAmd64Steps.lean:391:67: Variable name `hn` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatAmd64Steps.lean:552:74: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicSatAmd64Steps.lean:575:101: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/PanicSatAmd64Steps.lean:580:80: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/PanicSatAmd64Steps.lean:582:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [225/330] Replayed Janus.Contracts.PanicSatAmd64EngineLoop
+warning: Janus/Contracts/PanicSatAmd64EngineLoop.lean:114:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64EngineLoop.lean:123:14: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64EngineLoop.lean:129:14: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatAmd64EngineLoop.lean:250:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64EngineLoop.lean:250:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [226/330] Replayed Janus.Contracts.PanicSatAmd64EntrySegs
+warning: Janus/Contracts/PanicSatAmd64EntrySegs.lean:195:21: This simp argument is unused:
+  B
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [eLH, E, Nat.reduceAdd] at hpc ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicSatAmd64EntrySegs.lean:239:21: This simp argument is unused:
+  B
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [eLH, E, Nat.reduceAdd] at hpc ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [227/330] Replayed Janus.Contracts.PanicSatAmd64Lookup
+warning: Janus/Contracts/PanicSatAmd64Lookup.lean:222:16: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64Lookup.lean:226:82: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64Lookup.lean:240:100: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatAmd64Lookup.lean:244:82: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [228/330] Replayed Janus.Contracts.PanicSatAmd64Entry
+warning: Janus/Contracts/PanicSatAmd64Entry.lean:82:30: Variable name `h` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicSatAmd64Entry.lean:176:18: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicSatAmd64Entry.lean:212:16: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicSatAmd64Entry.lean:179:34: This simp argument is unused:
+  List.mem_singleton
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [R2, List.mem_cons, List.not_mem_nil, or_false] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [230/330] Replayed Janus.Contracts.PanicWitnessAmd64
+warning: Janus/Contracts/PanicWitnessAmd64.lean:36:6: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicWitnessAmd64.lean:52:8: Variable name `s'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _s'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/PanicWitnessAmd64.lean:137:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicWitnessAmd64.lean:144:6: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicWitnessAmd64.lean:151:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PanicWitnessAmd64.lean:153:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PanicWitnessAmd64.lean:154:29: This simp argument is unused:
+  Janus.Amd64.Program.fetchIn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitnessAmd64.lean:263:61: This simp argument is unused:
+  Panic.recItems
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [PanicAmd64.frameOf, Panic.frameOf, Panic.frameItems, Spec.FuncInfo.named, gT, P0_defers, sstate,
+    defers_g, PanicAmd64.FrameOK, Panic.FrameOK]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitnessAmd64.lean:273:61: This simp argument is unused:
+  Panic.recItems
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [PanicAmd64.frameOf, Panic.frameOf, Panic.frameItems, Spec.FuncInfo.named, gT, P0_defers, sstate,
+    defers_g, PanicAmd64.FrameOK, Panic.FrameOK]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/PanicWitnessAmd64.lean:282:47: This simp argument is unused:
+  Panic.recItems
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [PanicAmd64.retFrame, Panic.frameItems, P0_defers, P0_saved, sstate, defers_g, saved_g, PanicAmd64.gOf,
+    PanicAmd64.FrameOK, Panic.FrameOK]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [238/330] Replayed Janus.Contracts.Libc
+warning: Janus/Contracts/Libc.lean:187:27: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Libc.lean:200:62: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Libc.lean:221:29: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Libc.lean:265:83: Variable name `hk` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hk
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/Libc.lean:308:46: This simp argument is unused:
+  hP
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [hQ]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:308:50: This simp argument is unused:
+  hQ
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [hP]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:313:5: Variable name `hp` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hp
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/Libc.lean:313:18: Variable name `j` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _j
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/Libc.lean:313:20: Variable name `j'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _j'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/Libc.lean:336:64: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Libc.lean:383:28: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/Libc.lean:433:50: Variable name `hm` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hm
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/Libc.lean:644:28: This simp argument is unused:
+  memcpySpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strlenSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:40: This simp argument is unused:
+  memcpyChkSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memmoveSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strlenSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:55: This simp argument is unused:
+  memmoveSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strlenSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:68: This simp argument is unused:
+  memmoveChkSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memsetSpec, memsetChkSpec, strlenSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:84: This simp argument is unused:
+  memsetSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetChkSpec, strlenSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:96: This simp argument is unused:
+  memsetChkSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetSpec, strlenSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:111: This simp argument is unused:
+  strlenSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strcmpSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:123: This simp argument is unused:
+  strcmpSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strlenSpec,
+    mallocSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:135: This simp argument is unused:
+  mallocSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strlenSpec,
+    strcmpSpec, freeSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/Libc.lean:644:147: This simp argument is unused:
+  freeSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [memcpySpec, memcpyChkSpec, memmoveSpec, memmoveChkSpec, memsetSpec, memsetChkSpec, strlenSpec,
+    strcmpSpec, mallocSpec, setjmpSpec, longjmpSpec, longjmpChkSpec] at hn
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [239/330] Replayed Janus.Contracts.LibcSat
+warning: Janus/Contracts/LibcSat.lean:110:21: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LibcSat.lean:113:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LibcSat.lean:146:8: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+warning: Janus/Contracts/LibcSat.lean:140:72: This simp argument is unused:
+  dite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [jmpState, show 19 + i.val ≠ 30 by omega, ite_false,
+    show 19 ≤ 19 + i.val ∧ 19 + i.val < 30 from ⟨by omega, by omega⟩]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [240/330] Replayed Janus.Contracts.LibcAmd64
+warning: Janus/Contracts/LibcAmd64.lean:55:50: Variable name `hm` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hm
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [241/330] Replayed Janus.Contracts.LibcSatAmd64
+warning: Janus/Contracts/LibcSatAmd64.lean:90:21: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LibcSatAmd64.lean:93:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [248/330] Replayed Janus.Spec.SoftFloat
+warning: Janus/Spec/SoftFloat.lean:74:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Spec/SoftFloat.lean:121:25: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Spec/SoftFloat.lean:261:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [255/330] Replayed Janus.Contracts.InstrumentCallsSat
+warning: Janus/Contracts/InstrumentCallsSat.lean:77:13: This simp argument is unused:
+  ArithOK
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [minLegalPointer, wstate]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [265/330] Replayed Janus.Spec.Errorf
+warning: Janus/Spec/Errorf.lean:74:22: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Spec/Errorf.lean:78:46: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Spec/Errorf.lean:82:19: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [267/330] Replayed Janus.Contracts.LiveCall
+warning: Janus/Contracts/LiveCall.lean:180:29: This simp argument is unused:
+  outside_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, and_true] at hgo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveCall.lean:180:42: This simp argument is unused:
+  and_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [outside_cons, outside_nil] at hgo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [269/330] Replayed Janus.Contracts.PoolSat
+warning: Janus/Contracts/PoolSat.lean:109:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PoolSat.lean:110:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/PoolSat.lean:172:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/PoolSat.lean:173:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [273/330] Replayed Janus.Contracts.ErrorfMem
+warning: Janus/Contracts/ErrorfMem.lean:62:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfMem.lean:72:101: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfMem.lean:152:6: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [275/330] Replayed Janus.Contracts.ErrorfSat
+warning: Janus/Contracts/ErrorfSat.lean:72:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfSat.lean:73:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfSat.lean:207:25: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/ErrorfSat.lean:207:34: This simp argument is unused:
+  List.append_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [range0, if_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfSat.lean:303:51: This simp argument is unused:
+  eTxt
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [toyR, toyRt, tys0, outside_cons, outside_nil, outside_append, List.map, and_true, HEAP, HEND,
+    HSIZE, BUMP, WBUF, tyA, tyB, tyC, eFP, eSP, eE, CB]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [276/330] Replayed Janus.Contracts.RelocArm64
+warning: Janus/Contracts/RelocArm64.lean:136:28: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocArm64.lean:136:57: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocArm64.lean:136:28: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocArm64.lean:136:57: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocArm64.lean:147:21: This simp argument is unused:
+  ↓reduceIte
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hc, Except.map]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocArm64.lean:240:28: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocArm64.lean:240:57: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocArm64.lean:240:28: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocArm64.lean:240:57: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocArm64.lean:363:28: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocArm64.lean:363:57: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocArm64.lean:363:28: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocArm64.lean:363:57: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocArm64.lean:405:12: This simp argument is unused:
+  Program.fetchIn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocArm64.lean:406:10: This simp argument is unused:
+  Program.fetchIn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocArm64.lean:408:33: Variable name `hj` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hj
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [277/330] Replayed Janus.Contracts.ErrorfRealLoops
+warning: Janus/Contracts/ErrorfRealLoops.lean:23:28: Variable name `h30` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:23:63: Variable name `h30'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:93:28: Variable name `h30` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:93:63: Variable name `h30'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:163:28: Variable name `h30` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:163:63: Variable name `h30'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:183:25: This simp argument is unused:
+  h10
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h11, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:183:30: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h10, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:183:35: This simp argument is unused:
+  h12
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h10, h11, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:198:94: This simp argument is unused:
+  h10
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:199:94: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:218:28: Variable name `h30` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:218:63: Variable name `h30'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:238:25: This simp argument is unused:
+  h10
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h11, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:238:30: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h10, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:238:35: This simp argument is unused:
+  h12
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h10, h11, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:253:94: This simp argument is unused:
+  h10
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:254:94: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:273:28: Variable name `h30` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:273:63: Variable name `h30'` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h30'
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:293:25: This simp argument is unused:
+  h10
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h11, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:293:30: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h10, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:293:35: This simp argument is unused:
+  h12
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setReg, h10, h11, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:308:94: This simp argument is unused:
+  h10
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops.lean:309:94: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [BitVec.toNat_add, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [278/330] Replayed Janus.Contracts.ErrorfRealFmt
+warning: Janus/Contracts/ErrorfRealFmt.lean:53:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealFmt.lean:54:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealFmt.lean:93:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealFmt.lean:109:29: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/ErrorfRealFmt.lean:115:29: `if_true` has been deprecated: Use `ite_true` instead
+⚠ [280/330] Replayed Janus.Contracts.ErrorfRealStageA
+warning: Janus/Contracts/ErrorfRealStageA.lean:51:23: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/ErrorfRealStageA.lean:53:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [281/330] Replayed Janus.Contracts.ErrorfRealStageB
+warning: Janus/Contracts/ErrorfRealStageB.lean:41:23: `if_true` has been deprecated: Use `ite_true` instead
+⚠ [285/330] Replayed Janus.Contracts.ErrorfRealStageF
+warning: Janus/Contracts/ErrorfRealStageF.lean:21:42: Variable name `hiW` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hiW
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [286/330] Replayed Janus.Contracts.ErrorfRealFinalC
+warning: Janus/Contracts/ErrorfRealFinalC.lean:61:37: Variable name `hn1` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn1
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:61:52: Variable name `hn2` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn2
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:70:75: This simp argument is unused:
+  hlen1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [strBytes_writeLE_out, strBytes_putBytes_out, hlen2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:70:82: This simp argument is unused:
+  hlen2
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [strBytes_writeLE_out, strBytes_putBytes_out, hlen1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:73:52: Variable name `hn2` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn2
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:82:75: This simp argument is unused:
+  hlen1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [strBytes_writeLE_out, strBytes_putBytes_out, hlen2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:82:82: This simp argument is unused:
+  hlen2
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [strBytes_writeLE_out, strBytes_putBytes_out, hlen1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:101:5: Variable name `hl1` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hl1
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:101:37: Variable name `hn1` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hn1
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:102:5: Variable name `hlen1` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hlen1
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:207:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealFinalC.lean:207:20: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealFinalC.lean:228:99: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealFinalC.lean:228:111: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealFinalC.lean:230:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealFinalC.lean:230:20: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealFinalC.lean:227:78: This simp argument is unused:
+  putBytes_bytes_out
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.bytes_writeLE_outside, hlen1, hlen2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:227:98: This simp argument is unused:
+  hlen1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.bytes_writeLE_outside, putBytes_bytes_out, hlen2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:227:105: This simp argument is unused:
+  hlen2
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.bytes_writeLE_outside, putBytes_bytes_out, hlen1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:229:98: This simp argument is unused:
+  hlen1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.bytes_writeLE_outside, putBytes_bytes_out, hlen2]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:229:105: This simp argument is unused:
+  hlen2
+
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.bytes_writeLE_outside, putBytes_bytes_out, hlen1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:424:57: Variable name `hp` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hp
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:424:78: Variable name `hpA` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hpA
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:461:59: Variable name `hp` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hp
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ErrorfRealFinalC.lean:461:80: Variable name `hpA` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hpA
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [287/330] Replayed Janus.Contracts.ErrorfRealRt
+warning: Janus/Contracts/ErrorfRealRt.lean:46:89: `if_true` has been deprecated: Use `ite_true` instead
+⚠ [288/330] Replayed Janus.Contracts.ErrorfRealPostC
+warning: Janus/Contracts/ErrorfRealPostC.lean:59:36: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealPostC.lean:91:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealPostC.lean:109:19: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealPostC.lean:109:50: This simp argument is unused:
+  List.not_mem_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [if_neg h0, List.mem_singleton, or_false] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealPostC.lean:109:68: This simp argument is unused:
+  or_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [if_neg h0, List.mem_singleton, List.not_mem_nil] at hr
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [289/330] Replayed Janus.Contracts.ErrorfRealImpl
+warning: Janus/Contracts/ErrorfRealImpl.lean:50:70: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at hrt'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl.lean:124:13: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealImpl.lean:73:51: This simp argument is unused:
+  Nat.mul_one
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [operandD, Nat.mul_zero, Nat.add_zero] at hE hTxt hD0
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl.lean:141:70: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at hWo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl.lean:197:74: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at h'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl.lean:304:82: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at h'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [290/330] Replayed Janus.Contracts.ErrorfRealLive
+warning: Janus/Contracts/ErrorfRealLive.lean:40:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealLive.lean:46:10: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealLive.lean:53:8: This simp argument is unused:
+  e
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [hw, hc]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [291/330] Replayed Janus.Contracts.ErrorfRealWitC
+warning: Janus/Contracts/ErrorfRealWitC.lean:63:25: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealWitC.lean:65:25: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealWitC.lean:112:66: Variable name `h2` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h2
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [293/330] Replayed Janus.Contracts.RelocAmd64
+warning: Janus/Contracts/RelocAmd64.lean:102:41: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readSrc_s d s n (n + d) w src h2, readLoc_s d s n (n + d) w dst h1,
+    readLocRW_s d s n (n + d) w dst h1, writeLoc_s d s n (n + d) w dst _ h1, regs_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:102:48: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readSrc_s d s n (n + d) w src h2, readLoc_s d s n (n + d) w dst h1,
+    readLocRW_s d s n (n + d) w dst h1, writeLoc_s d s n (n + d) w dst _ h1, mem_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:112:86: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLocRW_s d s n (n + d) w dst h1, writeLoc_s d s n (n + d) w dst _ h1, regs_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:112:93: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLocRW_s d s n (n + d) w dst h1, writeLoc_s d s n (n + d) w dst _ h1, mem_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:114:44: This simp argument is unused:
+  setRip_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [Except.map, ExR]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:120:77: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w a h1, readSrc_s d s n (n + d) w b h2, regs_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:120:84: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w a h1, readSrc_s d s n (n + d) w b h2, mem_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:120:92: This simp argument is unused:
+  flags_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w a h1, readSrc_s d s n (n + d) w b h2, mem_s, regs_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:122:27: This simp argument is unused:
+  Except.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [ExR, setRip_s, putReg_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:128:47: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w src h1, regs_s, flags_s, getReg_s, getHigh_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:128:54: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w src h1, mem_s, flags_s, getReg_s, getHigh_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:128:62: This simp argument is unused:
+  flags_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w src h1, mem_s, regs_s, getReg_s, getHigh_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:130:27: This simp argument is unused:
+  Except.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [ExR, setRip_s, putReg_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:186:81: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w a h.1, readSrc_s d s n (n + d) w b h.2, regs_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:186:88: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w a h.1, readSrc_s d s n (n + d) w b h.2, mem_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:186:96: This simp argument is unused:
+  flags_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w a h.1, readSrc_s d s n (n + d) w b h.2, mem_s, regs_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:188:29: This simp argument is unused:
+  Except.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [ExR, setRip_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:194:88: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readSrc_s d s n (n + d) w src h.2, writeLoc_s d s n (n + d) w dst _ h.1, regs_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:194:95: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readSrc_s d s n (n + d) w src h.2, writeLoc_s d s n (n + d) w dst _ h.1, mem_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:194:103: This simp argument is unused:
+  flags_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readSrc_s d s n (n + d) w src h.2, writeLoc_s d s n (n + d) w dst _ h.1, mem_s, regs_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:196:46: This simp argument is unused:
+  setRip_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [Except.map, ExR]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:207:51: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [writeLoc_s d s n (n + d) 8 dst _ h, regs_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:207:58: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [writeLoc_s d s n (n + d) 8 dst _ h, mem_s, flags_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:209:46: This simp argument is unused:
+  setRip_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [Except.map, ExR]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:215:48: This simp argument is unused:
+  mem_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w src h, regs_s, flags_s, getReg_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:215:55: This simp argument is unused:
+  regs_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [readLoc_s d s n (n + d) w src h, mem_s, flags_s, getReg_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:217:29: This simp argument is unused:
+  Except.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp_all [ExR, setRip_s, putReg_s]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:248:26: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:253:14: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/RelocAmd64.lean:259:41: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:269:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/RelocAmd64.lean:248:45: This simp argument is unused:
+  tgt_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hb', if_true, branchTo, next_eq] at hx ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:248:53: This simp argument is unused:
+  next_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hb', if_true, branchTo, tgt_eq] at hx ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:259:51: This simp argument is unused:
+  next_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Bool.false_eq_true, if_false] at hx ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:264:39: This simp argument is unused:
+  flags_s
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [exec, next_eq, rip_s, branchTo, tgt_eq] at hx ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:264:58: This simp argument is unused:
+  tgt_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [exec, next_eq, rip_s, flags_s, branchTo] at hx ⊢
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:328:88: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:97: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:88: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:97: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:88: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:97: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:88: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:97: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:88: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:97: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:88: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:97: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:328:107: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [reduceCtorEq, if_true, if_false, ite_false]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:328:117: This simp argument is unused:
+  ite_false
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [reduceCtorEq, if_true, if_false, ite_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:414:26: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/RelocAmd64.lean:422:41: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:414:45: This simp argument is unused:
+  tgt_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hb', if_true, branchTo, next_eq] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:414:53: This simp argument is unused:
+  next_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hb', if_true, branchTo, tgt_eq] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:422:51: This simp argument is unused:
+  next_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Bool.false_eq_true, if_false] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:426:42: This simp argument is unused:
+  tgt_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [exec, next_eq, branchTo] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:523:10: This simp argument is unused:
+  Amd64.Program.fetchIn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/RelocAmd64.lean:525:37: Variable name `h1` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h1
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/RelocAmd64.lean:537:49: Variable name `h1` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _h1
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/RelocAmd64.lean:578:6: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/RelocAmd64.lean:646:88: `if_false` has been deprecated: Use `ite_false` instead
+warning: Janus/Contracts/RelocAmd64.lean:710:10: `if_pos` has been deprecated: Use `ite_eq_left` instead
+⚠ [295/330] Replayed Janus.Contracts.ErrorfRealLoops64
+warning: Janus/Contracts/ErrorfRealLoops64.lean:180:26: This simp argument is unused:
+  h7
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h11, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:180:30: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h7, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:180:35: This simp argument is unused:
+  h12
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h7, h11, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:196:21: This simp argument is unused:
+  h7
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:197:21: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:236:26: This simp argument is unused:
+  h7
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h11, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:236:30: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h7, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:236:35: This simp argument is unused:
+  h12
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h7, h11, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:252:21: This simp argument is unused:
+  h7
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:253:21: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:292:26: This simp argument is unused:
+  h7
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h11, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:292:30: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h7, h12, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:292:35: This simp argument is unused:
+  h12
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [setRegF, h7, h11, Nat.add_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:308:21: This simp argument is unused:
+  h7
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealLoops64.lean:309:21: This simp argument is unused:
+  h11
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [301/330] Replayed Janus.Contracts.ErrorfRealStage64E
+warning: Janus/Contracts/ErrorfRealStage64E.lean:36:23: This simp argument is unused:
+  hP4
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF, h13]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealStage64E.lean:36:28: This simp argument is unused:
+  h13
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF, hP4]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealStage64E.lean:36:137: This simp argument is unused:
+  BitVec.toNat_add
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [302/330] Replayed Janus.Contracts.ErrorfRealStage64F
+warning: Janus/Contracts/ErrorfRealStage64F.lean:21:5: Variable name `hiW` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hiW
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [303/330] Replayed Janus.Contracts.ErrorfRealImpl64
+warning: Janus/Contracts/ErrorfRealImpl64.lean:43:70: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at hrt'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl64.lean:117:13: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/ErrorfRealImpl64.lean:66:51: This simp argument is unused:
+  Nat.mul_one
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [operandD, Nat.mul_zero, Nat.add_zero] at hE hTxt hD0
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl64.lean:135:70: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at hWo hRo
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl64.lean:193:74: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at h'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfRealImpl64.lean:298:82: This simp argument is unused:
+  List.map
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [errRt, toyRt, outside_cons, outside_nil, outside_append, and_true, HEAP, HEND, HSIZE, BUMP, WBUF,
+    CELL] at h'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [304/330] Replayed Janus.Contracts.ErrorfRealLive64
+warning: Janus/Contracts/ErrorfRealLive64.lean:41:23: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/ErrorfRealLive64.lean:42:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [306/330] Replayed Janus.Contracts.ErrorfRealSat64
+warning: Janus/Contracts/ErrorfRealSat64.lean:71:111: This simp argument is unused:
+  CELL
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [liveWin64, calleeStack64, rstate64, LiveSatAmd64.wst, LiveSat.wsp, rFP, rSP, rE, rTXT, rQ1, rQ2, CB,
+    outside_cons, outside_nil]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [307/330] Replayed Janus.Contracts.ErrorfSatAmd64
+warning: Janus/Contracts/ErrorfSatAmd64.lean:167:25: `if_true` has been deprecated: Use `ite_true` instead
+warning: Janus/Contracts/ErrorfSatAmd64.lean:105:19: This simp argument is unused:
+  Nat.add_sub_cancel_left
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [toyRt, tys0, outside_cons, outside_nil, outside_append, List.map, and_true, HEAP, HEND, HSIZE,
+    BUMP, WBUF, tyA, tyB, tyC] at hro
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/ErrorfSatAmd64.lean:167:34: This simp argument is unused:
+  List.append_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [range0, if_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [308/330] Replayed Janus.Contracts.IfaceLive
+warning: Janus/Contracts/IfaceLive.lean:63:30: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/IfaceLive.lean:67:26: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [309/330] Replayed Janus.Contracts.LiveStubConvT
+warning: Janus/Contracts/LiveStubConvT.lean:238:41: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubConvT.lean:238:107: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubConvT.lean:242:41: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveStubConvT.lean:242:99: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveStubConvT.lean:246:37: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubConvT.lean:246:99: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubConvT.lean:250:37: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveStubConvT.lean:250:91: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveStubConvT.lean:260:85: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubConvT.lean:272:85: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveStubConvT.lean:272:85: This simp argument is unused:
+  if_pos rfl
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [convTstringSpec, hargs2, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubConvT.lean:397:34: Variable name `v` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _v
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [310/330] Replayed Janus.Contracts.LiveStubConvTAmd64
+warning: Janus/Contracts/LiveStubConvTAmd64.lean:172:85: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Janus/Contracts/LiveStubConvTAmd64.lean:184:85: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Janus/Contracts/LiveStubConvTAmd64.lean:184:85: This simp argument is unused:
+  if_pos rfl
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [convTstringSpec, hargs2, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubConvTAmd64.lean:315:36: Variable name `v` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _v
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [313/330] Replayed Janus.Contracts.SbtsLiveSat
+warning: Janus/Contracts/SbtsLiveSat.lean:37:10: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:37:33: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:37:60: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:38:10: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:38:33: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:38:60: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:38:65: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, arg, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:39:10: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:39:33: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:39:60: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:39:65: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, arg, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:39:73: This simp argument is unused:
+  range0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:40:15: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ha, e0, e1, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:40:50: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpec, ha, e0, e1, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:41:31: This simp argument is unused:
+  StrOut
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Janus.Spec.strBytes, StrAt]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:56:23: This simp argument is unused:
+  wsp_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wspn, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:56:31: This simp argument is unused:
+  wspn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wsp_eq, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSat.lean:56:37: This simp argument is unused:
+  wsp
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wsp_eq, wspn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [314/330] Replayed Janus.Contracts.SbtsLiveSatAmd64
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:33:10: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:33:37: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:34:10: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:34:37: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:34:42: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:35:10: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:35:37: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:35:42: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:35:50: This simp argument is unused:
+  range0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:36:15: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ha, e0, e1, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:36:50: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpec, ha, e0, e1, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsLiveSatAmd64.lean:37:31: This simp argument is unused:
+  StrOut
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Janus.Spec.strBytes, StrAt]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [315/330] Replayed Janus.Contracts.SbtsStaticSat
+warning: Janus/Contracts/SbtsStaticSat.lean:96:10: This simp argument is unused:
+  slicebytetostringSpecT
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:96:34: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringLive, ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:96:57: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:96:84: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, slicebytetostringLive, ha, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:97:10: This simp argument is unused:
+  slicebytetostringSpecT
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:97:34: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:97:57: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:97:84: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, slicebytetostringLive, ha, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:97:89: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, slicebytetostringLive, ha, arg, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:98:10: This simp argument is unused:
+  slicebytetostringSpecT
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, slicebytetostringLive, ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:98:34: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringLive, ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:98:57: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:98:84: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, slicebytetostringLive, ha, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:98:89: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, slicebytetostringLive, ha, arg, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:98:97: This simp argument is unused:
+  range0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpecT, slicebytetostringSpec, slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:99:15: This simp argument is unused:
+  slicebytetostringSpecT
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpec, ha, e0, e1, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:99:39: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpecT, ha, e0, e1, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:99:74: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpecT, slicebytetostringSpec, ha, e0, e1, List.getD_cons_succ,
+    List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:100:31: This simp argument is unused:
+  StrOut
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Janus.Spec.strBytes, StrAt]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSat.lean:115:28: This simp argument is unused:
+  wspn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, tsp, wsp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [316/330] Replayed Janus.Contracts.SbtsStaticSatAmd64
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:58:10: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ha, arg, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:58:37: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, roundupsize_zero']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:59:10: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:59:37: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:59:42: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:60:10: This simp argument is unused:
+  slicebytetostringLive
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [ha, arg, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:60:37: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, e0, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:60:42: This simp argument is unused:
+  e0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e1, range0]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:60:50: This simp argument is unused:
+  range0
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringLive, ha, arg, e0, e1]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:61:15: This simp argument is unused:
+  slicebytetostringSpecT
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpec, ha, e0, e1, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:61:39: This simp argument is unused:
+  slicebytetostringSpec
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpecT, ha, e0, e1, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:61:74: This simp argument is unused:
+  arg
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpecT, slicebytetostringSpec, ha, e0, e1, List.getD_cons_succ,
+    List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/SbtsStaticSatAmd64.lean:62:31: This simp argument is unused:
+  StrOut
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Janus.Spec.strBytes, StrAt]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [317/330] Replayed Janus.Contracts.LiveStubSbts
+warning: Janus/Contracts/LiveStubSbts.lean:74:38: This simp argument is unused:
+  List.append_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hrw, rtIf_true, hwr, outside_append] at hout
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbts.lean:262:38: This simp argument is unused:
+  hn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpec, ha, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbts.lean:265:33: This simp argument is unused:
+  hn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, ha, arg] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbts.lean:267:23: This simp argument is unused:
+  wsp_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wspn, wsp, HEAP, hn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbts.lean:267:31: This simp argument is unused:
+  wspn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wsp_eq, wsp, HEAP, hn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbts.lean:267:37: This simp argument is unused:
+  wsp
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [calleeStack, wsp_eq, wspn, HEAP, hn]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [318/330] Replayed Janus.Contracts.LiveStubSbtsAmd64
+warning: Janus/Contracts/LiveStubSbtsAmd64.lean:63:38: This simp argument is unused:
+  List.append_nil
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hrw, rtIf_true, hwr, outside_append] at hout
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbtsAmd64.lean:243:38: This simp argument is unused:
+  hn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [slicebytetostringSpec, ha, arg, List.getD_cons_succ, List.getD_cons_zero]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Janus/Contracts/LiveStubSbtsAmd64.lean:246:33: This simp argument is unused:
+  hn
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [slicebytetostringSpec, ha, arg] at hx
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [319/330] Built Janus.Contracts.ICallSat (1.2s)
+warning: Janus/Contracts/ICallSat.lean:44:80: Variable name `hF` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hF
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ICallSat.lean:94:27: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ICallSat.lean:94:29: Variable name `L` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _L
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+✔ [320/330] Built Janus.Contracts.LiveStubMemmoveUpto (1.2s)
+⚠ [321/330] Built Janus.Contracts.ICallSatAmd64 (1.1s)
+warning: Janus/Contracts/ICallSatAmd64.lean:93:27: Variable name `b` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _b
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Janus/Contracts/ICallSatAmd64.lean:93:29: Variable name `L` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _L
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+✔ [322/330] Built Janus.Contracts.LiveStubMemmoveUptoAmd64 (1.1s)
+✔ [323/330] Built Janus.Contracts.MemmoveUptoSat (44s)
+✔ [324/330] Built Janus.Contracts.MemmoveUptoSatAmd64 (102s)
+✔ [325/330] Built Janus (799ms)
+✔ [326/330] Built Fv256.IndexByteSpec (895ms)
+✔ [327/330] Built Fv256.IbsProgA (1000ms)
+✔ [328/330] Built Fv256.IbsAWit (1.0s)
+⚠ [329/330] Built Fv256.IbsMath (2.5s)
+warning: Fv256/IbsMath.lean:351:31: Variable name `hx` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hx
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Fv256/IbsMath.lean:480:6: try 'simp' instead of 'simpa'
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Fv256/IbsMath.lean:539:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsMath.lean:540:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsMath.lean:608:11: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsMath.lean:610:51: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsMath.lean:615:19: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsMath.lean:622:39: `if_neg` has been deprecated: Use `ite_eq_right` instead
+⚠ [330/330] Built Fv256.IbsA (9.8s)
+warning: Fv256/IbsA.lean:47:23: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:66:42: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsA.lean:73:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:75:20: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:84:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsA.lean:87:42: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsA.lean:48:90: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:64:105: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:74:105: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:85:105: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:140:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:142:20: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:154:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsA.lean:159:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:161:20: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsA.lean:173:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+warning: Fv256/IbsA.lean:175:20: `if_pos` has been deprecated: Use `ite_eq_left` instead
+warning: Fv256/IbsA.lean:121:90: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:141:105: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:158:105: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:172:105: This simp argument is unused:
+  hdf
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Fv256/IbsA.lean:208:10: positional `rename_i`/`next x`/`case _ x` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+warning: Fv256/IbsA.lean:217:10: positional `rename_i`/`next x`/`case _ x` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+Build completed successfully (330 jobs).
+ENDMARK rc=0
