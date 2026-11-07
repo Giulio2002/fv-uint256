@@ -1,0 +1,4 @@
+Invalid: janus is not pinned to a full revision: the lakefile asks for 51d592da.
+  Stage: consumer manifest
+  Next: Require janus with rev = "<40-hex commit>" (janus framework prints the commit this verifier carries) and run lake update janus.
+ENDMARK rc=1

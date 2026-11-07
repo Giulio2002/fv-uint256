@@ -1,0 +1,30 @@
+Fv256/Amd64/FromHexLib.lean:243:31: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/FromHexLib.lean:243:57: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+Fv256/Amd64/FromHexLib.lean:108:29: warning: This simp argument is unused:
+  ofNat_add1
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/FromHexLib.lean:142:29: warning: This simp argument is unused:
+  ofNat_add1
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/FromHexLib.lean:97:6: warning: positional `rename_i` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+Fv256/Amd64/FromHexLib.lean:131:6: warning: positional `rename_i` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+Fv256/Amd64/FromHexLib.lean:165:6: warning: positional `rename_i` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+Fv256/Amd64/FromHexLib.lean:187:6: warning: positional `rename_i` after `janus_run` re-binds names silently when a callee's contract gains or reorders a conjunct: select the hypothesis by content with `janus_grab c as h`, `janus_grab 112 as h` or `janus_grab fr f i as h`
+Note: This linter can be disabled with `set_option linter.janusRenameI false`
+Fv256/Amd64/FromHexLib.lean:338:10: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+Fv256/Amd64/FromHexLib.lean:355:10: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/FromHexLib.lean:359:10: warning: `if_pos` has been deprecated: Use `ite_eq_left` instead
+Fv256/Amd64/FromHexLib.lean:360:10: warning: `if_neg` has been deprecated: Use `ite_eq_right` instead
+Fv256/Amd64/FromHexLib.lean:458:81: warning: This simp argument is unused:
+  Janus.Arm64.Memory.readLE_writeLE_self
+Hint: Omit it from the simp argument list.
+  [apply] simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+ENDMARK
