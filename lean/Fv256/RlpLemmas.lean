@@ -25,4 +25,19 @@ theorem bitLen_le_256 (v : Nat) (h : v < 2 ^ 256) : Spec.bitLen v ≤ 256 := by
     have := (Nat.log2_lt h0).2 h
     omega
 
+theorem strBytes_write_out (m : Memory) (a k v p n : Nat) (h : a + k ≤ p ∨ p + n ≤ a) :
+    Janus.Spec.strBytes (m.writeLE a k v) p n = Janus.Spec.strBytes m p n := by
+  unfold Janus.Spec.strBytes
+  apply List.map_congr_left
+  intro i hi
+  rw [List.mem_range] at hi
+  rw [Janus.Arm64.Memory.bytes_writeLE_outside (m := m) (by omega)]
+
+theorem rlpVal_write_out (m : Memory) (a k v z : Nat) (h : a + k ≤ z ∨ z + 32 ≤ a) :
+    rlpVal (m.writeLE a k v) z = rlpVal m z := by
+  unfold rlpVal
+  split
+  · rfl
+  · exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint (m := m) v (by omega)
+
 end Fv256.Rlp

@@ -50,6 +50,13 @@ theorem out_z2 {z a n rsp stack : Nat} (hzd : z + 32 ≤ rsp - 56 - stack ∨ rs
   simp only [outside_cons, outside_nil]
   refine ⟨?_, ?_, trivial⟩ <;> omega
 
+/-- a range inside the caller's window and above the return-address slot is outside the newobject frame ranges -/
+theorem out_win {rt : List (Nat × Nat)} {a n rsp stack : Nat} (hout : Outside (rsp - 56 - stack) (stack + 88) rt)
+    (h4104 : 4104 ≤ stack) (hwb : 56 + stack ≤ rsp) (h1 : rsp - 40 ≤ a) (h2 : a + n ≤ rsp + 32) :
+    Outside a n (rt ++ [(rsp - 56 - 4096, rsp - 56), (rsp - 56 + 8, rsp - 56 + 8 + 8)]) := by
+  simp only [outside_append, outside_cons, outside_nil]
+  refine ⟨hout.of_sub (by omega) (by omega), ?_, ?_, trivial⟩ <;> omega
+
 theorem epost_ex {R : Res} {w : BitVec 64} {s' : State} {a b c d e1 e2 : BitVec 64} (hR : R w a b c d e1 e2)
     (h0 : s'.regs 0 = e1) (h3 : s'.regs 3 = e2) :
     ∃ ptr len cap n e1 e2, R w ptr len cap n e1 e2 ∧ s'.regs 0 = e1 ∧ s'.regs 3 = e2 :=

@@ -101,4 +101,65 @@ theorem pm_lenB (v bl : Nat) (hbl : Spec.bitLen v = bl) (h8 : 7 < bl) :
     (rlpBytes v).length = (bl + 7) / 8 + 1 := by
   rw [rlpBytes_length_multi v (by omega), hbl]
 
+set_option maxRecDepth 100000 in
+theorem xa_sh (bl : Nat) (h : bl ≤ 256) : (XA bl).sshiftRight 3 = BitVec.ofNat 64 ((bl + 7) / 8) := by
+  have : ∀ b : Fin 257, (XA b.val).sshiftRight 3 = BitVec.ofNat 64 ((b.val + 7) / 8) := by decide +kernel
+  exact this ⟨bl, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem d_bvA (n : Nat) (h : n ≤ 32) :
+    ((32#64 - BitVec.ofNat 64 n).rotateRight 0 &&& 255#64 &&& 255#64) = BitVec.ofNat 64 (32 - n) := by
+  have : ∀ b : Fin 33, ((32#64 - BitVec.ofNat 64 b.val).rotateRight 0 &&& 255#64 &&& 255#64) = BitVec.ofNat 64 (32 - b.val) := by
+    decide
+  exact this ⟨n, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem dn_bvA (n : Nat) (h : n ≤ 32) : ((32#64 - BitVec.ofNat 64 n).rotateRight 0).toNat % 256 = 32 - n := by
+  have : ∀ b : Fin 33, ((32#64 - BitVec.ofNat 64 b.val).rotateRight 0).toNat % 256 = 32 - b.val := by decide
+  exact this ⟨n, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem e_bvA (n : Nat) (h : n ≤ 32) : 33#64 - BitVec.ofNat 64 (32 - n) = BitVec.ofNat 64 (n + 1) := by
+  have : ∀ b : Fin 33, 33#64 - BitVec.ofNat 64 (32 - b.val) = BitVec.ofNat 64 (b.val + 1) := by decide
+  exact this ⟨n, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem ca_eq (bl : Nat) (h8 : 8 ≤ bl) (h256 : bl ≤ 256) : CA bl = 18446744073709551488 + (bl + 7) / 8 := by
+  have : ∀ k : Fin 5, ∀ b : Fin 64, 8 ≤ 64 * k.val + b.val → 64 * k.val + b.val ≤ 256 →
+      CA (64 * k.val + b.val) = 18446744073709551488 + (64 * k.val + b.val + 7) / 8 := by
+    decide +kernel
+  have h := this ⟨bl / 64, by omega⟩ ⟨bl % 64, by omega⟩ (by simp only []; omega) (by simp only []; omega)
+  have e : 64 * (bl / 64) + bl % 64 = bl := by omega
+  simp only [e] at h
+  exact h
+
+/-- the object after the four `REV` stores and the prefix byte, as the arm64 code leaves it -/
+abbrev armChain (M : Memory) (obj l0 l1 l2 l3 nB : Nat) : Memory :=
+  ((((M.writeLE (obj + 1) 8 (revContainersNat 8 1 l3)).writeLE (obj + 9) 8 (revContainersNat 8 1 l2)).writeLE (obj + 17) 8
+    (revContainersNat 8 1 l1)).writeLE (obj + 25) 8 (revContainersNat 8 1 l0)).writeLE (obj + (32 - nB)) 1
+    (18446744073709551488 + nB)
+
+theorem arm_rlpVal (M : Memory) (obj l0 l1 l2 l3 nB a v zz : Nat) (hn : nB ≤ 32) (h1 : zz + 32 ≤ obj ∨ obj + 33 ≤ zz)
+    (h2 : a + 8 ≤ zz ∨ zz + 32 ≤ a) :
+    rlpVal ((armChain M obj l0 l1 l2 l3 nB).writeLE a 8 v) zz = rlpVal M zz := by
+  simp only [armChain]
+  rw [rlpVal_write_out _ _ _ _ _ h2, rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega),
+    rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega)]
+
+theorem arm_rlpVal0 (M : Memory) (obj l0 l1 l2 l3 nB zz : Nat) (hn : nB ≤ 32) (h1 : zz + 32 ≤ obj ∨ obj + 33 ≤ zz) :
+    rlpVal (armChain M obj l0 l1 l2 l3 nB) zz = rlpVal M zz := by
+  simp only [armChain]
+  rw [rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega),
+    rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega)]
+
+theorem arm_pmstr (M : Memory) (obj l0 l1 l2 l3 v bl : Nat) (h0 : l0 < 2 ^ 64) (h1 : l1 < 2 ^ 64) (h2 : l2 < 2 ^ 64)
+    (h3 : l3 < 2 ^ 64) (hv : v = l0 + 2 ^ 64 * l1 + 2 ^ 128 * l2 + 2 ^ 192 * l3) (hbl : Spec.bitLen v = bl) (h8 : 7 < bl)
+    (h256 : bl ≤ 256) :
+    Janus.Spec.strBytes (armChain M obj l0 l1 l2 l3 ((bl + 7) / 8)) (obj + (32 - (bl + 7) / 8)) ((bl + 7) / 8 + 1) =
+      rlpBytes v := by
+  simp only [armChain]
+  rw [rc8 _ h0, rc8 _ h1, rc8 _ h2, rc8 _ h3]
+  subst hv
+  exact pm_str M obj l0 l1 l2 l3 ((bl + 7) / 8) _ h0 h1 h2 h3 (by omega) (by omega) (by omega) (by omega) (by omega)
+
 end Fv256.Rlp

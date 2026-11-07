@@ -1,6 +1,7 @@
 import Janus
 import Fv256.Spec
 import Fv256.RlpSpec
+import Fv256.RlpLemmas
 
 /-!
 # `EncodeRLP`: the bytes of the multi-byte encoding (ISA independent, no extraction)
@@ -186,5 +187,48 @@ theorem nB_bv (bl : Nat) (h : bl ≤ 256) :
   have : ∀ b : Fin 257, (BitVec.sshiftRight (BitVec.ofNat 64 b.val + BitVec.sshiftRight (BitVec.ofNat 64 b.val + 7#64) 63 >>> 61 + 7#64) 3).toNat = (b.val + 7) / 8 := by
     decide
   exact this ⟨bl, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem nB_bv2 (bl : Nat) (h : bl ≤ 256) :
+    BitVec.sshiftRight (BitVec.ofNat 64 bl + BitVec.sshiftRight (BitVec.ofNat 64 bl + 7#64) 63 >>> 61 + 7#64) 3 =
+      BitVec.ofNat 64 ((bl + 7) / 8) := by
+  have : ∀ b : Fin 257, BitVec.sshiftRight (BitVec.ofNat 64 b.val + BitVec.sshiftRight (BitVec.ofNat 64 b.val + 7#64) 63 >>> 61 + 7#64) 3 =
+      BitVec.ofNat 64 ((b.val + 7) / 8) := by
+    decide
+  exact this ⟨bl, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem D_bv (n : Nat) (h : n ≤ 32) :
+    BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.setWidth 8 (BitVec.setWidth 64 (0#32 -
+      BitVec.setWidth 32 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 64 n - 32#64))))))) =
+      BitVec.ofNat 64 (32 - n) := by
+  have : ∀ b : Fin 33, BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.setWidth 8 (BitVec.setWidth 64 (0#32 -
+      BitVec.setWidth 32 (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 64 b.val - 32#64))))))) =
+      BitVec.ofNat 64 (32 - b.val) := by decide
+  exact this ⟨n, by omega⟩
+
+set_option maxRecDepth 100000 in
+theorem E_bv (n : Nat) (h : n ≤ 32) :
+    0#64 - (BitVec.ofNat 64 (32 - n) - 33#64) = BitVec.ofNat 64 (n + 1) := by
+  have : ∀ b : Fin 33, 0#64 - (BitVec.ofNat 64 (32 - b.val) - 33#64) = BitVec.ofNat 64 (b.val + 1) := by decide
+  exact this ⟨n, by omega⟩
+
+/-- the object after the four `BSWAP` stores and the prefix byte, as the amd64 code leaves it -/
+abbrev pmChain (M : Memory) (obj l0 l1 l2 l3 nB : Nat) : Memory :=
+  ((((M.writeLE (obj + 1) 8 (revBytesNat 8 l3)).writeLE (obj + 9) 8 (revBytesNat 8 l2)).writeLE (obj + 17) 8
+    (revBytesNat 8 l1)).writeLE (obj + 25) 8 (revBytesNat 8 l0)).writeLE (obj + (32 - nB)) 1
+    ((18446744073709551488 + nB) % 256)
+
+theorem pm_rlpVal (M : Memory) (obj l0 l1 l2 l3 nB a v zz : Nat) (hn : nB ≤ 32) (h1 : zz + 32 ≤ obj ∨ obj + 33 ≤ zz)
+    (h2 : a + 8 ≤ zz ∨ zz + 32 ≤ a) :
+    rlpVal ((pmChain M obj l0 l1 l2 l3 nB).writeLE a 8 v) zz = rlpVal M zz := by
+  simp only [pmChain]
+  rw [rlpVal_write_out _ _ _ _ _ h2, rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega),
+    rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega), rlpVal_write_out _ _ _ _ _ (by omega)]
+
+theorem pm_strOut (M : Memory) (obj l0 l1 l2 l3 nB a v : Nat) (h : a + 8 ≤ obj ∨ obj + 33 ≤ a) (hn : nB ≤ 32) :
+    Janus.Spec.strBytes ((pmChain M obj l0 l1 l2 l3 nB).writeLE a 8 v) (obj + (32 - nB)) (nB + 1) =
+      Janus.Spec.strBytes (pmChain M obj l0 l1 l2 l3 nB) (obj + (32 - nB)) (nB + 1) :=
+  strBytes_write_out _ _ _ _ _ _ (by omega)
 
 end Fv256.Rlp

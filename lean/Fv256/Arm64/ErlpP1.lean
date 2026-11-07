@@ -1,11 +1,11 @@
 import Fv256.Arm64.ErlpDefs
+import Fv256.Arm64.ErlpP1b
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.ICall Fv256.Rlp
 
 namespace Fv256.Arm64.EncodeRLP
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 700000 in
 /-- the path `1 ≤ bitlen ≤ 7`: one `newobject([1]byte)`, the byte `z[0]`, the `Write` -/
 theorem erlp_p1 (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64) (ret : Nat) (hret : RetAddr (Extracted.program.link impl) ret)
@@ -53,22 +53,79 @@ theorem erlp_p1 (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn
   have hdj := InRanges.disjoint hin hout
   have hdt := InRanges.disjoint hin htr
   have hdz := InRanges.disjoint hin hzo
-  janus_grab 4096 as hfn
-  have hzr := hfn.readLE z.toNat 32 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (Nat.le_refl _))
-  have hzr8 := hfn.readLE z.toNat 8 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (off_ok0 _))
+  janus_grab 4096 as hfm
+  have hzr := hfm.readLE z.toNat 32 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (Nat.le_refl _))
+  have hzr8 := hfm.readLE z.toNat 8 (out_z hzo hzd h4104 hwb (Nat.le_refl _) (off_ok0 _))
   simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, hS8, hS32] at hzr hzr8
   have hza8 : s.mem.accessible z.toNat 8 false = true :=
     Janus.Arm64.Memory.accessible_mono _ hza (Nat.le_refl _) (off_ok0 _)
-  have hzacc := hfn.accessible z.toNat 8 false
+  have hzacc := hfm.accessible z.toNat 8 false
   simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible, hza8] at hzacc
   have hmod : s.mem.readLE z.toNat 32 % 256 = s.mem.readLE z.toNat 32 := Nat.mod_eq_of_lt (by omega)
-  janus_run [hfn', m16, m24, m72, m64, rlpVal, hzr, hzr8, hzacc, hv8, hrb, hmod, hzn, strBytes_write1, List.length_singleton]
-    calls [hnew.pos, hw]
-  apply epost_of (z := z) (hzo := hzo) (hzd := hzd)
-  · apply epost_ex
-    · assumption
-    · rfl
-    · rfl
-  · janus_frame
+  refine erlp_p1b impl rt fn stack R z tab w ret hret hw s _ h4104 hfn4 hfn hwb hwn hout htb htr hal hzo hzd hzn hzb
+    (s.mem.readLE z.toNat 32) hv7 hrb ?hpc _ ?hreg0 hin ?hob ?hoacc hdj hdz hdt ?hsp ?h29 ?h28 ?h18 ?hm72 ?hm64 ?hmz ?hm16
+    ?hm24 ?hz8 ?hz32 ?hzacc ?hfn ?hta ?hwa ?hF1
+  case hpc => simp [retStateX, callRegs, setReg]; rfl
+  case hreg0 => simp [retStateX, callRegs, setReg]
+  case hsp => simp [retStateX]
+  case h29 => simp [retStateX, callRegs, setReg, h29]
+  case h28 => simp [retStateX, callRegs, setReg, h28]
+  case h18 => simp [retStateX, callRegs, setReg, h18]
+  case hob => omega
+  case hoacc =>
+    simp only [retStateX]
+    rw [hfm.accessible]
+    simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible]
+    omega
+  case hm72 =>
+    simp only [retStateX]
+    rw [hfm.readLE (s.sp.toNat - 72) 8 (out_win hout h4104 hwb (by omega) (by omega) (Or.inl (by omega)))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    exact m72
+  case hm64 =>
+    simp only [retStateX]
+    rw [hfm.readLE (s.sp.toNat - 64) 8 (out_win hout h4104 hwb (by omega) (by omega) (Or.inl (by omega)))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    exact m64
+  case hmz =>
+    simp only [retStateX]
+    rw [hfm.readLE (s.sp.toNat + 8) 8 (out_win hout h4104 hwb (by omega) (by omega) (Or.inr (by omega)))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    have : z.toNat < 2 ^ 64 := z.isLt
+    omega
+  case hm16 =>
+    simp only [retStateX]
+    rw [hfm.readLE (s.sp.toNat + 16) 8 (out_win hout h4104 hwb (by omega) (by omega) (Or.inr (by omega)))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    exact m16
+  case hm24 =>
+    simp only [retStateX]
+    rw [hfm.readLE (s.sp.toNat + 24) 8 (out_win hout h4104 hwb (by omega) (by omega) (Or.inr (by omega)))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    exact m24
+  case hz8 => simp only [retStateX]; rw [hzr8, hv8]
+  case hz32 => simp only [retStateX]; exact hzr
+  case hzacc => simp only [retStateX]; exact hzacc
+  case hfn =>
+    simp only [retStateX]
+    rw [hfm.readLE _ _ (by
+      simp only [outside_append, outside_cons, outside_nil]
+      refine ⟨htr, ?_, ?_, trivial⟩ <;> omega)]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    rw [hfr.readLE _ _ (by simp only [outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> omega)]
+    exact hfn'
+  case hta =>
+    simp only [retStateX]
+    rw [hfm.accessible]
+    simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible]
+    exact hta
+  case hwa =>
+    simp only [retStateX]
+    rw [hfm.accessible]
+    simp only [Janus.Arm64.Memory.accessible_writeLE, hfr.accessible]
+    exact hwa
+  case hF1 =>
+    simp only [retStateX]
+    janus_frame
 
 end Fv256.Arm64.EncodeRLP
