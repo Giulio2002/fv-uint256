@@ -1,0 +1,3 @@
+VERIFY rfd rc=0 t=880
+VERIFY rmfd rc=0 t=147
+ENDMARK
