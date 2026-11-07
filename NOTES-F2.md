@@ -42,3 +42,12 @@ arm64 plan (template = the amd64 files, same names with an A64 suffix): see "arm
    `str x30,[sp,#-80]!; stur x29,[sp,#-8]; sub x29,sp,#8`), w_call with ICallContract (retStateX, janus_run), the branch segments (tbnz bit 0),
    Dec summary from Arm64/DecSummary.lean, Hex summary (retarget Arm64/Hex.lean with a generator like scripts/gen-fm-hex-amd64.sh; Janus.Ensures.toSummaryIn),
    stringtoslicebyte via RtContract, Write (ICallContract nargs 4: x0 = data, x1 = ptr, x2 = len, x3 = cap), epilogue `ldur x29; ldr x30,[sp],#80; ret`.
+
+## Hex change audit (asked by the coordinator)
+Files touched for the Hex work: scripts/gen-fm-hex-amd64.sh (new) and lean/Fv256/Amd64/FM/Hex.lean (new, GENERATED from Amd64/Hex.lean).
+No existing file changed: lean/Fv256/Amd64/Hex.lean, Arm64/Hex.lean, HexSpec.lean, HexLemmas.lean are byte-identical to fv/wgf 15da442 (git diff empty).
+The change is ADDITIVE and local to the generated copy: it is a different theorem (namespace Fv256.Amd64.FM.Hex, over
+(Extracted.program.onlySegments [Hex]).link impl, entry + 0x1640) whose post is the verified Hex post plus one extra conjunct
+`InRanges (s'.regs 0).toNat (s'.regs 3).toNat rt` (derived from the StrAt fact of the slicebytetostring contract already inside the proof).
+The statements of verified Hex (Fv256.Amd64.Hex.correctness etc.) are NOT touched, so verified Hex needs no re-verification; the generated
+copy is recompiled as part of any Format verify (~5 min).
