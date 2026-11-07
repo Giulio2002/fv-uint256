@@ -125,6 +125,8 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       case hdf => simpa using h_df
       case hretv => decide
     · intro s' hr hq
+      have hKept := hq.1
+      obtain ⟨k1, k2, k3, k4, k5, k6, k7⟩ := hKept
       obtain ⟨⟨hok, heof, hrange, hsyn⟩, hFr, hrd, hrb⟩ := dec_post cfg hpreU hP rfl rfl
         (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
         (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
@@ -133,8 +135,78 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
         rw [hrb]; exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
       janus64_run [hs_ret, hs_rbp]
-      trace_state
-      sorry
-  all_goals sorry
+      refine ⟨fun _ => ⟨fun v h => ?_, heof, hrange, hsyn⟩, hFr⟩
+      obtain ⟨c0, c3, c4⟩ := hok v h
+      exact ⟨by simp [c0], by simp [c3], c4⟩
+  · -- hex ('x')
+    sorry
+  · -- hex ('X')
+    sorry
+  · -- decimal, first byte is not '0'... (n >= 2, b0 = '0', b1 neither x nor X)
+    janus64_run until [sfdEntry] calls [hsb]
+    janus_grab StrAt as hSOA
+    janus_grab LiveFrame as hLF
+    janus_grab FreshFrom as hFr
+    janus_grab 4096 as hMF
+    have hP := SbPost.mk hMF hSOA hLF hFr (by janus_assumption)
+    have hS := sfd_inst (C := cfg) (lo := lo) (z := z) hP hsfd
+    refine Reaches.call (Summary.withExit hS hret) ?_ ?_ ?_
+    · first | rfl | decide
+    · refine (dec_call_pre cfg hpreU hP rfl ?hr0 ?hr3 ?hr1 ?hr4 ?hr14 ?hx15 ?hdf rfl ?hretv).1
+      case hr0 => simp [setRegF_apply, callRegs64_apply]
+      case hr3 => simp [setRegF_apply, callRegs64_apply]
+      case hr1 => simp [setRegF_apply, callRegs64_apply]
+      case hr4 => simp [setRegF_apply, callRegs64_apply]
+      case hr14 => simp [setRegF_apply, callRegs64_apply]
+      case hx15 => simp
+      case hdf => simpa using h_df
+      case hretv => decide
+    · intro s' hr hq
+      have hKept := hq.1
+      obtain ⟨k1, k2, k3, k4, k5, k6, k7⟩ := hKept
+      obtain ⟨⟨hok, heof, hrange, hsyn⟩, hFr, hrd, hrb⟩ := dec_post cfg hpreU hP rfl rfl
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp) (by simpa using h_df) (by decide) hq
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by rw [hrd]; exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [hrb]; exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      janus64_run [hs_ret, hs_rbp]
+      refine ⟨fun _ => ⟨fun v h => ?_, heof, hrange, hsyn⟩, hFr⟩
+      obtain ⟨c0, c3, c4⟩ := hok v h
+      exact ⟨by simp [c0], by simp [c3], c4⟩
+  · -- decimal, b0 <> '0'
+    janus64_run until [sfdEntry] calls [hsb]
+    janus_grab StrAt as hSOA
+    janus_grab LiveFrame as hLF
+    janus_grab FreshFrom as hFr
+    janus_grab 4096 as hMF
+    have hP := SbPost.mk hMF hSOA hLF hFr (by janus_assumption)
+    have hS := sfd_inst (C := cfg) (lo := lo) (z := z) hP hsfd
+    refine Reaches.call (Summary.withExit hS hret) ?_ ?_ ?_
+    · first | rfl | decide
+    · refine (dec_call_pre cfg hpreU hP rfl ?hr0 ?hr3 ?hr1 ?hr4 ?hr14 ?hx15 ?hdf rfl ?hretv).1
+      case hr0 => simp [setRegF_apply, callRegs64_apply]
+      case hr3 => simp [setRegF_apply, callRegs64_apply]
+      case hr1 => simp [setRegF_apply, callRegs64_apply]
+      case hr4 => simp [setRegF_apply, callRegs64_apply]
+      case hr14 => simp [setRegF_apply, callRegs64_apply]
+      case hx15 => simp
+      case hdf => simpa using h_df
+      case hretv => decide
+    · intro s' hr hq
+      have hKept := hq.1
+      obtain ⟨k1, k2, k3, k4, k5, k6, k7⟩ := hKept
+      obtain ⟨⟨hok, heof, hrange, hsyn⟩, hFr, hrd, hrb⟩ := dec_post cfg hpreU hP rfl rfl
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp) (by simpa using h_df) (by decide) hq
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by rw [hrd]; exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [hrb]; exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      janus64_run [hs_ret, hs_rbp]
+      refine ⟨fun _ => ⟨fun v h => ?_, heof, hrange, hsyn⟩, hFr⟩
+      obtain ⟨c0, c3, c4⟩ := hok v h
+      exact ⟨by simp [c0], by simp [c3], c4⟩
 
 end Fv256.Amd64.UnmarshalText

@@ -65,7 +65,7 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
     (hP : SbPost R st b L s pI nI r0 r1 M0 m)
     (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
       ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra)
-    (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = nI) (hr4 : S3.regs 4 = s.regs 4 - 104#64)
+    (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = r1) (hr4 : S3.regs 4 = s.regs 4 - 104#64)
     (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false)
     (hS3 : S3.mem = m.writeLE ((s.regs 4).toNat - 104) 8 retv) (hretv : retv < 2 ^ 47) :
     TopPre C R R2 T (b - roundupsize nI.toNat true) (L ++ (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)]))
@@ -83,6 +83,7 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hn : r1.toNat = nI.toNat := by
     rw [hSO.1]; simp
+  have hr1' : S3.regs 1 = nI := by rw [hr1]; exact BitVec.eq_of_toNat_eq hn
   have hM0 := m0_frame C hpre hM0c
   have hbne : (s.regs 4).toNat - 40 ≠ 0 := by omega
   have hzr : BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8) = z := by
@@ -137,7 +138,7 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
       left
       rcases hr with rfl
       exact Outside.of_sub e9 (by omega) (by simp only; omega)
-    refine toppre_dec C hpre (hi3 := (s.regs 4).toNat - 40) (by omega) (by omega) hr0 hr3 hr1 hr4 hr14 hx15 hdf hret hF
+    refine toppre_dec C hpre (hi3 := (s.regs 4).toNat - 40) (by omega) (by omega) hr0 hr3 hr1' hr4 hr14 hx15 hdf hret hF
       (L' := L ++ []) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ hInv'
     · exact fun r hr => List.mem_append_left _ hr
     · intro r hr
@@ -185,7 +186,7 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
       rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one]
       exact hq
     refine ⟨?_, hbytes, hF⟩
-    refine toppre_dec C hpre (hi3 := (s.regs 4).toNat - 40) (by omega) (by omega) hr0 hr3 hr1 hr4 hr14 hx15 hdf hret hF
+    refine toppre_dec C hpre (hi3 := (s.regs 4).toNat - 40) (by omega) (by omega) hr0 hr3 hr1' hr4 hr14 hx15 hdf hret hF
       (L' := L ++ [(r0.toNat, r0.toNat + nI.toNat)]) ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ ?_ hInv'
     · exact fun r hr => List.mem_append_left _ hr
     · intro r hr
@@ -245,7 +246,7 @@ theorem dec_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : Li
     (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
       ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra)
     (hS3 : S3.mem = m.writeLE ((s.regs 4).toNat - 104) 8 retv)
-    (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = nI)
+    (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = r1)
     (hr4 : S3.regs 4 = s.regs 4 - 104#64) (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false)
     (hretv : retv < 2 ^ 47)
     (hq : TopPost C R R2 T (b - roundupsize nI.toNat true)
