@@ -5,6 +5,7 @@ import Fv256.RlpSpec
 import Fv256.Amd64.ErlpCases
 import Fv256.Amd64.ErlpEJ
 import Fv256.Amd64.ErlpWit
+import Fv256.Amd64.ErlpInhabit
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janus.Contracts.ICall Fv256.Rlp
 
