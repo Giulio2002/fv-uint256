@@ -274,7 +274,7 @@ theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat 
   · rw [hr14]; unfold Apart at hGZ; omega
   · -- Buffer pS
     obtain ⟨b1, b2⟩ := hBuf
-    exact ⟨b1, by rw [hF.accessible]; exact b2⟩
+    exact ⟨b1, Or.inr (by rw [hF.accessible]; exact b2)⟩
   · omega
   · rcases hPR with h | h
     · have := InRanges.apart hz h

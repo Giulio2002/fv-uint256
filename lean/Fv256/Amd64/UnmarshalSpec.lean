@@ -136,6 +136,11 @@ theorem PreU.toS {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : Li
   obtain ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
   exact ⟨ret, r0, r3, r1, mod, env, lo4, hi4, okH, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
 
+/-- keeps a disjunctive hypothesis away from `omega` -/
+def Hide (P : Prop) : Prop := P
+theorem Hide.mk {P : Prop} (h : P) : Hide P := h
+theorem Hide.get {P : Prop} (h : Hide P) : P := h
+
 /-- `TopPre` of the `SetFromDecimal` call, from the state `S3` at the call (return address pushed at `sp - 104`).  The string is
 the copy `(pS, nI)`; `L'`/`b'` the live set and budget after the copy; the window of the callee is `[lo, hi3)`. -/
 theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L L' : List (Nat × Nat)} {lo hi hi3 : Nat}
@@ -147,14 +152,20 @@ theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L
     (hF : MemFrame s.mem S3.mem (R.rt ++ [(lo, hi)]))
     (hL : ∀ r ∈ L, r ∈ L') (hLw : ∀ r ∈ L', Outside r.1 (r.2 - r.1) [(lo, hi3)])
     (hLp : ∀ r ∈ L', Outside r.1 (r.2 - r.1) R2.priv)
-    (hstr : pS.toNat + nI.toNat ≤ 2 ^ 48 ∧ S3.mem.accessible pS.toNat nI.toNat false = true)
+    (hstr : pS.toNat + nI.toNat ≤ 2 ^ 48 ∧ (nI.toNat = 0 ∨ S3.mem.accessible pS.toNat nI.toNat false = true))
     (hswin : nI.toNat = 0 ∨ pS.toNat + nI.toNat ≤ lo ∨ hi3 ≤ pS.toNat)
     (hsz : nI.toNat = 0 ∨ pS.toNat + nI.toNat ≤ z.toNat ∨ z.toNat + 32 ≤ pS.toNat)
-    (hsR : Outside pS.toNat nI.toNat R.rt ∨ InRanges pS.toNat nI.toNat L')
-    (hsP : Outside pS.toNat nI.toNat R2.priv)
+    (hsR : nI.toNat = 0 ∨ Outside pS.toNat nI.toNat R.rt ∨ InRanges pS.toNat nI.toNat L')
+    (hsP : nI.toNat = 0 ∨ Outside pS.toNat nI.toNat R2.priv)
     (hb' : b' = b - roundupsize nI.toNat true)
     (hInv : R.inv b' L' (S3.regs 14).toNat (view R.rt L' S3.mem)) :
     TopPre C R R2 T b' L' lo hi3 z pS nI S3 := by
+  have hswinH := Hide.mk hswin
+  have hszH := Hide.mk hsz
+  have hsRH := Hide.mk hsR
+  have hsPH := Hide.mk hsP
+  have hstrH := Hide.mk hstr
+  clear hswin hsz hsR hsP hstr
   have hp := hpre.toS
   obtain ⟨hRet, -, -, -, hMod, hEnv, hlo, hhi, -, -, hcost, -, -, -, -, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
     hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hchunk⟩ := hp
@@ -259,23 +270,29 @@ theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L
   · exact hzP
   · exact hzS
   · rw [hr14]; exact hzg
-  · exact ⟨hstr.1, hstr.2⟩
-  · exact hswin
-  · exact hsz
+  · exact ⟨hstrH.get.1, hstrH.get.2⟩
+  · exact hswinH.get
+  · exact hszH.get
   · -- ChunkAll
     intro sp sl h1 h2 h3 h4
+    have hb48 := hstrH.get.1
     have hsp' : (BitVec.ofNat 64 sp).toNat = sp := Nat.mod_eq_of_lt (by omega)
     have hsl' : (BitVec.ofNat 64 sl).toNat = sl := Nat.mod_eq_of_lt (by omega)
     have hc := hchunk sl h3 h4 (by omega)
+    have hn0 : nI.toNat ≠ 0 := by omega
+    have hsR' := hsRH.get.resolve_left hn0
+    have hsP' := hsPH.get.resolve_left hn0
     have hbs : blockSize sl true + blockSize 48 false ≤ b' := by
       rw [hb']; exact hc.2.2
     unfold ChunkOK
     rw [hsp', hsl']
-    refine ⟨hc.1, fun q => hc.2.1 q sp, hbs, ?_, by omega, by omega, ?_, ?_⟩
-    · exact Janus.Arm64.Memory.accessible_sub S3.mem hstr.2 (Or.inl rfl) h1 (by omega)
-    · rcases hsR with h | h
+    refine ⟨hc.1, fun q => hc.2.1 q sp, hbs, ?_, by omega, by have := hswinH.get; omega, ?_, ?_⟩
+    · rcases hstrH.get.2 with h0 | h0
+      · omega
+      · exact Janus.Arm64.Memory.accessible_sub S3.mem h0 (Or.inl rfl) h1 (by omega)
+    · rcases hsR' with h | h
       · exact Or.inl (Outside.of_sub h h1 (by omega))
       · exact Or.inr (InRanges.sub h h1 (by omega))
-    · exact Outside.of_sub hsP h1 (by omega)
+    · exact Outside.of_sub hsP' h1 (by omega)
 
 end Fv256.Amd64.UnmarshalSpec
