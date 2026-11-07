@@ -28,6 +28,8 @@ def sbA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.slicebytet
 
 /-- the input string: 48 decimal digits at `pW` -/
 def pW : Nat := 0x301000
+/-- the second input (48 bytes, a hex string for UnmarshalText, plain digits for UnmarshalJSON) -/
+def pH : Nat := 0x302000
 
 def numErrT : Nat := Extracted.dataAddr.«type:strconv.NumError#3eb4e62e»
 
@@ -36,7 +38,7 @@ barriers, and `string(input)` for the 48-byte input into either of the two stack
 def ok : Nat → List Nat → Prop := fun a args =>
   (a = newA ∧ args = [numErrT]) ∨ (a = w1A ∧ args = [1]) ∨ (a = w2A ∧ args = [2]) ∨
   (a = mgA ∧ ∃ sl, 1 ≤ sl ∧ sl ≤ 19 ∧ args = [sl, 0, 0]) ∨ (a = mvA ∧ ∃ q p k, args = [q, p, k] ∧ 1 ≤ k ∧ k ≤ 19) ∨
-  (a = sbA ∧ ∃ buf, args = [buf, pW, 48])
+  (a = sbA ∧ ∃ buf p, args = [buf, p, 48] ∧ (p = pW ∨ p = pH))
 
 def R : RtInv := toyR [] ok
 
@@ -67,8 +69,8 @@ theorem model_wb1 : WbLiveContract (Extracted.program.ofImpl implA) w1A 4096 R 1
 theorem model_wb2 : WbLiveContract (Extracted.program.ofImpl implA) w2A 4096 R 2 := by janus_live_wb 2
 theorem hok_sb : ∀ args, ok sbA args → ∃ buf ptr, args = [buf, ptr, 48] := by
   intro args h
-  rcases h with ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨_, buf, rfl⟩
-  all_goals first | exact ⟨buf, pW, rfl⟩ | (exfalso; revert h; simp only [newA, mgA, mvA, w1A, w2A, sbA]; decide)
+  rcases h with ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ | ⟨_, buf, p, rfl, _⟩
+  all_goals first | exact ⟨buf, p, rfl⟩ | (exfalso; revert h; simp only [newA, mgA, mvA, w1A, w2A, sbA]; decide)
 set_option maxHeartbeats 16000000 in
 theorem model_sb : RtLiveContract (Extracted.program.ofImpl implA) sbA 4096 R
     (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive := by
