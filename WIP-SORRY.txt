@@ -1,5 +1,4 @@
 # path	owner	note  (must be empty at final release)
-lean/Fv256/Arm64/Value.lean	FV-E	Value arm64 witness WIP (not claimed)
 lean/Fv256/Amd64/SfdToError.lean	FV-I	SetFromDecimal WIP (not claimed)
 lean/Fv256/Arm64/SfdTopPro.lean	FV-I	SetFromDecimal WIP (not claimed)
 lean/Fv256/Arm64/SfdTopC.lean	FV-B9	dead theorem top_epi with sorry (unused; in SetFromDecimal import closure) - delete before release
