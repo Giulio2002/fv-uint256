@@ -106,7 +106,7 @@ theorem call_pre (R : RtInv) (b : Nat) (z : BitVec 64) (S sc : State)
     (hal : S.sp.toNat % 16 = 0) (hb' : 4144 ≤ S.sp.toNat) (ha : S.sp.toNat + 24 ≤ 2 ^ 48)
     (hw : S.mem.accessible (S.sp.toNat - 4144) (4144 + 24) true = true)
     (hwb : S.mem.accessible (S.sp.toNat + 48) 8 true = true) (hbd : S.sp.toNat + 56 ≤ 2 ^ 48)
-    (hd : Extracted.program.DataLoaded S.mem) (hout : Outside (S.sp.toNat - 4144) 4168 R.rt)
+    (hd : Pib.DataLoaded S.mem) (hout : Outside (S.sp.toNat - 4144) 4168 R.rt)
     (hbpo : Outside (S.sp.toNat + 48) 8 R.rt)
     (hga : Apart ((S.regs 28).toNat + 16) 8 (S.sp.toNat - 4144) 4168)
     (hgr : Outside ((S.regs 28).toNat + 16) 8 R.rt)
@@ -216,7 +216,7 @@ theorem big_a (impl : List Segment) (hI : ImplApart Extracted.program impl) (R :
   have hzv : val256 S.mem z.toNat = val256 S0.mem z.toNat := hzr
   have hzdS : z.toNat + 32 ≤ S0.sp.toNat - stack ∨ S0.sp.toNat + 0x78 ≤ z.toNat := hzd
   refine ReachesRet.call hS (by rfl) ⟨?_, ?_, call_pre R b0 z S _ hsp0.symm (by simp [setReg_apply]) (by simp [hsp0]) hg.1 hg.2.1 hg.2.2
-    (by rw [hspn]; exact hal) (by omega) hSb hwin hbwr (by omega) hdl (by rw [hspn]; exact hRout.of_sub (by omega) (by omega))
+    (by rw [hspn]; exact hal) (by omega) hSb hwin hbwr (by omega) (Pib_dataLoaded hdl) (by rw [hspn]; exact hRout.of_sub (by omega) (by omega))
     (by rw [hspn]; exact hRout.of_sub (by omega) (by omega)) hga hgr (by rw [hspn]; exact hgbp) hfl ht1 ht2 hok1 hok2 hok3 hok4 hinv hbud
     ⟨hza, hzp.2⟩ hzR (by unfold Disjoint; rw [hspn]; omega) (by unfold Disjoint; rw [hspn]; omega)⟩ ?_
   · have e : BitVec.toNat (746052#64) = Extracted.entry + 0x214 := by decide

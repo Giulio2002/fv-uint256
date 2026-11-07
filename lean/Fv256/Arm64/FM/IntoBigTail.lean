@@ -53,7 +53,6 @@ theorem slowTail (impl : List Segment) (R : RtInv) (b b1 : Nat) (z bp : BitVec 6
       (∀ i, len ≤ i → i < 4 → s.mem.readLE (z.toNat + 8 * i) 8 = 0)) := ⟨hbP, hword, hnorm, hzero⟩
   clear hbP hword hnorm hzero
   janus_data hd [hw, hbpa, hPa]
-  fm_clear_ddisj 1 2
   janus_eval_nat h_f : flagAddr
   rw [h_f] at hflag
   rcases hPrt with ⟨hL, hPo⟩ | ⟨hL, hPi⟩

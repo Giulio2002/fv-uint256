@@ -32,6 +32,16 @@ export Fv256.IntoBig (BigOut BigObj BigObj.of_bigOut ZeroBytes.writeLE_apart Zer
 /-- IntoBig's entry in Format's extraction (a definition, like `Extracted.entry`, so that offsets stay symbolic) -/
 def ibEntry : Nat := 0xb5780
 
+/-- the data objects IntoBig reads: the types of `big.Int` and of `[4]big.Word`.  Format's extraction has 26 read-only data objects; `janus_data` makes a fact per object of the program's data list, so the precondition speaks of the program with only these two. -/
+def ibData : List Janus.DataSegment :=
+  Extracted.program.data.filter fun d => d.name == ".rodata+0xdc20" || d.name == ".rodata+0x19b40"
+
+/-- the extracted program with only those data objects -/
+def Pib : Program := { Extracted.program with data := ibData }
+
+theorem Pib_dataLoaded {m : Memory} (h : Extracted.program.DataLoaded m) : Pib.DataLoaded m :=
+  fun d hd => h d (List.mem_filter.1 hd).1
+
 def nm : String := "github.com/holiman/uint256.(*Int).IntoBig"
 
 /-- The type descriptor of `big.Int` passed to `newobject` (`ADRP`+`ADD` at `IntoBig+0x2c`). -/
@@ -46,7 +56,7 @@ def flagAddr : Nat :=
 
 /-- The precondition of `correctness`. -/
 def Pre (R : RtInv) (b : Nat) (z bp : BitVec 64) (s : State) : Prop :=
-  GuardOK s 4144 ∧ StackOK s 4144 24 ∧ Extracted.program.DataLoaded s.mem ∧
+  GuardOK s 4144 ∧ StackOK s 4144 24 ∧ Pib.DataLoaded s.mem ∧
     Outside (s.sp.toNat - 4144) 4168 R.rt ∧ Apart ((s.regs 28).toNat + 16) 8 (s.sp.toNat - 4144) 4168 ∧
     Outside ((s.regs 28).toNat + 16) 8 R.rt ∧
     s.mem.accessible flagAddr 4 false = true ∧ Outside bigType 16 R.rt ∧ Outside arrType 16 R.rt ∧

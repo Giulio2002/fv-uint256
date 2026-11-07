@@ -54,7 +54,6 @@ theorem slowHead3 (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     ⟨hzb, hzo, hPb, hPz, hbpo, hbpd, hzd⟩
   clear hzP hz hzd hzb hPb hPz hzo hinv0 hbud
   janus_data hd [hw, hbpa, hPa]
-  fm_clear_ddisj 1 2
   janus_eval_nat h_b : bigType
   janus_eval_nat h_a : arrType
   janus_eval_nat h_f : flagAddr

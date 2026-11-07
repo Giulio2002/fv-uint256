@@ -26,7 +26,6 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
   have hblk2 := Janus.Contracts.AllocSat.le_blockSize 32 true
   janus_intro hs
   janus_data hd [hw]
-  fm_clear_ddisj 1 2
   janus_eval_nat h_b : bigType
   janus_eval_nat h_a : arrType
   janus_eval_nat h_f : flagAddr

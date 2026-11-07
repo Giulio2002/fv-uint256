@@ -35,7 +35,6 @@ theorem mid (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret 
   have hblk2 := Janus.Contracts.AllocSat.le_blockSize 32 true
   have hspn : S.sp.toNat = s.sp.toNat - 48 := by rw [hsp, BitVec.toNat_sub]; simp; omega
   janus_data hd [hw]
-  fm_clear_ddisj 1 2
   janus_eval_nat h_b : bigType
   janus_eval_nat h_a : arrType
   janus_eval_nat h_f : flagAddr

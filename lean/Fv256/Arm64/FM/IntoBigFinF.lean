@@ -53,7 +53,6 @@ theorem finF (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret
   have hret48 := hret.user
   have hret4 := hret.aligned
   janus_data hd [hw]
-  fm_clear_ddisj 1 2
   janus_eval_nat h_f : flagAddr
   rw [h_f] at hflag
   janus_run calls [hwb2]
