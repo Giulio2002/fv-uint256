@@ -50,7 +50,7 @@ def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 16000000 in
 open Fv256.C in
-theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_cond (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (pS nS : BitVec 64)
     (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
     (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
