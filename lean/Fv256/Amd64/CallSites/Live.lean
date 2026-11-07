@@ -6,6 +6,10 @@ open Janus Janus.Amd64 Janus.Contracts
 
 namespace Fv256.CallSites
 
+instance (s : State) (stack nargs : Nat) : Decidable (CallOK64 s stack nargs) := by unfold CallOK64; infer_instance
+instance (m : Memory) (t : Nat) : Decidable (TypeOK m t) := by unfold TypeOK; infer_instance
+instance (s : State) (adj : Nat) : Decidable (GuardOK64 s adj) := by unfold GuardOK64; infer_instance
+
 theorem liveSep_nil (win : List (Nat × Nat)) : LiveSep [] win := fun r h => by simp at h
 
 theorem liveSep_one {a e : Nat} {rt : List (Nat × Nat)} (h : Outside a (e - a) rt) : LiveSep [(a, e)] rt := by
@@ -21,5 +25,31 @@ theorem liveSep_two {a e c f : Nat} {rt : List (Nat × Nat)} (h1 : Outside a (e 
   rcases hr with rfl | rfl
   · exact h1
   · exact h2
+
+/-! ### Single-conjunct wrappers of the contracts' preconditions (the auditor matches the whole `pre s_c` against ONE conjunct; reducible for its first `isDefEq`). -/
+
+@[reducible] def NewobjectLiveSite (R : RtInv) (addr stack : Nat) (L : List (Nat × Nat)) (b : Nat) (s : State) : Prop :=
+  NewobjectPre64 stack s ∧ StackRoom64 s stack 1 ∧
+    LiveAt R addr [(s.regs 0).toNat] L b (newobjectRound64 s) (s.regs 14).toNat s.mem (liveWin64 s stack 1)
+
+@[reducible] def MallocgcLiveSite (R : RtInv) (addr stack : Nat) (L : List (Nat × Nat)) (b : Nat) (s : State) : Prop :=
+  MallocgcPre64 stack s ∧ StackRoom64 s stack 3 ∧
+    LiveAt R addr [(s.regs 0).toNat, (s.regs 3).toNat, (s.regs 1).toNat] L b (mallocgcRound64 s) (s.regs 14).toNat s.mem (liveWin64 s stack 3)
+
+@[reducible] def MemmoveLiveSite (R : RtInv) (addr d : Nat) (L : List (Nat × Nat)) (b : Nat) (s : State) : Prop :=
+  MemPre64 d 3 s ∧
+    LiveMemAt64 R addr [(s.regs 0).toNat, (s.regs 3).toNat, (s.regs 1).toNat] L b s (liveWin64 s d 3) ∧
+    MemAmd64.Input s d 3 (s.regs 3).toNat (s.regs 1).toNat ∧
+    LiveDest64 R L s d 3 (s.regs 0).toNat (s.regs 1).toNat
+
+@[reducible] def WbLiveSite (R : RtInv) (addr stack n : Nat) (L : List (Nat × Nat)) (b : Nat) (s : State) : Prop :=
+  CallOK64 s stack 0 ∧ R.ok addr [n] ∧ R.inv b L (s.regs 14).toNat (view R.rt L s.mem) ∧
+    LiveSep L [((s.regs 4).toNat - stack, (s.regs 4).toNat + 8)] ∧ LiveSep [((s.regs 4).toNat - stack, (s.regs 4).toNat + 8)] R.rt
+
+@[reducible] def IfaceeqSite (R : Janus.Spec.Type.IfaceModel) (s : State) : Prop :=
+  IfaceAmd64.RTPre R 3 s ∧ ((s.regs 0).toNat ≠ 0 →
+      (s.regs 0).toNat + 16 ≤ 2 ^ 48 ∧ s.mem.accessible (s.regs 0).toNat 16 false = true ∧
+      (s.mem.readLE ((s.regs 0).toNat + 8) 8 ≠ 0) ∧
+      Iface.EqOK R s.mem (s.mem.readLE ((s.regs 0).toNat + 8) 8) (s.regs 3).toNat (s.regs 1).toNat)
 
 end Fv256.CallSites

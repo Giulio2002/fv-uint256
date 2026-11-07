@@ -224,25 +224,21 @@ theorem csW1_rip : csW1.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "r
 theorem csW2_rip : csW2.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") := by rw [addr_w2]; rfl
 
 set_option maxRecDepth 100000 in
-theorem csNew_pre : NewobjectPre64 4096 csNew ∧ StackRoom64 csNew 4096 1 ∧
-    LiveAt R (Extracted.program.contractAddr "runtime.newobject") [(csNew.regs 0).toNat] [] 0x400 (newobjectRound64 csNew)
-      (csNew.regs 14).toNat csNew.mem (liveWin64 csNew 4096 1) := by
+theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew := by
   refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, ?_⟩, ?_, inv0, by decide, liveSep_nil _, ?_⟩
-  · simp only [calleeStack64, outside_cons, outside_nil]; rw [rt_eq]; decide
+  · simp only [calleeStack64, outside_cons, outside_nil]; decide
   · rw [addr_new]; exact Or.inl ⟨rfl, Or.inl rfl⟩
-  · simp only [liveWin64, calleeStack64]; apply liveSep_two <;> (rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)
+  · rw [rt_eq]; intro r hr
+    simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide)
 
 set_option maxRecDepth 100000 in
-theorem csW1_pre : CallOK64 csW1 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-    R.inv 0x400 [] (csW1.regs 14).toNat (view R.rt [] csW1.mem) ∧ LiveSep [] [((csW1.regs 4).toNat - 4096, (csW1.regs 4).toNat + 8)] ∧
-    LiveSep [((csW1.regs 4).toNat - 4096, (csW1.regs 4).toNat + 8)] R.rt :=
+theorem csW1_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 csW1 :=
   ⟨by decide, by rw [addr_w1]; exact Or.inr (Or.inl ⟨rfl, rfl⟩), inv0, liveSep_nil _,
     liveSep_one (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
 
 set_option maxRecDepth 100000 in
-theorem csW2_pre : CallOK64 csW2 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
-    R.inv 0x400 [] (csW2.regs 14).toNat (view R.rt [] csW2.mem) ∧ LiveSep [] [((csW2.regs 4).toNat - 4096, (csW2.regs 4).toNat + 8)] ∧
-    LiveSep [((csW2.regs 4).toNat - 4096, (csW2.regs 4).toNat + 8)] R.rt :=
+theorem csW2_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 csW2 :=
   ⟨by decide, by rw [addr_w2]; exact Or.inr (Or.inr ⟨rfl, rfl⟩), inv0, liveSep_nil _,
     liveSep_one (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
 
@@ -256,17 +252,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp
     WbLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
     (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧
-      NewobjectPre64 4096 s_c ∧ StackRoom64 s_c 4096 1 ∧
-      LiveAt R (Extracted.program.contractAddr "runtime.newobject") [(s_c.regs 0).toNat] L b (newobjectRound64 s_c)
-        (s_c.regs 14).toNat s_c.mem (liveWin64 s_c 4096 1)) ∧
+      NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 L b s_c) ∧
     (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧
-      CallOK64 s_c 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier1") [1] ∧
-      R.inv b L (s_c.regs 14).toNat (view R.rt L s_c.mem) ∧ LiveSep L [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] ∧
-      LiveSep [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] R.rt) ∧
+      WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 L b s_c) ∧
     (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧
-      CallOK64 s_c 4096 0 ∧ R.ok (Extracted.program.contractAddr "runtime.gcWriteBarrier2") [2] ∧
-      R.inv b L (s_c.regs 14).toNat (view R.rt L s_c.mem) ∧ LiveSep L [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] ∧
-      LiveSep [((s_c.regs 4).toNat - 4096, (s_c.regs 4).toNat + 8)] R.rt) ∧
+      WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 L b s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, bp] s ∧
     Pre R b z bp s ∧ PreX z bp s ∧
