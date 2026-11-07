@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.GrabRet
 import Fv256.FormatFastDefs
 import Fv256.FormatFastFacts
 
@@ -35,7 +36,7 @@ theorem wrd_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (stack fW 
   have hbl : (S.mem.readLE ((S0.regs 4).toNat + 72) 8) < 2 ^ 64 := by
     simpa using Janus.Arm64.Memory.readLE_lt S.mem ((S0.regs 4).toNat + 72) 8
   janus64_run [i58, i60, ht30, hta, hwa, hr72, hr64, h0, h3, h1, hret47] calls [hWr]
-  rename_i junk f x yh m zh kr hkeep hfr hR
+  fv_ret_names junk f x yh m zh kr hpr hfr hR
   exact ⟨frame_call ifr hwb (by omega) hfr, _, _, _, hR⟩
 
 /-- the `Write` call of the `d/v/s` path (`Format+0x1a7`: after `stringtoslicebyte`; the slice is `(RAX, RBX, RCX) = (ptr, len, cap)`),
@@ -66,7 +67,7 @@ theorem wrh_call (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (stack fW 
   have hbl : (S.mem.readLE ((S0.regs 4).toNat + 72) 8) < 2 ^ 64 := by
     simpa using Janus.Arm64.Memory.readLE_lt S.mem ((S0.regs 4).toNat + 72) 8
   janus64_run [i58, i60, ht30, hta, hwa, hr72, hr64, h0, h3, h1, hret47] calls [hWr]
-  rename_i junk f x yh m zh kr hkeep hfr hR
+  fv_ret_names junk f x yh m zh kr hpr hfr hR
   exact ⟨frame_call ifr hwb (by omega) hfr, _, _, _, hR⟩
 
 end Fv256.Amd64.FormatFast

@@ -14,11 +14,11 @@ namespace Fv256.Amd64.FormatFast
 caller (`RIP` = the return address, with exactly one `Write` made, whose argument bytes are `fastBytes v ch` -- the call-site property
 `FastWP data (fastBytes v ch)` of `hWr` -- after all four queries answered plain and `ch ∈ {d,v,s,x}`), or `Format+0x1cc` (the big path),
 with the answers (`NotPlain`) that sent it there. -/
-theorem fast_amd64 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (stack fW fP fF fWr : Nat)
+theorem fast_amd64 (impl : List Amd64.Segment) (R2 : RtInv) (rt : List (Nat × Nat)) (H : RtReady) (stack fW fP fF fWr : Nat)
     (RW RP RF RWr : Res) (z tab data : BitVec 64) (hI : ImplApart Extracted.program impl)
-    (hW : ICallContract64 (Extracted.program.link impl) fW 1 stack 80 rt (fun _ => []) RW (fun _ => True))
-    (hP : ICallContract64 (Extracted.program.link impl) fP 1 stack 80 rt (fun _ => []) RP (fun _ => True))
-    (hF : ICallContract64 (Extracted.program.link impl) fF 2 stack 80 rt (fun _ => []) RF (fun _ => True))
+    (hW : ICallContract64 (Extracted.program.link impl) fW 1 stack 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2))
+    (hP : ICallContract64 (Extracted.program.link impl) fP 1 stack 80 rt (fun _ => []) RP (fun _ => True) (RtPreserves64 R2))
+    (hF : ICallContract64 (Extracted.program.link impl) fF 2 stack 80 rt (fun _ => []) RF (fun _ => True) (RtPreserves64 R2))
     (S0 : State)
     (hWr : ICallContract64 (Extracted.program.link impl) fWr 4 stack 80 rt (fun _ => []) RWr
       (FastWP data (Fv256.FormatSpec.fastBytes (S0.mem.readLE z.toNat 32) ((S0.regs 7).toNat % 2 ^ 32))))
@@ -30,6 +30,7 @@ theorem fast_amd64 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtR
     (hrt32 : ∀ r ∈ rt, 32 ≤ r.1)
     (hpc : S0.rip = BitVec.ofNat 64 (Extracted.entry + 0x45))
     (hpre : FPre rt stack z tab data fW fP fF fWr S0)
+    (hwR : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) R2.rt)
     (h4568 : 4568 ≤ stack)
     (hdl : Extracted.program.DataLoaded S0.mem) (hdrt : ∀ d ∈ Extracted.program.data, Outside d.base d.bytes.length rt)
     (ht1 : Outside 5163273 256 rt) (ht2 : Outside 5176582 256 rt) (ht3 : Outside 5142664 256 rt)
@@ -62,9 +63,9 @@ theorem fast_amd64 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtR
           (∃ j3, PlainHist RW RP RF data tab (S0.regs 7) j3 fP fF) ∧
           ((S0.regs 7).toNat % 2 ^ 32 = 100 ∨ (S0.regs 7).toNat % 2 ^ 32 = 115 ∨ (S0.regs 7).toNat % 2 ^ 32 = 118 ∨
             (S0.regs 7).toNat % 2 ^ 32 = 120)),
-       (Extracted.entry + 0x1cc, fun S' => FInv rt stack z tab data ((S0.regs 7).toNat % 2 ^ 32) S0 S' ∧
+       (Extracted.entry + 0x1cc, fun S' => FInv rt stack z tab data ((S0.regs 7).toNat % 2 ^ 32) S0 S' ∧ RPres R2 S0 S' ∧
           NotPlain RW RP RF data tab (S0.regs 7) fP fF ((S0.regs 7).toNat % 2 ^ 32))] := by
-  have h0 := (pre_fast impl rt stack fW fP fF fWr RW RP RF z tab data hW hP hF S0 hpc hpre).regions
+  have h0 := (pre_fast impl R2 rt stack fW fP fF fWr RW RP RF z tab data hW hP hF S0 hpc hpre hwR).regions
   refine RT.trans h0 ?_
   intro t ht S1 hr1 hq1
   simp only [List.map, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false] at ht
@@ -107,7 +108,7 @@ theorem fast_amd64 (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtR
     refine RT.widen (RT.of_reachesRet k) ?_
     intro t ht; simp only [List.mem_singleton] at ht; subst ht
     exact ⟨_, List.mem_cons_self .., rfl, fun _ h => h⟩
-  · obtain ⟨⟨hi1, hnp⟩, hreg1⟩ := hq1
-    exact RT.here _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)) hr1 ⟨hi1, hnp⟩
+  · obtain ⟨⟨hi1, hk1, hnp⟩, hreg1⟩ := hq1
+    exact RT.here _ (List.mem_cons_of_mem _ (List.mem_singleton_self _)) hr1 ⟨hi1, hk1, hnp⟩
 
 end Fv256.Amd64.FormatFast
