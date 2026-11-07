@@ -115,3 +115,7 @@ DONE: Arm64/SfdLink.lean (generic CodeIn lemmas), SfdCfgE.lean (cfgE from Extrac
 Fast iteration (no lake for Extracted modules): scratch-b9/{chk.sh,mk.sh,linkall.sh} + scratch-b9/lib (Extracted.olean compiled by hand; relink after lake rebuilds). Untracked scratch.
 Only sorryAx in `correctness` = FV-I4's pw_sum (Arm64/SfdPw.lean). When sorry-free: merge fv/wi4, replace nothing else (hpw is already `pw_sum` applied to the converted contracts in SetFromDecimal.lean).
 FINAL: build/verify1.sh (HEAVY_PRIORITY=0 heavy-run, pin77f janus, shared jcache, both theorems, no --keep-workspace); a trial run was queued at the time of writing (build/verify1.log).
+HANDOVER 3 addendum (da2b5f8): trial `janus verify` (build/verify1.sh, 3m26 warm with shared jcache) => Witness.nonvacuous VERIFIED; correctness fails ONLY the axiom audit (sorryAx from SfdPw.pw_sum, FV-I4).
+ Audit lessons: no consumer inductive/structure reachable from a statement (SfdCfg -> plain def 16-tuple; Fv256.I.Res -> abbrev triple with match_pattern defs).
+ TopPre/FdPre carry nS=0 guards on: pS window facts (2), accessible pS nS. Mod has hT.
+ TO FINISH: when FV-I4's pw_sum is sorry-free: `git merge fv/wi4`, rebuild (lake build Fv256.Arm64.SfdTopD; scratch-b9/mk.sh for Extracted modules), then run build/verify1.sh via heavy-run (HEAVY_PRIORITY=0) and record the time.
