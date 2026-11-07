@@ -46,8 +46,8 @@ theorem ut_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Summary (Extracted.program.link impl) utEntry
-      (fun s => PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem)
-      (fun s s' =>
+      (fun s => PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s)
+      (fun s s' => Kept s s' ∧
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
             s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
@@ -67,15 +67,15 @@ theorem ut_sum (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (
             s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab)) ∧
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro s hpc hpre
-  obtain ⟨hpreU, henv, hdl⟩ := hpre
+  obtain ⟨hpreU, henv⟩ := hpre
   by_cases h1 : (nI.toNat : Int) < 2
-  · exact br_a impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv, hdl⟩, h1⟩
+  · exact br_a impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv⟩, h1⟩
   by_cases h2 : s.mem.readLE pI.toNat 1 = 48
   · by_cases h3 : Bw s.mem pI.toNat - 120#8 = 0#8
-    · exact br_x impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv, hdl⟩, h1, h2, h3⟩
+    · exact br_x impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv⟩, h1, h2, h3⟩
     · by_cases h4 : Bw s.mem pI.toNat - 88#8 = 0#8
-      · exact br_X impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv, hdl⟩, h1, h2, h3, h4⟩
-      · exact br_b impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv, hdl⟩, h1, h2, h3, h4⟩
-  · exact br_c impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv, hdl⟩, h1, h2⟩
+      · exact br_X impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv⟩, h1, h2, h3, h4⟩
+      · exact br_b impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv⟩, h1, h2, h3, h4⟩
+  · exact br_c impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb hhex hsfd s hpc ⟨⟨hpreU, henv⟩, h1, h2⟩
 
 end Fv256.Amd64.UnmarshalTextS

@@ -1,0 +1,22 @@
+Fv256/Amd64/UnmarshalTextSxQ.lean:92:21: error: janus_assumption: no hypothesis matches
+  ↑nI.toNat < 2
+Fv256/Amd64/UnmarshalTextSxQ.lean:93:4: error: janus64_run: heartbeat budget exceeded at pc 0x462fa0: (entry of 0x462fa0, by its summary) while proving the precondition of the summary of 0x462fa0, after 1 instructions.
+The limit was `maxHeartbeats` (1600000), which covers the whole declaration: raise it with `set_option maxHeartbeats N in` before the theorem (or give this run its own budget with `janus64_run (budget := N)`), or stop earlier (`until [...]`, a callee `Summary`) and split the proof.
+Fv256/Amd64/UnmarshalTextSxQ.lean:26:0: error: (deterministic) timeout at `whnf`, maximum number of heartbeats (1600000) has been reached
+Note: Use `set_option maxHeartbeats <num>` to set the limit.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+cumulative profiling times:
+	attribute application 0.00829ms
+	compilation (IR) 5.49ms
+	compilation (LCNF base) 50ms
+	compilation (LCNF impure) 23.8ms
+	compilation (LCNF mono) 54.8ms
+	congr simp thm 19.6ms
+	elaboration 1.02s
+	instantiate metavars 3.72ms
+	interpretation 3.25s
+	let-to-have transformation 0.0616ms
+	simp 2.99s
+	tactic execution 86.1s
+	type checking 72.3s
+	typeclass inference 13.9s

@@ -1,0 +1,813 @@
+Fv256/Amd64/UnmarshalTextSxP.lean:91:2: error: janus64_run: heartbeat budget exceeded at pc 0x462fa0: (entry of 0x462fa0, by its summary) while proving the precondition of the summary of 0x462fa0, after 32 instructions.
+The limit was `maxHeartbeats` (16000000), which covers the whole declaration: raise it with `set_option maxHeartbeats N in` before the theorem (or give this run its own budget with `janus64_run (budget := N)`), or stop earlier (`until [...]`, a callee `Summary`) and split the proof.
+Fv256/Amd64/UnmarshalTextSxP.lean:63:91: error: unsolved goals
+case h
+impl : List Amd64.Segment
+R : RtInv
+R2 : IfaceModel
+T b : Nat
+L : List (Nat × Nat)
+lo hi : Nat
+z pI nI cI : BitVec 64
+hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2
+hnew : NewobjectLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R
+hmg : MallocgcLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R
+hmv : MemmoveLive64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R
+hwb1 :
+  WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1
+hwb2 :
+  WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2
+hsb : RtLiveContract64 (Extracted.program.link impl) sbAddr 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive
+hhex :
+  ∀ (z hp len : BitVec 64), Summary (Extracted.program.link impl) 4922368 (FromHexPre z hp len) (FromHexPost z hp len)
+hsfd :
+  ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
+    SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS'
+s : State
+hpc : s.rip = BitVec.ofNat 64 utEntry
+hpreU : PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s
+henv : HexEnv R lo hi z s
+hdl : Extracted.program.DataLoaded s.mem
+hc1 : ¬↑nI.toNat < 2
+hc2 : Arm64.Memory.readLE s.mem pI.toNat 1 = 48
+hc3 : Bw s.mem pI.toNat - 120#8 = 0#8
+e1 : lo ≤ BitVec.toNat (s.regs 4)
+e2 : BitVec.toNat (s.regs 4) + 8 ≤ hi
+e3 : hi ≤ 2 ^ 48
+e4 : BitVec.toNat (s.regs 4) % 8 = 0
+e5 : Arm64.Memory.accessible s.mem lo (hi - lo) true = true
+e6 : BitVec.toNat (s.regs 14) + 24 ≤ 2 ^ 48
+e7 : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+e8 : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 < lo
+e9 : Outside lo (hi - lo) R.rt
+e10 : Outside lo (hi - lo) R2.priv
+e11 : Outside (BitVec.toNat (s.regs 14) + 16) 8 R.rt
+e12 : Outside (BitVec.toNat (s.regs 14) + 16) 8 R2.priv
+e13 : BitVec.toNat (s.regs 14) + 16 + 8 ≤ lo ∨ hi ≤ BitVec.toNat (s.regs 14) + 16
+e14 : ∀ (r : Nat × Nat), r ∈ staticRanges cfg T → Outside r.fst (r.snd - r.fst) [(lo, hi)]
+e15 : StaticOK cfg R2 T s.mem
+e16 : R2.Env s.mem (s.regs 14)
+e17 : R.inv b L (BitVec.toNat (s.regs 14)) (view R.rt L s.mem)
+e18 : ∀ (r : Nat × Nat), r ∈ L → Outside r.fst (r.snd - r.fst) [(lo, hi)]
+hlo4 : lo + 4904 ≤ BitVec.toNat (s.regs 4)
+hhi4 : BitVec.toNat (s.regs 4) + 24 ≤ hi
+h_x15 : s.xmm 15 = 0
+h_df : s.df = false
+h_rip : s.rip = BitVec.ofNat 64 utEntry
+h_data0 : Arm64.Memory.accessible s.mem 5008128 384 false = true
+h_data1 : Arm64.Memory.accessible s.mem 5034176 256 false = true
+h_data2 : Arm64.Memory.accessible s.mem 5048608 256 false = true
+h_data3 : Arm64.Memory.accessible s.mem 5077152 256 false = true
+h_data4 : Arm64.Memory.accessible s.mem 5136802 8 false = true
+h_data5 : Arm64.Memory.accessible s.mem 5137768 256 false = true
+h_data6 : Arm64.Memory.accessible s.mem 5140824 256 false = true
+h_data7 : Arm64.Memory.accessible s.mem 5144512 256 false = true
+h_data8 : Arm64.Memory.accessible s.mem 5153821 27 false = true
+h_data9 : Arm64.Memory.accessible s.mem 5155960 256 false = true
+h_data10 : Arm64.Memory.accessible s.mem 5157116 60 false = true
+h_data11 : Arm64.Memory.accessible s.mem 5158189 31 false = true
+h_data12 : Arm64.Memory.accessible s.mem 5158375 31 false = true
+h_data13 : Arm64.Memory.accessible s.mem 5163273 256 false = true
+h_data14 : Arm64.Memory.accessible s.mem 5165580 256 false = true
+h_data15 : Arm64.Memory.accessible s.mem 5166997 41 false = true
+h_data16 : Arm64.Memory.accessible s.mem 5169046 44 false = true
+h_data17 : Arm64.Memory.accessible s.mem 5169537 45 false = true
+h_data18 : Arm64.Memory.accessible s.mem 5174658 63 false = true
+h_data19 : Arm64.Memory.accessible s.mem 5175732 256 false = true
+h_data20 : Arm64.Memory.accessible s.mem 5176338 111 false = true
+h_data21 : Arm64.Memory.accessible s.mem 5176582 456 false = true
+h_data22 : Arm64.Memory.accessible s.mem 5179728 464 false = true
+h_data23 : Arm64.Memory.accessible s.mem 5182096 144 false = true
+h_data24 : Arm64.Memory.accessible s.mem 5182384 32 false = true
+h_data25 : Arm64.Memory.accessible s.mem 5183688 32 false = true
+h_data26 : Arm64.Memory.accessible s.mem 5183968 32 false = true
+h_data27 : Arm64.Memory.accessible s.mem 5184000 32 false = true
+h_ddisj0_0 : lo + (hi - lo) ≤ 5008128 ∨ 5008128 + 384 ≤ lo
+h_ddisj0_1 : lo + (hi - lo) ≤ 5034176 ∨ 5034176 + 256 ≤ lo
+h_ddisj0_2 : lo + (hi - lo) ≤ 5048608 ∨ 5048608 + 256 ≤ lo
+h_ddisj0_3 : lo + (hi - lo) ≤ 5077152 ∨ 5077152 + 256 ≤ lo
+h_ddisj0_4 : lo + (hi - lo) ≤ 5136802 ∨ 5136802 + 8 ≤ lo
+h_ddisj0_5 : lo + (hi - lo) ≤ 5137768 ∨ 5137768 + 256 ≤ lo
+h_ddisj0_6 : lo + (hi - lo) ≤ 5140824 ∨ 5140824 + 256 ≤ lo
+h_ddisj0_7 : lo + (hi - lo) ≤ 5144512 ∨ 5144512 + 256 ≤ lo
+h_ddisj0_8 : lo + (hi - lo) ≤ 5153821 ∨ 5153821 + 27 ≤ lo
+h_ddisj0_9 : lo + (hi - lo) ≤ 5155960 ∨ 5155960 + 256 ≤ lo
+h_ddisj0_10 : lo + (hi - lo) ≤ 5157116 ∨ 5157116 + 60 ≤ lo
+h_ddisj0_11 : lo + (hi - lo) ≤ 5158189 ∨ 5158189 + 31 ≤ lo
+h_ddisj0_12 : lo + (hi - lo) ≤ 5158375 ∨ 5158375 + 31 ≤ lo
+h_ddisj0_13 : lo + (hi - lo) ≤ 5163273 ∨ 5163273 + 256 ≤ lo
+h_ddisj0_14 : lo + (hi - lo) ≤ 5165580 ∨ 5165580 + 256 ≤ lo
+h_ddisj0_15 : lo + (hi - lo) ≤ 5166997 ∨ 5166997 + 41 ≤ lo
+h_ddisj0_16 : lo + (hi - lo) ≤ 5169046 ∨ 5169046 + 44 ≤ lo
+h_ddisj0_17 : lo + (hi - lo) ≤ 5169537 ∨ 5169537 + 45 ≤ lo
+h_ddisj0_18 : lo + (hi - lo) ≤ 5174658 ∨ 5174658 + 63 ≤ lo
+h_ddisj0_19 : lo + (hi - lo) ≤ 5175732 ∨ 5175732 + 256 ≤ lo
+h_ddisj0_20 : lo + (hi - lo) ≤ 5176338 ∨ 5176338 + 111 ≤ lo
+h_ddisj0_21 : lo + (hi - lo) ≤ 5176582 ∨ 5176582 + 456 ≤ lo
+h_ddisj0_22 : lo + (hi - lo) ≤ 5179728 ∨ 5179728 + 464 ≤ lo
+h_ddisj0_23 : lo + (hi - lo) ≤ 5182096 ∨ 5182096 + 144 ≤ lo
+h_ddisj0_24 : lo + (hi - lo) ≤ 5182384 ∨ 5182384 + 32 ≤ lo
+h_ddisj0_25 : lo + (hi - lo) ≤ 5183688 ∨ 5183688 + 32 ≤ lo
+h_ddisj0_26 : lo + (hi - lo) ≤ 5183968 ∨ 5183968 + 32 ≤ lo
+h_ddisj0_27 : lo + (hi - lo) ≤ 5184000 ∨ 5184000 + 32 ≤ lo
+h_rodata :
+  ∀ (a n : Nat),
+    (dataRead Extracted.program a n).isSome = true → Arm64.Memory.readLE s.mem a n = dataReadD Extracted.program a n
+hbD :
+  BitVec.toNat (s.regs 4) - 40 = 0 ∨
+    BitVec.toNat (s.regs 4) - 40 ≤ 281474976710624 ∧
+      Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 40) 32 true = true
+hbH :
+  BitVec.toNat (s.regs 4) - 72 = 0 ∨
+    BitVec.toNat (s.regs 4) - 72 ≤ 281474976710624 ∧
+      Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 72) 32 true = true
+hib1 : pI.toNat + nI.toNat ≤ 2 ^ 48
+hib2 : Arm64.Memory.accessible s.mem pI.toNat nI.toNat false = true
+hiw : pI.toNat + nI.toNat ≤ lo ∨ hi ≤ pI.toNat
+hokD : R.ok sbAddr [BitVec.toNat (s.regs 4) - 40, pI.toNat, nI.toNat]
+hokH : R.ok sbAddr [BitVec.toNat (s.regs 4) - 72, pI.toNat, nI.toNat]
+hr3 : s.regs 3 = pI
+hr1 : s.regs 1 = nI
+hr0 : s.regs 0 = z
+hdA : pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 40 ∨ BitVec.toNat (s.regs 4) - 40 + 32 ≤ pI.toNat
+hdH : pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 72 ∨ BitVec.toNat (s.regs 4) - 72 + 32 ≤ pI.toNat
+hdS1 : pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 104 - 4096 ∨ BitVec.toNat (s.regs 4) - 104 ≤ pI.toNat
+hdS2 : pI.toNat + nI.toNat ≤ BitVec.toNat (s.regs 4) - 104 + 8 ∨ BitVec.toNat (s.regs 4) - 104 + 8 + 24 ≤ pI.toNat
+hbr✝² :
+  ¬(BitVec.toNat (s.regs 4) < Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 ∨
+      (18446744073709551616 - Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + BitVec.toNat (s.regs 4)) %
+          18446744073709551616 =
+        0)
+hbr✝¹ : ¬↑nI.toNat < 2
+hbr✝ :
+  ¬BitVec.setWidth 8
+          (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))) -
+        120#8 =
+      0#8
+hbr :
+  ¬BitVec.setWidth 8
+          (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))) -
+        88#8 =
+      0#8
+h_post0 : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4)) 8 false = true
+h_post1 : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 4)) 8 < 2 ^ 47
+h_post2 : R2.depth ≤ 4096
+h_post3 : lo ≤ BitVec.toNat (s.regs 4)
+h_post4 : BitVec.toNat (s.regs 4) + 8 ≤ hi
+h_post5 : hi ≤ 2 ^ 48
+h_post6 : Arm64.Memory.accessible s.mem lo (hi - lo) true = true
+h_post7 : BitVec.toNat (s.regs 14) + 24 ≤ 2 ^ 48
+h_post8 : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+h_post9 : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 < lo
+h_post10 : Arm64.Memory.accessible s.mem cfg.wbFlag 4 false = true
+h_post11 : Arm64.Memory.accessible s.mem cfg.strconvErrSyntax 16 false = true
+h_post12 : Arm64.Memory.accessible s.mem cfg.errItab 16 false = true
+h_post13 : Arm64.Memory.accessible s.mem cfg.synConst 8 false = true
+h_post14 : Arm64.Memory.accessible s.mem cfg.numErrType 16 false = true
+h_post15 : lo + 4904 ≤ BitVec.toNat (s.regs 4)
+h_post16 : BitVec.toNat (s.regs 4) + 24 ≤ hi
+h_post17 : roundupsize nI.toNat true ≤ b
+h_post18 : Arm64.Memory.accessible s.mem cfg.mulTab 40 false = true
+h_post19 : Arm64.Memory.accessible s.mem cfg.ioEOF 16 false = true
+h_post20 : Arm64.Memory.accessible s.mem cfg.errBig 16 false = true
+h_post21 : Arm64.Memory.accessible s.mem cfg.maxStr 78 false = true
+h_post22 : z.toNat + 32 ≤ 2 ^ 48
+h_post23 : Arm64.Memory.accessible s.mem z.toNat 32 true = true
+h_post24 : pI.toNat + nI.toNat ≤ 2 ^ 48
+h_post25 : Arm64.Memory.accessible s.mem pI.toNat nI.toNat false = true
+h_post26 : Arm64.Memory.accessible s.mem 5176782 256 false = true
+h_post27 : Arm64.Memory.accessible s.mem 5995344 96 false = true
+h_post28 : Arm64.Memory.accessible s.mem cfg.wbFlag 4 false = true
+h_post29 : Arm64.Memory.accessible s.mem cfg.strconvErrSyntax 16 false = true
+h_post30 : Arm64.Memory.accessible s.mem cfg.errItab 16 false = true
+h_post31 : Arm64.Memory.accessible s.mem cfg.synConst 8 false = true
+h_post32 : Arm64.Memory.accessible s.mem cfg.numErrType 16 false = true
+w✝⁹ w✝⁸ w✝⁷ : W64
+w✝⁶ : Nat → W64
+w✝⁵ : Flags
+w✝⁴ w✝³ : Nat → BitVec 128
+w✝² : Memory
+w✝¹ : Nat → BitVec 256
+w✝ : Nat → W64
+left✝⁴ :
+  MemFrame
+    {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              4 (s.regs 4 - 104#64))
+            5 (s.regs 4 - 8#64),
+        rip := 4599712#64,
+        flags :=
+          (subFlags
+              (BitVec.setWidth 8
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              (88#8) false).snd,
+        xmm := s.xmm,
+        mem :=
+          (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                    (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+            (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := s.kreg }.mem
+    w✝²
+    (rtIf (slicebytetostringSpec stAddr).rtWrites R.rt ++
+        calleeStack64
+          {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }
+          4096 (slicebytetostringSpec stAddr).nargs ++
+      (slicebytetostringSpec stAddr).writes
+        (argWords64
+          {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }
+          (slicebytetostringSpec stAddr).nargs)
+        {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }.mem)
+left✝³ :
+  (slicebytetostringSpec stAddr).8 R.rt
+    (argWords64
+      {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              4 (s.regs 4 - 104#64))
+            5 (s.regs 4 - 8#64),
+        rip := 4599712#64,
+        flags :=
+          (subFlags
+              (BitVec.setWidth 8
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              (88#8) false).snd,
+        xmm := s.xmm,
+        mem :=
+          (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                    (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+            (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := s.kreg }
+      (slicebytetostringSpec stAddr).nargs)
+    {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              4 (s.regs 4 - 104#64))
+            5 (s.regs 4 - 8#64),
+        rip := 4599712#64,
+        flags :=
+          (subFlags
+              (BitVec.setWidth 8
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              (88#8) false).snd,
+        xmm := s.xmm,
+        mem :=
+          (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                    (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+            (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := s.kreg }.mem
+    (BitVec.toNat w✝⁹) (BitVec.toNat w✝⁸) (BitVec.toNat w✝⁷) w✝²
+left✝² :
+  LiveFrame
+    {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              4 (s.regs 4 - 104#64))
+            5 (s.regs 4 - 8#64),
+        rip := 4599712#64,
+        flags :=
+          (subFlags
+              (BitVec.setWidth 8
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              (88#8) false).snd,
+        xmm := s.xmm,
+        mem :=
+          (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                    (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+            (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := s.kreg }.mem
+    w✝² L
+    ((slicebytetostringSpec stAddr).writes
+      (argWords64
+        {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                4 (s.regs 4 - 104#64))
+              5 (s.regs 4 - 8#64),
+          rip := 4599712#64,
+          flags :=
+            (subFlags
+                (BitVec.setWidth 8
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                (88#8) false).snd,
+          xmm := s.xmm,
+          mem :=
+            (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                      (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+              (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := s.kreg }
+        (slicebytetostringSpec stAddr).nargs)
+      {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                4 (s.regs 4 - 104#64))
+              5 (s.regs 4 - 8#64),
+          rip := 4599712#64,
+          flags :=
+            (subFlags
+                (BitVec.setWidth 8
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                (88#8) false).snd,
+          xmm := s.xmm,
+          mem :=
+            (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                      (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+              (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := s.kreg }.mem)
+left✝¹ :
+  FreshFrom
+    (slicebytetostringLive.fresh
+      (argWords64
+        {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                4 (s.regs 4 - 104#64))
+              5 (s.regs 4 - 8#64),
+          rip := 4599712#64,
+          flags :=
+            (subFlags
+                (BitVec.setWidth 8
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                (88#8) false).snd,
+          xmm := s.xmm,
+          mem :=
+            (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                      (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+              (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := s.kreg }
+        (slicebytetostringSpec stAddr).nargs)
+      {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                4 (s.regs 4 - 104#64))
+              5 (s.regs 4 - 8#64),
+          rip := 4599712#64,
+          flags :=
+            (subFlags
+                (BitVec.setWidth 8
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                (88#8) false).snd,
+          xmm := s.xmm,
+          mem :=
+            (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                      (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+              (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := s.kreg }.mem
+      (BitVec.toNat w✝⁹) (BitVec.toNat w✝⁸) (BitVec.toNat w✝⁷))
+    L
+left✝ :
+  LiveApart
+    (liveAdds slicebytetostringLive
+      (argWords64
+        {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                4 (s.regs 4 - 104#64))
+              5 (s.regs 4 - 8#64),
+          rip := 4599712#64,
+          flags :=
+            (subFlags
+                (BitVec.setWidth 8
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                (88#8) false).snd,
+          xmm := s.xmm,
+          mem :=
+            (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                      (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+              (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := s.kreg }
+        (slicebytetostringSpec stAddr).nargs)
+      {
+          regs :=
+            setRegF
+              (setRegF
+                (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                4 (s.regs 4 - 104#64))
+              5 (s.regs 4 - 8#64),
+          rip := 4599712#64,
+          flags :=
+            (subFlags
+                (BitVec.setWidth 8
+                  (BitVec.setWidth 64
+                    (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                (88#8) false).snd,
+          xmm := s.xmm,
+          mem :=
+            (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                      (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+              (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+          ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+          kreg := s.kreg }.mem
+      (BitVec.toNat w✝⁹) (BitVec.toNat w✝⁸) (BitVec.toNat w✝⁷))
+    (liveWin64
+      {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              4 (s.regs 4 - 104#64))
+            5 (s.regs 4 - 8#64),
+        rip := 4599712#64,
+        flags :=
+          (subFlags
+              (BitVec.setWidth 8
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              (88#8) false).snd,
+        xmm := s.xmm,
+        mem :=
+          (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                    (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+            (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := s.kreg }
+      4096 (slicebytetostringSpec stAddr).nargs)
+right✝ :
+  R.1
+    (b -
+      slicebytetostringLive.cost
+        (argWords64
+          {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }
+          (slicebytetostringSpec stAddr).nargs)
+        {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }.mem)
+    (L ++
+      liveAdds slicebytetostringLive
+        (argWords64
+          {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }
+          (slicebytetostringSpec stAddr).nargs)
+        {
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }.mem
+        (BitVec.toNat w✝⁹) (BitVec.toNat w✝⁸) (BitVec.toNat w✝⁷))
+    (BitVec.toNat
+      ({
+            regs :=
+              setRegF
+                (setRegF
+                  (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  4 (s.regs 4 - 104#64))
+                5 (s.regs 4 - 8#64),
+            rip := 4599712#64,
+            flags :=
+              (subFlags
+                  (BitVec.setWidth 8
+                    (BitVec.setWidth 64
+                      (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                  (88#8) false).snd,
+            xmm := s.xmm,
+            mem :=
+              (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                        (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                    (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+            ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+            kreg := s.kreg }.regs
+        14))
+    (view R.rt
+      (L ++
+        liveAdds slicebytetostringLive
+          (argWords64
+            {
+              regs :=
+                setRegF
+                  (setRegF
+                    (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                      (BitVec.setWidth 64
+                        (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                    4 (s.regs 4 - 104#64))
+                  5 (s.regs 4 - 8#64),
+              rip := 4599712#64,
+              flags :=
+                (subFlags
+                    (BitVec.setWidth 8
+                      (BitVec.setWidth 64
+                        (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                    (88#8) false).snd,
+              xmm := s.xmm,
+              mem :=
+                (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                          (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                      (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+              ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+              kreg := s.kreg }
+            (slicebytetostringSpec stAddr).nargs)
+          {
+              regs :=
+                setRegF
+                  (setRegF
+                    (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                      (BitVec.setWidth 64
+                        (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                    4 (s.regs 4 - 104#64))
+                  5 (s.regs 4 - 8#64),
+              rip := 4599712#64,
+              flags :=
+                (subFlags
+                    (BitVec.setWidth 8
+                      (BitVec.setWidth 64
+                        (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+                    (88#8) false).snd,
+              xmm := s.xmm,
+              mem :=
+                (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                          (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                      (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+                  (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+              ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+              kreg := s.kreg }.mem
+          (BitVec.toNat w✝⁹) (BitVec.toNat w✝⁸) (BitVec.toNat w✝⁷))
+      w✝²)
+⊢ ReachesRet (Extracted.program.link impl) (retAddrOf s)
+    (retState64
+      {
+        regs :=
+          setRegF
+            (setRegF
+              (setRegF (setRegF s.regs 0 (s.regs 4 - 40#64)) 2
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              4 (s.regs 4 - 104#64))
+            5 (s.regs 4 - 8#64),
+        rip := 4599712#64,
+        flags :=
+          (subFlags
+              (BitVec.setWidth 8
+                (BitVec.setWidth 64 (BitVec.setWidth 32 (BitVec.ofNat 8 (Arm64.Memory.readLE s.mem (pI.toNat + 1) 1)))))
+              (88#8) false).snd,
+        xmm := s.xmm,
+        mem :=
+          (((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE
+                    (BitVec.toNat (s.regs 4) + 16) 8 pI.toNat).writeLE
+                (BitVec.toNat (s.regs 4) + 8) 8 z.toNat).writeLE
+            (BitVec.toNat (s.regs 4) - 104) 8 4923035,
+        ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+        kreg := s.kreg }
+      w✝⁶ [w✝⁹, w✝⁸, w✝⁷] w✝⁵ w✝⁴ w✝³ w✝² w✝¹ w✝)
+    ((fun s s' =>
+        (IsHex s.mem pI.toNat nI.toNat →
+            (∀ (v : Nat),
+                parseHex (bytesAt s.mem pI.toNat) nI.toNat = Except.ok v →
+                  s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ val256 s'.mem z.toNat = v) ∧
+              ∀ (e : Nat),
+                parseHex (bytesAt s.mem pI.toNat) nI.toNat = Except.error e →
+                  s'.regs 0 = BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (errAddrOf e) 8) ∧
+                    s'.regs 3 = BitVec.ofNat 64 (Arm64.Memory.readLE s.mem (errAddrOf e + 8) 8)) ∧
+          (¬IsHex s.mem pI.toNat nI.toNat →
+              (∀ (v : Nat),
+                  decParse (bytesAt s.mem pI.toNat) nI.toNat = Res.ok v →
+                    s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ val256 s'.mem z.toNat = v) ∧
+                (decParse (bytesAt s.mem pI.toNat) nI.toNat = Res.eof →
+                    BitVec.toNat (s'.regs 0) = Arm64.Memory.readLE s.mem cfg.ioEOF 8 ∧
+                      BitVec.toNat (s'.regs 3) = Arm64.Memory.readLE s.mem (cfg.ioEOF + 8) 8 ∧
+                        val256 s'.mem z.toNat = 0) ∧
+                  (decParse (bytesAt s.mem pI.toNat) nI.toNat = Res.range →
+                      BitVec.toNat (s'.regs 0) = Arm64.Memory.readLE s.mem cfg.errBig 8 ∧
+                        BitVec.toNat (s'.regs 3) = Arm64.Memory.readLE s.mem (cfg.errBig + 8) 8 ∧
+                          val256 s'.mem z.toNat = val256 s.mem z.toNat) ∧
+                    ∀ (lo' len' : Nat),
+                      decParse (bytesAt s.mem pI.toNat) nI.toNat = Res.syntax lo' len' →
+                        s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab) ∧
+            MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]))
+      s)
+Fv256/Amd64/UnmarshalTextSxP.lean:26:0: error: (deterministic) timeout at `whnf`, maximum number of heartbeats (16000000) has been reached
+Note: Use `set_option maxHeartbeats <num>` to set the limit.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+tactic execution of Janus.Amd64.Tactic.tacticJanus64_run______ took 10.3s
+cumulative profiling times:
+	attribute application 0.00969ms
+	compilation (IR) 6.19ms
+	compilation (LCNF base) 53.8ms
+	compilation (LCNF impure) 27ms
+	compilation (LCNF mono) 58ms
+	congr simp thm 94.3ms
+	elaboration 2.28s
+	fix level params 0.0482ms
+	instantiate metavars 41.9ms
+	interpretation 3.69s
+	let-to-have transformation 0.0635ms
+	process pre-definitions 527ms
+	share common exprs 0.55ms
+	simp 19.8s
+	tactic execution 880s
+	type checking 701s
+	typeclass inference 118s

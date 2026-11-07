@@ -1,0 +1,117 @@
+Extracted github.com/holiman/uint256.(*Int).UnmarshalJSON: 36 function(s), 12270 code byte(s), 9 stub(s), 28 data object(s) (4597 bytes) into build/n10/a-UJ/Extracted.lean
+  code  0x4b3520  148 bytes  github.com/holiman/uint256.(*Int).UnmarshalJSON
+  code  0x4b4620  377 bytes  github.com/holiman/uint256.(*Int).SetFromDecimal
+  code  0x4b1e40  165 bytes  github.com/holiman/uint256.(*Int).UnmarshalText
+  code  0x4b47a0  581 bytes  github.com/holiman/uint256.(*Int).fromDecimal
+  code  0x474b60  399 bytes  runtime.decoderune
+  code  0x4b1c00  303 bytes  github.com/holiman/uint256.(*Int).fromHex
+  code  0x48ce00  169 bytes  strconv.ParseUint
+  code  0x4b7240  221 bytes  github.com/holiman/uint256.(*Int).Mul
+  code  0x403740  746 bytes  internal/strconv.ParseUint
+  code  0x48cec0 1067 bytes  strconv.toError
+  code  0x403d00  235 bytes  internal/strconv.underscoreOK
+  code  0x48d6c0  441 bytes  strconv.bitSizeError
+  code  0x48d500  441 bytes  strconv.baseError
+  code  0x407a60  301 bytes  internal/strconv.FormatInt
+  code  0x4629e0  133 bytes  runtime.concatstring2
+  code  0x4081e0  466 bytes  internal/strconv.formatBase10
+  code  0x407e80  847 bytes  internal/strconv.formatBits
+  code  0x4627e0  498 bytes  runtime.concatstrings
+  code  0x47b0c0 1765 bytes  runtime.growslice
+  code  0x4630a0  180 bytes  runtime.rawstringtmp
+  code  0x4799a0   78 bytes  runtime.throw
+  code  0x41eb60  403 bytes  runtime.bulkBarrierPreWriteSrcOnly
+  code  0x47dba0  149 bytes  runtime.systemstack.abi0
+  code  0x445f40  116 bytes  runtime.fatalthrow
+  code  0x41e3a0  102 bytes  runtime.(*mspan).typePointersOfType
+  code  0x41e240  129 bytes  runtime.(*mspan).typePointersOf
+  code  0x41e420  329 bytes  runtime.typePointers.next
+  code  0x441e60   88 bytes  runtime.wbBufFlush
+  code  0x47ce80   39 bytes  gosave_systemstack_switch
+  code  0x472be0  241 bytes  runtime.getGCMaskOnDemand
+  code  0x41e2e0  184 bytes  runtime.(*mspan).typePointersOfUnchecked
+  code  0x41e580  617 bytes  runtime.typePointers.fastForward
+  code  0x47f4e0    4 bytes  runtime.abort.abi0
+  code  0x4812c0    8 bytes  runtime.osyield.abi0
+  code  0x41dc00   93 bytes  runtime.persistentalloc
+  code  0x41ee60  207 bytes  runtime.(*mspan).heapBitsSmallForAddr
+  stub  0x47dd20 morestack  runtime.morestack_noctxt.abi0
+  stub  0x47fa40 panic      runtime.panicBounds
+  stub  0x4447e0 panic      runtime.panicdivide
+  stub  0x4749a0 panic      runtime.panicunsafestringlen
+  stub  0x479540 panic      runtime.gopanic
+  stub  0x4749e0 panic      runtime.panicunsafestringnilptr
+  stub  0x47dc33 trap       trap:INT3
+  stub  0x47f4e0 trap       trap:INT3
+  stub  0x4812c5 syscall    syscall
+  contract 0x462fa0  runtime.slicebytetostring (not extracted; calls need a contract hypothesis)
+  contract 0x402680  runtime.cmpstring (not extracted; calls need a contract hypothesis)
+  contract 0x412c60  runtime.ifaceeq (not extracted; calls need a contract hypothesis)
+  contract 0x4784a0  runtime.mallocgc (not extracted; calls need a contract hypothesis)
+  contract 0x47fde0  runtime.memmove (not extracted; calls need a contract hypothesis)
+  contract 0x41d9c0  runtime.newobject (not extracted; calls need a contract hypothesis)
+  contract 0x47f6a0  runtime.gcWriteBarrier2 (not extracted; calls need a contract hypothesis)
+  contract 0x47f680  runtime.gcWriteBarrier1 (not extracted; calls need a contract hypothesis)
+  contract 0x47f6c0  runtime.gcWriteBarrier3 (not extracted; calls need a contract hypothesis)
+  contract 0x47fae0  runtime.memclrNoHeapPointers (not extracted; calls need a contract hypothesis)
+  data  0x4c6b00  384 bytes  .rodata+0xbb00 (.rodata)
+  data  0x4cd0c0  256 bytes  .rodata+0x120c0 (.rodata)
+  data  0x4d0920  256 bytes  .rodata+0x15920 (.rodata)
+  data  0x4d78a0  256 bytes  .rodata+0x1c8a0 (.rodata)
+  data  0x4e61a2    8 bytes  .rodata+0x2b1a2 (.rodata)
+  data  0x4e6568  256 bytes  .rodata+0x2b568 (.rodata)
+  data  0x4e7158  256 bytes  .rodata+0x2c158 (.rodata)
+  data  0x4e7fc0  256 bytes  .rodata+0x2cfc0 (.rodata)
+  data  0x4ea41d   27 bytes  .rodata+0x2f41d (.rodata)
+  data  0x4eac78  256 bytes  .rodata+0x2fc78 (.rodata)
+  data  0x4eb0fc   60 bytes  .rodata+0x300fc (.rodata)
+  data  0x4eb52d   31 bytes  .rodata+0x3052d (.rodata)
+  data  0x4eb5e7   31 bytes  .rodata+0x305e7 (.rodata)
+  data  0x4ec909  256 bytes  .rodata+0x31909 (.rodata)
+  data  0x4ed20c  256 bytes  .rodata+0x3220c (.rodata)
+  data  0x4ed795   41 bytes  .rodata+0x32795 (.rodata)
+  data  0x4edf96   44 bytes  .rodata+0x32f96 (.rodata)
+  data  0x4ee181   45 bytes  .rodata+0x33181 (.rodata)
+  data  0x4ef582   63 bytes  .rodata+0x34582 (.rodata)
+  data  0x4ef9b4  256 bytes  .rodata+0x349b4 (.rodata)
+  data  0x4efc12  111 bytes  .rodata+0x34c12 (.rodata)
+  data  0x4efd06  456 bytes  .rodata+0x34d06 (.rodata)
+  data  0x4f0950  464 bytes  .rodata+0x35950 (.rodata)
+  data  0x4f1290  144 bytes  .rodata+0x36290 (.rodata)
+  data  0x4f13b0   32 bytes  .rodata+0x363b0 (.rodata)
+  data  0x4f18c8   32 bytes  go:itab.*errors.errorString,error (.rodata)
+  data  0x4f19e0   32 bytes  go:itab.internal/strconv.Error,error (.rodata)
+  data  0x4f1a00   32 bytes  go:itab.*strconv.NumError,error (.rodata)
+Warning: code at 0x4b46aa references 0x5b7ba0 (github.com/holiman/uint256.ErrBig256Range) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b46b1 references 0x5b7ba8 (github.com/holiman/uint256.ErrBig256Range) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b47e6 references 0x5b8580 (github.com/holiman/uint256.multipliers) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b4810 references 0x5b7c50 (io.EOF) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b4817 references 0x5b7c58 (io.EOF) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c0e references 0x5b7b50 (github.com/holiman/uint256.ErrEmptyString) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c15 references 0x5b7b58 (github.com/holiman/uint256.ErrEmptyString) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c39 references 0x5b7b70 (github.com/holiman/uint256.ErrMissingPrefix) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c40 references 0x5b7b78 (github.com/holiman/uint256.ErrMissingPrefix) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c55 references 0x5b7b80 (github.com/holiman/uint256.ErrEmptyNumber) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c5c references 0x5b7b88 (github.com/holiman/uint256.ErrEmptyNumber) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c71 references 0x5b7b90 (github.com/holiman/uint256.ErrLeadingZero) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1c78 references 0x5b7b98 (github.com/holiman/uint256.ErrLeadingZero) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1d19 references 0x5b7b60 (github.com/holiman/uint256.ErrSyntax) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4b1d20 references 0x5b7b68 (github.com/holiman/uint256.ErrSyntax) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x48cf97 references 0x5def20 (runtime.writeBarrier) in writable section .noptrbss; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x48cfd4 references 0x5b7ef0 (strconv.ErrSyntax) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x48cfdb references 0x5b7ef8 (strconv.ErrSyntax) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x48d114 references 0x5b7ee0 (strconv.ErrRange) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x48d11b references 0x5b7ee8 (strconv.ErrRange) in writable section .data; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x47b114 references 0x5dec60 (runtime.zerobase) in writable section .noptrbss; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x47b171 references 0x5b2c20 (internal/runtime/gc.SizeToSizeClass8) in writable section .noptrdata; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x47b18a references 0x5b2cc0 (internal/runtime/gc.SizeClassToSize) in writable section .noptrdata; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x47b1b6 references 0x5b3040 (internal/runtime/gc.SizeToSizeClass128) in writable section .noptrdata; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x4799ad references 0x100445a00, which is in no allocated section; nothing is copied.
+Warning: code at 0x41ebb8 references 0x5d8118 (runtime.mheap_) in writable section .bss; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Note: code at 0x47dc2a computes the code address 0x481a80 in .text; code is not copied as data (a function entry is copied as code, see the dynamic targets).
+Note: code at 0x445f65 computes the code address 0x445fc0 in .text; code is not copied as data (a function entry is copied as code, see the dynamic targets).
+Note: code at 0x47ce80 computes the code address 0x47db88 in .text; code is not copied as data (a function entry is copied as code, see the dynamic targets).
+Warning: code at 0x472bfe references 0x5dec81 (runtime.inProgress) in writable section .noptrbss; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Warning: code at 0x472c66 references 0x5e1728 (runtime.memstats) in writable section .noptrbss; its content is not fixed by the binary, so it is not copied (accesses fault unless a precondition provides that memory).
+Note: code at 0x472c77 computes the code address 0x472ce0 in .text; code is not copied as data (a function entry is copied as code, see the dynamic targets).
+Note: code at 0x41dc11 computes the code address 0x41dc60 in .text; code is not copied as data (a function entry is copied as code, see the dynamic targets).

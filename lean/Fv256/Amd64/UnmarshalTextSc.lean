@@ -39,8 +39,8 @@ theorem br_c (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
     Summary (Extracted.program.link impl) utEntry
-      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s ∧ Extracted.program.DataLoaded s.mem) ∧ ¬ (nI.toNat : Int) < 2 ∧ ¬ s.mem.readLE pI.toNat 1 = 48)
-      (fun s s' =>
+      (fun s => (PreU cfg sbAddr stAddr R R2 T b L lo hi z pI nI s ∧ HexEnv R lo hi z s) ∧ ¬ (nI.toNat : Int) < 2 ∧ ¬ s.mem.readLE pI.toNat 1 = 48)
+      (fun s s' => Kept s s' ∧
         (IsHex s.mem pI.toNat nI.toNat →
           (∀ v, parseHex (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
             s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
@@ -60,7 +60,7 @@ theorem br_c (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
             s'.regs 0 = BitVec.ofNat 64 cfg.numErrItab)) ∧
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   intro s hpc hpre
-  obtain ⟨⟨hpreU, henv, hdl⟩, hc1, hc2⟩ := hpre
+  obtain ⟨⟨hpreU, henv⟩, hc1, hc2⟩ := hpre
   have hEnv := hpreU.toS.env
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hlo4 := hpreU.toS.lo4
@@ -68,7 +68,6 @@ theorem br_c (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
   have h_x15 : s.xmm 15 = 0 := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.1
   have h_df : s.df = false := by have h := hpreU.toS.ret; unfold RetOK at h; exact h.2.2.2
   have h_rip : s.rip = BitVec.ofNat 64 utEntry := hpc
-  janus64_data hdl [e5]
   have hbD : (s.regs 4).toNat - 40 = 0 ∨ ((s.regs 4).toNat - 40 ≤ 281474976710624 ∧
       s.mem.accessible ((s.regs 4).toNat - 40) 32 true = true) :=
     Or.inr ⟨by omega, Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (by omega) (by omega)⟩
@@ -115,7 +114,18 @@ theorem br_c (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
       rw [hrb]; exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
     janus64_run [hs_ret, hs_rbp]
-    refine ⟨fun hh => ?_, fun _ => ⟨fun v h => ?_, heof, hrange, hsyn⟩, hFr⟩
+    refine ⟨?_, fun hh => ?_, fun _ => ⟨fun v h => ?_, heof, hrange, hsyn⟩, hFr⟩
+    · have k4' : s'.regs 14 = s.regs 14 := by simpa [setRegF_apply, callRegs64_apply] using k4
+      have k5' : s'.xmm 15 = s.xmm 15 := by simpa [h_x15] using k5
+      have k7' : s'.fsBase = s.fsBase := by simpa using k7
+      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+      · simp [retAddrOf]
+      · simp [setRegF_apply]
+      · simp [setRegF_apply]
+      · simpa [setRegF_apply] using k4'
+      · exact k5'
+      · simp [h_df]
+      · exact k7'
     · exact absurd hh (not_hex_b0 (by janus_assumption))
     · obtain ⟨c0, c3, c4⟩ := hok v h
       exact ⟨by simp [c0], by simp [c3], c4⟩

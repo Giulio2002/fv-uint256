@@ -1,0 +1,6 @@
+UnmarshalSpec t=3 	Maximum resident set size (kbytes): 2167536 errs=0
+UnmarshalTextS0 t=1 	Maximum resident set size (kbytes): 2033620 errs=0
+UnmarshalTextSa t=275 	Maximum resident set size (kbytes): 6590568 errs=0
+UnmarshalTextSx t=1192 	Maximum resident set size (kbytes): 19521268 errs=4
+UnmarshalTextSx FAILED
+ENDMARK

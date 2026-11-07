@@ -1,0 +1,10 @@
+mk rc=0
+ex aut rc=0
+ex auj rc=0
+ex afd rc=0
+ex amfd rc=0
+ex rfd rc=0
+ex rmfd rc=0
+rfd t=51 	Maximum resident set size (kbytes): 2663716 errs=0
+rmfd t=69 	Maximum resident set size (kbytes): 2646468 errs=0
+ENDMARK

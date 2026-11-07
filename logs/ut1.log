@@ -1,0 +1,61 @@
+Fv256/Amd64/UnmarshalText.lean:127:16: warning: try 'simp' instead of 'simpa'
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+Fv256/Amd64/UnmarshalText.lean:135:64: warning: try 'simp' instead of 'simpa'
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+Fv256/Amd64/UnmarshalText.lean:50:5: warning: Variable name `hif` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hif
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:51:5: warning: Variable name `hnew` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hnew
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:53:5: warning: Variable name `hmg` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmg
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:55:5: warning: Variable name `hmv` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hmv
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:57:5: warning: Variable name `hwb1` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb1
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:59:5: warning: Variable name `hwb2` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hwb2
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:62:5: warning: Variable name `hhex` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hhex
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+Fv256/Amd64/UnmarshalText.lean:121:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalText.lean:122:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalText.lean:123:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalText.lean:124:37: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalText.lean:133:31: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp argument list.
+  [apply] simp [setRegF_apply]
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Amd64/UnmarshalText.lean:133:75: warning: This simp argument is unused:
+  callRegs64_apply
+Hint: Omit it from the simp ar
+ENDMARK
