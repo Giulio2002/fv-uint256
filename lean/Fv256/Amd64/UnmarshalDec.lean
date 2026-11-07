@@ -1,5 +1,6 @@
 import Fv256.Amd64.UnmarshalSpec
 import Fv256.Amd64.SbtsFacts
+import Fv256.DecCongr
 
 /-!
 # `UnmarshalText` decimal branch (amd64): from the state after `string(input)` to `TopPre` of the `SetFromDecimal` call (Extracted-free)
@@ -45,12 +46,26 @@ theorem sfd_inst {C : SfdCfg} {P : Janus.Amd64.Program} {entry : Nat} {R : RtInv
       (L ++ (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)])) lo ((s.regs 4).toNat - 40) z r0 nI :=
   hsfd _ _ _ _ _ _ _
 
-theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
-    {z pI nI : BitVec 64} {s S3 : State} {M0 m : Janus.Arm64.Memory} {r0 r1 : BitVec 64} {retv : Nat}
+theorem m0_frame {R : RtInv} {sb st : Nat} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s : State} {M0 : Janus.Arm64.Memory} {v5 ra : Nat}
     (hpre : PreU C sb st R R2 T b L lo hi z pI nI s)
-    (hM0 : MemFrame s.mem M0 [(lo, hi)])
+    (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
+      ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra) :
+    MemFrame s.mem M0 [(lo, hi)] := by
+  have hlo4 := hpre.toS.lo4
+  have hhi4 := hpre.toS.hi4
+  rw [hM0c]
+  refine (((MemFrame.of_writeLE s.mem _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi))
+    (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi))
+    (by simp) (by omega) (by omega)
+
+theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s S3 : State} {M0 m : Janus.Arm64.Memory} {r0 r1 : BitVec 64} {retv v5 ra : Nat}
+    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s)
     (hP : SbPost R st b L s pI nI r0 r1 M0 m)
-    (hr0 : S3.regs 0 = z) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = nI) (hr4 : S3.regs 4 = s.regs 4 - 104#64)
+    (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
+      ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra)
+    (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = nI) (hr4 : S3.regs 4 = s.regs 4 - 104#64)
     (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false)
     (hS3 : S3.mem = m.writeLE ((s.regs 4).toNat - 104) 8 retv) (hretv : retv < 2 ^ 47) :
     TopPre C R R2 T (b - roundupsize nI.toNat true) (L ++ (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)]))
@@ -68,7 +83,20 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
   have hn : r1.toNat = nI.toNat := by
     rw [hSO.1]; simp
+  have hM0 := m0_frame C hpre hM0c
   have hbne : (s.regs 4).toNat - 40 ≠ 0 := by omega
+  have hzr : BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8) = z := by
+    have ho : Outside ((s.regs 4).toNat + 8) 8 (R.rt ++ [((s.regs 4).toNat - 104 - 4096, (s.regs 4).toNat - 104),
+        ((s.regs 4).toNat - 104 + 8, (s.regs 4).toNat - 104 + 8 + 24)] ++ [((s.regs 4).toNat - 40, (s.regs 4).toNat - 40 + 32)]) := by
+      simp only [outside_append, outside_cons, outside_nil, and_true]
+      refine ⟨⟨Outside.of_sub e9 (by omega) (by omega), ?_, ?_⟩, ?_⟩ <;> omega
+    rw [hMF.readLE _ _ ho, hM0c]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    apply BitVec.eq_of_toNat_eq
+    rw [BitVec.toNat_ofNat, Nat.mod_mod]
+    have h8 : (256 : Nat) ^ 8 = 2 ^ 64 := by decide
+    rw [h8]; exact Nat.mod_eq_of_lt z.isLt
+  rw [hzr] at hr0
   have hadds : ((if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then
           (if r1.toNat = 0 then [] else [(r0.toNat, r0.toNat + r1.toNat)]) else []) ++
         (if 2 ≤ r1.toNat ∧ ((s.regs 4).toNat - 40 = 0 ∨ 32 < r1.toNat) then []
@@ -190,13 +218,9 @@ theorem ret_reads {R : RtInv} {lo hi sp v5 vp vz ra ra' : Nat} {s0 M0 m S3m S' :
     (hM0 : M0 = (((s0.writeLE (sp - 8) 8 v5).writeLE (sp + 16) 8 vp).writeLE (sp + 8) 8 vz).writeLE (sp - 104) 8 ra)
     (hMF : MemFrame M0 m (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(sp - 40, sp - 40 + 32)]))
     (hS3 : S3m = m.writeLE (sp - 104) 8 ra')
-    (cMF : MemFrame S3m S' (R.rt ++ [(lo, sp - 40)])) :
+    {W : List (Nat × Nat)} (cMF : MemFrame S3m S' W) (hW : ∀ a, a = sp ∨ a = sp - 8 → Outside a 8 W) :
     S'.readLE sp 8 = s0.readLE sp 8 ∧ S'.readLE (sp - 8) 8 = v5 % 2 ^ 64 := by
-  have o1 : ∀ a, a = sp ∨ a = sp - 8 → Outside a 8 (R.rt ++ [(lo, sp - 40)]) := by
-    intro a ha
-    rw [outside_append]
-    refine ⟨Outside.of_sub hrt (by omega) (by omega), ?_⟩
-    simp only [outside_cons, outside_nil, and_true]; omega
+  have o1 : ∀ a, a = sp ∨ a = sp - 8 → Outside a 8 W := hW
   have o2 : ∀ a, a = sp ∨ a = sp - 8 →
       Outside a 8 (R.rt ++ [(sp - 104 - 4096, sp - 104), (sp - 104 + 8, sp - 104 + 8 + 24)] ++ [(sp - 40, sp - 40 + 32)]) := by
     intro a ha
@@ -212,5 +236,111 @@ theorem ret_reads {R : RtInv} {lo hi sp v5 vp vz ra ra' : Nat} {s0 M0 m S3m S' :
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
   · rw [step (sp - 8) (Or.inr rfl), hM0]
     simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+
+/-- the results of the decimal branch about the final state `s'` of the `SetFromDecimal` call -/
+theorem dec_post {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
+    {z pI nI : BitVec 64} {s S3 s' : State} {M0 m : Janus.Arm64.Memory} {r0 r1 : BitVec 64} {retv v5 ra : Nat}
+    (hpre : PreU C sb st R R2 T b L lo hi z pI nI s)
+    (hP : SbPost R st b L s pI nI r0 r1 M0 m)
+    (hM0c : M0 = (((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v5).writeLE ((s.regs 4).toNat + 16) 8 pI.toNat).writeLE
+      ((s.regs 4).toNat + 8) 8 z.toNat).writeLE ((s.regs 4).toNat - 104) 8 ra)
+    (hS3 : S3.mem = m.writeLE ((s.regs 4).toNat - 104) 8 retv)
+    (hr0 : S3.regs 0 = BitVec.ofNat 64 (m.readLE ((s.regs 4).toNat + 8) 8)) (hr3 : S3.regs 3 = r0) (hr1 : S3.regs 1 = nI)
+    (hr4 : S3.regs 4 = s.regs 4 - 104#64) (hr14 : S3.regs 14 = s.regs 14) (hx15 : S3.xmm 15 = 0) (hdf : S3.df = false)
+    (hretv : retv < 2 ^ 47)
+    (hq : TopPost C R R2 T (b - roundupsize nI.toNat true)
+      (L ++ (if nI.toNat = 0 then [] else [(r0.toNat, r0.toNat + nI.toNat)])) lo ((s.regs 4).toNat - 40) z r0 nI S3 s') :
+    ((∀ v, decParse (bytesAt s.mem pI.toNat) nI.toNat = .ok v →
+        s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem z.toNat = v) ∧
+      (decParse (bytesAt s.mem pI.toNat) nI.toNat = .eof →
+        (s'.regs 0).toNat = s.mem.readLE C.ioEOF 8 ∧ (s'.regs 3).toNat = s.mem.readLE (C.ioEOF + 8) 8 ∧
+        Janus.Spec.val256 s'.mem z.toNat = 0) ∧
+      (decParse (bytesAt s.mem pI.toNat) nI.toNat = .range →
+        (s'.regs 0).toNat = s.mem.readLE C.errBig 8 ∧ (s'.regs 3).toNat = s.mem.readLE (C.errBig + 8) 8 ∧
+        Janus.Spec.val256 s'.mem z.toNat = Janus.Spec.val256 s.mem z.toNat) ∧
+      (∀ lo' len', decParse (bytesAt s.mem pI.toNat) nI.toNat = .syntax lo' len' →
+        s'.regs 0 = BitVec.ofNat 64 C.numErrItab)) ∧
+    MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+    (s'.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+      s'.mem.readLE ((s.regs 4).toNat - 8) 8 = v5 % 2 ^ 64) := by
+  obtain ⟨hKept, hcases⟩ := hq
+  have hM0 := m0_frame C hpre hM0c
+  obtain ⟨-, hbytes, hF⟩ := dec_call_pre C hpre hP hM0c hr0 hr3 hr1 hr4 hr14 hx15 hdf hS3 hretv
+  have hp := hpre.toS
+  have hlo4 := hp.lo4
+  have hhi4 := hp.hi4
+  have hdp : decParse (bytesAt S3.mem r0.toNat) nI.toNat = decParse (bytesAt s.mem pI.toNat) nI.toNat :=
+    Fv256.I.decParse_congr _ _ _ (fun k hk => hbytes k hk)
+  have hio : ∀ a n, Outside a n R.rt → Outside a n [(lo, hi)] → S3.mem.readLE a n = s.mem.readLE a n :=
+    fun a n h1 h2 => hF.readLE a n (by rw [outside_append]; exact ⟨h1, h2⟩)
+  have hzsame : Janus.Spec.val256 S3.mem z.toNat = Janus.Spec.val256 s.mem z.toNat := by
+    have hzw := hp.zwin
+    rcases hp.zR with h | h
+    · exact hF.readLE z.toNat 32 (by
+        rw [outside_append]
+        refine ⟨h, ?_⟩
+        simp only [outside_cons, outside_nil, and_true]; omega)
+    · obtain ⟨-, -, hLF, -, -⟩ := hP
+      have hne : (s.regs 4).toNat - 40 ≠ 0 := by omega
+      rw [if_neg hne] at hLF
+      unfold Janus.Spec.val256
+      rw [hS3]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+      rw [hLF.readLE z.toNat 32 h (by simp only [outside_cons, outside_nil, and_true]; omega)]
+      exact hM0.readLE z.toNat 32 (by simp only [outside_cons, outside_nil, and_true]; omega)
+  have hEnv := hp.env
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv
+  have hzw := hp.zwin
+  have hMFof : MemFrame M0 m (R.rt ++ [((s.regs 4).toNat - 104 - 4096, (s.regs 4).toNat - 104),
+      ((s.regs 4).toNat - 104 + 8, (s.regs 4).toNat - 104 + 8 + 24)] ++ [((s.regs 4).toNat - 40, (s.regs 4).toNat - 40 + 32)]) := by
+    obtain ⟨hMF, -, -, -, -⟩ := hP
+    have hne : (s.regs 4).toNat - 40 ≠ 0 := by omega
+    rw [if_neg hne] at hMF
+    exact hMF
+  have fin : MemFrame S3.mem s'.mem (R.rt ++ R2.priv ++ [(lo, (s.regs 4).toNat - 40), (z.toNat, z.toNat + 32)]) →
+      MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) ∧
+      (s'.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+        s'.mem.readLE ((s.regs 4).toNat - 8) 8 = v5 % 2 ^ 64) := by
+    intro cMF
+    refine ⟨hF.trans cMF ?_, ?_⟩
+    · intro a n h
+      simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+      obtain ⟨⟨h1, h2⟩, h3, h4⟩ := h
+      exact ⟨⟨h1, h3⟩, ⟨h1, h2⟩, by omega, h4⟩
+    · refine ret_reads (R := R) hlo4 hhi4 e9 hM0c hMFof hS3 cMF ?_
+      intro a ha
+      simp only [outside_append, outside_cons, outside_nil, and_true]
+      refine ⟨⟨Outside.of_sub e9 (by omega) (by omega), Outside.of_sub e10 (by omega) (by omega)⟩, ?_, ?_⟩ <;> omega
+  rcases hcases with ⟨v, hv, c0, c3, cval, cEnv, cMF⟩ | ⟨hv, c0, c3, cval, cEnv, cMF⟩ | ⟨hv, c0, c3, cval, cEnv, cMF⟩ | ⟨lo', len', hv, q, t, c0, c3, cTe, cMF⟩
+  · refine ⟨⟨fun v' hv' => ?_, fun h => ?_, fun h => ?_, fun _ _ h => ?_⟩, fin (cMF.mono (fun a n h => by rw [outside_append] at h; exact h.2))⟩
+    · rw [← hdp] at hv'
+      rw [hv] at hv'; cases hv'
+      exact ⟨c0, c3, cval⟩
+    all_goals (rw [← hdp] at h; rw [hv] at h; cases h)
+  · refine ⟨⟨fun v' h => ?_, fun _ => ?_, fun h => ?_, fun _ _ h => ?_⟩, fin (cMF.mono (fun a n h => by rw [outside_append] at h; exact h.2))⟩
+    · rw [← hdp] at h; rw [hv] at h; cases h
+    · have e1 := hp.eofW
+      have e2 := hp.eofR
+      simp only [outside_cons, outside_nil, and_true] at e1
+      refine ⟨?_, ?_, cval⟩
+      · rw [c0]; exact hio _ _ (Outside.of_sub e2 (Nat.le_refl _) (by omega)) (by
+          simp only [outside_cons, outside_nil, and_true]; omega)
+      · rw [c3]; exact hio _ _ (Outside.of_sub e2 (by omega) (by omega)) (by
+          simp only [outside_cons, outside_nil, and_true]; omega)
+    all_goals (rw [← hdp] at h; rw [hv] at h; cases h)
+  · refine ⟨⟨fun v' h => ?_, fun h => ?_, fun _ => ?_, fun _ _ h => ?_⟩, fin (cMF.mono (fun a n h => by rw [outside_append] at h; exact h.2))⟩
+    · rw [← hdp] at h; rw [hv] at h; cases h
+    · rw [← hdp] at h; rw [hv] at h; cases h
+    · have e1 := hp.bigW
+      have e2 := hp.bigR
+      simp only [outside_cons, outside_nil, and_true] at e1
+      refine ⟨?_, ?_, by rw [cval]; exact hzsame⟩
+      · rw [c0]; exact hio _ _ (Outside.of_sub e2 (Nat.le_refl _) (by omega)) (by
+          simp only [outside_cons, outside_nil, and_true]; omega)
+      · rw [c3]; exact hio _ _ (Outside.of_sub e2 (by omega) (by omega)) (by
+          simp only [outside_cons, outside_nil, and_true]; omega)
+    · rw [← hdp] at h; rw [hv] at h; cases h
+  · refine ⟨⟨fun v' h => ?_, fun h => ?_, fun h => ?_, fun _ _ _ => c0⟩, fin cMF⟩
+    all_goals (rw [← hdp] at h; rw [hv] at h; cases h)
 
 end Fv256.Amd64.UnmarshalDec

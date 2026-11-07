@@ -104,25 +104,18 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
   have hdH : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 72 ∨ (s.regs 4).toNat - 72 + 32 ≤ pI.toNat := by omega
   have hdS1 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 - 4096 ∨ (s.regs 4).toNat - 104 ≤ pI.toNat := by omega
   have hdS2 : pI.toNat + nI.toNat ≤ (s.regs 4).toNat - 104 + 8 ∨ (s.regs 4).toNat - 104 + 8 + 24 ≤ pI.toNat := by omega
-  have hcostU := hpreU.toS.cost
   janus64_run until [Extracted.entry + 0x36, Extracted.entry + 0x56] calls [hsb]
   · -- decimal, input shorter than 2 bytes
-    janus64_run until [Extracted.entry + 0x66] calls [hsb]
+    janus64_run until [sfdEntry] calls [hsb]
     janus_grab StrAt as hSOA
     janus_grab LiveFrame as hLF
     janus_grab FreshFrom as hFr
     janus_grab 4096 as hMF
-    janus_grab roundupsize as hInv
-    have hP := SbPost.mk hMF hSOA hLF hFr hInv
+    have hP := SbPost.mk hMF hSOA hLF hFr (by janus_assumption)
     have hS := sfd_inst (C := cfg) (lo := lo) (z := z) hP hsfd
-    refine Reaches.call (Summary.withExit hS hret) ?pc ?pre ?post
-    case pc => first | rfl | (show (4923046#64 : BitVec 64) = _; decide)
-    case pre =>
-      refine (dec_call_pre cfg hpreU ?hM0 hP ?hr0 ?hr3 ?hr1 ?hr4 ?hr14 ?hx15 ?hdf ?hS3 (by decide)).1
-      case hM0 =>
-        refine (((MemFrame.of_writeLE s.mem _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi))
-          (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)).writeLE _ (r := (lo, hi))
-          (by simp) (by omega) (by omega)
+    refine Reaches.call (Summary.withExit hS hret) ?_ ?_ ?_
+    · first | rfl | decide
+    · refine (dec_call_pre cfg hpreU hP rfl ?hr0 ?hr3 ?hr1 ?hr4 ?hr14 ?hx15 ?hdf rfl ?hretv).1
       case hr0 => simp [setRegF_apply, callRegs64_apply]
       case hr3 => simp [setRegF_apply, callRegs64_apply]
       case hr1 => simp [setRegF_apply, callRegs64_apply]
@@ -130,8 +123,16 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
       case hr14 => simp [setRegF_apply, callRegs64_apply]
       case hx15 => simp
       case hdf => simpa using h_df
-      case hS3 => trace_state; sorry
-    case post =>
+      case hretv => decide
+    · intro s' hr hq
+      obtain ⟨⟨hok, heof, hrange, hsyn⟩, hFr, hrd, hrb⟩ := dec_post cfg hpreU hP rfl rfl
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp [setRegF_apply, callRegs64_apply])
+        (by simp [setRegF_apply, callRegs64_apply]) (by simp) (by simpa using h_df) (by decide) hq
+      have hs_ret : s'.mem.readLE (s.regs 4).toNat 8 = ret := by rw [hrd]; exact h_ret
+      have hs_rbp : s'.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat := by
+        rw [hrb]; exact Nat.mod_eq_of_lt (by have := (s.regs 5).isLt; simpa using this)
+      janus64_run [hs_ret, hs_rbp]
       trace_state
       sorry
   all_goals sorry
