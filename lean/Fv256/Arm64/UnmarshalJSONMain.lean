@@ -146,6 +146,26 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     HexEnv R lo hi z s :=
   Fv256.Arm64.UnmarshalJSONWit.nonvacuous_core
 
+/-- Non-vacuity on the unquoted path: the same runtime and contracts, the input is an unquoted 48-digit string. -/
+theorem unquoted : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (z pI nI cI : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) Fv256.Arm64.UnmarshalJSON.sbAddr 4096 R
+      (slicebytetostringSpec Fv256.Arm64.UnmarshalJSON.stAddr) slicebytetostringLive ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
+    PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R2 T b L lo hi z pI nI s ∧
+    HexEnv R lo hi z s ∧ ¬ Quoted s.mem pI.toNat nI.toNat :=
+  Fv256.Arm64.UnmarshalJSONWit.unquoted_core
+
 end Witness
 
 end Fv256.Arm64.UnmarshalJSONMain

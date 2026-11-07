@@ -35,6 +35,7 @@ def val (a : Nat) : Nat :=
   else if a = 0x400003 then 0x10
   else if a = 0x301000 ∨ a = 0x301000 + 49 then 0x22
   else if 0x301000 ≤ a ∧ a < 0x301000 + 50 then 0x37
+  else if 0x302000 ≤ a ∧ a < 0x302000 + 48 then 0x37
   else if a = 0xdc840 then 48
   else if a = 0xdc848 then 1
   else if a = 0xf692a then 1
@@ -49,13 +50,14 @@ def val (a : Nat) : Nat :=
 def mem0 : Memory :=
   ⟨fun a => BitVec.ofNat 8 (val a),
    [⟨0x10000, 0x300, false⟩, ⟨0x10300, 0xd00, true⟩, ⟨loW, hiW - loW, true⟩, ⟨gW, 0x100, false⟩, ⟨zW, 32, true⟩,
-    ⟨0x301000, 50, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
+    ⟨0x301000, 50, false⟩, ⟨0x302000, 48, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
     ⟨0xdc840, 16, false⟩, ⟨0xf490b, 78, false⟩, ⟨0xf5940, 8, false⟩, ⟨0xf6920, 16, false⟩, ⟨0x1b5b60, 16, false⟩,
     ⟨0x1b5c10, 16, false⟩, ⟨0x1b5eb0, 16, false⟩, ⟨0x1b6540, 40, false⟩, ⟨0x1e34c0, 4, false⟩, ⟨0x501000, 128, false⟩,
     ⟨1002789, 256, false⟩, ⟨1792784, 96, false⟩]⟩
 
 def zV : BitVec 64 := BitVec.ofNat 64 zW
 def pV : BitVec 64 := BitVec.ofNat 64 0x301000
+def pHV : BitVec 64 := BitVec.ofNat 64 0x302000
 def nV : BitVec 64 := 50#64
 def retW : Nat := 0x1000
 def bW : Nat := 0x20000
@@ -156,7 +158,7 @@ theorem maxdig0 : ∀ k, k < 78 → s0.mem.readLE (Fv256.Arm64.UnmarshalJSON.cfg
   have h1 : val (0xf490b + k) = Fv256.I.maxDigit k := by
     unfold val
     rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
-      if_neg (by omega), if_pos (by omega)]
+      if_neg (by omega), if_neg (by omega), if_pos (by omega)]
     rw [Nat.add_sub_cancel_left]
   have h2 : Fv256.I.maxDigit k < 256 := by
     unfold Fv256.I.maxDigit
@@ -222,8 +224,8 @@ theorem pre0 : PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAd
       apply outside_of_decide
       rcases hr with rfl | rfl | rfl | rfl | rfl | rfl <;> decide
     · exact chunk_gen 50 (by decide) (Or.inr (by decide))
-  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 152, by decide⟩))))
-  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 120, by decide⟩))))
+  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 152, 0x301000 + 1, by decide, Or.inl rfl⟩))))
+  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 120, 0x301000 + 1, by decide, Or.inl rfl⟩))))
   · have : nV.toNat - 2 = 48 := by decide
     rw [this]; exact chunk_gen 48 (by decide) (Or.inl (by decide))
 
@@ -239,7 +241,7 @@ theorem hexEnv0 : HexEnv R loW hiW zV s0 := by
     have h1 : val (1002789 + c) = (hexNib c).getD 255 := by
       unfold val
       rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
-        if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
+        if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
       rw [Nat.add_sub_cancel_left]
     rw [h1, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (Fv256.C.hexNib_getD_lt c)
   · apply outside_of_decide; decide
@@ -273,5 +275,52 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
     by rw [addr_cm]; exact hcmp, by rw [show Fv256.Arm64.UnmarshalJSON.sbAddr = sbA by decide]; exact model_sb,
     hret, setup, pre0, hexEnv0⟩
+
+
+def nU : BitVec 64 := 48#64
+
+def s1 : State := { s0 with regs := fun i => if i = 1 then pHV else if i = 2 then nU else if i = 3 then nU else s0.regs i }
+
+theorem unq1 : ¬ Quoted s1.mem pHV.toNat 48 := by
+  unfold Quoted; decide
+
+theorem pre1 : PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R0 TD bW []
+    loW hiW zV pHV nU s1 := by
+  have h0 := pre0
+  obtain ⟨⟨f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24, f25, f26,
+    f27, f28, f29, f30, f31, f32, f33, f34, f35⟩, -, -⟩ := h0
+  refine ⟨⟨f1, rfl, rfl, f4, f5, f6, f7, by decide, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24,
+    f25, f26, f27, f28, f29, f30, f31, f32, ⟨by decide, by decide⟩, by decide, ?_⟩,
+    fun _ => ⟨Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 72, 0x302000, by decide, Or.inr rfl⟩)))),
+      Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 40, 0x302000, by decide, Or.inr rfl⟩))))⟩,
+    fun hq => absurd hq unq1⟩
+  exact chunk_gen 48 (by decide) (Or.inl (by decide))
+
+theorem setup1 : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pHV, nU, nU] s1 :=
+  ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | _ | _ | _ | r <;> simp [s1, s0] at h ⊢ <;> omega⟩
+
+/-- as `nonvacuous_core`, with the input an UNQUOTED 48-digit string -/
+theorem unquoted_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (z pI nI cI : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) Fv256.Arm64.UnmarshalJSON.sbAddr 4096 R
+      (slicebytetostringSpec Fv256.Arm64.UnmarshalJSON.stAddr) slicebytetostringLive ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
+    PreJ Fv256.Arm64.UnmarshalJSON.cfg Fv256.Arm64.UnmarshalJSON.sbAddr Fv256.Arm64.UnmarshalJSON.stAddr R R2 T b L lo hi z pI nI s ∧
+    HexEnv R lo hi z s ∧ ¬ Quoted s.mem pI.toNat nI.toNat :=
+  ⟨implA, R, R0, TD, bW, [], loW, hiW, zV, pHV, nU, nU, retW, s1, implOK,
+    by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
+    by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
+    by rw [addr_cm]; exact hcmp, by rw [show Fv256.Arm64.UnmarshalJSON.sbAddr = sbA by decide]; exact model_sb,
+    hret, setup1, pre1, hexEnv0, unq1⟩
 
 end Fv256.Arm64.UnmarshalJSONWit

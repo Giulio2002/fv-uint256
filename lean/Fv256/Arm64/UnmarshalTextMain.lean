@@ -146,6 +146,26 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     HexEnv R lo hi z s :=
   Fv256.Arm64.UnmarshalTextWit.nonvacuous_core
 
+/-- Non-vacuity on the hex path: the same runtime and contracts, the input is a 48-byte `0x…` string (`IsHex`). -/
+theorem hex : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (z pI nI cI : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) Fv256.Arm64.UnmarshalText.sbAddr 4096 R
+      (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
+    PreU Fv256.Arm64.UnmarshalText.cfg Fv256.Arm64.UnmarshalText.sbAddr Fv256.Arm64.UnmarshalText.stAddr R R2 T b L lo hi z pI nI s ∧
+    HexEnv R lo hi z s ∧ IsHex s.mem pI.toNat nI.toNat :=
+  Fv256.Arm64.UnmarshalTextWit.hex_core
+
 end Witness
 
 end Fv256.Arm64.UnmarshalTextMain

@@ -1,6 +1,7 @@
 import Extracted
 import Fv256.Arm64.UnmarshalTextHead
 import Fv256.Arm64.UnmarshalTextWitB
+import Fv256.Arm64.UnmarshalPost
 
 /-!
 # Witness for `UnmarshalText` (arm64), part C: a concrete call state
@@ -11,7 +12,7 @@ synthetic contents), the four multiplier objects `10^(19 k)`, `z`, the input str
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I Fv256.C
-  Fv256.Arm64.SfdTopSpec Fv256.Arm64.UnmarshalSpec Fv256.Arm64.UnmarshalHex Fv256.Arm64.FromHexLib
+  Fv256.Arm64.SfdTopSpec Fv256.Arm64.UnmarshalSpec Fv256.Arm64.UnmarshalHex Fv256.Arm64.FromHexLib Fv256.Arm64.UnmarshalPost
 
 namespace Fv256.Arm64.UnmarshalTextWit
 
@@ -33,6 +34,9 @@ def val (a : Nat) : Nat :=
   if 0x10000 ≤ a ∧ a < 0x11000 then (IfaceModel.wmem.bytes a).toNat
   else if a = 0x400003 then 0x10
   else if 0x301000 ≤ a ∧ a < 0x301000 + 48 then 0x37
+  else if a = 0x302000 then 48
+  else if a = 0x302001 then 120
+  else if 0x302002 ≤ a ∧ a < 0x302000 + 48 then 0x31
   else if a = 0xdc840 then 48
   else if a = 0xdc848 then 1
   else if a = 0xf692a then 1
@@ -47,13 +51,14 @@ def val (a : Nat) : Nat :=
 def mem0 : Memory :=
   ⟨fun a => BitVec.ofNat 8 (val a),
    [⟨0x10000, 0x300, false⟩, ⟨0x10300, 0xd00, true⟩, ⟨loW, hiW - loW, true⟩, ⟨gW, 0x100, false⟩, ⟨zW, 32, true⟩,
-    ⟨0x301000, 48, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
+    ⟨0x301000, 48, false⟩, ⟨0x302000, 48, false⟩, ⟨BUMP, 0x200, true⟩, ⟨HEAP, HSIZE, true⟩,
     ⟨0xdc840, 16, false⟩, ⟨0xf490b, 78, false⟩, ⟨0xf5940, 8, false⟩, ⟨0xf6920, 16, false⟩, ⟨0x1b5b60, 16, false⟩,
     ⟨0x1b5c10, 16, false⟩, ⟨0x1b5eb0, 16, false⟩, ⟨0x1b6540, 40, false⟩, ⟨0x1e34c0, 4, false⟩, ⟨0x501000, 128, false⟩,
     ⟨1002789, 256, false⟩, ⟨1792784, 96, false⟩]⟩
 
 def zV : BitVec 64 := BitVec.ofNat 64 zW
 def pV : BitVec 64 := BitVec.ofNat 64 0x301000
+def pHV : BitVec 64 := BitVec.ofNat 64 0x302000
 def nV : BitVec 64 := 48#64
 def retW : Nat := 0x1000
 def bW : Nat := 0x20000
@@ -154,7 +159,7 @@ theorem maxdig0 : ∀ k, k < 78 → s0.mem.readLE (Fv256.Arm64.UnmarshalText.cfg
   have h1 : val (0xf490b + k) = Fv256.I.maxDigit k := by
     unfold val
     rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
-      if_pos (by omega)]
+      if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
     rw [Nat.add_sub_cancel_left]
   have h2 : Fv256.I.maxDigit k < 256 := by
     unfold Fv256.I.maxDigit
@@ -202,8 +207,8 @@ theorem pre0 : PreU Fv256.Arm64.UnmarshalText.cfg Fv256.Arm64.UnmarshalText.sbAd
   have hm := maxdig0
   have hc := init0
   refine ⟨rfl, rfl, rfl, mod0, env0, by decide, by decide, ?_, ?_, by decide, ?_, ?_, ?_, ?_, mult0, ?_⟩
-  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 72, by decide⟩))))
-  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 40, by decide⟩))))
+  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 72, 0x301000, by decide, Or.inl rfl⟩))))
+  · exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 40, 0x301000, by decide, Or.inl rfl⟩))))
   · apply outside_of_decide; decide
   · rw [rt_eq]; apply outside_of_decide; decide
   · simp only [R0_priv]; apply outside_of_decide; decide
@@ -248,7 +253,7 @@ theorem hexEnv0 : HexEnv R loW hiW zV s0 := by
     have h1 : val (1002789 + c) = (hexNib c).getD 255 := by
       unfold val
       rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
-        if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
+        if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
       rw [Nat.add_sub_cancel_left]
     rw [h1, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (Fv256.C.hexNib_getD_lt c)
   · apply outside_of_decide; decide
@@ -282,5 +287,46 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
     by rw [addr_cm]; exact hcmp, by rw [show Fv256.Arm64.UnmarshalText.sbAddr = sbA by decide]; exact model_sb,
     hret, setup, pre0, hexEnv0⟩
+
+
+/-- the second call state: the same memory, the input is the hex string at `pH` -/
+def s1 : State := { s0 with regs := fun i => if i = 1 then pHV else s0.regs i }
+
+theorem pre1 : PreU Fv256.Arm64.UnmarshalText.cfg Fv256.Arm64.UnmarshalText.sbAddr Fv256.Arm64.UnmarshalText.stAddr R R0 TD bW []
+    loW hiW zV pHV nV s1 := by
+  obtain ⟨f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24, f25, f26,
+    f27, f28, f29, f30, f31, f32, f33, f34, f35, f36, f37⟩ := pre0
+  exact ⟨f1, rfl, f3, f4, f5, f6, f7, Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 72, 0x302000, by decide, Or.inr rfl⟩)))),
+    Or.inr (Or.inr (Or.inr (Or.inr (Or.inr ⟨by decide, spW - 40, 0x302000, by decide, Or.inr rfl⟩)))), f10, f11, f12, f13, f14, f15, f16,
+    f17, f18, f19, f20, f21, f22, f23, f24, f25, f26, f27, f28, f29, f30, f31, f32, f33, f34, ⟨by decide, by decide⟩, by decide, f37⟩
+
+theorem setup1 : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pHV, nV, nV] s1 :=
+  ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | _ | _ | _ | r <;> simp [s1, s0] at h ⊢ <;> omega⟩
+
+theorem ishex1 : IsHex s1.mem pHV.toNat nV.toNat := ⟨by decide, by decide, Or.inl (by decide)⟩
+
+/-- as `nonvacuous_core`, with the input a `0x…` string (the hex path) -/
+theorem hex_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+      (lo hi : Nat) (z pI nI cI : BitVec 64) (ret : Nat) (s : State),
+    ImplApart Extracted.program impl ∧
+    Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
+    NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧
+    MallocgcLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.mallocgc") 4096 R ∧
+    MemmoveLive (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.memmove") 4096 R ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧
+    WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧
+    Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
+    RtLiveContract (Extracted.program.ofImpl impl) Fv256.Arm64.UnmarshalText.sbAddr 4096 R
+      (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pI, nI, cI] s ∧
+    PreU Fv256.Arm64.UnmarshalText.cfg Fv256.Arm64.UnmarshalText.sbAddr Fv256.Arm64.UnmarshalText.stAddr R R2 T b L lo hi z pI nI s ∧
+    HexEnv R lo hi z s ∧ IsHex s.mem pI.toNat nI.toNat :=
+  ⟨implA, R, R0, TD, bW, [], loW, hiW, zV, pHV, nV, nV, retW, s1, implOK,
+    by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
+    by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
+    by rw [addr_cm]; exact hcmp, by rw [show Fv256.Arm64.UnmarshalText.sbAddr = sbA by decide]; exact model_sb,
+    hret, setup1, pre1, hexEnv0, ishex1⟩
 
 end Fv256.Arm64.UnmarshalTextWit
