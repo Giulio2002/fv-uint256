@@ -161,6 +161,8 @@ theorem pr_frame {m m' : Janus.Arm64.Memory} {ws : List (Nat × Nat)} {p n : Nat
   · exact Or.inl h
   · exact Or.inr ⟨h.1, by rw [hF.accessible]; exact h.2⟩
 
+theorem ofn (v : BitVec 64) : BitVec.ofNat 64 v.toNat = v := by simp
+
 abbrev sfdEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).SetFromDecimal"
 abbrev ibsEntry : Nat := segAddr Extracted.program "internal/bytealg.IndexByteString"
 abbrev sciEntry : Nat := segAddr Extracted.program "github.com/holiman/uint256.(*Int).scanScientificFromString"
@@ -194,11 +196,83 @@ theorem seg_post_ibs (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (
     (lo hi : Nat) (dst pS nS : BitVec 64)
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS')
-    (s : State) (hpre : Pre0 R R2 T b L lo hi dst pS nS s) (S : State) (hfr : Fr lo dst pS nS s S)
+    (s : State) (hpre : Pre0 R R2 T b L lo hi dst pS nS s) (hn : nS.toNat ≠ 0) (S : State) (hfr : Fr lo dst pS nS s S)
     (hpc : S.pc = BitVec.ofNat 64 (sciEntry + 0x44)) (h30 : S.regs 30 = BitVec.ofNat 64 (sciEntry + 0x44))
     (hx0 : (S.regs 0).toNat = Fv256.IndexByte.indexOfNat (bytesAt s.mem pS.toNat) nS.toNat 101) :
     ReachesRet (Extracted.program.link impl) (s.regs GoABI.regLR) S (SciPost cfg R R2 T b L lo hi dst pS nS s) := by
-  sorry
+  obtain ⟨⟨htop, hlo112, hpage⟩, hinit, hdl⟩ := hpre
+  have htop' := htop
+  obtain ⟨h30a, h30b, h0, h1, h2, hMod, hEnv, hlo, hhi, hMult, hE1, hE2, hMa, hMo, hMr, hMb, hB1, hB2, hzP, hzW, hzR, hzPr, hzS,
+    hzg, hPA, hP48, hPW, hPZ, hCh⟩ := htop'
+  have hEnv0 := hEnv
+  obtain ⟨hr1, hr2, hr3, hr4, hr5, -⟩ := hEnv0
+  obtain ⟨fsp, f28, f18, f29, fmf, freg, fra, ffp, fdst, fp, fn⟩ := hfr
+  have hSsp : S.sp.toNat = s.sp.toNat - 112 := by
+    rw [fsp]; have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  have hr136 : S.mem.readLE (S.sp.toNat + 136) 8 = nS.toNat := by rw [hSsp, show s.sp.toNat - 112 + 136 = s.sp.toNat + 24 by omega]; exact fn
+  have hr128 : S.mem.readLE (S.sp.toNat + 128) 8 = pS.toNat := by rw [hSsp, show s.sp.toNat - 112 + 128 = s.sp.toNat + 16 by omega]; exact fp
+  have hr120 : S.mem.readLE (S.sp.toNat + 120) 8 = dst.toNat := by rw [hSsp, show s.sp.toNat - 112 + 120 = s.sp.toNat + 8 by omega]; exact fdst
+  have hrfp : S.mem.readLE (S.sp.toNat - 8) 8 = (s.regs 29).toNat := by rw [hSsp, show s.sp.toNat - 112 - 8 = s.sp.toNat - 120 by omega]; exact ffp
+  have hrlr : S.mem.readLE S.sp.toNat 8 = (s.regs 30).toNat := by rw [hSsp]; exact fra
+  have hacc : S.mem.accessible (S.sp.toNat - 8) 152 true = true := by
+    rw [fmf.accessible]
+    exact Janus.Arm64.Memory.accessible_sub _ hr5 (Or.inr rfl) (by omega) (by omega)
+  janus_eval_nat h_sci : sciEntry
+  rw [show sciEntry + 0x44 = 754100 from by rw [h_sci]] at hpc h30
+  have hx0e : (S.regs 0).toNat = (match Fv256.ScanSpec.idxE (bytesAt s.mem pS.toNat) nS.toNat with | some i => i | none => 2 ^ 64 - 1) := by
+    rw [hx0]; exact indexOf_eq_idxE _ _
+  have hSal : S.sp.toNat % 16 = 0 := by omega
+  clear fsp
+  have h28' : S.regs 28 = s.regs 28 := f28
+  by_cases hnone : Fv256.ScanSpec.idxE (bytesAt s.mem pS.toNat) nS.toNat = none
+  · rw [hnone] at hx0e
+    have hx : S.regs 0 = 18446744073709551615#64 := BitVec.eq_of_toNat_eq (by simpa using hx0e)
+    have e1 : (addWithCarry (18446744073709551615#64) (1#64) false).snd.z = true := by decide
+    janus_run [e1, hpc, hx, hr136, hr128, hr120, hacc, hrfp, hrlr, h28', h30, f28, hSal] until [sfdEntry]
+    case h =>
+      have hF : MemFrame s.mem S.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] :=
+        fmf.mono (fun a n h => by simp only [outside_cons, outside_nil, and_true] at h ⊢; omega)
+      refine ReachesRet.call (Summary.regions (hsfd b L lo (S.sp.toNat + 32) dst pS nS)) (by first | rfl | decide) ?_ ?_
+      · refine call_pre cfg htop hF hSal (by omega) (Or.inl rfl) (by omega) (Or.inr ⟨Nat.le_refl _, Nat.le_refl _⟩) hP48
+          (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply]) (by simp [setReg_apply])
+          (by simp [setReg_apply, f28]) (by simp; omega) (by simp) hzR hzPr hzS hzg (by rw [fmf.accessible]; exact hzP.1) hzP.2
+      · intro S3 hpc3 ⟨hpost, hreg3⟩
+        obtain ⟨k1, k2, k3, k4, k5, k6, hcases⟩ := hpost
+        dsimp only at k1 k2 k3 k4 k5 k6 hcases
+        have hra : S3.mem.readLE S.sp.toNat 8 = (s.regs 30).toNat := by rw [k6]; exact hrlr
+        have hfp' : S3.mem.readLE (S.sp.toNat - 8) 8 = (s.regs 29).toNat := by rw [k5]; exact hrfp
+        have hsi : (S.sp.toNat + 112) = s.sp.toNat := by rw [hSsp]; exact Nat.sub_add_cancel (Nat.le_trans (by omega) hlo)
+        have hacc3 : S3.mem.accessible (S.sp.toNat - 8) 152 true = true := by
+          have e : S3.mem.regions = S.mem.regions := hreg3
+          unfold Janus.Arm64.Memory.accessible at hacc ⊢
+          rw [e]; exact hacc
+        have hacc3' : S3.mem.accessible (S.sp.toNat - 8) 8 false = true :=
+          Janus.Arm64.Memory.accessible_sub _ hacc3 (Or.inl rfl) (by omega) (by omega)
+        janus_run [hra, hfp', hSal, ofn, hacc3, hacc3']
+        have hsp112 : S.sp + 112#64 = s.sp := BitVec.eq_of_toNat_eq (by
+          simp only [BitVec.toNat_add, BitVec.toNat_ofNat]; have := s.sp.isLt; omega)
+        have hbytes : decParse (bytesAt s.mem pS.toNat) nS.toNat = decParse (bytesAt S.mem pS.toNat) nS.toNat :=
+          Fv256.I.decParse_congr _ _ _ (fun k hk => (fmf.readLE (pS.toNat + k) 1 (str_outside hPW hPZ (by omega) hhi k hk)).symm)
+        have hsci : Fv256.ScanSpec.sciParse (bytesAt s.mem pS.toNat) nS.toNat = decParse (bytesAt S.mem pS.toNat) nS.toNat := by
+          rw [sci_none hn hnone, hbytes]
+        have hlift : ∀ (rs : List (Nat × Nat)) (ws1 : List (Nat × Nat)), MemFrame S.mem S3.mem ws1 →
+            (∀ a n, Outside a n rs → Outside a n ws1 ∧ Outside a n [(lo, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32), (dst.toNat, dst.toNat + 32)]) →
+            MemFrame s.mem S3.mem rs := fun rs ws1 h2 hout => fmf.trans h2 (fun a n ho => by
+              have := hout a n ho; exact ⟨this.2, this.1⟩)
+        unfold SciPost
+        have hSs : S.sp.toNat + 112 = s.sp.toNat := hsi
+        have hr28' : S3.regs 28 = s.regs 28 := by rw [k3, ← f28]; simp [setReg_apply]
+        have hr18' : S3.regs 18 = s.regs 18 := by rw [k4, ← f18]; simp [setReg_apply]
+        rcases hcases with ⟨v, hv, c0, c1, cval, cEnv, cMF⟩ | ⟨hv, c0, c1, cval, cEnv, cMF⟩ | ⟨hv, c0, c1, cval, cEnv, cMF⟩ | ⟨lo', len', hv, q, t, c0, c1, cTe, cMF⟩
+        · have hM3 := hlift [(lo, hi), (dst.toNat, dst.toNat + 32)] _ cMF (fun a n h => out_ok h (by omega) hhi hSs)
+          refine ⟨hsp112, by simp [setReg_apply], by simp [setReg_apply, hr28'], by simp [setReg_apply, hr18'],
+            hM3.readLE _ _ ?_, hM3.readLE _ _ ?_, Or.inl ⟨v, ?_, by simpa [setReg_apply] using c0, by simpa [setReg_apply] using c1, ?_, hM3⟩⟩
+          · sorry
+          · sorry
+          · rw [hsci]; exact hv
+          · sorry
+        all_goals sorry
+  · sorry
 
 theorem seg_entry (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst pS nS : BitVec 64)
@@ -265,7 +339,8 @@ theorem seg_entry (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b
       have hx0' : (S2.regs 0).toNat = Fv256.IndexByte.indexOfNat (bytesAt s.mem pS.toNat) nS.toNat 101 := by
         rw [hx0]
         exact indexOfNat_congr _ _ _ _ hbytes
-      refine seg_post_ibs impl R R2 T b L lo hi dst pS nS hsfd s ⟨⟨htop, hlo112, hpage⟩, hinit, hdl⟩ S2 hfr ?_ ?_ hx0'
+      have hbrn : ¬ nS.toNat = 0 := by janus_assumption
+      refine seg_post_ibs impl R R2 T b L lo hi dst pS nS hsfd s ⟨⟨htop, hlo112, hpage⟩, hinit, hdl⟩ (by intro h; exact hbrn h) S2 hfr ?_ ?_ hx0'
       · rw [hpc2]; sorry
       · rw [h30]; sorry
 

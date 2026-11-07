@@ -156,6 +156,48 @@ theorem toppre_sub {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × N
     refine chunkOK_mono C this (fun r hr => hr) hhi' ?_
     rw [hF.accessible]; exact this.2.2.2.1
 
+/-- `toppre_sub` for the state `Sx` (any state whose memory is a frame of the entry memory and whose `SP` is in the window):
+the runtime environment is derived from the entry one. -/
+theorem call_pre {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi hi' : Nat}
+    {z pS nS z' pS' nS' : BitVec 64} {s0 Sx : State}
+    (hpre : TopPre C R R2 T b L lo hi z pS nS s0)
+    (hF : MemFrame s0.mem Sx.mem [(lo, hi), (z.toNat, z.toNat + 32)])
+    (hal : Sx.sp.toNat % 16 = 0) (hhi' : hi' ≤ hi)
+    (hz'in : z'.toNat = z.toNat ∨ (lo ≤ z'.toNat ∧ z'.toNat + 32 ≤ hi)) (hz'win : z'.toNat + 32 ≤ lo ∨ hi' ≤ z'.toNat)
+    (hsub : nS'.toNat = 0 ∨ (pS.toNat ≤ pS'.toNat ∧ pS'.toNat + nS'.toNat ≤ pS.toNat + nS.toNat))
+    (hP48' : pS'.toNat + nS'.toNat ≤ 2 ^ 48)
+    (hr0 : Sx.regs 0 = z') (hr1 : Sx.regs 1 = pS') (hr2 : Sx.regs 2 = nS')
+    (h30a : (Sx.regs 30).toNat % 4 = 0) (h30b : (Sx.regs 30).toNat < 2 ^ 48)
+    (hr28 : Sx.regs 28 = s0.regs 28)
+    (hlo : lo + 4528 ≤ Sx.sp.toNat) (hhi : Sx.sp.toNat + 32 ≤ hi')
+    (hz'R : Outside z'.toNat 32 R.rt ∨ InRanges z'.toNat 32 L) (hz'P : Outside z'.toNat 32 R2.priv)
+    (hz'S : ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(z'.toNat, z'.toNat + 32)])
+    (hz'g : (s0.regs 28).toNat + 16 + 8 ≤ z'.toNat ∨ z'.toNat + 32 ≤ (s0.regs 28).toNat + 16)
+    (hz'acc : Sx.mem.accessible z'.toNat 32 true = true) (hz'48 : z'.toNat + 32 ≤ 2 ^ 48) :
+    TopPre C R R2 T b L lo hi' z' pS' nS' Sx := by
+  have hpre' := hpre
+  obtain ⟨-, -, -, -, -, hMod, hEnv, -, -, -, -, -, -, -, -, -, -, -, -, -, hzR, hzPr, hzS, hzg, -⟩ := hpre'
+  have hEnv' := hEnv
+  obtain ⟨e1, e2, -⟩ := hEnv'
+  have e1' := Env.frame (C := C) hMod.1 hEnv (s' := Sx) ⟨by omega, by omega, hal⟩ hr28 hF hzR hzPr hzS hzg
+  exact toppre_sub C hpre (Env.shrink e1' (Nat.le_refl _) hhi' (by omega) (by omega)) hF hhi' hz'in hz'win hsub hP48' hr0 hr1 hr2 h30a h30b
+    hr28 hlo hhi hz'R hz'P hz'S hz'g hz'acc hz'48
+
+theorem out_ok {a n lo hi sp dst S : Nat} (h : Outside a n [(lo, hi), (dst, dst + 32)]) (hl : lo ≤ sp) (h1 : sp + 32 ≤ hi) (hS : S + 112 = sp) :
+    Outside a n [(lo, S + 32), (dst, dst + 32)] ∧ Outside a n [(lo, sp - 8), (sp + 8, sp + 32), (dst, dst + 32)] := by
+  simp only [outside_cons, outside_nil, and_true] at h ⊢; omega
+
+theorem out_syn {a n lo hi sp dst S : Nat} {rs : List (Nat × Nat)}
+    (h : Outside a n (rs ++ [(lo, hi), (dst, dst + 32)])) (hl : lo ≤ sp) (h1 : sp + 32 ≤ hi) (hS : S + 112 = sp) :
+    Outside a n (rs ++ [(lo, S + 32), (dst, dst + 32)]) ∧ Outside a n [(lo, sp - 8), (sp + 8, sp + 32), (dst, dst + 32)] := by
+  simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+  obtain ⟨h0, h2, h3⟩ := h
+  refine ⟨⟨h0, ?_, h3⟩, ?_⟩ <;> omega
+
+theorem out_win {a n lo hi sp dst : Nat} (h : Outside a n [(lo, hi), (dst, dst + 32)]) (hl : lo ≤ sp) (h1 : sp + 32 ≤ hi) :
+    Outside a n [(lo, sp - 8), (sp + 8, sp + 32), (dst, dst + 32)] := by
+  simp only [outside_cons, outside_nil, and_true] at h ⊢; omega
+
 /-! ## `sciParse` lemmas -/
 
 theorem find_congr {α : Type} (p q : α → Bool) : ∀ l : List α, (∀ x ∈ l, p x = q x) → l.find? p = l.find? q := by
