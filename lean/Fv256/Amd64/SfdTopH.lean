@@ -107,4 +107,26 @@ theorem cmp_val (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)
     simp only [outside_cons, outside_nil, and_true] at this ⊢
     omega
 
+open Janus.Contracts.Cmpstring in
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 20000 in
+/-- `cmpstring` says the 78 digits are above `2^256 - 1`: `ErrBig256Range` -/
+theorem top_c3_gt (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (z pS nS : BitVec 64) (s : State) (hpre : TopPre extCfg R R2 T b L lo hi z pS nS s)
+    (Sc S'' : State) (hC : CmpCtx R R2 T b L lo hi z pS nS s Sc) (hpr : CmpstringPre64 16 Sc)
+    (hret : CmpRet64 16 Sc S'')
+    (hlex : lexGt (fun j => Fv256.C.bytesAt s.mem pS.toNat (startPos (Fv256.C.bytesAt s.mem pS.toNat) nS.toNat + j)) maxDigit 78) :
+    ReachesRet (Extracted.program.link impl) (retAddrOf s) S'' (TopPost extCfg R R2 T b L lo hi z pS nS s) := by
+  have hpre' := hpre
+  have heq := hC.2.2.2.2.2.2.2.2
+  obtain ⟨hSt, hpc, hR0, m24, m16⟩ := cmp_after R R2 T b L lo hi z pS nS s hpre Sc S'' hC hpr hret
+  have hv := (cmp_val R R2 T b L lo hi z pS nS s hpre Sc hC.1 heq).2 hlex
+  have hR0' : S''.regs 0 = 1#64 := by rw [hR0, hv]; rfl
+  have h1 : ReachesRet (Extracted.program.link impl) (BitVec.ofNat 64 (sfd + 0x8a)) S'' (TopSt R R2 T b L lo hi z pS s) := by
+    have hm1 : ¬ (1#64).msb = true := by decide
+    janus64_run [hpc, hR0', hm1] until [sfd + 0x8a]
+    all_goals exact topSt_congr hSt rfl rfl rfl rfl rfl rfl rfl
+  refine Fv256.SegCompose.seg_trans h1 (fun S3 hpc3 hSt3 => top_range impl R R2 T b L lo hi z pS nS s hpre' S3 (sfd + 0x8a) (Or.inr rfl) hpc3 hSt3 ?_)
+  exact Fv256.TopMath.decParse_gt78 _ _ heq hlex
+
 end Fv256.Amd64.SfdTop
