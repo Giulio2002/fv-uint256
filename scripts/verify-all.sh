@@ -43,7 +43,8 @@ for row in "${rows[@]}"; do
     # proof module: Fn.lean, or FnMain.lean when the main theorem lives there (split proofs)
     # FnMain.lean, when it exists, is the full-spec proof and wins over Fn.lean (which may be an older partial proof)
     pf="$fn"; if [ -f "lean/Fv256/$dir/${fn}Main.lean" ] && grep -q "theorem correctness" "lean/Fv256/$dir/${fn}Main.lean"; then pf="${fn}Main"; fi
-    wt=(); if [ -n "${WITNESS:-}" ] && grep -q "theorem nonvacuous" "lean/Fv256/$dir/$pf.lean"; then wt=(--theorem "Fv256.$dir.$pf.Witness.nonvacuous"); fi
+    # every existential witness theorem declared in the module (Witness.nonvacuous, Grow.Witness.nonvacuous, Witness.big, ...): scripts/witness-theorems.py
+    wt=(); if [ -n "${WITNESS:-}" ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/$dir/$pf.lean"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
        timeout "$TMO" $MC $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
          --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fail=1; fi
