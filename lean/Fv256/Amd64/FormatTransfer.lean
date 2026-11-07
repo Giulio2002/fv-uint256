@@ -13,7 +13,7 @@ only inside `PFL (RSP)` = `[RSP-80, RSP)` and `[RSP+16, RSP+32)`.  Every memory 
 -/
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janus.Contracts.ICall Janus.Contracts.IfaceAmd64
-  Janus.Spec Janus.Spec.Type
+  Janus.Spec Janus.Spec.Type Janus.Spec.Map
 open Fv256.FormatFast Fv256.Amd64.FormatNil Fv256.E
 
 set_option linter.unusedSimpArgs false
@@ -206,6 +206,17 @@ theorem callerOK_of {R : IfaceModel} (hl : R.Laws) {s S0 : State} (h : CallerOK 
   · rw [hn, hr14, show (s.regs 4).toNat - 72 - (R.depth + 8) = (s.regs 4).toNat - (R.depth + 80) by omega]; simp only [Spec.Disjoint]; omega
   · rw [hr14]; exact hgp
 
+theorem strOut_frame {m m' : Memory} {ws : List (Nat × Nat)} {p n : Nat} {bs : List Nat} (hf : MemFrame m m' ws)
+    (ho : Outside p n ws) (h : StrOut m p n bs) : StrOut m' p n bs := by
+  obtain ⟨h1, h2, h3, h4⟩ := h
+  refine ⟨h1, h2, fun hn => by rw [hf.accessible]; exact h3 hn, ?_⟩
+  rw [← h4]
+  apply Janus.Spec.strBytes_congr
+  intro i hi
+  have := hf.readLE (p + i) 1 (Outside.of_sub ho (by omega) (by omega))
+  rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at this
+  exact BitVec.eq_of_toNat_eq this
+
 theorem nilpre_of {R : IfaceModel} (hl : R.Laws) {rt : List (Nat × Nat)} {stack : Nat} {tab data : BitVec 64} {s S0 : State}
     (hc : PreCommon rt stack s) (hn : PreNilE R rt stack tab s)
     (hr0 : S0.regs 0 = 0#64) (hr3 : S0.regs 3 = tab) (hr1 : S0.regs 1 = data) (hr4 : S0.regs 4 = s.regs 4 - 72#64)
@@ -222,9 +233,34 @@ theorem nilpre_of {R : IfaceModel} (hl : R.Laws) {rt : List (Nat × Nat)} {stack
   have hco' := hco
   obtain ⟨-, -, -, -, -, -, hpriv, -, -⟩ := hco'
   have hws : ∀ a n, InRanges a n R.priv → Outside a n (PFL (s.regs 4).toNat) := fun a n hin => by
-    have := hin.apart (b := (s.regs 4).toNat - (R.depth + 80)) (k := R.depth + 80 + 48) (by
-      rw [show (s.regs 4).toNat - (R.depth + 80) + (R.depth + 80 + 48) = (s.regs 4).toNat + 48 by omega] at *; exact hpriv)
-    sorry
-  sorry
+    obtain ⟨r, hr, h1, h2⟩ := hin
+    have := MemFrame.outside_mem hpriv hr
+    rw [pfl_out]; omega
+  have hdo' : Outside descA 24 (PFL (s.regs 4).toNat) := by
+    simp only [outside_cons, outside_nil, and_true] at hdo; rw [pfl_out]; omega
+  have hq4 : Outside hdrA 16 (NilFL R rt (S0.regs 4).toNat stack) ∧ Outside hdrA 16 (PFL (s.regs 4).toNat) := by
+    simpa only [NilFLE, outside_append, hrn] using q4
+  have hq5 : Outside litA 5 (NilFL R rt (S0.regs 4).toNat stack) ∧ Outside litA 5 (PFL (s.regs 4).toNat) := by
+    simpa only [NilFLE, outside_append, hrn] using q5
+  have hcall := callerOK_of hl hco hr4 hr14 hfr
+  refine ⟨hr0, hr3, hr1, hn5, by omega, by omega, by omega, ?_, ?_, ?_, ?_, by rw [hx]; exact hx0, by rw [hdf]; exact hdf0,
+    hcall, TADescOK.frame hdesc hfr hdo' hws, ?_, ?_, ?_, ?_, ?_, hq4.1, hq5.1⟩
+  · rw [hrn, show (s.regs 4).toNat - 72 - 8 - stack = (s.regs 4).toNat - 80 - stack by omega, hfr.accessible]; exact hacc
+  · rw [hrn, show (s.regs 4).toNat - 72 - 8 - stack = (s.regs 4).toNat - 80 - stack by omega]; exact hout
+  · rw [hrn]; exact h60
+  · rw [hrn, show (s.regs 4).toNat - 72 + 0x48 = (s.regs 4).toNat by omega, hfr.readLE _ _ (by rw [pfl_out]; omega)]; exact hret
+  · rw [hrn, show (s.regs 4).toNat - 72 - 8 - R.depth = (s.regs 4).toNat - 80 - R.depth by omega,
+      show (s.regs 4).toNat - 72 + 0x78 = (s.regs 4).toNat + 48 by omega]; exact hdo
+  · intro htz
+    obtain ⟨b1, b2, b3, b4, b5, b6⟩ := htab htz
+    have hty : tyOf S0 tab = tyOf s tab := by
+      unfold tyOf; exact hfr.readLE _ _ (by rw [pfl_out] at b6 ⊢; omega)
+    have hcf := taCanFail_frame hfr hdo'
+    have hin := taInter_frame hfr hdo'
+    rw [hty, hcf, hin]
+    exact ⟨b1, by rw [hfr.accessible]; exact b2, b3, b4, b5⟩
+  · rw [hfr.readLE _ _ (Outside.of_sub hq4.2 (by omega) (by omega))]; exact q1
+  · rw [hfr.readLE _ _ (Outside.of_sub hq4.2 (by omega) (by omega))]; exact q2
+  · exact strOut_frame hfr hq5.2 q3
 
 end Fv256.Amd64.FormatTransfer
