@@ -131,3 +131,8 @@ i.e. exactly the `hsfd` hypothesis shape J2's UnmarshalText already uses (`SfdSu
 - SetFromDecimal.lean (Extracted-level) now: hLib, hca by decide; correctness = ensures_of_summary64 (hsfd_of_link ...).
 - Hand build: build/m52/go.sh MODULE LOG (out in build/m52/out). Timings (lib, unsplit): TeSum0 291 s/5.1 GB, TeSum1 570 s/16 GB, rest <=1 min each.
 - TODO: split TeSum0/1; janus verify N8 (build/vfy2.sh N8 ...; JC=jcache-n10); multi-limb witness (needs memmoveUptoSeg64 + toy R ok for chunks 1..19); Scan disch_sfd.
+
+## FV-I5 update 5 -- finding from FV-SD (a4aba0ce4360bd913), for the successor
+- The "SfdTopI.olean does not exist" error is a masked symptom. FV-SD patched janus to print the real error: janus's own compile of SfdTeSum0 (inside its bwrap sandbox) ran ~964 s at up to 18 GB, then failed with 8x "Tactic `assumption` failed" at SfdTeSum0.lean:26:2 (the te_body macro), some "Unknown identifier hS6q'". janus then silently fell back to Lake, which OOMs in the 24 GiB scope.
+- The identical `lean` command unsandboxed: rc 0, ~280 s, 5.2 GB (my build/m51/run.py uses plain lean, so it reports rc=0 for a module janus rejects). Under `bwrap --unshare-all --die-with-parent --new-session --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp --bind W W --chdir W`: rc 1. Cause not found.
+- Suspect: SfdTeBody.lean ~lines 227-235, `try (obtain ... := (by with_reducible assumption : ...))` blocks swallow a failing assumption, so later hS6q'/assumption calls fail. FV-SD's advice: make those `try` blocks hard failures to expose the first failing step; to test any split, compile under the bwrap command above, not plain lean. Do NOT use --unsafe-no-sandbox.
