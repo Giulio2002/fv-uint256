@@ -54,3 +54,11 @@ Pin: 77fb30cc (master lakefile); icall line (d52a1656) is NOT needed for Scan (n
   3. amd64 IndexByteString reads `internal/cpu.X86` (HasAVX2, a writable global NOT copied by the extractor): the hibs summary (IndexByteSpec.IbsPreA) must take the
      accessibility of that byte as a parameter (address from Extracted.dataAddr) -- FV-S must add it; arm64 has no such dependency.
 * Nothing of the seven segments is proved yet; sorry-proof audit run of the Scan/scanSci statement not done (blocked on 1 and 2).
+
+## Coordination (FV-X, fv/wx in /srv/fv-uint256-wx): amd64 hibs amendment
+IbsPreA (avx : Nat) p n c s := accessible avx 1 false = true ∧ (old conjuncts); IbsSummaryA P entry avx p n c; IbsLibA P entry avx. avx = Extracted.dataAddr.«internal/cpu.X86» + 68
+(0x5df444 in this harness): only READABILITY assumed, summary covers both HasAVX2 values. Library programs Fv256.IbsProgA.program (entry 0x402bc0) / Fv256.IbsProg64.program (0x11f10).
+Hash and lemma names to follow from FV-X; the consumer's hibs must use the amended signature (IndexByteSpec.lean here is superseded on merge).
+Decisions (main): slicebytetostring via the LIVE contract (RtLiveContract64 .. slicebytetostringLive) over the SAME allocator model R as SFD (copy FV-J2: fv/wj
+Amd64/UnmarshalDec.lean `dec_call_pre`, `SbPost`; SbtsFacts.lean `loc`); pin the consumer to u14 head 72b96825. Pre = plain conjunction def (like PreU) with an early satisfiability lemma.
+MulOverflow: library programs + retargeted cases generated (Amd64|Arm64/MoLib/{A..E,Top}.lean, mo_summary); builds queued: build/mo.sh (amd64) then build/mo64.sh.
