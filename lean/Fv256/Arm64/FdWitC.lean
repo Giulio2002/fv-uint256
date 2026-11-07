@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Arm64.FromDecimal
 import Fv256.Arm64.FdWitB
 import Fv256.Arm64.WitModel
@@ -12,6 +13,8 @@ the binary's real data (`DataLoaded`, byte for byte `dataSegByte`) plus syntheti
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I
   Fv256.Arm64.SfdTopSpec Fv256.Arm64.FromDecimalSpec Fv256.Arm64.FromDecimal
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.FdWit
 
@@ -236,6 +239,79 @@ theorem hret : RetAddr (Extracted.program.link implA) retW := RetAddr.of_check (
 theorem setup : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [pSV, nSV] s0 :=
   ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | _ | r <;> simp [s0] at h ⊢ <;> omega⟩
 
+-- CALLSITE-LIVE-BLOCK
+/-- Call states of the runtime stubs (U-WITNESS-CALLSITE): `s0` with `PC` at the stub's entry and the argument registers of a request `ok` serves. -/
+def csNew0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 numErrT else s0.regs i }
+def csNew : State := { csNew0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") }
+def csMg0 : State := { s0 with regs := fun i => if i = 0 then 1 else if i = 1 then 0 else if i = 2 then 0 else s0.regs i }
+def csMg : State := { csMg0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") }
+def csMv0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 zW else if i = 1 then BitVec.ofNat 64 0x301000 else if i = 2 then 1 else s0.regs i }
+def csMv : State := { csMv0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") }
+def csW1 : State := { s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") }
+def csW2 : State := { s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") }
+def csCm0 : State := { s0 with regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else s0.regs i }
+def csCm : State := { csCm0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring") }
+def csIf0 : State := { s0 with regs := fun i => if i = 0 then 0 else s0.regs i }
+def csIf : State := { csIf0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") }
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew := by
+  refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), typeOK_of (by decide) (by decide), by decide⟩, ⟨guardOK_of (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩,
+    ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · rw [addr_new]; exact Or.inl (⟨rfl, by decide⟩)
+  · intro r hr
+    rw [rt_eq]
+    simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide)
+
+set_option maxRecDepth 100000 in
+theorem csMg_pre : MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 csMg := by
+  refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by decide, Or.inl (by decide)⟩, ⟨guardOK_of (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩,
+    ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · rw [addr_mg]; exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inl (⟨rfl, 1, by decide, by decide, by decide⟩)))))
+  · intro r hr
+    rw [rt_eq]
+    simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide)
+
+set_option maxRecDepth 100000 in
+theorem csMv_pre : MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 csMv := by
+  refine ⟨⟨(guardOK_iff _ _).1 (guardOK_of (by decide) (by decide) (by decide)), callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩,
+    ⟨?_, inv0, liveSep_nil _, ?_⟩, ⟨by decide, by decide, by simp only [calleeStack, outside_cons, outside_nil]; decide⟩,
+    by decide, by decide, by simp only [calleeStack, outside_cons, outside_nil]; decide, Or.inr (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
+  · rw [addr_mv]; exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (⟨rfl, zW, 0x301000, 1, by decide, by decide, by decide⟩)))))
+  · intro r hr
+    rw [rt_eq]
+    simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide)
+
+set_option maxRecDepth 100000 in
+theorem csW1_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 csW1 := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by rw [addr_w1]; exact Or.inr (Or.inr (Or.inl (⟨rfl, rfl⟩))), inv0, liveSep_nil _, ?_⟩
+  intro r hr
+  rw [rt_eq]
+  simp only [List.mem_singleton] at hr
+  subst hr
+  simp only [outside_cons, outside_nil]; decide
+
+set_option maxRecDepth 100000 in
+theorem csW2_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 csW2 := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), by rw [addr_w2]; exact Or.inr (Or.inr (Or.inr (Or.inl (⟨rfl, rfl⟩)))), inv0, liveSep_nil _, ?_⟩
+  intro r hr
+  rw [rt_eq]
+  simp only [List.mem_singleton] at hr
+  subst hr
+  simp only [outside_cons, outside_nil]; decide
+
+set_option maxRecDepth 100000 in
+theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre 16 csCm :=
+  ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), Or.inl (by decide), Or.inl (by decide)⟩
+
+set_option maxRecDepth 100000 in
+theorem csIf_pre : IfaceeqSite (R3 TW) csIf := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, hE, -⟩ := env0
+  refine ⟨⟨hE, (guardOK_iff _ _).1 (guardOK_of (by decide) (by decide) (by decide)), callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_⟩, fun h => absurd (by decide) h⟩
+  simp only [R3_priv]; apply outside_of_decide; decide
+
 /-- The statement of the witness theorem `nonvacuous` (spelled out there). -/
 theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (pS nS : BitVec 64) (ret : Nat) (s : State),
@@ -250,10 +326,18 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    Fv256.Arm64.FromDecimal.Pre R R2 T b L lo hi pS nS s :=
+    Fv256.Arm64.FromDecimal.Pre R R2 T b L lo hi pS nS s ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring") ∧ Janus.Contracts.Cmpstring.CmpstringPre 16 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) :=
   ⟨implA, R, R3 TW, TW, 0x400, [], loW, hiW, pSV, nSV, retW, s0, implOK,
     by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,
-    by rw [addr_cm]; exact hcmp, hret, setup, pre0⟩
+    by rw [addr_cm]; exact hcmp, hret, setup, pre0,
+    ⟨csNew, rfl, csNew_pre⟩, ⟨csMg, rfl, csMg_pre⟩, ⟨csMv, rfl, csMv_pre⟩, ⟨csW1, rfl, csW1_pre⟩, ⟨csW2, rfl, csW2_pre⟩, ⟨csCm, rfl, csCm_pre⟩, ⟨csIf, rfl, csIf_pre⟩⟩
 
 end Fv256.Arm64.FdWit
