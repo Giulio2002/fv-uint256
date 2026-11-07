@@ -63,4 +63,9 @@ open Janus.Contracts in
       (s.mem.readLE ((s.regs 0).toNat + 8) 8 ≠ 0) ∧
       Iface.EqOK R s.mem (s.mem.readLE ((s.regs 0).toNat + 8) 8) (s.regs 1).toNat (s.regs 2).toNat)
 
+
+open Janus.Contracts in
+theorem strsIn_of {m : Memory} {buf : Nat} {xs : List (Nat × Nat)} (h : ∀ x ∈ xs, StrIn m x.1 x.2) (hb : buf = 0) :
+    StrsIn m buf xs := fun x hx => ⟨h x hx, fun hh => absurd hb hh⟩
+
 end Fv256.Arm64.CallSites

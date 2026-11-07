@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
@@ -25,6 +26,8 @@ lie above the first 32 bytes.
 open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
 open Fv256.E
 open Fv256.Arm64.Dec
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.MarshalJSON
 
@@ -390,6 +393,35 @@ theorem pre : (GuardOK s0 (688 + 80) ∧ StackOK s0 4688 8 ∧ Extracted.program
     · rw [rtView_acc, hMF.accessible]; decide
     · rw [rtView_acc, hMF.accessible]; decide
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/MarshalJSON.nonvacuous.lean
+def csSb0 : State := { s0 with regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 zp else if i = 2 then BitVec.ofNat 64 2 else s0.regs i }
+def csSb : State := { csSb0 with sp := BitVec.ofNat 64 (sp0 - 464), pc := BitVec.ofNat 64 ssAddr }
+
+set_option maxRecDepth 100000 in
+theorem csSb_pre : RtPre rtT 4096 Hw (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, BufOK, StrIn]
+    exact ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]
+    intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
+  · show Hw (argWords csSb 3) (csSb.regs 28).toNat csSb.sp.toNat (rtView rtT csSb.mem)
+    refine ⟨Or.inl ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide⟩
+
+def csCb0 : State := { s0 with regs := fun i => if i = 0 then 0 else if i = 1 then 1007400 else if i = 2 then 1 else if i = 3 then BitVec.ofNat 64 zp else if i = 4 then BitVec.ofNat 64 2 else if i = 5 then 1007400 else if i = 6 then 1 else s0.regs i }
+def csCb : State := { csCb0 with sp := BitVec.ofNat 64 (sp0 - 80), pc := BitVec.ofNat 64 cbAddr }
+
+set_option maxRecDepth 100000 in
+theorem csCb_pre : RtPre rtT 4096 Hw (concatbyteSpec 3) csCb := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial, ?_⟩
+  · refine ⟨Or.inl (by decide), strsIn_of (fun x hx => ?_) (by decide)⟩
+    simp only [strPairs, List.mem_cons, List.not_mem_nil, or_false] at hx
+    rcases hx with rfl | rfl | rfl <;> exact ⟨by decide, fun _ => by decide⟩
+  · intro r hr
+    simp only [concatbyteSpec, strPairs, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl | rfl <;> (simp only [Outside, calleeStack]; decide)
+  · show Hw (argWords csCb 7) (csCb.regs 28).toNat csCb.sp.toNat (rtView rtT csCb.mem)
+    refine ⟨Or.inr ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide⟩
+
 /-- The preconditions, the `slicebytetostring` and `stringtoslicebyte` contracts (toy runtime blocks, readiness `Hw`) and the readiness
 hypothesis for the second call are jointly satisfiable. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
@@ -412,10 +444,14 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
       StrOut M p l (decBytes (val256 s.mem z.toNat)) →
       DecAt rt 989280 1002589 960826 p l →
       H [0, 1007400, 1, p, l, 1007400, 1] (s.regs 28).toNat (s.sp.toNat - 80) (rtView rt M))) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 ssAddr ∧ RtPre rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 cbAddr ∧ RtPre rt 4096 H (concatbyteSpec 3) s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ BytesHold s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (s'.regs 2).toNat (marshalJSONBytes (val256 s.mem z.toNat)) ∧
         s'.regs 3 = 0 ∧ s'.regs 4 = 0 ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4688, s.sp.toNat + 8)]) := by
   refine ⟨implAt, rtT, Hw, ret, s0, arg, model1, model2, ?w2, ?w3, pre,
+    ⟨csSb, rfl, csSb_pre⟩,
+    ⟨csCb, rfl, csCb_pre⟩,
     correctness implAt rtT Hw arg model1 model2 ret ?w2 s0 ?w3 pre⟩
   case w2 => exact by rw [linked_eq]; exact hret
   case w3 => exact by rw [linked_eq]; exact setup
@@ -423,7 +459,6 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
 
 
 /-! ### The large-value path (`z = 10^7`: eight digits, `FormatUint` path, both runtime calls made) -/
-
 def rtT16 : List (Nat × Nat) := [(hA, hA + 8), (hB, hB + 16)]
 
 theorem rtView_acc16 (m : Janus.Arm64.Memory) (a n : Nat) (w : Bool) : (rtView rtT16 m).accessible a n w = m.accessible a n w :=
@@ -623,6 +658,35 @@ theorem pre8 : (GuardOK s08 (688 + 80) ∧ StackOK s08 4688 8 ∧ Extracted.prog
     · rw [rtView_acc16, hMF.accessible]; decide
     · rw [rtView_acc16, hMF.accessible]; decide
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/MarshalJSON.big.lean
+def csSb08 : State := { s08 with regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 zp else if i = 2 then BitVec.ofNat 64 8 else s08.regs i }
+def csSb8 : State := { csSb08 with sp := BitVec.ofNat 64 (sp0 - 464), pc := BitVec.ofNat 64 ssAddr }
+
+set_option maxRecDepth 100000 in
+theorem csSb8_pre : RtPre rtT16 4096 Hw8 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb8 := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, BufOK, StrIn]
+    exact ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]
+    intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
+  · show Hw8 (argWords csSb8 3) (csSb8.regs 28).toNat csSb8.sp.toNat (rtView rtT16 csSb8.mem)
+    refine ⟨Or.inl ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc16]; decide, by rw [rtView_acc16]; decide⟩
+
+def csCb08 : State := { s08 with regs := fun i => if i = 0 then 0 else if i = 1 then 1007400 else if i = 2 then 1 else if i = 3 then BitVec.ofNat 64 zp else if i = 4 then BitVec.ofNat 64 8 else if i = 5 then 1007400 else if i = 6 then 1 else s08.regs i }
+def csCb8 : State := { csCb08 with sp := BitVec.ofNat 64 (sp0 - 80), pc := BitVec.ofNat 64 cbAddr }
+
+set_option maxRecDepth 100000 in
+theorem csCb8_pre : RtPre rtT16 4096 Hw8 (concatbyteSpec 3) csCb8 := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial, ?_⟩
+  · refine ⟨Or.inl (by decide), strsIn_of (fun x hx => ?_) (by decide)⟩
+    simp only [strPairs, List.mem_cons, List.not_mem_nil, or_false] at hx
+    rcases hx with rfl | rfl | rfl <;> exact ⟨by decide, fun _ => by decide⟩
+  · intro r hr
+    simp only [concatbyteSpec, strPairs, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl | rfl <;> (simp only [Outside, calleeStack]; decide)
+  · show Hw8 (argWords csCb8 7) (csCb8.regs 28).toNat csCb8.sp.toNat (rtView rtT16 csCb8.mem)
+    refine ⟨Or.inr ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc16]; decide, by rw [rtView_acc16]; decide⟩
+
 /-- **Large-value witness**: `z = 10^7` (eight digits, `FormatUint` path): both runtime calls are made and the readiness hypothesis for the
 second call is exercised on the string `Dec` returns. -/
 theorem big : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
@@ -646,15 +710,18 @@ theorem big : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (
       DecAt rt 989280 1002589 960826 p l →
       H [0, 1007400, 1, p, l, 1007400, 1] (s.regs 28).toNat (s.sp.toNat - 80) (rtView rt M))) ∧
     100 ≤ val256 s.mem z.toNat ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 ssAddr ∧ RtPre rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 cbAddr ∧ RtPre rt 4096 H (concatbyteSpec 3) s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ BytesHold s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (s'.regs 2).toNat (marshalJSONBytes (val256 s.mem z.toNat)) ∧
         s'.regs 3 = 0 ∧ s'.regs 4 = 0 ∧
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4688, s.sp.toNat + 8)]) := by
   refine ⟨implAt8, rtT16, Hw8, ret, s08, arg, model1_8, model2_8, ?w2, ?w3, pre8, ?w5,
+    ⟨csSb8, rfl, csSb8_pre⟩,
+    ⟨csCb8, rfl, csCb8_pre⟩,
     correctness implAt8 rtT16 Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 ⟨pre8, ?w5⟩⟩
   case w2 => exact by rw [linked_eq8]; exact hret8
   case w3 => exact by rw [linked_eq8]; exact setup8
   case w5 => exact by rw [hz8]; decide
-
 end Witness
 
 end Fv256.Arm64.MarshalJSON
