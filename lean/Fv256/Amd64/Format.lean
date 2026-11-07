@@ -188,6 +188,7 @@ open Janus.Contracts.IfaceSatAmd64 Fv256.FormatFast Fv256.Amd64.FormatFast Janus
 /-- all hypotheses of `correctness` and its precondition `PreF` hold together: fast path, `z = 16`, `ch = 'd'` -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    Fv256.Amd64.FormatWitA.pinT stack b0 zv fW fP fF fWr z tab data ch ret s rt ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
@@ -216,6 +217,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtRea
 /-- the same for the nil receiver (`z = 0`) -/
 theorem nil : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    Fv256.Amd64.FormatWitA.pinT stack b0 zv fW fP fF fWr z tab data ch ret s rt ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
@@ -245,6 +247,7 @@ theorem nil : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2
 /-- the big path is really taken: some query is answered "not plain" (verb `q`), with `R2` serving `IntoBig`'s allocations -/
 theorem big : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    Fv256.Amd64.FormatWitA.pinT stack b0 zv fW fP fF fWr z tab data ch ret s rt ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H ∧

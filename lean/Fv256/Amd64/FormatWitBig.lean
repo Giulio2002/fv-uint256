@@ -196,6 +196,7 @@ theorem bigPath_taken : NotPlain R0z R0z R0z dataV tabV chV amA amA (chV.toNat %
 open Janus.Contracts.IfaceSatAmd64 Fv256.FormatFast Fv256.Amd64.FormatFast Janus.Spec.Type in
 theorem nonvacuous_big_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    Fv256.Amd64.FormatWitA.pinT stack b0 zv fW fP fF fWr z tab data ch ret s rt ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
@@ -222,7 +223,7 @@ theorem nonvacuous_big_core : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (
     PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s ∧
     z.toNat ≠ 0 ∧ NotPlain RW RP RF data tab ch fP fF (ch.toNat % 2 ^ 32) := by
   refine ⟨implAll, Janus.Contracts.IfaceModel.R0, Hw, R2, rtT, amA, amA, amA, amA, stackN, 0x400, 16, R0z, R0z, R0z, R0z, R0z, R0z, zV, tabV, dataV, chV, ret, s0,
-    implOK, Janus.Contracts.IfaceModel.R0_laws, model_ta, model_new, model_wb1, model_wb2, model1, model2, by decide,
+    trivial, implOK, Janus.Contracts.IfaceModel.R0_laws, model_ta, model_new, model_wb1, model_wb2, model1, model2, by decide,
     stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h), stub_am _ _ _ _ _ _ (fun s b L h => h),
     stub_am _ _ _ _ _ _ (fun _ => trivial), stub_fp _ _ _ _ _ _ (fun _ => trivial), stub_bf _ _ _ _ _ _ (fun _ => trivial),
     by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre, by decide, bigPath_taken⟩
