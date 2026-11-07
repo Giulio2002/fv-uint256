@@ -135,6 +135,13 @@ theorem _root_.Fv256.Amd64.SfdTopSpec.TopPre0.zg (h : TopPre0 C R R2 T b L lo hi
 theorem bv_sub_toNat (x : BitVec 64) (k : Nat) (hk : k < 2 ^ 64) (h : k ≤ x.toNat) : (x - BitVec.ofNat 64 k).toNat = x.toNat - k := by
   rw [BitVec.toNat_sub, BitVec.toNat_ofNat, Nat.mod_eq_of_lt hk]; omega
 
+theorem mf_of_ow2 {m m' : Janus.Arm64.Memory} {p n q k : Nat} (h : Fv256.Util.OnlyWrites2 m m' p n q k) :
+    MemFrame m m' [(p, p + n), (q, q + k)] :=
+  ⟨fun a j hout => by
+    simp only [outside_cons, outside_nil, and_true] at hout
+    exact Janus.Arm64.Memory.readLE_congr fun i hi => h.2 _ (by omega) (by omega),
+   fun a j w => Janus.Arm64.Memory.accessible_congr h.1 a j w⟩
+
 /-- the state `S6` after `Exp(&exp, &base, &exp)` returned (at `sci + 0x17e`): the local `exp` holds `10^e` -/
 def Inv6 (P : Janus.Amd64.Program) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (dst p n : BitVec 64) (v e : Nat) (s S6 : State) : Prop :=
@@ -145,6 +152,201 @@ def Inv6 (P : Janus.Amd64.Program) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L 
   sciParse (bytesAt s.mem p.toNat) n.toNat = (if 2 ^ 256 ≤ v * 10 ^ e then Res.range else Res.ok (v * 10 ^ e)) ∧
   Janus.Spec.val256 S6.mem dst.toNat = v ∧ Janus.Spec.val256 S6.mem ((s.regs 4).toNat - 40) = 10 ^ e ∧ P.DataLoaded S6.mem
 
+/-- the state `S7` after `MulOverflow(dst, dst, &exp)` returned (at `sci + 0x190`) -/
+def Inv7 (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
+    (dst p n : BitVec 64) (v e : Nat) (s S7 : State) : Prop :=
+  S7.regs 4 = s.regs 4 - 112#64 ∧ S7.regs 5 = s.regs 4 - 8#64 ∧ S7.regs 14 = s.regs 14 ∧ S7.xmm 15 = 0 ∧ S7.df = s.df ∧
+  S7.fsBase = s.fsBase ∧ MemFrame s.mem S7.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] ∧
+  S7.mem.readLE (s.regs 4).toNat 8 = s.mem.readLE (s.regs 4).toNat 8 ∧
+  S7.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
+  sciParse (bytesAt s.mem p.toNat) n.toNat = (if 2 ^ 256 ≤ v * 10 ^ e then Res.range else Res.ok (v * 10 ^ e)) ∧
+  (S7.regs 3).toNat % 256 = (if 2 ^ 256 ≤ v * 10 ^ e then 1 else 0) ∧
+  Janus.Spec.val256 S7.mem dst.toNat = (v * 10 ^ e) % 2 ^ 256
+
+set_option maxRecDepth 100000 in
+/-- segment 7b: the overflow test and the returns -/
+theorem sci_aftmo (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (dst p n : BitVec 64) (v e : Nat) (s S7 : State) (hpc : S7.rip = BitVec.ofNat 64 (sci + 0x190))
+    (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
+    (hI : Inv7 R R2 T b L lo hi dst p n v e s S7) :
+    ReachesRet (Extracted.program.link impl) (retAddrOf s) S7 (SciPost cfg R R2 b L lo hi dst p n s) := by
+  obtain ⟨hret0, hT, hlo, hav, hpg, htls, hout, hinit⟩ := hpre
+  obtain ⟨q4, q5, q14, qx, qdf, qfs, qMF, qret, qrbp, qsc, qfl, qval⟩ := hI
+  have hsp := (s.regs 4).isLt
+  have hlo4 : lo + 4800 ≤ (s.regs 4).toNat := hT.lo4
+  have hhi : (s.regs 4).toNat + 32 ≤ hi := hT.hi32
+  have hEnv : Env cfg R R2 T b L lo hi s := hT.env
+  have e1 : lo ≤ (s.regs 4).toNat := hEnv.1
+  have hhi48 : hi ≤ 2 ^ 48 := hEnv.2.2.1
+  have hra : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 := hret0.2.1
+  have hx15 : s.xmm 15 = 0 := hret0.2.2.1
+  have hwin7 : S7.mem.accessible lo (hi - lo) true = true := by rw [qMF.accessible]; exact hEnv.2.2.2.2.1
+  have hacc7 : S7.mem.accessible ((s.regs 4).toNat - 8) 16 false = true := by
+    rw [qMF.accessible]
+    exact Janus.Arm64.Memory.accessible_sub s.mem hEnv.2.2.2.2.1 (Or.inl rfl) (by omega) (by omega)
+  have herr : S7.mem.accessible cfg.errBig 16 false = true := by rw [qMF.accessible]; exact hT.errAcc
+  have herr0 : S7.mem.readLE cfg.errBig 8 = s.mem.readLE cfg.errBig 8 := by
+    rw [qMF.readLE _ _ (by have := hT.errOut; simp only [outside_cons, outside_nil, and_true] at this ⊢; omega)]
+  have herr1 : S7.mem.readLE (cfg.errBig + 8) 8 = s.mem.readLE (cfg.errBig + 8) 8 := by
+    rw [qMF.readLE _ _ (by have := hT.errOut; simp only [outside_cons, outside_nil, and_true] at this ⊢; omega)]
+  clear hT hEnv hret0
+  have hlow : ((S7.regs 3).toNat % 256 = 0 ↔ BitVec.setWidth 8 (S7.regs 3) = 0#8) := by
+    constructor
+    · intro h; apply BitVec.eq_of_toNat_eq; simp [BitVec.toNat_setWidth]; omega
+    · intro h; have := congrArg BitVec.toNat h; simp [BitVec.toNat_setWidth] at this; omega
+  by_cases hov : 2 ^ 256 ≤ v * 10 ^ e
+  · have hbl : ¬ BitVec.setWidth 8 (S7.regs 3) = 0#8 := fun h => by
+      have := hlow.2 h; simp only [hov, ↓reduceIte] at qfl; omega
+    janus64_run [qret, qrbp, q4, hra, hacc7, herr, herr0, herr1, hbl]
+    unfold SciPost
+    refine ⟨?_, Or.inr (Or.inr (Or.inl ⟨by rw [qsc]; simp only [hov, ↓reduceIte], ?_, ?_⟩)), ?_⟩
+    · simp [Kept, retAddrOf, setRegF_apply]
+      exact ⟨q14, by rw [qx, hx15], qfs⟩
+    · show (BitVec.ofNat 64 (S7.mem.readLE cfg.errBig 8)).toNat = _
+      rw [herr0, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (Util.readLE8_lt _ _)
+    · show (BitVec.ofNat 64 (S7.mem.readLE (cfg.errBig + 8) 8)).toNat = _
+      rw [herr1, BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (Util.readLE8_lt _ _)
+    · exact qMF.mono (fun a k h => by simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact h.2)
+  · have hbl : BitVec.setWidth 8 (S7.regs 3) = 0#8 := by
+      apply hlow.1; simp only [hov, ↓reduceIte] at qfl; omega
+    janus64_run [qret, qrbp, q4, hra, hacc7, hbl]
+    have hlt : v * 10 ^ e < 2 ^ 256 := Nat.lt_of_not_le hov
+    unfold SciPost
+    refine ⟨?_, Or.inl ⟨v * 10 ^ e, by rw [qsc]; simp only [hov, ↓reduceIte], by simp [setRegF_apply], by simp [setRegF_apply], ?_⟩, ?_⟩
+    · simp [Kept, retAddrOf, setRegF_apply]
+      exact ⟨q14, by rw [qx, hx15], qfs⟩
+    · rw [qval]; exact Nat.mod_eq_of_lt hlt
+    · exact qMF.mono (fun a k h => by simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢; exact h.2)
+
+set_option maxRecDepth 100000 in
+/-- segment 7a: the `MulOverflow` call, its pre- and postcondition -/
+theorem sci_mocall (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+    (lo hi : Nat) (dst p n : BitVec 64) (v e : Nat) (s S6 S3 : State)
+    (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y) (he : e ≤ 77)
+    (hpre : SciPre cfg avxAddr R R2 T b L lo hi dst p n s) (hn : n.toNat ≠ 0)
+    (hI : Inv6 Extracted.program R R2 T b L lo hi dst p n v e s S6)
+    (hpc : S3.rip = BitVec.ofNat 64 moEntry) (hr0 : S3.regs 0 = dst) (hr3 : S3.regs 3 = dst)
+    (hr1 : S3.regs 1 = s.regs 4 - 40#64) (hr4 : S3.regs 4 = s.regs 4 - 120#64) (hr5 : S3.regs 5 = s.regs 4 - 8#64)
+    (hr14 : S3.regs 14 = s.regs 14) (hxm : S3.xmm 15 = 0) (hdf : S3.df = s.df) (hfs : S3.fsBase = s.fsBase)
+    (hmem : S3.mem = S6.mem.writeLE ((s.regs 4).toNat - 120) 8 4930928) :
+    ReachesRet (Extracted.program.link impl) (retAddrOf s) S3 (SciPost cfg R R2 b L lo hi dst p n s) := by
+  have hpre0 := hpre
+  obtain ⟨hret0, hT, hlo, hav, hpg, htls, hout, hinit⟩ := hpre
+  obtain ⟨q4, q5, q14, qx, qdf, qfs, qMF, qdst, qret, qrbp, qsc, qvd, qve, qdl⟩ := hI
+  have hsp := (s.regs 4).isLt
+  have hlo4 : lo + 4800 ≤ (s.regs 4).toNat := hT.lo4
+  have hhi : (s.regs 4).toNat + 32 ≤ hi := hT.hi32
+  have hEnv : Env cfg R R2 T b L lo hi s := hT.env
+  have e1 : lo ≤ (s.regs 4).toNat := hEnv.1
+  have hhi48 : hi ≤ 2 ^ 48 := hEnv.2.2.1
+  have hwin : s.mem.accessible lo (hi - lo) true = true := hEnv.2.2.2.2.1
+  have hr14b : (s.regs 14).toNat + 24 ≤ 2 ^ 48 := hEnv.2.2.2.2.2.1
+  have hg1 : s.mem.accessible ((s.regs 14).toNat + 16) 8 false = true := hEnv.2.2.2.2.2.2.1
+  have hg2 : s.mem.readLE ((s.regs 14).toNat + 16) 8 < lo := hEnv.2.2.2.2.2.2.2.1
+  have hzg := hT.zg
+  have hdzw := hT.zwin
+  have hdacc : s.mem.accessible dst.toNat 32 true = true := hT.zacc
+  have hdb : dst.toNat + 32 ≤ 2 ^ 48 := hT.zbuf
+  have hx15 : s.xmm 15 = 0 := hret0.2.2.1
+  have hdf0 : s.df = false := hret0.2.2.2
+  have hs40 : (s.regs 4 - 40#64).toNat = (s.regs 4).toNat - 40 := bv_sub_toNat _ 40 (by omega) (by omega)
+  have hs120 : (S3.regs 4).toNat = (s.regs 4).toNat - 120 := by rw [hr4]; exact bv_sub_toNat _ 120 (by omega) (by omega)
+  have hwin6 : S6.mem.accessible lo (hi - lo) true = true := by rw [qMF.accessible]; exact hwin
+  have hF1 : MemFrame S6.mem S3.mem [(lo, hi)] := by
+    rw [hmem]
+    exact (MemFrame.refl S6.mem _).writeLE _ (r := (lo, hi)) (by simp) (by omega) (by omega)
+  have hF0 : MemFrame s.mem S3.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] :=
+    qMF.trans (hF1.mono (fun a k h => by simp only [outside_cons, outside_nil, and_true] at h ⊢; exact h.1))
+      (rs'' := [(lo, hi), (dst.toNat, dst.toNat + 32)]) (fun a k h => ⟨h, h⟩)
+  have hacc3 : S3.mem.accessible lo (hi - lo) true = true := by rw [hF1.accessible]; exact hwin6
+  have hret3 : S3.mem.readLE ((s.regs 4).toNat - 120) 8 = 4930928 := by
+    rw [hmem, Janus.Arm64.Memory.readLE_writeLE_self]
+  have hvd : valueAt S3 dst 32 = v := by
+    show S3.mem.readLE dst.toNat 32 = v
+    rw [hF1.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]
+    exact qvd
+  have hvy : valueAt S3 (s.regs 4 - 40#64) 32 = 10 ^ e := by
+    show S3.mem.readLE (s.regs 4 - 40#64).toNat 32 = 10 ^ e
+    rw [hs40, hmem]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    exact qve
+  have hpow : 10 ^ e < 2 ^ 256 := Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) he) (by decide)
+  have hmoA := hmo dst dst (s.regs 4 - 40#64)
+  refine ReachesRet.call_regions hmoA (by rw [hpc]; rfl) ?_ (fun S' hr hq hregs => ?_)
+  · refine ⟨4930928, RetAddr.of_check (by decide), ⟨?_, ?_, hxm, by simp only [List.length_cons, List.length_nil]; decide, ?_, hdf.trans hdf0⟩, ?_⟩
+    · rw [hpc]; rfl
+    · show S3.mem.readLE (S3.regs 4).toNat 8 = 4930928
+      rw [hs120]; exact hret3
+    · intro i hi'
+      simp only [List.length_cons, List.length_nil] at hi'
+      rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2) with rfl | rfl | rfl
+      · exact hr0
+      · exact hr3
+      · exact hr1
+    · have hsp3 : (S3.regs regSP).toNat = (s.regs 4).toNat - 120 := hs120
+      have hg3 : (s.regs 14).toNat + 16 + 8 ≤ lo ∨ hi ≤ (s.regs 14).toNat + 16 := hEnv.2.2.2.2.2.2.2.2.2.2.2.2.1
+      have hg2' : S3.mem.readLE ((s.regs 14).toNat + 16) 8 < lo := by
+        rw [hF0.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact hg2
+      have hg : StackGuardOK S3 0 :=
+        ⟨by simp only [regG, stackguard0Offset, hr14]; omega, by simp only [regG, stackguard0Offset, hr14]; rw [hF0.accessible]; exact hg1,
+         by simp only [stackguard0, stackguard0Offset, regG, hr14]; omega⟩
+      have e4 : (s.regs 4).toNat % 8 = 0 := hEnv.2.2.2.1
+      have hexpacc : S3.mem.accessible (s.regs 4 - 40#64).toNat 32 false = true := by
+        rw [hs40]; exact Janus.Arm64.Memory.accessible_sub S3.mem hacc3 (Or.inl rfl) (by omega) (by omega)
+      have hdacc3 : S3.mem.accessible dst.toNat 32 true = true := by rw [hF0.accessible]; exact hdacc
+      refine ⟨hg, ⟨by omega, by omega, ?_⟩, by omega, ⟨hdb, hdacc3⟩, ⟨hdb, ?_⟩, ⟨by omega, hexpacc⟩, Or.inl rfl, ?_, ?_, ?_, ?_, ?_⟩
+      · simp only [regSP, hs120]
+        exact Janus.Arm64.Memory.accessible_sub S3.mem hacc3 (Or.inr rfl) (by omega) (by omega)
+      · rw [Janus.Arm64.Memory.accessible_read_of_write _ hdacc3]
+      · rcases hdzw with h | h
+        · exact Or.inr (Or.inl (by omega))
+        · exact Or.inr (Or.inr (by omega))
+      · rcases hdzw with h | h
+        · exact Or.inr (Or.inl (by omega))
+        · exact Or.inr (Or.inr (by omega))
+      · rcases hdzw with h | h
+        · left; omega
+        · right; omega
+      · rcases hdzw with h | h
+        · left; omega
+        · right; omega
+      · right; omega
+  · obtain ⟨⟨⟨abis, abif, abig, abiz⟩, k0, kfl, kval, kow⟩, kfs, kdf⟩ := hq
+    have hr' : S'.rip = BitVec.ofNat 64 (sci + 0x190) := by
+      rw [hr]; unfold retAddrOf; rw [hs120, hret3]; rfl
+    have hsp3 : (S3.regs regSP).toNat = (s.regs 4).toNat - 120 := hs120
+    have hS7 : S'.regs 4 = s.regs 4 - 112#64 := by
+      have : S'.regs regSP = S3.regs 4 + 8#64 := abis
+      rw [this, hr4]; bv_omega
+    have hMFo : MemFrame S3.mem S'.mem [(dst.toNat, dst.toNat + 32), ((S3.regs regSP).toNat - 152, (S3.regs regSP).toNat - 152 + 168)] :=
+      mf_of_ow2 kow
+    rw [hsp3] at hMFo
+    have hMF5 : MemFrame s.mem S'.mem [(lo, hi), (dst.toNat, dst.toNat + 32)] :=
+      hF0.trans hMFo (rs'' := [(lo, hi), (dst.toNat, dst.toNat + 32)]) (fun a k h => ⟨h, by
+        simp only [outside_cons, outside_nil, and_true] at h ⊢; omega⟩)
+    have hslot : ∀ a k, ((s.regs 4).toNat - 8 ≤ a) → a + k ≤ hi →
+        S'.mem.readLE a k = S6.mem.readLE a k := by
+      intro a k h1 h2
+      rw [hMFo.readLE a k (by simp only [outside_cons, outside_nil, and_true]; omega), hmem]
+      simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    have hWdef : Fv256.Spec.W = 2 ^ 256 := rfl
+    refine sci_aftmo impl R R2 T b L lo hi dst p n v e s S' hr' hpre0 hn ?_
+    refine ⟨hS7, ?_, ?_, ?_, ?_, ?_, hMF5, ?_, ?_, qsc, ?_, ?_⟩
+    · have : S'.regs regFP = S3.regs 5 := abif
+      rw [this, hr5]
+    · have : S'.regs regG = S3.regs 14 := abig
+      rw [this, hr14]
+    · have : S'.xmm xmmZero = S3.xmm 15 := abiz
+      rw [this, hxm]
+    · rw [kdf, hdf]
+    · rw [kfs, hfs]
+    · rw [hslot _ _ (by omega) (by omega)]; exact qret
+    · rw [hslot _ _ (by omega) (by omega)]; exact qrbp
+    · rw [kfl, hvd, hvy, hWdef]
+    · have : valueAt S' dst 32 = Fv256.Spec.mul (valueAt S3 dst 32) (valueAt S3 (s.regs 4 - 40#64) 32) := kval
+      show valueAt S' dst 32 = _
+      rw [this, hvd, hvy]; rfl
+
 set_option maxRecDepth 100000 in
 /-- segment 7: the `MulOverflow` call and the overflow test -/
 theorem sci_aftexp (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -153,7 +355,22 @@ theorem sci_aftexp (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     (hmo : ∀ z x y, MoSumm (Extracted.program.link impl) z x y) (he : e ≤ 77)
     (hI : Inv6 Extracted.program R R2 T b L lo hi dst p n v e s S6) :
     ReachesRet (Extracted.program.link impl) (retAddrOf s) S6 (SciPost cfg R R2 b L lo hi dst p n s) := by
-  sorry
+  have hpre0 := hpre
+  have hI0 := hI
+  obtain ⟨hret0, hT, hlo, hav, hpg, htls, hout, hinit⟩ := hpre
+  obtain ⟨q4, q5, q14, qx, qdf, qfs, qMF, qdst, qret, qrbp, qsc, qvd, qve, qdl⟩ := hI
+  have hsp := (s.regs 4).isLt
+  have hlo4 : lo + 4800 ≤ (s.regs 4).toNat := hT.lo4
+  have hhi : (s.regs 4).toNat + 32 ≤ hi := hT.hi32
+  have hEnv : Env cfg R R2 T b L lo hi s := hT.env
+  have e1 : lo ≤ (s.regs 4).toNat := hEnv.1
+  have hhi48 : hi ≤ 2 ^ 48 := hEnv.2.2.1
+  have hwin6 : S6.mem.accessible lo (hi - lo) true = true := by rw [qMF.accessible]; exact hEnv.2.2.2.2.1
+  have hra : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 := hret0.2.1
+  have hdst : (BitVec.ofNat 64 (S6.mem.readLE ((s.regs 4).toNat + 8) 8)) = dst := by rw [qdst, BitVec.ofNat_toNat]; simp
+  clear hT hEnv hret0 qdl
+  janus64_run [hwin6, qdst, qret, q4, hra] until [moEntry]
+  exact sci_mocall impl R R2 T b L lo hi dst p n v e s S6 _ hmo he hpre0 hn hI0 rfl rfl rfl rfl rfl q5 q14 qx rfl qfs rfl
 
 set_option maxRecDepth 100000 in
 /-- segment 6c: the `Exp` call and its result -/
