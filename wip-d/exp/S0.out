@@ -1,0 +1,294 @@
+case hq
+z x : BitVec 64
+ret : Nat
+hret : RetAddr Extracted.program ret
+s : State
+hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s
+hg : StackGuardOK s 512
+hsp : 640 ≤ BitVec.toNat (s.regs 4)
+hlow : 496 ≤ BitVec.toNat (s.regs 4)
+hnw : BitVec.toNat (s.regs 4) + 32 ≤ 2 ^ 48
+hacc : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 496) (496 + 32) true = true
+hx15 : s.xmm 15 = 0
+hzw : z.toNat + 32 ≤ 2 ^ 48
+hz : Arm64.Memory.accessible s.mem z.toNat 32 true = true
+hxw : x.toNat + 32 ≤ 2 ^ 48
+hx : Arm64.Memory.accessible s.mem x.toNat 32 false = true
+hdz : z.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ z.toNat
+hdx : x.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ x.toNat
+hzx : z = x ∨ z.toNat + 32 ≤ x.toNat ∨ x.toNat + 32 ≤ z.toNat
+hdg :
+  BitVec.toNat (s.regs 14) + 24 ≤ BitVec.toNat (s.regs 4) - 496 ∨
+    BitVec.toNat (s.regs 4) + 32 ≤ BitVec.toNat (s.regs 14) + 16
+h1 : Arm64.Memory.readLE s.mem (x.toNat + 8) 8 = 0
+h2 : Arm64.Memory.readLE s.mem (x.toNat + 16) 8 = 0
+h3 : Arm64.Memory.readLE s.mem (x.toNat + 24) 8 = 0
+h_rip : s.rip = 4957056#64
+h_ret : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 4)) 8 = ret
+h_x15 : s.xmm 15 = 0
+h_df : s.df = false
+h_a0 : s.regs 0 = z
+h_a1 : s.regs 3 = x
+hgl :
+  load s.mem (BitVec.toNat (s.regs 14) + 16) 8 = Except.ok (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8)
+hgb : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + 512 < BitVec.toNat (s.regs 4)
+hnw2 : BitVec.toNat (s.regs 14) + 16 + 8 ≤ 2 ^ 48
+hgr : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+hbr✝¹ :
+  ¬(BitVec.toNat (s.regs 4) - 8 < Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 ∨
+      (18446744073709551616 - (8 + Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8) +
+            BitVec.toNat (s.regs 4)) %
+          18446744073709551616 =
+        0)
+hbr✝ :
+  (((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+            else
+              if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+              else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+            2#64) >>>
+          1).toNat %
+      64 =
+    0
+hbr : Arm64.Memory.readLE s.mem x.toNat 8 < 2
+⊢ F.IsSqrt (Arm64.Memory.readLE s.mem x.toNat 8) (Arm64.Memory.readLE s.mem x.toNat 8) ∧
+    MemFrame s.mem
+      ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE (z.toNat + 16)
+                16 0).writeLE
+            (z.toNat + 8) 8 0).writeLE
+        z.toNat 8 (Arm64.Memory.readLE s.mem x.toNat 8))
+      [(z.toNat, z.toNat + 32), (BitVec.toNat (s.regs 4) - 496, BitVec.toNat (s.regs 4) + 32)]
+
+case h
+z x : BitVec 64
+ret : Nat
+hret : RetAddr Extracted.program ret
+s : State
+hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s
+hg : StackGuardOK s 512
+hsp : 640 ≤ BitVec.toNat (s.regs 4)
+hlow : 496 ≤ BitVec.toNat (s.regs 4)
+hnw : BitVec.toNat (s.regs 4) + 32 ≤ 2 ^ 48
+hacc : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 496) (496 + 32) true = true
+hx15 : s.xmm 15 = 0
+hzw : z.toNat + 32 ≤ 2 ^ 48
+hz : Arm64.Memory.accessible s.mem z.toNat 32 true = true
+hxw : x.toNat + 32 ≤ 2 ^ 48
+hx : Arm64.Memory.accessible s.mem x.toNat 32 false = true
+hdz : z.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ z.toNat
+hdx : x.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ x.toNat
+hzx : z = x ∨ z.toNat + 32 ≤ x.toNat ∨ x.toNat + 32 ≤ z.toNat
+hdg :
+  BitVec.toNat (s.regs 14) + 24 ≤ BitVec.toNat (s.regs 4) - 496 ∨
+    BitVec.toNat (s.regs 4) + 32 ≤ BitVec.toNat (s.regs 14) + 16
+h1 : Arm64.Memory.readLE s.mem (x.toNat + 8) 8 = 0
+h2 : Arm64.Memory.readLE s.mem (x.toNat + 16) 8 = 0
+h3 : Arm64.Memory.readLE s.mem (x.toNat + 24) 8 = 0
+h_rip : s.rip = 4957056#64
+h_ret : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 4)) 8 = ret
+h_x15 : s.xmm 15 = 0
+h_df : s.df = false
+h_a0 : s.regs 0 = z
+h_a1 : s.regs 3 = x
+hgl :
+  load s.mem (BitVec.toNat (s.regs 14) + 16) 8 = Except.ok (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8)
+hgb : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + 512 < BitVec.toNat (s.regs 4)
+hnw2 : BitVec.toNat (s.regs 14) + 16 + 8 ≤ 2 ^ 48
+hgr : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+hbr✝¹ :
+  ¬(BitVec.toNat (s.regs 4) - 8 < Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 ∨
+      (18446744073709551616 - (8 + Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8) +
+            BitVec.toNat (s.regs 4)) %
+          18446744073709551616 =
+        0)
+hbr✝ :
+  (((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+            else
+              if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+              else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+            2#64) >>>
+          1).toNat %
+      64 =
+    0
+hbr : ¬Arm64.Memory.readLE s.mem x.toNat 8 < 2
+⊢ Reaches (Extracted.program.withExit ret)
+    {
+      regs :=
+        setRegF
+          (setRegF
+            (setRegF
+              (setRegF
+                (setRegF
+                  (setRegF s.regs 1
+                    (((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+                        else
+                          if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+                          else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+                        2#64) >>>
+                      1))
+                  2 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem x.toNat 8)))
+                3 1#64)
+              4 (s.regs 4 - 136#64))
+            5 (s.regs 4 - 8#64))
+          12 (s.regs 4 - 8#64),
+      rip := 4957842#64, flags := (subFlags (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem x.toNat 8)) (2#64) false).snd,
+      xmm := s.xmm, mem := Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5)),
+      ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+      kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }
+    (IsReturn fun s' =>
+      ABIReturn s s' ∧
+        s'.regs 0 = z ∧
+          F.IsSqrt (Arm64.Memory.readLE s.mem x.toNat 32) (Arm64.Memory.readLE s'.mem z.toNat 32) ∧
+            MemFrame s.mem s'.mem
+              [(z.toNat, z.toNat + 32), (BitVec.toNat (s.regs regSP) - 496, BitVec.toNat (s.regs regSP) + 32)])
+
+case hq
+z x : BitVec 64
+ret : Nat
+hret : RetAddr Extracted.program ret
+s : State
+hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s
+hg : StackGuardOK s 512
+hsp : 640 ≤ BitVec.toNat (s.regs 4)
+hlow : 496 ≤ BitVec.toNat (s.regs 4)
+hnw : BitVec.toNat (s.regs 4) + 32 ≤ 2 ^ 48
+hacc : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 496) (496 + 32) true = true
+hx15 : s.xmm 15 = 0
+hzw : z.toNat + 32 ≤ 2 ^ 48
+hz : Arm64.Memory.accessible s.mem z.toNat 32 true = true
+hxw : x.toNat + 32 ≤ 2 ^ 48
+hx : Arm64.Memory.accessible s.mem x.toNat 32 false = true
+hdz : z.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ z.toNat
+hdx : x.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ x.toNat
+hzx : z = x ∨ z.toNat + 32 ≤ x.toNat ∨ x.toNat + 32 ≤ z.toNat
+hdg :
+  BitVec.toNat (s.regs 14) + 24 ≤ BitVec.toNat (s.regs 4) - 496 ∨
+    BitVec.toNat (s.regs 4) + 32 ≤ BitVec.toNat (s.regs 14) + 16
+h1 : Arm64.Memory.readLE s.mem (x.toNat + 8) 8 = 0
+h2 : Arm64.Memory.readLE s.mem (x.toNat + 16) 8 = 0
+h3 : Arm64.Memory.readLE s.mem (x.toNat + 24) 8 = 0
+h_rip : s.rip = 4957056#64
+h_ret : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 4)) 8 = ret
+h_x15 : s.xmm 15 = 0
+h_df : s.df = false
+h_a0 : s.regs 0 = z
+h_a1 : s.regs 3 = x
+hgl :
+  load s.mem (BitVec.toNat (s.regs 14) + 16) 8 = Except.ok (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8)
+hgb : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + 512 < BitVec.toNat (s.regs 4)
+hnw2 : BitVec.toNat (s.regs 14) + 16 + 8 ≤ 2 ^ 48
+hgr : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+hbr✝¹ :
+  ¬(BitVec.toNat (s.regs 4) - 8 < Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 ∨
+      (18446744073709551616 - (8 + Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8) +
+            BitVec.toNat (s.regs 4)) %
+          18446744073709551616 =
+        0)
+hbr✝ :
+  ¬(((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+              else
+                if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+                else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+              2#64) >>>
+            1).toNat %
+        64 =
+      0
+hbr : Arm64.Memory.readLE s.mem x.toNat 8 < 2
+⊢ F.IsSqrt (Arm64.Memory.readLE s.mem x.toNat 8) (Arm64.Memory.readLE s.mem x.toNat 8) ∧
+    MemFrame s.mem
+      ((((Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5))).writeLE (z.toNat + 16)
+                16 0).writeLE
+            (z.toNat + 8) 8 0).writeLE
+        z.toNat 8 (Arm64.Memory.readLE s.mem x.toNat 8))
+      [(z.toNat, z.toNat + 32), (BitVec.toNat (s.regs 4) - 496, BitVec.toNat (s.regs 4) + 32)]
+
+case h
+z x : BitVec 64
+ret : Nat
+hret : RetAddr Extracted.program ret
+s : State
+hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s
+hg : StackGuardOK s 512
+hsp : 640 ≤ BitVec.toNat (s.regs 4)
+hlow : 496 ≤ BitVec.toNat (s.regs 4)
+hnw : BitVec.toNat (s.regs 4) + 32 ≤ 2 ^ 48
+hacc : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 4) - 496) (496 + 32) true = true
+hx15 : s.xmm 15 = 0
+hzw : z.toNat + 32 ≤ 2 ^ 48
+hz : Arm64.Memory.accessible s.mem z.toNat 32 true = true
+hxw : x.toNat + 32 ≤ 2 ^ 48
+hx : Arm64.Memory.accessible s.mem x.toNat 32 false = true
+hdz : z.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ z.toNat
+hdx : x.toNat + 32 ≤ BitVec.toNat (s.regs 4) - 496 ∨ BitVec.toNat (s.regs 4) + 32 ≤ x.toNat
+hzx : z = x ∨ z.toNat + 32 ≤ x.toNat ∨ x.toNat + 32 ≤ z.toNat
+hdg :
+  BitVec.toNat (s.regs 14) + 24 ≤ BitVec.toNat (s.regs 4) - 496 ∨
+    BitVec.toNat (s.regs 4) + 32 ≤ BitVec.toNat (s.regs 14) + 16
+h1 : Arm64.Memory.readLE s.mem (x.toNat + 8) 8 = 0
+h2 : Arm64.Memory.readLE s.mem (x.toNat + 16) 8 = 0
+h3 : Arm64.Memory.readLE s.mem (x.toNat + 24) 8 = 0
+h_rip : s.rip = 4957056#64
+h_ret : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 4)) 8 = ret
+h_x15 : s.xmm 15 = 0
+h_df : s.df = false
+h_a0 : s.regs 0 = z
+h_a1 : s.regs 3 = x
+hgl :
+  load s.mem (BitVec.toNat (s.regs 14) + 16) 8 = Except.ok (Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8)
+hgb : Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 + 512 < BitVec.toNat (s.regs 4)
+hnw2 : BitVec.toNat (s.regs 14) + 16 + 8 ≤ 2 ^ 48
+hgr : Arm64.Memory.accessible s.mem (BitVec.toNat (s.regs 14) + 16) 8 false = true
+hbr✝¹ :
+  ¬(BitVec.toNat (s.regs 4) - 8 < Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8 ∨
+      (18446744073709551616 - (8 + Arm64.Memory.readLE s.mem (BitVec.toNat (s.regs 14) + 16) 8) +
+            BitVec.toNat (s.regs 4)) %
+          18446744073709551616 =
+        0)
+hbr✝ :
+  ¬(((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+              else
+                if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+                else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+              2#64) >>>
+            1).toNat %
+        64 =
+      0
+hbr : ¬Arm64.Memory.readLE s.mem x.toNat 8 < 2
+⊢ Reaches (Extracted.program.withExit ret)
+    {
+      regs :=
+        setRegF
+          (setRegF
+            (setRegF
+              (setRegF
+                (setRegF
+                  (setRegF s.regs 1
+                    (((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+                        else
+                          if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+                          else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+                        2#64) >>>
+                      1))
+                  2 (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem x.toNat 8)))
+                3
+                (1#64 <<<
+                  ((((if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then 18446744073709551615#64
+                          else
+                            if Arm64.Memory.readLE s.mem x.toNat 8 = 0 then s.kreg 8
+                            else BitVec.ofNat 64 (63 - Arm64.clzNat 64 (Arm64.Memory.readLE s.mem x.toNat 8))) +
+                          2#64) >>>
+                        1).toNat %
+                    64)))
+              4 (s.regs 4 - 136#64))
+            5 (s.regs 4 - 8#64))
+          12 (s.regs 4 - 8#64),
+      rip := 4957842#64, flags := (subFlags (BitVec.ofNat 64 (Arm64.Memory.readLE s.mem x.toNat 8)) (2#64) false).snd,
+      xmm := s.xmm, mem := Arm64.Memory.writeLE s.mem (BitVec.toNat (s.regs 4) - 8) 8 (BitVec.toNat (s.regs 5)),
+      ymmHi := s.ymmHi, fsBase := s.fsBase, mxcsr := s.mxcsr, x87 := s.x87, fpucw := s.fpucw, zmmHi := s.zmmHi,
+      kreg := fun i => if i < 8 then s.kreg i else s.kreg (i + 1) }
+    (IsReturn fun s' =>
+      ABIReturn s s' ∧
+        s'.regs 0 = z ∧
+          F.IsSqrt (Arm64.Memory.readLE s.mem x.toNat 32) (Arm64.Memory.readLE s'.mem z.toNat 32) ∧
+            MemFrame s.mem s'.mem
+              [(z.toNat, z.toNat + 32), (BitVec.toNat (s.regs regSP) - 496, BitVec.toNat (s.regs regSP) + 32)])
+Fv256/Amd64/S0.lean:22:8: warning: declaration uses `sorry`

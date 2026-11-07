@@ -1,0 +1,68 @@
+Fv256/Arm64/Float64J3z.lean:44:43: warning: This simp argument is unused:
+  Nat.mul_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hexp, e8, e16, e24, Nat.add_zero] at hS4
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:44:57: warning: This simp argument is unused:
+  Nat.add_zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hexp, e8, e16, e24, Nat.mul_zero] at hS4
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:47:287: warning: This simp argument is unused:
+  Fv256.D.ite_or_lsb
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.ite_toNat_mod2,
+    Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq,
+    decide_eq_false_iff_not] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:47:386: warning: This simp argument is unused:
+  beq_eq_false_iff_ne
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.ite_or_lsb,
+    Fv256.D.ite_toNat_mod2, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, Bool.not_eq_true, decide_eq_true_eq,
+    decide_eq_false_iff_not] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:47:407: warning: This simp argument is unused:
+  Bool.not_eq_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.ite_or_lsb,
+    Fv256.D.ite_toNat_mod2, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne,
+    decide_eq_true_eq, decide_eq_false_iff_not] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:49:285: warning: This simp argument is unused:
+  Fv256.D.ite_or_lsb
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.ite_toNat_mod2,
+    Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne, Bool.not_eq_true, decide_eq_true_eq,
+    decide_eq_false_iff_not] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:49:384: warning: This simp argument is unused:
+  beq_eq_false_iff_ne
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.ite_or_lsb,
+    Fv256.D.ite_toNat_mod2, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, Bool.not_eq_true, decide_eq_true_eq,
+    decide_eq_false_iff_not] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Fv256/Arm64/Float64J3z.lean:49:405: warning: This simp argument is unused:
+  Bool.not_eq_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Fv256.D.Up, Fv256.D.lsb_ofNat _ 11 (by decide), Fv256.D.lsb0_toNat, Fv256.D.ite_or_lsb,
+    Fv256.D.ite_toNat_mod2, Fv256.D.fr_toNat _ m3, Nat.or_eq_zero_iff, beq_iff_eq, beq_eq_false_iff_ne,
+    decide_eq_true_eq, decide_eq_false_iff_not] at *
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`

@@ -90,8 +90,9 @@ abbrev pcLoad : Nat := Extracted.entry + 0x68
 
 /-- What every segment boundary state `S` has in common with the call state `s`: the frame (`RSP`, `RBP`,
 the goroutine register, the saved frame pointer and the two spilled arguments) and the memory frame. -/
-def Rel (R : RtInv) (z bp : BitVec 64) (s S : State) : Prop :=
+def Rel (R : RtInv) (ret : Nat) (z bp : BitVec 64) (s S : State) : Prop :=
   S.regs 4 = s.regs 4 - 24#64 ∧ S.regs 5 = s.regs 4 - 8#64 ∧ S.regs 14 = s.regs 14 ∧
+    S.mem.readLE (s.regs 4).toNat 8 = ret ∧
     S.mem.readLE ((s.regs 4).toNat - 8) 8 = (s.regs 5).toNat ∧
     S.mem.readLE ((s.regs 4).toNat + 8) 8 = z.toNat ∧ S.mem.readLE ((s.regs 4).toNat + 16) 8 = bp.toNat ∧
     MemFrame s.mem S.mem (R.rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat), ((s.regs 4).toNat + 8, (s.regs 4).toNat + 24),

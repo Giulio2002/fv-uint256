@@ -1,0 +1,150 @@
+import Extracted
+import Fv256.Spec
+import Fv256.SpecE
+import Fv256.UtilE
+import Fv256.UtilE64
+import Fv256.StrE
+import Fv256.GrabTac
+import Fv256.Arm64.DecExt
+
+open Janus Janus.Arm64 Janus.Tactic Janus.GoABI Janus.Spec Janus.Contracts
+open Fv256.E
+open Fv256.Arm64.Dec
+
+namespace Fv256.Arm64.String
+
+set_option maxHeartbeats 32000000 in
+set_option maxRecDepth 200000 in
+theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+    (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
+    Ensures (Extracted.program.link impl) Extracted.entry [z]
+      (fun s => GuardOK s (688 + 32) ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧
+        Outside (s.sp.toNat - 4640) (4640 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
+        Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
+        ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
+        (2 ^ 64 ≤ val256 s.mem z.toNat →
+          H [0, s.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 32 - 384) (rtView rt s.mem)) ∧
+        (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
+          H [0, s.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+            (s.regs 28).toNat (s.sp.toNat - 32 - 384 - 96) (rtView rt s.mem)))
+      (fun s s' => StrOut s'.mem (s'.regs 0).toNat (s'.regs 1).toNat (decBytes (val256 s.mem z.toNat)) ∧
+        MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)])) := by
+  rintro ret hret s hs ⟨hg, hst, hd, hout, hrt1, hrt2, ⟨hza, hzn⟩, hzd, hgd, hH, hH1⟩
+  janus_intro hs
+  obtain ⟨hg1, hg2, hg3⟩ := hg
+  obtain ⟨hal, h4640, hsp2, hwa⟩ := hst
+  simp only [val256, Fv256.Util.readLE_32] at hH hH1
+  have hdE : decE = 754624 := by unfold decE; decide
+  have hcE : decE + 0x5000 < 2 ^ 47 := by decide
+  janus_run [hdE] calls [dec_summary_ext impl rt H z hc]
+  grab_const Fv256.E.decBytes as hstr
+  grab_const Janus.MemFrame as hfrm
+  have hr4 := s.sp.isLt
+  have hu : (s.regs 29).toNat < 2 ^ 64 := (s.regs 29).isLt
+  have hfr1 : MemFrame ((s.mem.writeLE (s.sp.toNat - 32) 8 ret).writeLE (s.sp.toNat - 40) 8 (s.regs 29).toNat) s'.mem
+      (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) :=
+    hfrm.mono (fun a n h => by
+      simp only [outside_append, outside_cons] at h ⊢
+      exact ⟨h.1, by omega, trivial⟩)
+  refine ⟨?_, ?_⟩
+  · exact hstr
+  · have h1 : MemFrame s.mem ((s.mem.writeLE (s.sp.toNat - 32) 8 ret).writeLE (s.sp.toNat - 40) 8 (s.regs 29).toNat)
+        (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) := by
+      refine MemFrame.trans (rs := rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)])
+        (MemFrame.of_writeLE s.mem _ (r := (s.sp.toNat - 4640, s.sp.toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega))
+        (MemFrame.of_writeLE _ _ (rs := rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) (r := (s.sp.toNat - 4640, s.sp.toNat + 8)) (List.mem_append_right _ (List.mem_singleton_self _)) (by omega) (by omega)) ?_
+      intro a n h; exact ⟨h, h⟩
+    exact h1.trans hfr1 fun a n h => ⟨h, h⟩
+
+namespace Witness
+
+open Janus.Contracts.Sat
+
+def implAt : List Segment := [{ name := "model", base := ssAddr, words := constCode 0 0 0 }]
+def linked : Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
+theorem linked_eq : Extracted.program.link implAt = linked := rfl
+
+theorem model : RtContract (Extracted.program.link implAt) ssAddr rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») := by
+  rw [linked_eq]
+  rintro s hpc ⟨⟨h30a, h30b, -⟩, -, -, -, hH⟩
+  have ha := ready_of rfl hH
+  simp only [Ready, H0, arg, List.getD_eq_getElem?_getD, slicebytetostringSpec] at ha
+  janus_run
+  apply rtPost_const <;> (try rfl) <;> (try simp [setReg])
+  simp [ha, strBytes, StrAt]
+
+def ret : Nat := 0x1000
+def sp0 : Nat := 0x100000
+def g0 : Nat := 0x200000
+def zp : Nat := 0x30800
+def dsegs : List DataSegment := Extracted.data
+
+def bytes (a : Nat) : Byte :=
+  match dsegs.find? (fun d => decide (d.base ≤ a ∧ a < d.base + d.bytes.length)) with
+  | some d => BitVec.ofNat 8 (d.bytes.getD (a - d.base) 0)
+  | none => 0
+
+def dregs : List Region := dsegs.map (fun d => ⟨d.base, d.bytes.length, false⟩)
+
+def arg : BitVec 64 := BitVec.ofNat 64 zp
+
+def s0 : State :=
+  { regs := fun i => if i = 0 then arg else if i = 28 then BitVec.ofNat 64 g0
+      else if i = 30 then BitVec.ofNat 64 ret else 0,
+    sp := BitVec.ofNat 64 sp0, pc := BitVec.ofNat 64 Extracted.entry,
+    flags := ⟨false, false, false, false⟩,
+    mem := ⟨bytes, [⟨sp0 - 4640, 4640 + 8, true⟩, ⟨g0, 0x100, false⟩, ⟨zp, 0x100, false⟩] ++ dregs⟩ }
+
+theorem hret : RetAddr linked ret := RetAddr.of_check (by decide)
+
+theorem setup : CallSetup (linked.withExit ret) Extracted.entry [arg] s0 :=
+  ⟨rfl, rfl, by intro r h; simp at h; rcases r with _ | r <;> simp [s0] at h ⊢ <;> omega⟩
+
+set_option maxRecDepth 100000 in
+theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
+  unfold Program.DataLoaded
+  decide +kernel
+
+set_option maxRecDepth 100000 in
+theorem pre : GuardOK s0 (688 + 32) ∧ StackOK s0 4640 8 ∧ Extracted.program.DataLoaded s0.mem ∧
+    Outside (s0.sp.toNat - 4640) (4640 + 8) rtW ∧ Outside 989280 256 rtW ∧ Outside 1002589 256 rtW ∧
+    Ptr32 s0.mem arg false ∧ (arg.toNat + 32 ≤ s0.sp.toNat - 4640 ∨ s0.sp.toNat + 8 ≤ arg.toNat) ∧
+    ((s0.regs 28).toNat + 16 + 8 ≤ s0.sp.toNat - 4640 ∨ s0.sp.toNat + 8 ≤ (s0.regs 28).toNat + 16) ∧
+    (2 ^ 64 ≤ val256 s0.mem arg.toNat →
+      H0 [0, s0.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s0.mem arg.toNat)), decLen (val256 s0.mem arg.toNat)]
+        (s0.regs 28).toNat (s0.sp.toNat - 32 - 384) (rtView rtW s0.mem)) ∧
+    (100 ≤ val256 s0.mem arg.toNat → val256 s0.mem arg.toNat < 2 ^ 64 →
+      H0 [0, s0.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s0.mem arg.toNat)), decLen (val256 s0.mem arg.toNat)]
+        (s0.regs 28).toNat (s0.sp.toNat - 32 - 384 - 96) (rtView rtW s0.mem)) := by
+  have hz : val256 s0.mem arg.toNat = 0 := by
+    unfold val256 s0 arg zp
+    decide
+  refine ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by decide, by decide, by decide⟩, dataLoaded, ?_, ?_, ?_,
+    ⟨by decide, by decide⟩, by decide, by decide, fun h => ?_, fun h _ => ?_⟩
+  · simp only [rtW, outside_cons, outside_nil]; decide
+  · simp only [rtW, outside_cons, outside_nil]; decide
+  · simp only [rtW, outside_cons, outside_nil]; decide
+  · rw [hz] at h; exact absurd h (by decide)
+  · rw [hz] at h; exact absurd h (by decide)
+
+/-- The precondition and the `slicebytetostring` contract are jointly satisfiable. -/
+theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
+    RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
+    (GuardOK s (688 + 32) ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧
+    Outside (s.sp.toNat - 4640) (4640 + 8) rt ∧ Outside 989280 256 rt ∧ Outside 1002589 256 rt ∧
+    Ptr32 s.mem z false ∧ (z.toNat + 32 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ z.toNat) ∧
+    ((s.regs 28).toNat + 16 + 8 ≤ s.sp.toNat - 4640 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
+    (2 ^ 64 ≤ val256 s.mem z.toNat →
+      H [0, s.sp.toNat - 32 - 384 + 94 + (98 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+        (s.regs 28).toNat (s.sp.toNat - 32 - 384) (rtView rt s.mem)) ∧
+    (100 ≤ val256 s.mem z.toNat → val256 s.mem z.toNat < 2 ^ 64 →
+      H [0, s.sp.toNat - 32 - 384 - 32 + (24 - decLen (val256 s.mem z.toNat)), decLen (val256 s.mem z.toNat)]
+        (s.regs 28).toNat (s.sp.toNat - 32 - 384 - 96) (rtView rt s.mem))) :=
+  ⟨implAt, rtW, H0, ret, s0, arg, model, by rw [linked_eq]; exact hret, by rw [linked_eq]; exact setup, pre⟩
+
+end Witness
+
+end Fv256.Arm64.String

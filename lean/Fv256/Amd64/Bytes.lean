@@ -70,8 +70,8 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hb ha hw hout hal hzd ⊢
   janus64_data hd [hw]
   janus64_run until [Extracted.entry + 0x25] calls [hnew.pos]
-  have hdj := InRanges.disjoint ‹InRanges _ 32 rt› hout
-  have hdz := InRanges.disjoint ‹InRanges _ 32 rt› hzo
+  have hdj := InRanges.disjoint (by janus_assumption : InRanges _ 32 rt) hout
+  have hdz := InRanges.disjoint (by janus_assumption : InRanges _ 32 rt) hzo
   janus64_run [Util.readLE_32]
   all_goals
     blfacts
@@ -86,7 +86,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
          (repeat' split at hbr) <;> (try simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, not_true_eq_false, and_false, false_and, and_true, true_and, not_false_eq_true] at *) <;> omega)
       | skip
   all_goals
-    refine ⟨_, ‹_›, ‹_›, ‹_›, ?_, ?_, ?_, ?_, ?_⟩
+    refine ⟨_, (by janus_assumption), (by janus_assumption), (by janus_assumption), ?_, ?_, ?_, ?_, ?_⟩
     · blclr; blg1
     · blclr; blamd
     · blclr; blamd
@@ -107,9 +107,9 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         simp only [valueAt, Util.readLE_32]
         clear hzd hdj hdz h_ddisj0_0
         refine Util.fin_all _ _ _ _ _ _ _ ?_ ?_ ?_
-        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
-        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
-        · first | exact Or.inl rfl | exact Or.inr ⟨by assumption, rfl⟩
+        · first | exact Or.inl rfl | exact Or.inr ⟨by janus_assumption_reducible, rfl⟩
+        · first | exact Or.inl rfl | exact Or.inr ⟨by janus_assumption_reducible, rfl⟩
+        · first | exact Or.inl rfl | exact Or.inr ⟨by janus_assumption_reducible, rfl⟩
       )
     · janus_frame
 

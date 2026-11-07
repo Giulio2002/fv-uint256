@@ -6,9 +6,9 @@ import Fv256.UtilB
 import Fv256.SpecB2
 import Fv256.UtilB2
 import Fv256.CodeIn
-import Fv256.Amd64.UdivremA
-import Fv256.Amd64.UdivremK
-import Fv256.Amd64.UdivremL
+import Fv256.DivProg
+import Fv256.Amd64.DivSum
+import Fv256.Amd64.EnsuresOf
 
 /-!
 # `(*uint256.Int).Div(x, y *Int) *Int` (amd64): `z = x / y`, and `0` when `y = 0`
@@ -31,7 +31,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.Div
 
 set_option maxRecDepth 100000 in
-theorem hcChain : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ChainProg.program Extracted.program :=
+theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.DivProg.program Extracted.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
 set_option maxHeartbeats 32000000 in
@@ -45,45 +45,8 @@ theorem correctness (z x y : BitVec 64) :
         ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x1b8 ∨ (s.regs regSP).toNat + 0x10 ≤ (s.regs regG).toNat + 16))
       (fun s s' => s'.regs 0 = z ∧ valueAt s' z 32 = Fv256.B.divSpec (valueAt s x 32) (valueAt s y 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x1b8, (s.regs regSP).toNat + 0x10)]) := by
-  intro ret hret s hs ⟨hg, hsp, ⟨hlow, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hdz, hdx, hdy, hdg⟩
-  janus64_intro hs
-  have hgl := hg.load
-  have hgb := hg.below
-  have hnw2 := hg.noWrap
-  have hgr := hg.readable
-  simp only [regG, stackguard0Offset, regSP, stackguard0] at hgr hgb hgl hnw2 hdg
-  simp only [regSP] at hacc hlow hnw hdz hdx hdy hsp hsp
-  simp only [valueAt]
-  have hx0 := Util.readLE8_lt s.mem x.toNat
-  have hx1 := Util.readLE8_lt s.mem (x.toNat + 8)
-  have hx2 := Util.readLE8_lt s.mem (x.toNat + 16)
-  have hx3 := Util.readLE8_lt s.mem (x.toNat + 24)
-  have hy0 := Util.readLE8_lt s.mem y.toNat
-  have hy1 := Util.readLE8_lt s.mem (y.toNat + 8)
-  have hy2 := Util.readLE8_lt s.mem (y.toNat + 16)
-  have hy3 := Util.readLE8_lt s.mem (y.toNat + 24)
-  have hdv := Nat.div_le_self (s.mem.readLE x.toNat 8) (s.mem.readLE y.toNat 8)
-  janus64_run [Util.readLE_32, Fv256.B.wv_writeLE_outside, Fv256.B.wv_zero2, Fv256.B.wv_zero2', Fv256.B.wv4_eq, false_implies, BitVec.toNat_ofNat, Nat.zero_mod, Fv256.B.borrow_zero_iff, Fv256.B.or_toNat_zero_iff, Fv256.B.ofNat64_toNat_zero_iff, Fv256.B.xor_ofNat_zero_iff, Fv256.B.bv128_zero_toNat, Nat.zero_div] calls [Fv256.CodeIn.lib_summary hcChain Fv256.Amd64.UdivremL.udivrem_nil]
-  all_goals (first | (exfalso; omega) | skip)
-  all_goals (refine ⟨?_, ?_⟩)
-  all_goals (first | janus_frame | skip)
-  all_goals (first
-    | (have e8 : BitVec.toNat (s.regs 4) - 32 = BitVec.toNat (s.regs 4) - 40 + 8 := by omega
-       have e16 : BitVec.toNat (s.regs 4) - 24 = BitVec.toNat (s.regs 4) - 40 + 16 := by omega
-       have e24 : BitVec.toNat (s.regs 4) - 16 = BitVec.toNat (s.regs 4) - 40 + 24 := by omega
-       rw [e8, e16, e24])
-    | skip)
-  all_goals (first
-    | (exfalso; omega)
-    | (rw [Fv256.B.divSpec]
-       split <;>
-         (first
-           | omega
-           | (exfalso; omega)
-           | exact Fv256.B.one_eq_div _ _ (by omega) (by omega)
-           | exact (Nat.div_eq_of_lt (by omega)).symm
-           | exact Fv256.B.div_congr _ _ _ (by omega)))
-    | skip)
+  exact Fv256.Amd64.EnsuresOf.ensures3 0x1c0 0x1b8 0x168 (by decide) Fv256.B.divSpec
+    (Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.DivSum.div_summary) z x y
 
 namespace Witness
 

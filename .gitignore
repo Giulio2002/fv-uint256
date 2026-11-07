@@ -1,5 +1,13 @@
-scratch/
-*.o
+
 build/
-wip/
+build/ws-*.env
+jcache/
+lean/.lake/
 NOTES.md
+stage/
+tools/__pycache__/
+wip/
+wip-d/logs/
+wip-d/*.out
+wip-d/*.time
+logs/

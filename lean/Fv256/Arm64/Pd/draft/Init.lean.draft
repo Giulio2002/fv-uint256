@@ -1,0 +1,149 @@
+-- DRAFT (uncompiled): mechanical amd64->arm64 port of Amd64/Pd/Init.lean. Register map rax,rcx,rdx,rbx,rsi,rdi,r9,r11,r12,r13,r14 -> x0,x2,x8,x1,x4,x3,x6,x9,x10,x11,x28.
+-- Offsets shifted +16 (arm64 body sp = entry sp - 400). TODO by hand: pdE offsets (pdH=+0xfc, pdI=+0x190, pdJ=+0x1cc, pdK=+0x1f8, pdF=+0x234), GuardOK/StackOK, ret via x30, saved x29/x30 slots, branch hbr forms.
+import Fv256.Arm64.PrettyProg
+import Fv256.SpecE
+import Fv256.UtilE
+import Fv256.Arm64.P.A
+import Fv256.UtilB2
+import Fv256.Util
+import Fv256.PdCells
+import Fv256.Arm64.Pd.Tabs
+
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
+open Fv256.E Fv256.Amd64.P Fv256.Arm64.Pd
+
+namespace Fv256.Arm64.Pd
+
+/-- Entry of `(*Int).PrettyDec`. -/
+def pdE : Nat := segAddr Fv256.Arm64.PrettyProg.program "github.com/holiman/uint256.(*Int).PrettyDec"
+/-- The loop head (`MOVQ AX, 0x128(SP)` after the receiver is copied), `0x153` bytes into the function. -/
+def pdH : Nat := pdE + 0x153
+
+set_option maxHeartbeats 16000000 in
+set_option maxRecDepth 20000 in
+theorem pd_init (s : State) (hpc : s.pc = BitVec.ofNat 80 pdE) (zp : Nat) (e0 : s.regs 0 = BitVec.ofNat 80 zp)
+    (hg : StackGuardOK s 0x100) (hw : StackWritable s 0x300 0x18) (hal : s.sp.toNat % 8 = 0)
+    (hd : Fv256.Arm64.PrettyProg.program.DataLoaded s.mem)
+    (hz : zp + 32 ≤ 2 ^ 48 ∧ s.mem.accessible zp 32 false = true)
+    (hzd : zp + 32 ≤ s.sp.toNat - 0x300 ∨ s.sp.toNat + 0x18 ≤ zp)
+    (hv0 : s.mem.readLE zp 32 ≠ 0) (hx15 : s.xmm 15 = 0) :
+    ReachesRet Fv256.Arm64.PrettyProg.program (BitVec.ofNat 80 pdH) s
+      (fun S' => S'.regs 0 = 19#80 ∧ S'.regs 2 = 132#80 ∧
+        S'.regs 8 = BitVec.ofNat 80 (s.sp.toNat - 352) ∧ S'.regs SP = BitVec.ofNat 80 (s.sp.toNat - 416) ∧
+        S'.regs 29 = BitVec.ofNat 80 (s.sp.toNat - 8) ∧ S'.regs 4 = 0#80 ∧
+        S'.regs 3 = BitVec.ofNat 80 (s.sp.toNat - 80) ∧ S'.regs 6 = BitVec.ofNat 80 (s.sp.toNat - 48) ∧
+        S'.regs 28 = s.regs 28 ∧ S'.xmm 15 = 0 ∧ S'.df = s.df ∧
+        MemFrame s.mem S'.mem [(s.sp.toNat - 0x190, s.sp.toNat + 0x18)] ∧
+        S'.mem.readLE (s.sp.toNat + 16) 1 = (s.regs 1).toNat % 256 ∧
+        S'.mem.readLE (s.sp.toNat - 8) 8 = (s.regs 29).toNat ∧
+        S'.mem.readLE (s.sp.toNat - 80) 32 = s.mem.readLE zp 32 ∧
+        S'.mem.readLE (s.sp.toNat - 48) 32 = 10 ^ 19 ∧
+        (∀ p, p < 133 → S'.mem.readLE (s.sp.toNat - 169 - p) 1 = 48) ∧ TabsOK S'.mem ∧
+        S'.mem.readLE s.sp.toNat 8 = s.mem.readLE s.sp.toNat 8) := by
+  have hc : pdE + 0x400 < 2 ^ 47 := by decide
+  obtain ⟨hzn, hza⟩ := hz
+  obtain ⟨hwb, hwn, hwa⟩ := hw
+  have hgl := hg.load
+  have hg3 := hg.below
+  have hg1 := hg.noWrap
+  have hg2 := hg.readable
+  simp only [regSP, Janus.Amd64.GoABI.regG, Janus.Amd64.GoABI.stackguard0Offset,
+    Janus.Amd64.GoABI.stackguard0] at hgl hg3 hg1 hg2 hwb hwn hwa hal
+  janus_data hd [hwa]
+  have l0 := Janus.Arm64.Memory.readLE_lt s.mem zp 8
+  have l1 := Janus.Arm64.Memory.readLE_lt s.mem (zp + 8) 8
+  have l2 := Janus.Arm64.Memory.readLE_lt s.mem (zp + 16) 8
+  have l3 := Janus.Arm64.Memory.readLE_lt s.mem (zp + 24) 8
+  simp only [Nat.reducePow] at l0 l1 l2 l3
+  rw [Util.readLE_32] at hv0
+  have hnz : ((BitVec.ofNat 80 (s.mem.readLE (zp + 8) 8) ||| BitVec.ofNat 80 (s.mem.readLE zp 8) |||
+      BitVec.ofNat 80 (s.mem.readLE (zp + 16) 8) ||| BitVec.ofNat 80 (s.mem.readLE (zp + 24) 8)).toNat = 0) = False := by
+    apply eq_false
+    intro h
+    rw [BitVec.toNat_or, BitVec.toNat_or, BitVec.toNat_or, BitVec.toNat_ofNat, BitVec.toNat_ofNat, BitVec.toNat_ofNat,
+      BitVec.toNat_ofNat, Nat.mod_eq_of_lt (by omega : s.mem.readLE zp 8 < 2 ^ 80),
+      Nat.mod_eq_of_lt (by omega : s.mem.readLE (zp + 8) 8 < 2 ^ 80),
+      Nat.mod_eq_of_lt (by omega : s.mem.readLE (zp + 16) 8 < 2 ^ 80),
+      Nat.mod_eq_of_lt (by omega : s.mem.readLE (zp + 24) 8 < 2 ^ 80)] at h
+    simp only [Nat.or_eq_zero_iff] at h
+    omega
+  janus_run [e0, hnz] until [pdH]
+  have hx0 : (s.xmm 15).toNat = 0 := by rw [hx15]; rfl
+  have hr := (s.regs SP).isLt
+  have hr0 : 0x300 ≤ s.sp.toNat := by omega
+  refine ReachesRet.done (by rfl) ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · simp [setReg]
+  · simp [setReg]
+  · simp [setReg]; rw [Fv256.E.bv_sub_lit _ 352 (by omega)]
+  · simp [setReg]; rw [Fv256.E.bv_sub_lit _ 416 (by omega)]
+  · simp [setReg]; rw [Fv256.E.bv_sub_lit _ 8 (by omega)]
+  · simp [setReg]
+  · simp [setReg]; rw [Fv256.E.bv_sub_lit _ 80 (by omega)]
+  · simp [setReg]; rw [Fv256.E.bv_sub_lit _ 48 (by omega)]
+  · simp [setReg]
+  · simp [setReg, setXmmF]; exact hx15
+  · simp [setReg]
+  · dsimp only
+    repeat' first
+      | exact MemFrame.refl _ _
+      | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) (by omega) (by omega)
+  · dsimp only
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    simp
+  · dsimp only
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow]
+    have := (s.regs 29).isLt
+    omega
+  · dsimp only
+    rw [Util.readLE_32, Util.readLE_32, show s.sp.toNat - 80 + 8 = s.sp.toNat - 72 by omega,
+      show s.sp.toNat - 80 + 16 = s.sp.toNat - 80 by omega, show s.sp.toNat - 80 + 24 = s.sp.toNat - 56 by omega]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+    simp only [Nat.reducePow, Nat.add_assoc, Nat.reduceAdd]
+    omega
+  · dsimp only
+    rw [Util.readLE_32, show s.sp.toNat - 48 + 8 = s.sp.toNat - 40 by omega,
+      show s.sp.toNat - 48 + 16 = s.sp.toNat - 32 by omega, show s.sp.toNat - 48 + 24 = s.sp.toNat - 24 by omega]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self,
+      Janus.Arm64.Memory.readLE_writeLE_inside, Nat.zero_div, Nat.zero_mod]
+  · intro p hp
+    dsimp only
+    have hzb : ∀ e, e < 16 → 64053151420411946063694043751862251568 / 256 ^ e % 256 ^ 1 = 48 := by decide +kernel
+    by_cases c1 : p ≤ 15
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c2 : p ≤ 20
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c3 : p ≤ 36
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c4 : p ≤ 52
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c5 : p ≤ 68
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c6 : p ≤ 84
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c7 : p ≤ 100
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    by_cases c8 : p ≤ 116
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+    · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_inside]
+      exact hzb _ (by omega)
+  · dsimp only
+    refine TabsOK.frame (TabsOK.of_loaded hd) (rs := [(s.sp.toNat - 0x190, s.sp.toNat + 0x18)]) ?_ ?_
+    · repeat' first
+        | exact MemFrame.refl _ _
+        | refine MemFrame.writeLE ?_ _ (List.mem_singleton_self _) (by omega) (by omega)
+    · intro r hr
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+      subst hr
+      exact accessible_sub hwa (Or.inr rfl) (by omega) (by omega)
+  · dsimp only
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+end Fv256.Arm64.Pd
