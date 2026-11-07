@@ -262,8 +262,8 @@ theorem setupG : CallSetup (linkedG.withExit ret) Extracted.entry [zV, tabV, dat
 
 open Janus.Contracts.IfaceModel Janus.Spec.Type in
 theorem big_core : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
-    (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
-    ImplApart Extracted.program impl ∧ R.Laws ∧
+    (fa : Nat) (Rc Rd : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    (ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
     NewobjectLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
@@ -273,33 +273,25 @@ theorem big_core : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 
       (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
     RtContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
       stringtoslicebyteSpec ∧
-    4608 ≤ stack ∧
-    ICallContract (Extracted.program.link impl) fW 1 stack 120 rt (fun _ => []) RW (fun _ => True) (RtPreserves R2) ∧
-    ICallContract (Extracted.program.link impl) fP 1 stack 120 rt (fun _ => []) RP (fun _ => True) (RtPreserves R2) ∧
-    ICallContract (Extracted.program.link impl) fF 2 stack 120 rt (fun _ => []) RF (fun _ => True) (RtPreserves R2) ∧
-    ICallContract (Extracted.program.link impl) fWr 4 stack 120 rt (fun _ => []) RWr
-      (FastWP data (Fv256.FormatSpec.fastBytes zv (ch.toNat % 2 ^ 32))) ∧
-    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 stack 80 rt (fun _ => [])
-      RFp (Fv256.Arm64.FormatNil.FpArg data) ∧
-    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 120 rt (fun _ => [])
-      RBf (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P zv ∧ sc.regs 1 = tab ∧ sc.regs 2 = data ∧
+    4608 ≤ 4608 ∧
+    ICallContract (Extracted.program.link impl) fa 1 4608 120 rt (fun _ => []) Rc (fun _ => True) (RtPreserves R2)) ∧
+    (ICallContract (Extracted.program.link impl) fa 1 4608 120 rt (fun _ => []) Rc (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fa 2 4608 120 rt (fun _ => []) Rc (fun _ => True) (RtPreserves R2) ∧
+    ICallContract (Extracted.program.link impl) fa 4 4608 120 rt (fun _ => []) Rc
+      (FastWP data (Fv256.FormatSpec.fastBytes 16 (ch.toNat % 2 ^ 32))) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 4608 80 rt (fun _ => [])
+      Rd (Fv256.Arm64.FormatNil.FpArg data) ∧
+    ICallContract (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 4608 120 rt (fun _ => [])
+      Rd (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P 16 ∧ sc.regs 1 = tab ∧ sc.regs 2 = data ∧
         (sc.regs 3).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
-    PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s ∧
-    NotPlain RW RP RF data fW fP fF ch (ch.toNat % 2 ^ 32) ∧
-    (∃ (P : Nat) (j0 j1 j2 : BitVec 64), RBf (BitVec.ofNat 64 P) tab data
-      (BitVec.ofNat 64 (if ch.toNat % 2 ^ 32 < 2 ^ 31 then ch.toNat % 2 ^ 32 else ch.toNat % 2 ^ 32 + 18446744069414584320)) j0 j1 j2) := by
-  refine ⟨implAllG, R0, Hw, R2, rtT, amA, amA, amA, amA, stackN, 0x400, 16, R0w, R0w, R0w, R0w, R0z, R0z, zV, tabV, dataV, chV, ret, s0,
-    implOKG, Janus.Contracts.IfaceModel.R0_laws, by rw [addr_ta]; exact model_taG, by rw [addr_new]; exact model_newG,
-    by rw [addr_w1]; exact model_wb1G, by rw [addr_w2]; exact model_wb2G, model1G, model2G, by decide,
-    stub_am1 _ _ _ _ _ _ (fun s b L h => h), stub_am1 _ _ _ _ _ _ (fun s b L h => h),
-    stub_am1 _ _ _ _ _ _ (fun s b L h => h),
-    stub_am1 _ _ _ _ _ _ (fun _ => trivial),
-    by rw [addr_fp]; exact stub_fpbf fpAddr (Or.inl rfl) _ _ _ _ _ _ (fun _ => trivial),
-    by rw [addr_bf]; exact stub_fpbf bfAddr (Or.inr rfl) _ _ _ _ _ _ (fun _ => trivial),
-    by rw [linkedG_eq]; exact hretG, by rw [linkedG_eq]; exact setupG, pre,
-    Or.inl ⟨1, ⟨0, 0, ⟨rfl, rfl⟩⟩, by decide⟩, 0, 0, 0, 0, ⟨rfl, rfl⟩⟩
-
+    PreF R H R2 rt 4608 0x400 fa fa fa fa 16 z tab data s ∧
+    NotPlain Rc Rc Rc data fa fa fa ch (ch.toNat % 2 ^ 32) ∧
+    (∃ (P : Nat) (j0 j1 j2 : BitVec 64), Rd (BitVec.ofNat 64 P) tab data
+      (BitVec.ofNat 64 (if ch.toNat % 2 ^ 32 < 2 ^ 31 then ch.toNat % 2 ^ 32 else ch.toNat % 2 ^ 32 + 18446744069414584320)) j0 j1 j2) ) := by
+  refine ⟨implAllG, R0, Hw, R2, rtT, amA, R0w, R0z, zV, tabV, dataV, chV, ret, s0,
+    ⟨implOKG, Janus.Contracts.IfaceModel.R0_laws, by rw [addr_ta]; exact model_taG, by rw [addr_new]; exact model_newG, by rw [addr_w1]; exact model_wb1G, by rw [addr_w2]; exact model_wb2G, model1G, model2G, by decide, stub_am1 _ _ _ _ _ _ (fun s b L h => h)⟩,
+    ⟨stub_am1 _ _ _ _ _ _ (fun s b L h => h), stub_am1 _ _ _ _ _ _ (fun s b L h => h), stub_am1 _ _ _ _ _ _ (fun _ => trivial), by rw [addr_fp]; exact stub_fpbf fpAddr (Or.inl rfl) _ _ _ _ _ _ (fun _ => trivial), by rw [addr_bf]; exact stub_fpbf bfAddr (Or.inr rfl) _ _ _ _ _ _ (fun _ => trivial), by rw [linkedG_eq]; exact hretG, by rw [linkedG_eq]; exact setupG, pre, Or.inl ⟨1, ⟨0, 0, ⟨rfl, rfl⟩⟩, by decide⟩, ⟨0, 0, 0, 0, ⟨rfl, rfl⟩⟩⟩⟩
 
 end Fv256.Arm64.FormatWitG
