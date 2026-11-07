@@ -87,9 +87,6 @@ theorem Hide.get {P : Prop} (h : Hide P) : P := h
 /-- the entry facts of the `[]byte` case, as a structure (the fields of `ScanSpec.PreB`) -/
 structure PreBS (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat)
     (z pI nI : BitVec 64) (s : State) : Prop where
-  r0 : s.regs 0 = z
-  r3 : s.regs 3 = pI
-  r1 : s.regs 1 = nI
   mod : Mod C R R2 T L
   env : Env C R R2 T b L lo hi s
   lo4 : lo + 4992 ≤ (s.regs 4).toNat
@@ -125,10 +122,13 @@ structure PreBS (sb st : Nat) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : Lis
   chunk : ∀ sl, 1 ≤ sl → sl ≤ 19 → sl ≤ nI.toNat → R.ok C.mallocgc [sl, 0, 0] ∧ (∀ q p, R.ok C.memmove [q, p, sl]) ∧ blockSize sl true + blockSize 48 false ≤ b - roundupsize nI.toNat true
 
 theorem PreBS.of {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi : Nat}
-    {z pI nI : BitVec 64} {s : State} (h : Fv256.Amd64.ScanSpec.PreB C sb st R R2 T b L lo hi z pI nI s) :
+    {z pI nI : BitVec 64} {s : State} (h : Fv256.Amd64.ScanSpec.PreB C sb st R R2 T b L lo hi z pI nI (viewS s pI nI)) :
     PreBS C sb st R R2 T b L lo hi z pI nI s := by
-  obtain ⟨r0, r3, r1, mod, env, lo4, hi4, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
-  exact ⟨r0, r3, r1, mod, env, lo4, hi4, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
+  have hv4 : (viewS s pI nI).regs 4 = s.regs 4 := by simp [viewS, setRegF_apply]
+  have hv14 : (viewS s pI nI).regs 14 = s.regs 14 := by simp [viewS, setRegF_apply]
+  obtain ⟨-, -, -, mod, env, lo4, hi4, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩ := h
+  simp only [hv4, hv14] at env lo4 hi4 okD multK zg
+  exact ⟨mod, env, lo4, hi4, okD, cost, stWin, stRt, stPriv, stZ, mult, multRt, multK, eofA, eofW, eofR, bigA, bigW, bigR, init, maxA, maxW, maxR, maxB, zbuf, zwin, zR, zP, zS, zg, ibuf, iwin, chunk⟩
 
 /-- `TopPre` of the `SetFromDecimal` call, from the state `S3` at the call (return address pushed at `sp - 72`).  The string is
 the copy `(pS, nI)`; `L'`/`b'` the live set and budget after the copy; the window of the callee is `[lo, hi3)`. -/
@@ -156,7 +156,7 @@ theorem toppre_dec {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b b' : Nat} {L
   have hstrH := Hide.mk hstr
   clear hswin hsz hsR hsP hstr
   have hp := hpre
-  obtain ⟨-, -, -, hMod, hEnv, hlo, hhi, -, hcost, -, -, -, -, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
+  obtain ⟨hMod, hEnv, hlo, hhi, -, hcost, -, -, -, -, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb,
     hzbuf, hzwin, hzR, hzP, hzS, hzg, hibuf, hiwin, hchunk⟩ := hp
   have hEnv' := hEnv
   obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
@@ -475,5 +475,33 @@ theorem dec_call_pre {sb st : Nat} {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L 
     · exact Or.inr hlp
     · rfl
 
+
+
+/-- the read-only data stays loaded across a memory frame on writable ranges that keeps the regions (no `r.1 ≤ r.2` needed) -/
+theorem dl_frame' {P : Janus.Amd64.Program} {m m' : Janus.Arm64.Memory} {rs : List (Nat × Nat)}
+    (h : P.DataLoaded m) (hr : m'.regions = m.regions) (hf : MemFrame m m' rs)
+    (hw : ∀ r ∈ rs, m.accessible r.1 (r.2 - r.1) true = true) : P.DataLoaded m' := by
+  intro d hd
+  obtain ⟨hreg, hb⟩ := h d hd
+  refine ⟨by rw [show m'.regions = m.regions from hr]; exact hreg, fun i hi => ?_⟩
+  obtain ⟨k, hk, rfl⟩ := List.getElem_of_mem hd
+  have hout : Outside (P.data[k].base + i) 1 rs := by
+    refine outside_of_all rs (fun r hr' => ?_)
+    have hdis := Janus.Amd64.Tactic.disjoint_of_dataLoaded h k hk (hw r hr')
+    omega
+  have := hf.readLE (P.data[k].base + i) 1 hout
+  simp only [Janus.Arm64.Memory.readLE_one] at this
+  rw [show (m'.bytes (P.data[k].base + i)).toNat = (m.bytes (P.data[k].base + i)).toNat from this]
+  exact hb i hi
+
+set_option maxRecDepth 100000 in
+/-- the pages of the copy made by `slicebytetostring` are readable -/
+theorem pageR_sub {m : Janus.Arm64.Memory} {a l p n : Nat} (h : Fv256.IndexByte.PageReadable m a l) (hn : 0 < n)
+    (h1 : a ≤ p) (h2 : p + n ≤ a + l) : Fv256.IndexByte.PageReadable m p n := by
+  unfold Fv256.IndexByte.PageReadable at h ⊢
+  rcases h with h | ⟨h3, h4⟩
+  · omega
+  · right
+    refine ⟨by omega, Janus.Arm64.Memory.accessible_sub m h4 (Or.inl rfl) (by omega) (by omega)⟩
 
 end Fv256.Amd64.ScanBSb
