@@ -76,11 +76,20 @@ theorem correctness (z hp len : BitVec 64) :
   have hgr := hg.readable
   simp only [regSP, regG, stackguard0Offset, stackguard0] at hgl hgb hnw2 hgr hacc hlow hnw hd2 hd3 hd5
   have htb : ∀ c, c < 256 → s.mem.readLE (5176782 + c) 1 = (hexNib c).getD 255 := tab_vals hd
-  have hSt0 : s.mem.accessible 5176782 256 false = true :=
-    GoABI.DataLoaded.accessible hd (d := Extracted.program.data[0]'(by decide)) (List.getElem_mem (by decide))
-  have hzt : z.toNat + 32 ≤ 5176782 ∨ 5176782 + 256 ≤ z.toNat := disjoint_of_dataLoaded hd 0 (by decide) hz
-  have hst : (s.regs 4).toNat - 48 + 72 ≤ 5176782 ∨ 5176782 + 256 ≤ (s.regs 4).toNat - 48 :=
-    disjoint_of_dataLoaded hd 0 (by decide) hacc
+  -- the hex table object is found by its symbol (`tabBase`), not by its position in `Extracted.data`
+  obtain ⟨dt, hdt, hdb, hdl⟩ : ∃ d ∈ Extracted.program.data, d.base = tabBase ∧ d.bytes.length = 256 := by decide
+  have hdisj : ∀ {a n : Nat}, s.mem.accessible a n true = true → a + n ≤ 5176782 ∨ 5176782 + 256 ≤ a := by
+    intro a n hw
+    obtain ⟨k, hk, hkd⟩ := List.getElem_of_mem hdt
+    have := disjoint_of_dataLoaded hd k hk hw
+    rw [hkd, hdb, hdl, tabBase_val] at this
+    exact this
+  have hSt0 : s.mem.accessible 5176782 256 false = true := by
+    have := GoABI.DataLoaded.accessible hd hdt
+    rw [hdb, hdl, tabBase_val] at this
+    exact this
+  have hzt : z.toNat + 32 ≤ 5176782 ∨ 5176782 + 256 ≤ z.toNat := hdisj hz
+  have hst : (s.regs 4).toNat - 48 + 72 ≤ 5176782 ∨ 5176782 + 256 ≤ (s.regs 4).toNat - 48 := hdisj hacc
   have htb' : ∀ c, c < 256 → (((Janus.Arm64.Memory.writeLE s.mem ((s.regs 4).toNat - 8) 8 (s.regs 5).toNat).writeLE
       ((s.regs 4).toNat + 16) 8 hp.toNat).writeLE ((s.regs 4).toNat - 40) 8 4922296).readLE (5176782 + c) 1 =
       (hexNib c).getD 255 := by

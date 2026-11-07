@@ -169,7 +169,7 @@ theorem setup : CallSetup (linked.withExit ret) Extracted.entry [xp] s0 :=
 set_option maxRecDepth 100000 in
 theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
   unfold Janus.Amd64.Program.DataLoaded
-  decide
+  decide +kernel
 
 set_option maxRecDepth 100000 in
 theorem hH : H [intType] (s0.regs 14).toNat ((s0.regs 4).toNat - 40) (rtView rt s0.mem) := by
