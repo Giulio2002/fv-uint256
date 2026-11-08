@@ -108,7 +108,7 @@ run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never 
        $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$MEMCAP" $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
          --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
     # UP3c: every fv-uint256 row must audit with runFree=false AND refutation=false (a row that claims no run is not a verified function spec): FAIL a row whose reports carry either flag
-    if [ "$r" = PASS ] && grep -rEqs '"(runFree|refutation)": *true' "$out/verified.json" "$out/verified" 2>/dev/null; then
+    if [ "$r" = PASS ] && { grep -rEqs '"(runFree|refutation)": *true' "$out/verified.json" "$out/verified" 2>/dev/null || grep -Eqs 'Non-vacuity: Verified \((run-free|refutation)' "build/log-$isa-$fn"; }; then
       echo "FAIL: the audit reports runFree=true or refutation=true for $isa $fn (every row must be a run-claiming function spec)" >>"build/log-$isa-$fn"; r="FAIL(runFree-or-refutation)"
     fi
   fi
