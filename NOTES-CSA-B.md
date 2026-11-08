@@ -12,3 +12,7 @@ First Format audit (KEEP=1) never compiled: since ~01:12 EVERY csa-q run rejects
 /srv/janus-up3 working tree has uncommitted edits (M Janus/Tools/Audit.lean, audit/roundup3/run-verify-rows.sh; HEAD d3f93eaa, pin 8615b09c).
 Fix (parent/main): run with --janus-root on a clean checkout of 8615b09c (e.g. `git -C /srv/janus-up3 worktree add --detach /srv/janus-up3-pin 8615b09c`) or ask UP3b to stop editing the pin tree.
 Format draft: known placeholders: 4 `sorry` in FormatCS.bf_pre16 (limb readbacks + bigAbs); rest untested.
+## Status 05:xx: AUDIT-PASS (commit b31ade89)
+arm64 Format audit (STUB, auditor /srv/janus-csa) = AUDIT-PASS in 151 s: all 3 witnesses x 12 call-site conjuncts accepted; only sorryAx from stubbed correctness.
+bf_pre16 proved (no sorry). Fast compile loop: scripts/fmt-fast.sh MOD.. (compiles against the kept consumer workspace, oleans in /srv/fv-uint256-csa-aud/fastlib, ~5-50 s/module);
+stub-check of Format.lean: bash /srv/fv-uint256-csa-aud/fmtstub/run.sh. Generator fixes: Site names fully qualified, cs block parenthesised in Format.lean (auditor flattens), big obtain nesting.
