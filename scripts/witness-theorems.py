@@ -30,6 +30,8 @@ for k, m in enumerate(ms):
         elif ch in ')]}⟩': depth -= 1
         elif depth == 0: flat.append(ch)
     flat = ''.join(flat)
-    if re.match(r'\s*:\s*∃', flat):
+    # UP3d (03aa338e): strict by-name pairing: `Witness.nonvacuous` pairs with `correctness`; any other `Witness.<X>` needs a main named `<X>`, so only the nonvacuous witnesses are passed to janus verify
+    # (the other witness theorems stay in the module and are kernel-checked with it, but are not audited as witnesses)
+    if name == 'nonvacuous' and re.match(r'\s*:\s*∃', flat):
         out.append('.'.join(ns + [name]) if not name.startswith('_root_') else name)
 print('\n'.join(out))
