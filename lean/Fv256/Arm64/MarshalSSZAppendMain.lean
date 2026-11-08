@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.MsaCommon
 import Fv256.Arm64.MarshalSSZAppendG
 import Fv256.Arm64.MsaBlk1
@@ -19,6 +20,8 @@ requests the code makes (`Ready`) and the budget `4 * Kc len <= b`.
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 open Fv256.Msa Fv256.Arm64.MarshalSSZAppendG
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.MarshalSSZAppendMain
 
@@ -125,24 +128,24 @@ open Janus.Contracts.Toy Janus.Contracts.LiveSat Janus.Contracts.LiveStub
 
 instance (a n b k : Nat) : Decidable (Apart a n b k) := by unfold Apart; infer_instance
 
-/-- The witness is `MarshalSSZAppend(z, dp, len = 0, cap = 32)`: room for all four limbs, so no `growslice` request is made
-(the runtime serves none: `ok` is false) and the contract holds vacuously at the generic stub runtime. -/
+/-- The witness is `MarshalSSZAppend(z, dp, len = 0, cap = 32)`: room for all four limbs, so no `growslice` request is made by the code;
+the stub runtime serves the request `growslice(p, 40, 32, 8, uint8)` (as in `Grow.Witness`) so that the call-site state exists. -/
 def u8A : Nat := janus_eval% u8T
 def grA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.growslice")
 def tys : Tys := [(u8A, 1, 0)]
-def implAt : List Segment := [growsliceSeg grA 0 16 8]
-def ok : Nat → List Nat → Prop := fun _ _ => False
+def implAt : List Segment := [growsliceSeg grA 32 64 64]
+def ok : Nat → List Nat → Prop := fun a args => a = grA ∧ ∃ p, args = [p, 40, 32, 8, u8A]
 def R : RtInv := toyR tys ok
 def linked : Program := Extracted.program.link implAt
 
 theorem addr_gr : Extracted.program.contractAddr "runtime.growslice" = grA := by decide
 theorem ut_eq : u8T = u8A := by decide
 
-theorem hok_gr : ∀ args, ok grA args → ∃ p, args = [p, 1, 0, 1, (u8A, 1, 0).1] := fun _ h => h.elim
+theorem hok_gr : ∀ args, ok grA args → ∃ p, args = [p, 40, 32, 8, (u8A, 1, 0).1] := fun _ h => h.2
 
 set_option maxHeartbeats 4000000 in
 theorem model_gr : RtLiveContract linked grA 4096 R growsliceSpec growsliceLive := by
-  janus_live_growslice (u8A, 1, 0) 1 0 1 16 8 hok_gr
+  janus_live_growslice (u8A, 1, 0) 40 32 8 64 64 hok_gr
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -258,6 +261,27 @@ theorem pre : GuardOK s0 4224 ∧ StackOK s0 4232 40 ∧ Extracted.program.DataL
   · rw [rt_eq]; simp only [outside_cons, outside_append, outside_nil, and_true]; decide
   · simp [Fv256.Msa.Ready]
 
+-- CALLSITE-BLOCK w1
+def csG0 : State := { s0 with regs := fun i => if i = 0 then dpV else if i = 1 then 40 else if i = 2 then 32 else if i = 3 then 8 else if i = 4 then BitVec.ofNat 64 u8A else s0.regs i }
+/-- The call state of `runtime.growslice` (U-WITNESS-CALLSITE): `growslice(dp, 40, 32, 8, uint8)` at its entry, `SP = sp0 - 128`. -/
+def csG : State := { csG0 with sp := BitVec.ofNat 64 (sp0 - 128), pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") }
+
+set_option maxRecDepth 100000 in
+theorem csG_pre : RtLivePre 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 csG := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial,
+    ⟨guardOK_of (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩, ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · simp only [growsliceSpec, argWords, wordsFrom, arg]
+    exact ⟨⟨typeOK_of (by decide) (by decide), by decide, by decide⟩, by decide, by decide, by decide, by decide, ⟨by decide, fun _ => by decide⟩⟩
+  · simp only [growsliceSpec, ReadsOutside]
+    intro r hr
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [argWords, wordsFrom, arg, Outside, calleeStack]; decide)
+  · rw [addr_gr]; exact ⟨rfl, dpA, by decide⟩
+  · intro r hr
+    rw [rt_eq]
+    simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget, a live set and a call of
 `MarshalSSZAppend(z, dp, 0, 32)` satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (z dp len cap : BitVec 64)
@@ -283,11 +307,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (L : List (
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
         4 * Kc len.toNat ≤ b ∧ Ready R ga u8T 4 (len.toNat + 8) cap.toNat) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") ∧ RtLivePre 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
   refine ⟨implAt, R, 0x1000, [], zV, dpV, 0, 32, ret, s0, ?w0, hret, setup, pre,
+    ⟨csG, rfl, csG_pre⟩,
     correctness implAt R 0x1000 ([]) zV dpV 0 32 ?w0 ret hret s0 setup pre⟩
   case w0 => exact by rw [addr_gr]; exact model_gr
-
 end Witness
 
 namespace Grow.Witness
@@ -433,6 +458,27 @@ theorem pre : GuardOK s0 4224 ∧ StackOK s0 4232 40 ∧ Extracted.program.DataL
     intro p
     exact ⟨rfl, p, rfl⟩
 
+-- CALLSITE-BLOCK w2
+def csG0 : State := { s0 with regs := fun i => if i = 0 then dpV else if i = 1 then 40 else if i = 2 then 32 else if i = 3 then 8 else if i = 4 then BitVec.ofNat 64 u8A else s0.regs i }
+/-- The call state of `runtime.growslice` (U-WITNESS-CALLSITE): `growslice(dp, 40, 32, 8, uint8)` at its entry, `SP = sp0 - 128`. -/
+def csG : State := { csG0 with sp := BitVec.ofNat 64 (sp0 - 128), pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") }
+
+set_option maxRecDepth 100000 in
+theorem csG_pre : RtLivePre 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 csG := by
+  refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial,
+    ⟨guardOK_of (by decide) (by decide) (by decide), by simp only [calleeStack, outside_cons, outside_nil]; decide⟩, ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · simp only [growsliceSpec, argWords, wordsFrom, arg]
+    exact ⟨⟨typeOK_of (by decide) (by decide), by decide, by decide⟩, by decide, by decide, by decide, by decide, ⟨by decide, fun _ => by decide⟩⟩
+  · simp only [growsliceSpec, ReadsOutside]
+    intro r hr
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [argWords, wordsFrom, arg, Outside, calleeStack]; decide)
+  · rw [addr_gr]; exact ⟨rfl, dpA, by decide⟩
+  · intro r hr
+    rw [rt_eq]
+    simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget, a live set and a call of
 `MarshalSSZAppend(z, dp, 32, 32)` (one growslice request) satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (z dp len cap : BitVec 64)
@@ -458,11 +504,12 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (L : List (
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
         4 * Kc len.toNat ≤ b ∧ Ready R ga u8T 4 (len.toNat + 8) cap.toNat) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") ∧ RtLivePre 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
   refine ⟨implAt, R, 0x1000, [], zV, dpV, 32, 32, ret, s0, ?w0, hret, setup, pre,
+    ⟨csG, rfl, csG_pre⟩,
     correctness implAt R 0x1000 ([]) zV dpV 32 32 ?w0 ret hret s0 setup pre⟩
   case w0 => exact by rw [addr_gr]; exact model_gr
-
 end Grow.Witness
 
 end Fv256.Arm64.MarshalSSZAppendMain

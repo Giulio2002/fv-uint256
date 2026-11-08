@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Spec
 import Fv256.Util
 import Fv256.SpecB
@@ -13,6 +14,8 @@ import Fv256.Arm64.DivMSlots
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 open Fv256.Arm64.DivModLib
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.DivMod
 
@@ -294,6 +297,25 @@ theorem preW : GuardOK s0 464 ∧ StackOK s0 4256 40 ∧ Extracted.program.DataL
     by unfold Disjoint; decide, Or.inr (by unfold Disjoint32 Disjoint zW mW zp mp; decide), by decide, ?_, hHW⟩
   all_goals simp only [rtW, outside_cons, outside_nil]; decide
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/DivMod.lean
+def wsNew0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else s0.regs i }
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): at the allocator's entry, `X0 = Int`'s type descriptor, `SP` = the frame
+of the caller (the argument of `H` in `hHW`), `X28`/memory as in `s0`. -/
+def wsNew : State := { wsNew0 with sp := BitVec.ofNat 64 (sp0 - 160), pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") }
+
+set_option maxRecDepth 100000 in
+theorem wsNew_pre : NewobjectSite HW rtW 4096 wsNew := by
+  refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide),
+    typeOK_of (by decide) (by decide), by decide⟩, ?_⟩
+  have e0 : (wsNew.regs 0).toNat = intType := by
+    have hpt : intType = tyA := by unfold tyA; decide
+    rw [hpt]; decide
+  have e1 : (wsNew.regs 28).toNat = (s0.regs 28).toNat := by decide
+  have e2 : wsNew.sp.toNat = s0.sp.toNat - 160 := by decide
+  show HW [(wsNew.regs 0).toNat] (wsNew.regs 28).toNat wsNew.sp.toNat (rtView rtW wsNew.mem)
+  rw [e0, e1, e2]
+  exact hHW
+
 /-- Non-vacuity of `correctness`: every hypothesis (the runtime contract included) holds together for a toy allocator and a concrete call. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64) (ret : Nat) (s : State),
     NewobjectContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
@@ -309,6 +331,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
       ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 4256 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16) ∧
       Outside ((s.regs 28).toNat + 16) 8 rt ∧
       H [intType] (s.regs 28).toNat (s.sp.toNat - 160) (rtView rt s.mem)) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectSite H rt 4096 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         ∃ m' : Nat, (s'.regs 1).toNat = m' ∧ (z ≠ m → m' = m.toNat) ∧
           (z = m → InRanges m' 32 rt ∧ m' % 16 = 0 ∧ s'.mem.accessible m' 32 true = true) ∧
@@ -317,8 +340,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
           MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
             (s.sp.toNat - 4256, s.sp.toNat + 40)]) :=
   ⟨implW, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW,
+    ⟨wsNew, rfl, wsNew_pre⟩,
     correctness implW rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
-
 end Witness
 
 end Fv256.Arm64.DivMod

@@ -33,7 +33,7 @@ def st24Words : List Nat :=
 
 /-- readiness of the toy runtime: a two- or four-byte string and both heap blocks writable -/
 def Hw : RtReady := fun a _ _ view =>
-  ((∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) ∧ view.accessible hA 8 true = true ∧ view.accessible hB 8 true = true
+  (((∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) ∨ (∃ x y, a = [x, y])) ∧ view.accessible hA 8 true = true ∧ view.accessible hB 8 true = true
 
 section Rest
 open Janus.Contracts.Toy Janus.Contracts.LiveSat Janus.Contracts.LiveStub
@@ -100,6 +100,7 @@ theorem model1 : RtContract (Extracted.program.ofImpl implAll) ssAddr rtT 4096 H
   simp only [Ready, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8⟩ := ha
   simp only [hA, hB] at hA8 hB8
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords s 3 = [0, p, 2] := hp
     simp [slicebytetostringSpec, argWords, wordsFrom, arg] at hp hstr hbuf hdis
@@ -173,6 +174,7 @@ theorem model2 : RtContract (Extracted.program.ofImpl implAll) stAddr rtT 4096 H
   simp only [Ready, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8⟩ := ha
   simp only [hA, hB] at hA8 hB8
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords s 3 = [0, p, 2] := hp
     simp [stringtoslicebyteSpec, argWords, wordsFrom, arg] at hp hstr hbuf hdis

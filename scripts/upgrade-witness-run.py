@@ -284,7 +284,10 @@ def upgrade(src, path, log):
             items = [c.strip() for c in split_top(body_txt[kc + 1:].strip(), ['∧'])]
             def head(c): return c.lstrip('( ').split()[0] if c.strip() else ''
             def find(h): return next((i for i, c in enumerate(items) if head(c) == h), None)
-            while find('RetAddr') is None and is_group(items[-1]): items = items[:-1] + group_items(items[-1])
+            flat_start = None   # the last top-level item was a group (holding RetAddr...) that got flattened: the appended Returns conjunct follows it, so its components must be re-wrapped in ⟨⟩
+            while find('RetAddr') is None and is_group(items[-1]):
+                if flat_start is None: flat_start = len(items) - 1
+                items = items[:-1] + group_items(items[-1])
             iret, isetup = find('RetAddr'), find('CallSetup')
             if iret is None or isetup is None or isetup != iret + 1: raise Manual('witness: no RetAddr/CallSetup conjuncts in order')
             # hypotheses = leaves of the items before RetAddr (groups are flattened)
@@ -326,7 +329,7 @@ def upgrade(src, path, log):
                 pre_refs = [n for it, n in names if n.startswith('hp')]
                 vl = ', '.join(vars_)
                 pattern = f'⟨{vl}, {", ".join(parts)}⟩'
-                rebuilt = ', '.join(parts)
+                rebuilt = ', '.join(parts if flat_start is None else parts[:flat_start] + ['⟨' + ', '.join(parts[flat_start:]) + '⟩'])
                 prelude = f'  obtain {pattern} := {core}'
                 tail_term = rebuilt
                 vlist = vl
@@ -365,7 +368,7 @@ def upgrade(src, path, log):
                 refs = [ref(i, c) for i, c in enumerate(comps)]
                 hyp_refs = [r_ for r_, p_ in zip(refs[:len(hyp_leaves)], is_pin) if not p_]; hret_ref = refs[iret]; setup_ref = refs[isetup]
                 pre_refs = refs[isetup + 1:]
-                vlist = ', '.join(pieces[:nv]); comp_refs = ', '.join(refs)
+                vlist = ', '.join(pieces[:nv]); comp_refs = ', '.join(refs if flat_start is None else refs[:flat_start] + ['⟨' + ', '.join(refs[flat_start:]) + '⟩'])
             # pins in the precondition part (witness-only `pinBitVec64 x` conjuncts, alone or leading a group) are not part of main's pre
             is_pin_leaf = lambda l: bool(re.match(r'^(?:[\w.]*\.)?pin\w*$', head(l)))
             items_post = items[isetup + 1:]

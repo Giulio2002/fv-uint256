@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -14,6 +15,8 @@ import Fv256.Arm64.FromHexCommon
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.Panic Fv256.C Fv256.Arm64.SetFromHexLoops Fv256.Arm64.FromHexCommon
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.MustFromHex
 
@@ -442,6 +445,25 @@ theorem pre : GuardOK s0 48 ∧ StackOK s0 4144 24 ∧ Extracted.program.DataLoa
 /-- pins the type of an existential variable of `nonvacuous` -/
 def pinPanicRuntime (_k : PanicRuntime) : Prop := True
 
+-- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/MustFromHex.lean
+def wsNew0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else s0.regs i }
+/-- The call state of `runtime.newobject` (U-WITNESS-CALLSITE): at the allocator's entry, `X0 = Int`'s type descriptor, `SP` = the frame
+of the caller (the argument of `H` in `hH`), `X28`/memory as in `s0`. -/
+def wsNew : State := { wsNew0 with sp := BitVec.ofNat 64 (sp0 - 48), pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") }
+
+set_option maxRecDepth 100000 in
+theorem wsNew_pre : NewobjectSite H rt 4096 wsNew := by
+  refine ⟨⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide),
+    typeOK_of (by decide) (by decide), by decide⟩, ?_⟩
+  have e0 : (wsNew.regs 0).toNat = intType := by
+    have hpt : intType = tyA := by unfold tyA; decide
+    rw [hpt]; decide
+  have e1 : (wsNew.regs 28).toNat = (s0.regs 28).toNat := by decide
+  have e2 : wsNew.sp.toNat = s0.sp.toNat - 48 := by decide
+  show H [(wsNew.regs 0).toNat] (wsNew.regs 28).toNat wsNew.sp.toNat (rtView rt wsNew.mem)
+  rw [e0, e1, e2]
+  exact hH
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64) (P : PanicRuntime) (ret : Nat) (s : State),
@@ -461,6 +483,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         (∀ e, e < 6 → s.mem.accessible (s.mem.readLE (errAddrOf e) 8 + 8) 8 false = true ∧
           Outside (s.mem.readLE (errAddrOf e) 8 + 8) 8 rt ∧
           Disjoint (s.mem.readLE (errAddrOf e) 8 + 8) 8 (s.sp.toNat - 4144) 4168)) ∧
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectSite H rt 4096 s_c) ∧
     GoReturns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
       match o with
       | .returned s' => ABIReturn s s' ∧ (∃ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v) ∧
@@ -472,9 +495,9 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         v = ⟨s.mem.readLE (s.mem.readLE (errAddrOf e) 8 + 8) 8, s.mem.readLE (errAddrOf e + 8) 8⟩
       | .goexited _ => False := by
   refine ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ?w3,
+    ⟨wsNew, rfl, wsNew_pre⟩,
     correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup (?w3).2⟩
   case w3 => exact ⟨trivial, pre⟩
-
 end Witness
 
 end Fv256.Arm64.MustFromHex

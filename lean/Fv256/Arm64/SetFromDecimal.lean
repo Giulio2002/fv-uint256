@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Arm64.CallSites.Base
 import Fv256.Arm64.SfdTopD
 import Fv256.Arm64.SfdCfgE
 import Fv256.Arm64.SfdWitC
@@ -17,6 +18,8 @@ field is an `Extracted.dataAddr` / `contractAddr`).  The proof transfers `SfdTop
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Janus.Contracts.EqHashModel
   Fv256.Arm64.SfdTopSpec
+
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.SetFromDecimal
 
@@ -116,9 +119,16 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, pS, nS] s ∧
     TopPre cfgE R R2 T b L lo hi z pS nS s ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring") ∧ Janus.Contracts.Cmpstring.CmpstringPre 16 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ TopPost cfgE R R2 T b L lo hi z pS nS s s' := by
-  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9⟩ := nonvacuous_core
-  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9,
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7⟩ := nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7,
     correctness impl R R2 T b L lo hi z pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
 
 end Witness

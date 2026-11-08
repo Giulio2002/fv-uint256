@@ -530,3 +530,10 @@ The compile sweep (stub-correctness, pin 29ff3727, 4 parallel workers with their
 Built at /srv/janus-wrun3 (bin/janus). For the integration audit: scratch lakefile rev = full hash of dba0069d, `lake update janus`, janus=/srv/janus-wrun3/bin/janus, --janus-root /srv/janus-wrun3,
 JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore (arow.sh already exports it; edit arow.sh JANUS=/srv/janus-wrun3/bin/janus and --janus-root accordingly; replace the file by mv, never edit in place while a sweep runs).
 The compile sweep (stub, pin 29ff3727) is pin independent: compile errors are the same.
+
+## SWEEP FINISHED (all 4 workers DONE): 265 COMPILE-OK, 15 COMPILE-FAIL of the 280 rows swept in parallel (+12 rows from the early serial run, all labelled FAIL by the old classifier: re-check them,
+they were the cheapest rows; the early serial log label is unreliable). Full per-row list: SWEEP-RESULTS-stub-compile.txt (committed). The sweep read the files BEFORE fixes 8a77140b/0db3fcb1 for many rows.
+FAILS (15): amd64 Format FromBig MarshalJSON MustFromDecimal UnmarshalJSON UnmarshalText Value; arm64 Format FromBig MarshalJSON MarshalText MustFromBig MustFromDecimal SetFromBig Value.
+Most show `Application type mismatch: The argument` (error cascades make the failing compiles slow: 1300-2950 s, one "resource limit"): same class as the pin fix (pre group with leading pinBitVec64/pin conjuncts, or main
+hypotheses count) -> REDO ALL 15 + the 12 early rows + CmpBig/WriteToSlice on the fixed tree (>= 0db3fcb1), then read the first error of each remaining failure in scratchpad/sw-<isa>-<fn>.log
+(`grep -A12 'rror:'`). Likely sub-causes to check per file: Value/MarshalJSON/MarshalText/Format (other witnesses in the file: .big/.nil with extra post-setup conjuncts: kpre trimming; Format hint tables).

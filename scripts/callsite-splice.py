@@ -31,6 +31,7 @@ if a.conj:
         print('already spliced', a.theorem); sys.exit(0)
     i = body.find('Returns (')
     assert i >= 0, 'no Returns( in statement'
+    if body[max(0,i-2):i] == 'Go': i -= 2
     ins = ''.join('(' + c + ') ∧\n    ' for c in a.conj)
     body = body[:i] + ins + body[i:]
     j = body.rfind('correctness ')
