@@ -53,7 +53,7 @@ theorem model1G : RtContract (Extracted.program.ofImpl implAllG) ssAddr rtT 4096
   simp only [Ready, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8⟩ := ha
   simp only [hA, hB] at hA8 hB8
-  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom]))
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords s 3 = [0, p, 2] := hp
     simp [slicebytetostringSpec, argWords, wordsFrom, arg] at hp hstr hbuf hdis
@@ -114,7 +114,7 @@ theorem model2G : RtContract (Extracted.program.ofImpl implAllG) stAddr rtT 4096
   simp only [Ready, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8⟩ := ha
   simp only [hA, hB] at hA8 hB8
-  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom]))
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords s 3 = [0, p, 2] := hp
     simp [stringtoslicebyteSpec, argWords, wordsFrom, arg] at hp hstr hbuf hdis
@@ -294,9 +294,9 @@ theorem big_core : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 
     (∃ (P : Nat) (j0 j1 j2 : BitVec 64), Rd (BitVec.ofNat 64 P) tab data
       (BitVec.ofNat 64 (if ch.toNat % 2 ^ 32 < 2 ^ 31 then ch.toNat % 2 ^ 32 else ch.toNat % 2 ^ 32 + 18446744069414584320)) j0 j1 j2) ) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Arm64.FormatCS.TypeAssertSite R H s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ Fv256.Arm64.CallSites.NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ Fv256.Arm64.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ Fv256.Arm64.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre rt 4096 H stringtoslicebyteSpec s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 fa ∧ ICallPre 1 4608 120 rt (fun _ => True) s_c) ∧

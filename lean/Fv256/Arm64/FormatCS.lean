@@ -14,7 +14,7 @@ Each lemma is the conjunct `∃ s_c, s_c.pc = entry ∧ pre s_c` of the three wi
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus.Contracts.ICall Janus.Contracts.Toy
-open Janus.Contracts.IfaceModel Janus.Contracts.IfaceSat Janus.Spec.Type
+open Janus.Contracts.IfaceModel Janus.Contracts.IfaceSat Janus.Spec.Type Janus.Contracts.Iface
 open Fv256.Arm64.FormatWitA Fv256.Arm64.CallSites Fv256.Inhab
 
 set_option linter.unusedSimpArgs false
@@ -79,6 +79,16 @@ theorem rtpreU (s : State) (hm : s.mem = memU) (h28 : s.regs 28 = BitVec.ofNat 6
 
 theorem rt_eq : R2.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64)] := rfl
 
+theorem lookup_none {l : List (Nat × Nat)} {i : Nat} (h : ∀ p ∈ l, p.1 ≠ i) : l.lookup i = none := by
+  induction l with
+  | nil => rfl
+  | cons a l ih =>
+    obtain ⟨k, v⟩ := a
+    have hk : k ≠ i := h (k, v) (by simp)
+    have hb : (i == k) = false := by simpa [beq_iff_eq] using Ne.symm hk
+    simp only [List.lookup, hb]
+    exact ih (fun p hp => h p (by simp [hp]))
+
 theorem inv0U : R2.inv 0x400 [] (sU.regs 28).toNat (view R2.rt [] sU.mem) := by
   have hbump : memU.readLE BUMP 8 = HEAP := by decide +kernel
   refine toyInv_init (m := memU) (g := (sU.regs 28).toNat) (by decide) hbump (fun i hi hi' => ?_) (by decide +kernel) (by decide +kernel) (by decide +kernel)
@@ -93,10 +103,9 @@ theorem inv0U : R2.inv 0x400 [] (sU.regs 28).toNat (view R2.rt [] sU.mem) := by
     simp only [Bool.not_eq_true, decide_eq_false_iff_not]
     omega
   rw [hn]
-  have hl : tblU.lookup i = none := by
-    simp only [tblU, wtable, List.lookup, BUMP, TD, ID, TAB, DTA, DIS, VAL]
-    repeat (rw [if_neg (by omega)])
-    rfl
+  have hl : tblU.lookup i = none := lookup_none (fun p hp => by
+    have : ∀ q ∈ tblU, q.1 < 0x500000 := by decide
+    have := this p hp; omega)
   rw [hl]; rfl
 
 /-! ### the runtime stubs -/
@@ -242,7 +251,7 @@ def m_fp : Memory := ((((strMem Fv256.FormatSpec.nilText litA).writeLE (2 ^ 40 +
 open Fv256.Arm64.FormatNil in
 /-- `fmt.Fprint(w, "<nil>")`: the property `FpArg data` over the extraction's addresses -/
 theorem fp_pre (pc : Nat) (data : BitVec 64) :
-    ICallPre 5 4608 80 rtT (FpArg data) (csI pc data (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 m_fp) := by
+    ICallPre 5 4608 80 rtT (FpArg data) (csI pc 0 data (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 m_fp) := by
   have hsp : (BitVec.ofNat 64 (2 ^ 40 + 56)).toNat = 2 ^ 40 + 56 := by simp
   have hsp' : (BitVec.ofNat 64 (2 ^ 40)).toNat = 2 ^ 40 := by decide
   have h1 : strTyA < 2 ^ 64 := by decide
@@ -294,31 +303,11 @@ theorem bf_pre16 (pc : Nat) (tab data ch : BitVec 64) :
   refine ⟨0x2000, by simp, ?_, by simp, by simp, by simp⟩
   simp only [csI_mem]
   refine ⟨0x3000, 1, 4, ?_, by omega, ?_, ?_, ?_, ?_, by omega, ?_, by omega, by omega, Or.inr ?_, ?_⟩
-  · simp [m_bf16]; exact accessible_flat flatMem rfl _ _ _ (by omega)
-  · simp (disch := omega) only [m_bf16, Memory.readLE_writeLE_of_disjoint, readLE_flatMem]
-  · simp (disch := omega) only [m_bf16, Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
-    sorry
-  · simp (disch := omega) only [m_bf16, Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
-    sorry
-  · simp (disch := omega) only [m_bf16, Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self]
-  · simp [m_bf16]; exact accessible_flat flatMem rfl _ _ _ (by omega)
-  · simp (disch := omega) only [m_bf16, Memory.readLE_writeLE_self]
-    sorry
-  · simp [Fv256.C.bigAbs]
-    sorry
+  all_goals first
+    | (simp (disch := omega) only [Fv256.C.bigAbs, m_bf16, Memory.readLE_writeLE_of_disjoint, Memory.readLE_writeLE_self, readLE_flatMem] <;> decide)
+    | (simp [m_bf16]; exact accessible_flat flatMem rfl _ _ _ (by omega))
 
-theorem ic_true (pc nargs : Nat) (hn : nargs ≤ 64) (hab : 8 + 8 * nargs ≤ 120) :
-    ICallPre nargs 4608 120 rtT (fun _ => True) (csI pc 0 0 0 0 0 flatMem) :=
-  csI_pre (m := flatMem) rfl rtT (outside_far 120 (by omega)) (by omega) (by omega) hn hab trivial
-
-open Janus.Contracts.IfaceModel in
-
-theorem ic_true (pc nargs : Nat) (hn : nargs ≤ 64) (hab : 8 + 8 * nargs ≤ 120) :
-    ICallPre nargs 4608 120 rtT (fun _ => True) (csI pc 0 0 0 0 0 flatMem) :=
-  csI_pre (m := flatMem) rfl rtT (outside_far 120 (by omega)) (by omega) (by omega) hn hab trivial
-
-open Janus.Contracts.IfaceModel in
-
+-- GENERATED-BEGIN (scripts/cs_format_a64.py)
 theorem ic_true (pc nargs : Nat) (hn : nargs ≤ 64) (hab : 8 + 8 * nargs ≤ 120) :
     ICallPre nargs 4608 120 rtT (fun _ => True) (csI pc 0 0 0 0 0 flatMem) :=
   csI_pre (m := flatMem) rfl rtT (outside_far 120 (by omega)) (by omega) (by omega) hn hab trivial
@@ -328,9 +317,9 @@ open Janus.Contracts.IfaceModel in
 
 theorem csAll16 (tab data ch : BitVec 64) (hch : ch = 100) :
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Arm64.FormatCS.TypeAssertSite R0 Hw s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ Fv256.Arm64.CallSites.NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ Fv256.Arm64.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ Fv256.Arm64.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre rtT 4096 Hw (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre rtT 4096 Hw stringtoslicebyteSpec s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 amA ∧ ICallPre 1 4608 120 rtT (fun _ => True) s_c) ∧
@@ -349,14 +338,14 @@ theorem csAll16 (tab data ch : BitVec 64) (hch : ch = 100) :
     ⟨csI amA 0 0 0 0 0 flatMem, rfl, ic_true amA 1 (by omega) (by omega)⟩,
     ⟨csI amA 0 0 0 0 0 flatMem, rfl, ic_true amA 2 (by omega) (by omega)⟩,
     ⟨csI amA data 0x2000 (BitVec.ofNat 64 2) (BitVec.ofNat 64 2) 0 (strMem [49, 54] 0x2000), rfl, by rw [fb16 ch hch]; exact wr_pre amA data [49, 54] (by decide) (by decide)⟩,
-    ⟨csI (Extracted.program.contractAddr "fmt.Fprint") data (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 0 m_fp, rfl, fp_pre _ data⟩,
+    ⟨csI (Extracted.program.contractAddr "fmt.Fprint") 0 data (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 m_fp, rfl, fp_pre _ data⟩,
     ⟨csI (Extracted.program.contractAddr "math/big.(*Int).Format") 0x2000 tab data ch 0 m_bf16, rfl, bf_pre16 _ tab data ch⟩⟩
 
 theorem csAll0 (tab data ch : BitVec 64) (hch : ch = 100) :
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Arm64.FormatCS.TypeAssertSite R0 Hw s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
-    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ Fv256.Arm64.CallSites.NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ Fv256.Arm64.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ Fv256.Arm64.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre rtT 4096 Hw (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre rtT 4096 Hw stringtoslicebyteSpec s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 amA ∧ ICallPre 1 4608 120 rtT (fun _ => True) s_c) ∧
@@ -375,7 +364,7 @@ theorem csAll0 (tab data ch : BitVec 64) (hch : ch = 100) :
     ⟨csI amA 0 0 0 0 0 flatMem, rfl, ic_true amA 1 (by omega) (by omega)⟩,
     ⟨csI amA 0 0 0 0 0 flatMem, rfl, ic_true amA 2 (by omega) (by omega)⟩,
     ⟨csI amA data 0x2000 (BitVec.ofNat 64 1) (BitVec.ofNat 64 1) 0 (strMem [48] 0x2000), rfl, by rw [fb0 ch hch]; exact wr_pre amA data [48] (by decide) (by decide)⟩,
-    ⟨csI (Extracted.program.contractAddr "fmt.Fprint") data (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 0 m_fp, rfl, fp_pre _ data⟩,
+    ⟨csI (Extracted.program.contractAddr "fmt.Fprint") 0 data (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 m_fp, rfl, fp_pre _ data⟩,
     ⟨csI (Extracted.program.contractAddr "math/big.(*Int).Format") 0x2000 tab data ch 0 m_bf0, rfl, bf_pre0 _ tab data ch⟩⟩
 
 end Fv256.Arm64.FormatCS

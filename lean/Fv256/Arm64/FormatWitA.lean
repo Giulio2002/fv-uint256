@@ -100,7 +100,7 @@ theorem model1 : RtContract (Extracted.program.ofImpl implAll) ssAddr rtT 4096 H
   simp only [Ready, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8⟩ := ha
   simp only [hA, hB] at hA8 hB8
-  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom]))
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords s 3 = [0, p, 2] := hp
     simp [slicebytetostringSpec, argWords, wordsFrom, arg] at hp hstr hbuf hdis
@@ -174,7 +174,7 @@ theorem model2 : RtContract (Extracted.program.ofImpl implAll) stAddr rtT 4096 H
   simp only [Ready, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8⟩ := ha
   simp only [hA, hB] at hA8 hB8
-  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom]))
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords s 3 = [0, p, 2] := hp
     simp [stringtoslicebyteSpec, argWords, wordsFrom, arg] at hp hstr hbuf hdis

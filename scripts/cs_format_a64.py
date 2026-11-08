@@ -15,10 +15,10 @@ def conjs(R='R', H='H', R2='R2', rt='rt', fa='fa', data='data', tab='tab', ch='c
         out.append(('∃ (s_c : State), s_c.pc = BitVec.ofNat 64 %s ∧ %s' % (addr_expr, pre), proof))
     site(A('runtime.typeAssert'), 'Fv256.Arm64.FormatCS.TypeAssertSite %s %s s_c' % (R, H), '⟨csTA, rfl, csTA_pre⟩')
     n = A('runtime.newobject')
-    site(n, 'NewobjectLiveSite %s %s 4096 [] 0x400 s_c' % (R2, n), '⟨csNew, rfl, csNew_pre⟩')
+    site(n, 'Fv256.Arm64.CallSites.NewobjectLiveSite %s %s 4096 [] 0x400 s_c' % (R2, n), '⟨csNew, rfl, csNew_pre⟩')
     for k in (1, 2):
         a = A('runtime.gcWriteBarrier%d' % k)
-        site(a, 'WbLiveSite %s %s 4096 %d [] 0x400 s_c' % (R2, a, k), '⟨csW%d, rfl, csW%d_pre⟩' % (k, k))
+        site(a, 'Fv256.Arm64.CallSites.WbLiveSite %s %s 4096 %d [] 0x400 s_c' % (R2, a, k), '⟨csW%d, rfl, csW%d_pre⟩' % (k, k))
     site(A('runtime.slicebytetostring'), 'RtPre %s 4096 %s (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c' % (rt, H), '⟨csSs, rfl, csSs_pre⟩')
     site(A('runtime.stringtoslicebyte'), 'RtPre %s 4096 %s stringtoslicebyteSpec s_c' % (rt, H), '⟨csSt, rfl, csSt_pre⟩')
     for na in (1, 1, 2):
@@ -29,7 +29,7 @@ def conjs(R='R', H='H', R2='R2', rt='rt', fa='fa', data='data', tab='tab', ch='c
     site(fa, 'ICallPre 4 4608 120 %s (Fv256.FormatFastA64.FastWP %s (Fv256.FormatSpec.fastBytes %s (%s.toNat %% 2 ^ 32))) s_c' % (rt, data, zv, ch),
          '⟨csI amA %s 0x2000 (BitVec.ofNat 64 %d) (BitVec.ofNat 64 %d) 0 (strMem %s 0x2000), rfl, by rw [%s %s hch]; exact wr_pre amA %s %s (by decide) (by decide)⟩' % (data, ln, ln, bs, fb, ch, data, bs))
     site(A('fmt.Fprint'), 'ICallPre 5 4608 80 %s (Fv256.Arm64.FormatNil.FpArg %s) s_c' % (rt, data),
-         '⟨csI (Extracted.program.contractAddr "fmt.Fprint") %s (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 0 m_fp, rfl, fp_pre _ %s⟩' % (data, data))
+         '⟨csI (Extracted.program.contractAddr "fmt.Fprint") 0 %s (BitVec.ofNat 64 (2 ^ 40 + 56)) 1 1 m_fp, rfl, fp_pre _ %s⟩' % (data, data))
     bf = A('math/big.(*Int).Format')
     site(bf, 'ICallPre 4 4608 120 %s (fun sc => ∃ P : Nat, (sc.regs 0).toNat = P ∧ Fv256.IntoBig.BigObj sc.mem P %s ∧ sc.regs 1 = %s ∧ sc.regs 2 = %s ∧ (sc.regs 3).toNat %% 2 ^ 32 = %s.toNat %% 2 ^ 32) s_c' % (rt, zv, tab, data, ch),
          '⟨csI (Extracted.program.contractAddr "math/big.(*Int).Format") 0x2000 %s %s %s 0 m_bf%s, rfl, bf_pre%s _ %s %s %s⟩' % (tab, data, ch, zv, zv, tab, data, ch))
@@ -47,9 +47,10 @@ def agg(zv, name):
 
 f = D + 'FormatCS.lean'
 s = open(f).read()
-s = s.split('\n-- AGGREGATE-BEGIN')[0]
+s = s.split('\n-- GENERATED-BEGIN')[0]
 s = s.replace('end Fv256.Arm64.FormatCS\n', '').rstrip('\n') + '\n'
 s += '''
+-- GENERATED-BEGIN (scripts/cs_format_a64.py)
 theorem ic_true (pc nargs : Nat) (hn : nargs ≤ 64) (hab : 8 + 8 * nargs ≤ 120) :
     ICallPre nargs 4608 120 rtT (fun _ => True) (csI pc 0 0 0 0 0 flatMem) :=
   csI_pre (m := flatMem) rfl rtT (outside_far 120 (by omega)) (by omega) (by omega) hn hab trivial
@@ -71,12 +72,12 @@ def fa_(t):
     t = t.replace('''def Hw : RtReady := fun a _ _ view =>
   ((∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) ∧''', '''def Hw : RtReady := fun a _ _ view =>
   (((∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) ∨ (∃ x y, a = [x, y])) ∧''')
-    t = t.replace('  rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩\n', '''  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom]))
+    t = t.replace('  rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩\n', '''  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩\n''')
     return t
 rw('FormatWitA', fa_)
 def fg_(t):
-    t = t.replace('  rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩\n', '''  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom]))
+    t = t.replace('  rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩\n', '''  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩\n''')
     return t
 
@@ -115,19 +116,19 @@ def fmt(t):
     for nm, zv in (('nonvacuous', '16'), ('nil', '0'), ('big', '16')):
         i = t.index('theorem %s :' % nm)
         j = t.index('    Returns ((Extracted.program.link impl)', i)
-        t = t[:j] + '    ' + cs_text(R='R', H='H', R2='R2', rt='rt', fa='fa', data='data', tab='tab', ch='ch', zv=zv) + ' ∧\n' + t[j:]
+        t = t[:j] + '    (' + cs_text(R='R', H='H', R2='R2', rt='rt', fa='fa', data='data', tab='tab', ch='ch', zv=zv) + ') ∧\n' + t[j:]
         k = t.index('  obtain ⟨impl', j)
         e = t.index('\n', t.index(':= Fv256', k))
         ob = t[k:e]
         m = re.search(r'⟨h1, (.*?)⟩, h10, (.*?)(hp1[68])⟩, hp17', ob)
         # obtain pattern: first group, then flatten rest; add hcs
         ob2 = ob.replace(', hp16⟩ :=', ', hp16⟩, hcs⟩ :=').replace(', hp18⟩ :=', ', hp18⟩, hcs⟩ :=')
-        ob2 = ob2.replace('⟩, h10, ', '⟩, ⟨h10, ', 1)
+        ob2 = ob2.replace('⟩, h10, ', '⟩, ⟨h10, ', 1).replace('h10⟩, h11, ', 'h10⟩, ⟨h11, ', 1)
         t = t[:k] + ob2 + t[e:]
         ex = t.index('  exact ⟨impl', k)
         ee = t.index('correctness impl', ex)
         seg = t[ex:ee]
-        seg2 = seg.replace('⟩, h10, ', '⟩, ⟨h10, ', 1)
+        seg2 = seg.replace('⟩, h10, ', '⟩, ⟨h10, ', 1).replace('h10⟩, h11, ', 'h10⟩, ⟨h11, ', 1)
         seg2 = seg2.rstrip()
         assert seg2.endswith(',')
         seg2 = seg2[:-1] + '⟩, hcs,\n    '
