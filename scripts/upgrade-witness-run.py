@@ -379,11 +379,16 @@ def upgrade(src, path, log):
             if len(margs) != len(wargs): raise Manual('arg lists differ in length')
             for ma, wa in zip(margs, wargs):
                 if re.match(r"^[\w']+$", ma) and ma != wa: ren[ma] = wa
-            ren_txt = {k: (v if re.match(r"^[\w.']+$", v) else '(' + v + ')') for k, v in ren.items()}
+            btype = {n_: ty_ for kk_, nn_, ty_ in main['binders'] for n_ in nn_}
+            def lit(k, v):
+                if re.match(r'^\d+$|^0x[0-9a-fA-F]+$', v):
+                    return f'({v} : BitVec 64)' if 'BitVec' in btype.get(k, '') else (v if 'Nat' in btype.get(k, '') else f'({v})')
+                return v if re.match(r"^[\w.']+$", v) else '(' + v + ')'
+            ren_txt = {k: lit(k, v) for k, v in ren.items()}
             stem = re.sub(r'.*/', '', path)[:-5]
             isa_ = 'arm64' if '/Arm64/' in path else 'amd64'
             hints = {**HINTS.get(stem, {}), **HINTS.get(f'{stem}/{isa_}', {}), **HINTS.get(f'{stem}/{isa_}/{name}', {})}
-            for k_, v_ in hints.items(): ren_txt[k_] = v_ if re.match(r"^[\w.']+$", v_) else '(' + v_ + ')'
+            for k_, v_ in hints.items(): ren_txt[k_] = lit(k_, v_)
             # types of data binders: those of the witness's own ∃ variables, plus the usual ones
             data_types = {'Nat', 'BitVec', 'Int', 'List', 'Fin', 'Bool', 'Res', 'RtInv', 'IfaceModel', 'RtReady', 'PanicRuntime', 'Segment'}
             for kind_, names_, ty in parse_binders(binders_txt): data_types.add(re.sub(r'^.*?\.', '', atoms(ty)[0]) if atoms(ty) else '')

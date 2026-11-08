@@ -525,3 +525,6 @@ Family -> witnesses. Each line = one contract hypothesis = one `(∃ s_c, s_c.pc
 - **arm64 Value.lean** `Arm64.Value.Witness.nonvacuous`: 2 contracts [RtLiveContract]; proof `by`; reusable: hret, pre, s0_inv, setup
 
 Total witnesses: 82
+## Update 2026-11-08: Janus pin for the full audit sweep = UP3b auditor 056c9381 (fixes the SetFromDecimal thin-witness size-walk reject), with JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore.
+Do it AFTER integrating fv/csa + fv/csb into fv/wrun. Build a janus worktree at 056c9381 (cp -a .lake from /srv/janus-wrun2, lake build Janus.Tools.Audit janus-audit, go build), bump the scratch lakefile rev.
+The compile sweep (stub-correctness, pin 29ff3727, 4 parallel workers with their own scratch trees /srv/fv-uint256-wrun-aud{,2,3,4}) logs: scratchpad sw-<isa>-<fn>.log, results sw2-res-*.txt.

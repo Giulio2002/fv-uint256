@@ -149,7 +149,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw : BitVec 64), RetAddr E
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = BitVec.ofInt 64
           (Fv256.C.cmpBig (valueAt s z 32)
             (Fv256.C.bigVal (s.mem.readLE x.toNat 1 == 1)
-              (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) 2.toNat))) ∧
+              (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) (2 : BitVec 64).toNat))) ∧
         Janus.MemFrame s.mem s'.mem [((s.regs regSP).toNat + 8, (s.regs regSP).toNat + 16),
           ((s.regs regSP).toNat - 72, (s.regs regSP).toNat)] :=
   ⟨ret, s0, z, x, pw, hret, setup, hpre,
