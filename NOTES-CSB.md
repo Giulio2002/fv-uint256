@@ -72,3 +72,7 @@ Lean gotcha (FV-CSA): `{ s0 with a := .., b := .. }` over two fields on separate
 - Format fix: Hw now accepts the 2-arg typeAssert list; witnesses use RW for RP (auditor cannot tell the two Ice call sites apart).
 - Lessons: Lean struct-update parse error with multi-line `{ s with a := .., b := .. }` (use two-step defs csX0/csX); `rcases hr with (rfl|rfl)|rfl` for calleeStack64 ++ [..]; `show Spec (argWords64 s n)` before `rw [hw]` (nargs unreduced); s0_inv needs explicit args.
 - crow2.sh now honours MEMCAP (default 24G); Format full used 32G.
+
+## FV-CSB3 FINAL (2026-11-08 ~08:00)
+All amd64 contract rows AUDIT-PASS on Janus dba0069d (incl. Scan 3706 s, UnmarshalJSON, Format 280 s, Value 1473 s). Merged with fv/wrun 5f24fcd0/e2e3fdac (no amd64 lean file changed by that merge; conflicts resolved keeping csb sides).
+FULL verifies (rc=0, correctness + all witnesses verified): IntoBig 593 s, Format 88 s (32G memcap, warm), SetFromDecimal 208 s, UnmarshalJSON 421 s, Scan 2342 s.
