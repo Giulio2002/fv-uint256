@@ -114,7 +114,6 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Segment) (R
   exact Fv256.Arm64.MustFromDecimal.correctness_cond P impl R R2 T b L lo hi pS nS hnew'' hsfd
 
 namespace Witness
-open Fv256.Arm64.MFdWit
 set_option maxRecDepth 100000 in
 /-- non-vacuity: stub runtime contracts, a 48-digit decimal string, a call state with `Pre` (incl. `DataLoaded` of the real data and `PanicInit`) -/
 theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -151,23 +150,9 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
         (∃ lo' len' t : Nat, decParse (bytesAt s.mem pS.toNat) nS.toNat = .syntax lo' len' ∧
           InRanges t (blockSize 48 false) R.rt ∧ v = ⟨s.mem.readLE (cfg.numErrItab + 8) 8, t⟩)
       | .goexited _ => False := by
-  refine ⟨implA, R, (R3 TW), TW, 0x400, ([]), loW, hiW, pSV, nSV, (Janus.Contracts.PanicModel.P0 [] 0), retW, s0, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, hret, setup, ?hp9, ?cs1, ?cs2, ?cs3, ?cs4, ?cs5, ?cs6, ?cs7,
-    correctness (Janus.Contracts.PanicModel.P0 [] 0) implA R (R3 TW) TW 0x400 ([]) loW hiW pSV nSV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 retW hret s0 setup ?hp9⟩
-  case h2 => exact (by rw [addr_if]; exact model_if)
-  case h3 => exact (by rw [addr_new]; exact model_new)
-  case h4 => exact (by rw [addr_mg]; exact model_mg)
-  case h5 => exact (by rw [addr_mv]; exact model_mv)
-  case h6 => exact (by rw [addr_w1]; exact model_wb1)
-  case h7 => exact (by rw [addr_w2]; exact model_wb2)
-  case h8 => exact (by rw [addr_cm]; exact hcmp)
-  case hp9 => exact (⟨trivial, pre0⟩)
-  case cs1 => exact (⟨csNew, rfl, csNew_pre⟩)
-  case cs2 => exact (⟨csMg, rfl, csMg_pre⟩)
-  case cs3 => exact (⟨csMv, rfl, csMv_pre⟩)
-  case cs4 => exact (⟨csW1, rfl, csW1_pre⟩)
-  case cs5 => exact (⟨csW2, rfl, csW2_pre⟩)
-  case cs6 => exact (⟨csCm, rfl, csCm_pre⟩)
-  case cs7 => exact (⟨csIf, rfl, csIf_pre⟩)
+  obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7⟩ := Fv256.Arm64.MFdWit.nonvacuous_core
+  exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7,
+    correctness P impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
 
 end Witness
 
