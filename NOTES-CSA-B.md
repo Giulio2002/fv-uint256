@@ -16,3 +16,5 @@ Format draft: known placeholders: 4 `sorry` in FormatCS.bf_pre16 (limb readbacks
 arm64 Format audit (STUB, auditor /srv/janus-csa) = AUDIT-PASS in 151 s: all 3 witnesses x 12 call-site conjuncts accepted; only sorryAx from stubbed correctness.
 bf_pre16 proved (no sorry). Fast compile loop: scripts/fmt-fast.sh MOD.. (compiles against the kept consumer workspace, oleans in /srv/fv-uint256-csa-aud/fastlib, ~5-50 s/module);
 stub-check of Format.lean: bash /srv/fv-uint256-csa-aud/fmtstub/run.sh. Generator fixes: Site names fully qualified, cs block parenthesised in Format.lean (auditor flattens), big obtain nesting.
+Full verify (non-stub) 614 s: elaboration OK (no errors), killed in the leanchecker replay stage: `leanchecker Extracted Fv256.Arm64.By1Math exceeded the memory limit (24 GiB)`
+-- resource limit, not a verdict. Needs JANUS_MEM_MAX>24G (against the 24 GB rule: main's call) or a lighter By1Math.
