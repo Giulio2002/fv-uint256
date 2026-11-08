@@ -21,3 +21,6 @@ is one (U-ICALL-STACK, witness)" (Audit.lean witnessSizes/proofHead, 8615b09c). 
 THIN_FILE nonvacuous [CORE_NAMESPACE]` rewrites the thin proof as `refine ⟨<core components>, correctness ..⟩` + `case hX => exact (..)` (adds
 `open CORE_NAMESPACE` after `namespace Witness` when the core lives in another namespace). Run it AFTER the conjunct step. Applies to every
 core-based row (UnmarshalJSON/Text, Scan, Format, ...).
+
+## Audit results (auditor via /srv/janus-csa, STUB audit-only)
+- SetFromDecimal arm64: AUDIT-PASS (113 s)   - FromDecimal arm64: AUDIT-PASS (177 s)   - MustFromDecimal: queued
