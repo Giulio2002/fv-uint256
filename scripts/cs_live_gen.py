@@ -88,13 +88,13 @@ theorem csSb_pre : RtLivePre64 4096 {R} (slicebytetostringSpec {c['st_addr']}) s
 ''')
     stmt = []
     L = '(Lc : List (Nat × Nat)) (bc : Nat)'
-    stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.newobject')} ∧ NewobjectLiveSite R {ent('runtime.newobject')} 4096 Lc bc s_c) ∧
-    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.mallocgc')} ∧ MallocgcLiveSite R {ent('runtime.mallocgc')} 4096 Lc bc s_c) ∧
-    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.memmove')} ∧ MemmoveLiveSite R {ent('runtime.memmove')} 4096 Lc bc s_c) ∧''')
+    stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.newobject')} ∧ Fv256.CallSites.NewobjectLiveSite R {ent('runtime.newobject')} 4096 Lc bc s_c) ∧
+    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.mallocgc')} ∧ Fv256.CallSites.MallocgcLiveSite R {ent('runtime.mallocgc')} 4096 Lc bc s_c) ∧
+    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent('runtime.memmove')} ∧ Fv256.CallSites.MemmoveLiveSite R {ent('runtime.memmove')} 4096 Lc bc s_c) ∧''')
     for n in (1, 2):
-        stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent(f'runtime.gcWriteBarrier{n}')} ∧ WbLiveSite R {ent(f'runtime.gcWriteBarrier{n}')} 4096 {n} Lc bc s_c) ∧''')
+        stmt.append(f'''    (∃ {L} (s_c : State), s_c.rip = BitVec.ofNat 64 {ent(f'runtime.gcWriteBarrier{n}')} ∧ Fv256.CallSites.WbLiveSite R {ent(f'runtime.gcWriteBarrier{n}')} 4096 {n} Lc bc s_c) ∧''')
     stmt.append(f'''    (∃ s_c : State, s_c.rip = BitVec.ofNat 64 {ent('runtime.cmpstring')} ∧ Janus.Contracts.Cmpstring.CmpstringPre64 16 s_c) ∧
-    (∃ s_c : State, s_c.rip = BitVec.ofNat 64 {ent('runtime.ifaceeq')} ∧ IfaceeqSite R2 s_c) ∧''')
+    (∃ s_c : State, s_c.rip = BitVec.ofNat 64 {ent('runtime.ifaceeq')} ∧ Fv256.CallSites.IfaceeqSite R2 s_c) ∧''')
     terms = ['⟨[], %s, csNew, csNew_rip, csNew_pre⟩' % B, '⟨[], %s, csMg, csMg_rip, csMg_pre⟩' % B, '⟨[], %s, csMv, csMv_rip, csMv_pre⟩' % B,
              '⟨[], %s, csW1, csW1_rip, csW1_pre⟩' % B, '⟨[], %s, csW2, csW2_rip, csW2_pre⟩' % B,
              '⟨csCm, csCm_rip, csCm_pre⟩', '⟨csIf, csIf_rip, csIf_pre⟩']

@@ -11,8 +11,10 @@ CFG = {
  'ut': dict(B='bW', R2='R0', nok=6, pos=dict(new=0, w1=1, w2=2, mg=3, mv=4, sb=5), newty='numErrT', dst='zW', src='0x301000', sb=True,
             sb_addr='Fv256.Amd64.UnmarshalTextS.sbAddr', st_addr='Fv256.Amd64.UnmarshalTextS.stAddr', sb_buf='0', sb_p='0x301000',
             sb_ok='⟨rfl, 0, 0x301000, by decide, Or.inl (by decide)⟩'),
+ 'uj': None,
  'sfd': dict(B='0x400', R2='R0', nok=5, pos=dict(new=0, w1=1, w2=2, mg=3, mv=4), newty='numErrT', dst='zW', src='0x301000'),
 }
+CFG['uj'] = CFG['ut']
 def main():
     f, name = sys.argv[1], sys.argv[2]
     rest = sys.argv[3:]
@@ -46,7 +48,7 @@ def main():
             names = ', '.join('cs%d' % (k + 1) for k in range(len(terms)))
             m1 = s.index('hret, hsetup', h)
             s = s[:m1] + names + ', ' + s[m1:]
-            m2 = s.index('hret, hsetup', m1 + len(names) + 2)
+            m2 = s.index('hret, hsetup', m1 + len(names) + 2 + len('hret, hsetup'))
             s = s[:m2] + names + ', ' + s[m2:]
     open(f, 'w').write(s)
 main()
