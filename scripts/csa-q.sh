@@ -6,12 +6,15 @@ isa=$1; fn=$2; mode=${3:-audit}
 Q=/srv/fv-uint256-csa-aud; mkdir -p $Q/q; out=$Q/q/$isa-$fn-$mode.out
 cd /srv/fv-uint256-csa
 {
-exec 9>$Q/.q.lock
-flock 9
+# up to 3 concurrent jobs: slot 1 = legacy .q.lock (old waiters still count), slots 2,3 = .q.lock2/3
+while :; do
+  for k in '' 2 3; do exec 9>$Q/.q.lock$k; flock -n 9 && break 2; done
+  sleep 5
+done
 [ -f $Q/.waitpid ] && while kill -0 "$(cat $Q/.waitpid)" 2>/dev/null; do sleep 10; done
 while :; do
   l=$(cut -d' ' -f1 /proc/loadavg | cut -d. -f1); m=$(awk '/MemAvailable/{print int($2/1048576)}' /proc/meminfo); d=$(df --output=avail -BG / | tail -1 | tr -dc 0-9)
-  [ "$l" -le 62 ] && [ "$m" -ge 60 ] && [ "$d" -ge 70 ] && break
+  [ "$l" -le 40 ] && [ "$m" -ge 80 ] && [ "$d" -ge 70 ] && break
   echo "waiting load=$l mem=$m disk=$d"; sleep 30
 done
 log=$Q/build/log-$isa-$fn; sz=$( [ -f $log ] && stat -c %s $log || echo 0 )
