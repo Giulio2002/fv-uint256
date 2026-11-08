@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Amd64.ScanCfg
 import Fv256.Amd64.ScanSpec
 import Fv256.Amd64.ScanWitB
@@ -493,6 +494,69 @@ theorem preByt : ScanPre cfg Extracted.dataAddr.«type:string#f88732b8» Extract
   · rw [rt_eq]; apply outside_of_decide; decide
   · rw [hdrP_B, hdrN_B]; exact preB0
 
+
+open Fv256.CallSites
+
+def s0 : State := st twS dwS
+
+/-- Call states of the runtime stubs (U-WITNESS-CALLSITE): `s0` with `RIP` at the stub's entry and the stub's argument registers. -/
+def csNew : State := { s0 with rip := BitVec.ofNat 64 newA, regs := fun i => if i = 0 then BitVec.ofNat 64 numErrT else s0.regs i }
+def csW1 : State := { s0 with rip := BitVec.ofNat 64 w1A }
+def csW2 : State := { s0 with rip := BitVec.ofNat 64 w2A }
+def csMg : State := { s0 with rip := BitVec.ofNat 64 mgA, regs := fun i => if i = 0 then 1 else if i = 3 then 0 else if i = 1 then 0 else s0.regs i }
+def csMv : State := { s0 with rip := BitVec.ofNat 64 mvA, regs := fun i => if i = 0 then BitVec.ofNat 64 zW else if i = 3 then BitVec.ofNat 64 0x301000 else if i = 1 then 1 else s0.regs i }
+def csCm : State := { s0 with rip := BitVec.ofNat 64 cmA, regs := fun i => if i = 0 then 0 else if i = 3 then 0 else if i = 1 then 0 else if i = 7 then 0 else s0.regs i }
+def csIf : State := { s0 with rip := BitVec.ofNat 64 ifA, regs := fun i => if i = 0 then 0 else s0.regs i }
+def csSb : State := { s0 with rip := BitVec.ofNat 64 sbA, regs := fun i => if i = 0 then BitVec.ofNat 64 0 else if i = 3 then BitVec.ofNat 64 0x301000 else if i = 1 then 48 else s0.regs i }
+theorem csNew_rip : csNew.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") := by rw [addr_new]; rfl
+theorem csW1_rip : csW1.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") := by rw [addr_w1]; rfl
+theorem csW2_rip : csW2.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") := by rw [addr_w2]; rfl
+theorem csMg_rip : csMg.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") := by rw [addr_mg]; rfl
+theorem csMv_rip : csMv.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") := by rw [addr_mv]; rfl
+theorem csCm_rip : csCm.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring") := by rw [addr_cm]; rfl
+theorem csIf_rip : csIf.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") := by rw [addr_if]; rfl
+theorem csSb_rip : csSb.rip = BitVec.ofNat 64 sbAddr := by rw [show sbAddr = sbA by decide]; rfl
+set_option maxRecDepth 100000 in
+theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew :=
+  ⟨⟨by decide, by decide, by decide⟩, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩,
+    by rw [addr_new]; exact Or.inl (⟨rfl, Or.inl (by decide)⟩), (inv0 twS dwS), by decide, liveSep_nil _, (by rw [rt_eq]; intro r hr; simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩
+
+set_option maxRecDepth 100000 in
+theorem csMg_pre : MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 csMg :=
+  ⟨⟨by decide, by decide, Or.inl (by decide)⟩, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩,
+    by rw [addr_mg]; exact Or.inr (Or.inr (Or.inr (Or.inl (⟨rfl, 1, by decide, by decide, by decide⟩)))), (inv0 twS dwS), by decide, liveSep_nil _, (by rw [rt_eq]; intro r hr; simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩
+
+set_option maxRecDepth 100000 in
+theorem csMv_pre : MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 csMv :=
+  ⟨by decide, by rw [addr_mv]; exact ⟨Or.inr (Or.inr (Or.inr (Or.inr (Or.inl (⟨rfl, zW, 0x301000, 1, by decide, by decide, by decide⟩))))), (inv0 twS dwS), liveSep_nil _, (by rw [rt_eq]; intro r hr; simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩, by decide,
+    by decide, by decide, by rw [rt_eq]; simp only [calleeStack64, outside_cons, outside_nil]; decide, Or.inr (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide), by simp only [outside_cons, outside_nil]; decide⟩
+
+set_option maxRecDepth 100000 in
+theorem csW1_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 csW1 :=
+  ⟨by decide, by rw [addr_w1]; exact Or.inr (Or.inl (⟨rfl, by decide⟩)), (inv0 twS dwS), liveSep_nil _,
+    liveSep_one (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
+
+set_option maxRecDepth 100000 in
+theorem csW2_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 csW2 :=
+  ⟨by decide, by rw [addr_w2]; exact Or.inr (Or.inr (Or.inl (⟨rfl, by decide⟩))), (inv0 twS dwS), liveSep_nil _,
+    liveSep_one (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩
+
+set_option maxRecDepth 100000 in
+theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre64 16 csCm :=
+  ⟨by decide, by decide, by decide⟩
+
+set_option maxRecDepth 100000 in
+theorem csIf_pre : IfaceeqSite (R3 TW) csIf :=
+  ⟨⟨by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩,
+    fun h => absurd (by decide) h⟩
+set_option maxRecDepth 100000 in
+theorem csSb_pre : RtLivePre64 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive sbAddr [] 0x400 csSb := by
+  have hok : R.ok sbAddr [(csSb.regs 0).toNat, (csSb.regs 3).toNat, (csSb.regs 1).toNat] := by
+    rw [show sbAddr = sbA by decide]; exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (⟨rfl, 0, 0x301000, by decide⟩)))))
+  unfold RtLivePre64
+  refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, hok, (inv0 twS dwS), by decide, liveSep_nil _, (by rw [rt_eq]; intro r hr; simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩
+  · simp [slicebytetostringSpec, argWords64, arg, BufOK, StrIn]; decide
+  · simp only [slicebytetostringSpec, argWords64, arg, ReadsOutside, calleeStack64, outside_cons, outside_nil]; decide
 
 /-- the contracts of `Scan.correctness` hold of the stub runtime -/
 theorem contracts_ok :

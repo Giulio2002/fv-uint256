@@ -39,7 +39,7 @@ def csIf : State := {{ {S0} with rip := BitVec.ofNat 64 ifA, regs := fun i => if
     ok_w1 = okpos(P['w1'], N, '⟨rfl, by decide⟩')
     ok_w2 = okpos(P['w2'], N, '⟨rfl, by decide⟩')
     ok_mg = okpos(P['mg'], N, '⟨rfl, 1, by decide, by decide, by decide⟩')
-    ok_mv = okpos(P['mv'], N, f'⟨rfl, {dst}, {src}, 1, by decide, by decide, by decide⟩')
+    ok_mv = okpos(P['mv'], N, c.get('mv_ok', f'⟨rfl, {dst}, {src}, 1, by decide, by decide, by decide⟩'))
     # new / mallocgc / memmove (LiveAt based)
     d.append(f'''set_option maxRecDepth 100000 in
 theorem csNew_pre : NewobjectLiveSite {R} {ent('runtime.newobject')} 4096 [] {B} csNew :=
