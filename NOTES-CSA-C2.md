@@ -10,3 +10,5 @@ Status: see bottom.
 - Scan arm64: AUDIT-PASS (stub) with 8 conjuncts x 5 witnesses (csa-q, 2597 s because of a cold cache after csa-row switched janus roots).
 - UnmarshalJSON/Text: WitC cores compile (JSON verified via kept workspace lake env lean); Main thin witnesses inlined with scripts/cs_inline_c2.py (auditor cannot read obtain over a core) -- audit pending.
 - janus-up3 got dirty (UP3b) -> csa-row.sh now points at a clean pin worktree (/srv/janus-csa).
+- AUDIT-PASS (stub): UnmarshalJSON 894 s, UnmarshalText 357 s, Scan 2597 s (cold).
+- FULL-PASS (non-stub, rc=0): Scan 4340 s, UnmarshalJSON 939 s. C2 rows done.
