@@ -13,10 +13,25 @@ Audit: scripts/csa-q.sh arm64 ROW audit -> /srv/fv-uint256-csa-aud/q/arm64-ROW-a
 Rows: Hex PrettyDec MarshalJSON MarshalText Value MarshalSSZAppend MarshalSSZ PaddedBytes EncodeRLP MarshalSSZInto UnmarshalSSZ.
 Verdicts: see the end of this file (updated by the final report).
 
-## Status at fork end
-- Audited: Hex AUDIT-PASS (106 s incl. extraction+compile); Bytes (not mine) pass.
-- Queued (nohup, flock queue shared with forks B/C1/C2; verdicts appear in /srv/fv-uint256-csa-aud/q/arm64-ROW-audit.out):
-  batchA1.sh (Hex PrettyDec; done marker q/A1.done), batchA2.sh (MarshalJSON MarshalText Value MarshalSSZAppend MarshalSSZ PaddedBytes EncodeRLP; q/A2.done),
-  batchA3.sh (MarshalSSZInto UnmarshalSSZ; q/A3.done). They start in order.
-- Everything except Hex is uncompiled: expect COMPILE-ERR rounds (likely spots: decide on StrOut/ArgsOK with big memories in EncodeRLP/SSZInto, `simp only` shapes in the concat/ReadsOutside bullets
-  of MarshalJSON, cost bounds `by decide` in Value/growslice). Fix = edit the generator, rerun it, requeue with scripts/csa-q.sh.
+## Status (FV-CSA2 fork A, handing over to FV-CSA2)
+Auditor: private janus /srv/janus-csa (dba0069d), shared fwstore, 3-slot csa-q.sh queue.
+
+| Row | Verdict |
+|---|---|
+| Hex | AUDIT-PASS (106 s) |
+| PrettyDec | AUDIT-PASS (226 s) |
+| MarshalJSON | COMPILE-ERR from fv/wrun bug, fixed 4c46a787; requeued (batchA5.sh) |
+| MarshalText | COMPILE-ERR (my Or.inl bug + fv/wrun bug), fixed d1c29866; requeued (batchA6.sh) |
+| Value | running in batchA4.sh, has the fv/wrun fix |
+| MarshalSSZAppend, MarshalSSZ, PaddedBytes, EncodeRLP, MarshalSSZInto, UnmarshalSSZ | queued in batchA4.sh (uncompiled so far) |
+
+Batch chain (nohup, /srv/fv-uint256-csa-aud/): batchA4.sh (PrettyDec..UnmarshalSSZ) -> q/A4.done; batchA5.sh MarshalJSON waits A4 -> q/A5.done;
+batchA6.sh MarshalText waits A5 -> q/A6.done. Verdicts: q/arm64-ROW-audit.out (last line VERDICT); errors: q/arm64-ROW-audit.out.log.
+
+Fixes found:
+- fv/wrun upgrade bug (pre-existing, also check amd64 + other rows): `correctness ... ?w3 ⟨pre8, ?w5⟩` passes the separate witness conjunct
+  `100 ≤ val` into correctness' pre. Fixed to `... ?w3 pre8` (MarshalJSON big, MarshalText big, Value nonvacuous; also the `⟨pre, ?w5⟩` forms).
+  Done by a re.sub in cs_marsh_a64.py and cs_value_a64.py after the fv/wrun checkout.
+- cs_marsh_a64.py: MarshalText's Hw has no disjunction; the sbts readiness is `⟨⟨p, _⟩, acc, acc⟩` (Or.inl/Or.inr only for MarshalJSON's two-shape Hw).
+Likely spots for remaining errors: decide on StrOut/ArgsOK over big memories (EncodeRLP, SSZInto/UnmarshalSSZ), the csEr_frame/csEr_view
+MemFrame chain (cs_ssz_a64.py), cost bounds by decide (Value, growslice). Rerun the generator, then scripts/csa-q.sh arm64 ROW audit.
