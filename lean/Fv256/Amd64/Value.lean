@@ -400,11 +400,11 @@ theorem csSb_pre : RtLivePre64 4096 RW (slicebytetostringSpec Extracted.dataAddr
   · simp only [slicebytetostringSpec, hw, Contracts.arg, BufOK, StrIn]; exact ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
   · simp only [slicebytetostringSpec, hw, ReadsOutside]; intro r hr; simp only [List.mem_singleton] at hr; subst hr; simp only [Contracts.arg, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, calleeStack64, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; refine ⟨?_, ?_, trivial⟩ <;> decide
   · simp only [calleeStack64, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
-  · rw [hw]; exact Or.inl ⟨rfl, zp, by decide⟩
+  · show RW.ok ssAddr (argWords64 csSb 3); rw [hw]; exact Or.inl ⟨rfl, zp, by decide⟩
   · exact s0_inv _ _ (by simp [HSIZE])
   · intro r hr
     simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
-    rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
+    rcases hr with rfl | rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
 
 def csCv0 : Amd64.State :=
   { s0 with regs := fun i => if i = 0 then arg else if i = 3 then 16 else if i = 4 then BitVec.ofNat 64 (sp0 - 32) else s0.regs i }
@@ -423,11 +423,11 @@ theorem csCv_pre : RtLivePre64 4096 RW (convTstringSpec) convTstringLive cvAddr 
   · trivial
   · intro r hr; simp [convTstringSpec] at hr
   · simp only [calleeStack64, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
-  · rw [hw]; exact Or.inr ⟨rfl, zp, by decide⟩
+  · show RW.ok cvAddr (argWords64 csCv 2); rw [hw]; exact Or.inr ⟨rfl, zp, by decide⟩
   · exact s0_inv _ _ (by simp [HSIZE])
   · intro r hr
     simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
-    rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
+    rcases hr with rfl | rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
 
 /-- The preconditions, the `slicebytetostring` and `convTstring` live contracts (toy runtime serving both requests of the witness:
 `z = 10^15`, sixteen digits) and the second-call hypothesis are jointly satisfiable. -/
