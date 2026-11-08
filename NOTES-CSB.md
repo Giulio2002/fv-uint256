@@ -38,3 +38,14 @@ My generated conjuncts (Live block, csNew-type ones with two-part pre such as `N
 ## CONFIRMED by FV-CSA (arm64 IntoBig/NewInt audit pass): the `@[reducible] def ...Site` wrapper is REQUIRED for multi-part pres.
 Also: closed `L := []`, `b := 0x400` inside the pre works (no `∃ L b` needed). Their wrappers: lean/Fv256/Arm64/CallSites/Base.lean on branch fv/csa (NewobjectSite, NewobjectLiveSite, MallocgcLiveSite, MemmoveLiveSite, WbLiveSite, IfaceeqSite) and scripts/cs-apply-*.sh: port to amd64 (rip, R14, calleeStack64) into lean/Fv256/Amd64/CallSites/Base.lean, then change cs_live_gen.py / cs-newobject.py / IntoBig / ToBig / EncodeRLP conjuncts to `∃ s_c, s_c.rip = ofNat addr ∧ XSite ... s_c`.
 Lean gotcha (FV-CSA): `{ s0 with a := .., b := .. }` over two fields on separate lines gave a parse error; use two-step defs.
+
+## FV-CSB2 update (2026-11-08 ~01:40)
+- KEY RULE (from FV-CSA): auditor matches the whole contract pre against ONE conjunct => write multi-part pres through `@[reducible] ...Site` defs
+  (lean/Fv256/Amd64/CallSites/Live.lean: NewobjectSite, NewobjectLiveSite, MallocgcLiveSite, MemmoveLiveSite, WbLiveSite, IfaceeqSite) + Decidable instances for CallOK64/TypeOK/GuardOK64.
+- PASSING audit+verify (pin 8615b09c, warm ~25-190 s): IntoBig, Bytes, Clone, NewInt, FromHex, DivMod (1141 s cold deps).
+- Fixed: FromBig/MustFromBig/MustFromHex (correctness arg must be `pre`, not `?w3`: WRUN-era bug), ToBig (Site), EncodeRLP csW_pre simp. These + SetFromDecimal/FromDecimal/MustFromDecimal/UnmarshalText/UnmarshalJSON/Scan wired, running in batch (see /srv/fv-uint256-csb-aud/rb.log).
+- Repinned audit tree to Janus 056c9381 (scripts: /srv/fv-uint256-csb-aud/repin.sh REV). 
+- Tools: scripts/rowrun.sh FN (crow2 + kills at first "Lean errors", prints them), rowbatch.sh FN..., qc.sh (quick single-file compile, needs a prior janus run for deps), cs-live-apply.py (cfgs afd ut uj sfd), cs-scan-apply.py (Scan), cs_live_gen.py (Site-based).
+- Dec: csSs wired with `sorry` in csSs_pre (RtPre64 rtW 4096 H0 spec; state = s0 with rip=ssAddr, r0=0, RSP-64): to prove. Other RtContract64 rows (Hex PrettyDec MarshalJSON MarshalText String) need own H (Hex: args [0,p,3]...).
+- TODO: Format, RtLive (MarshalSSZAppend, Value), ConvT64/ErrorfLive (MarshalSSZInto, UnmarshalSSZ), Makeslice (MarshalSSZ, PaddedBytes), full verifies+timings, rebase on fv/wrun.
+- Silent rc=1 baseline run (FV-CSB's) could not be reproduced: my old-run log was overwritten; the one I reran failed with real compile errors printed. No kill in journal.
