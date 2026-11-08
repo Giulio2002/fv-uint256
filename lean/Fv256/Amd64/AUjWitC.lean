@@ -354,7 +354,7 @@ theorem csMg_pre : MallocgcLiveSite R (Extracted.program.contractAddr "runtime.m
 set_option maxRecDepth 100000 in
 theorem csMv_pre : MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] bW csMv :=
   ⟨by decide, by rw [addr_mv]; exact ⟨Or.inr (Or.inr (Or.inr (Or.inr (Or.inl (⟨rfl, zW, 0x301000, 1, by decide, by decide, by decide⟩))))), inv0, liveSep_nil _, (by rw [rt_eq]; intro r hr; simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩, by decide,
-    by decide, by decide, by rw [rt_eq]; simp only [calleeStack64, outside_cons, outside_nil]; decide, Or.inr (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide), by simp only [outside_cons, outside_nil]; decide⟩
+    by decide, by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide, Or.inr (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide), by simp only [outside_cons, outside_nil]; decide⟩
 
 set_option maxRecDepth 100000 in
 theorem csW1_pre : WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] bW csW1 :=
@@ -372,7 +372,7 @@ theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre64 16 csCm :=
 
 set_option maxRecDepth 100000 in
 theorem csIf_pre : IfaceeqSite R0 csIf :=
-  ⟨⟨by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩,
+  ⟨⟨by simp only [R0_env, Env0]; decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩,
     fun h => absurd (by decide) h⟩
 set_option maxRecDepth 100000 in
 theorem csSb_pre : RtLivePre64 4096 R (slicebytetostringSpec Fv256.Amd64.UnmarshalTextS.stAddr) slicebytetostringLive Fv256.Amd64.UnmarshalTextS.sbAddr [] bW csSb := by
