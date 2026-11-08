@@ -87,11 +87,28 @@ private def isIOName (n : Name) : Bool :=
   ioRoots.any (fun r => r.isPrefixOf n) || (n.getRoot == `IO)
 
 /-- value-side: `elab`/`elab_rules` bodies legitimately mention the monad plumbing `IO.RealWorld` / `IO.Error` (the representation of
-`CommandElabM` etc.) and process-local mutable cells (`IO.Ref` / `IO.mkRef`, with the bare type constant `IO` and the `ST`-to-`BaseIO` lift instance they elaborate to), none of which touches the host; every other IO / System / liftIO reference in a VALUE is a primitive and is rejected. -/
+`CommandElabM` etc.) and the bare type constant `IO` / `EIO` / `BaseIO` / `ST` as monad TYPES; every other IO / System / liftIO reference in a VALUE
+is a primitive and is rejected (this includes `IO.mkRef` / `ST.Ref` / `ST.Prim.*` cells, `IO.FS`, `IO.Process`, `IO.getEnv`, clocks, `System.*`,
+and the `toEIO`/`liftIO` lifts). -/
+private def ioPlumbing : List Name := [`IO.RealWorld, `IO.Error, `IO, `EIO, `BaseIO, `ST, `IO.instMonadLiftSTRealWorldBaseIO,
+  `instMonadEIO, `instMonadBaseIO, `instMonadST, `instMonadLiftSTRealWorldBaseIO]
+
+/-- constants that run or elaborate syntax / code that is built at elaboration time: an `elab` that assembles `#eval ...` from string pieces,
+parses it with `runParserCategory` and runs it through `elabCommand` executes arbitrary code while every source-level token lint stays green
+(red-team N13 LA1).  Any VALUE in an Fv256 module referencing one of these is rejected. -/
+private def execPrims : List Name :=
+  [`Lean.Parser.runParserCategory, `Lean.Parser.parseCommand, `Lean.Parser.parseHeader, `Lean.Parser.parseTactic?, `Lean.Elab.Command.elabCommand,
+   `Lean.Elab.Command.elabCommandTopLevel, `Lean.Elab.Command.runLinters, `Lean.Elab.Term.evalTerm, `Lean.Elab.Term.evalTermCheck?,
+   `Lean.Meta.evalExpr, `Lean.Meta.evalExpr', `Lean.Environment.evalConst, `Lean.Environment.evalConstCheck, `Lean.evalConst, `Lean.evalConstCheck,
+   `Lean.evalDecl, `Lean.Elab.runFrontend, `Lean.Elab.IO.processCommands, `Lean.Elab.Frontend, `Lean.Elab.processHeader, `Lean.Elab.parseImports,
+   `Lean.importModules, `Lean.withImporting, `Lean.Elab.Command.elabEvalCoreUnsafe, `Lean.Elab.Command.elabEvalUnsafe, `Lean.Elab.Command.elabRunCmd,
+   `Lean.Elab.Term.elabRunElab, `Lean.Elab.Tactic.evalRunTac, `Lean.loadExts, `Lean.runModInit, `Lean.runInit, `Lean.registerInitAttr,
+   `Lean.registerBuiltinAttribute, `Lean.addAndCompile, `Lean.compileDecl, `Lean.compileDecls, `Lean.IR.addBoxedVersion]
+
+private def isExecPrim (n : Name) : Bool := execPrims.any (fun r => r == n)
+
 private def isIOPrim (n : Name) : Bool :=
-  isIOName n && !(`IO.RealWorld).isPrefixOf n && !(`IO.Error).isPrefixOf n && !(`EIO).isPrefixOf n && !(`BaseIO).isPrefixOf n
-    && !(`ST).isPrefixOf n && !(`IO.Ref).isPrefixOf n && !(`IO.mkRef).isPrefixOf n
-    && n != `IO && !(`IO.instMonadLiftSTRealWorldBaseIO).isPrefixOf n
+  isIOName n && !ioPlumbing.any (fun r => r == n) && !(`IO.RealWorld).isPrefixOf n && !(`IO.Error).isPrefixOf n
 
 elab "#lint_io" : command => do
   let env ← getEnv
@@ -102,12 +119,14 @@ elab "#lint_io" : command => do
     let mut r : Array String := #[]
     for d in ci.type.getUsedConstants do
       if isIOName d then r := r.push s!"@@IO {c} {modName} type-mentions {d}"
+      else if isExecPrim d then r := r.push s!"@@IO {c} {modName} type-mentions-exec {d}"
     match ci with
     | .thmInfo _ => pure ()
     | _ =>
       match ci.value? with
       | some v => for d in v.getUsedConstants do
           if isIOPrim d then r := r.push s!"@@IO {c} {modName} value-references {d}"
+          else if isExecPrim d then r := r.push s!"@@IO {c} {modName} value-references-exec {d}"
       | none => pure ()
     if (Lean.getInitFnNameFor? env c).isSome || Lean.isIOUnitInitFn env c || (Lean.getBuiltinInitFnNameFor? env c).isSome
         || Lean.isIOUnitBuiltinInitFn env c then
