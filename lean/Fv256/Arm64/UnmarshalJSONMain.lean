@@ -125,6 +125,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
   exact Fv256.Arm64.UnmarshalJSON.correctness impl R R2 T b L lo hi z pI nI cI hsb' hhex hsfd
 
 namespace Witness
+open Fv256.Arm64.UnmarshalJSONWit
 
 /-- Non-vacuity: a concrete runtime (stub code at the contract addresses: allocation, copy, write barriers, interface equality,
 string comparison and the live `slicebytetostring` copying a 48-digit input into a fresh block; toy allocator `R`, interface model
@@ -156,11 +157,24 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalJSON.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalJSON.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalJSON.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ JPost Fv256.Arm64.UnmarshalJSON.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
-  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8⟩ := Fv256.Arm64.UnmarshalJSONWit.nonvacuous_core
-  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11,
-    hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8,
-    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 h9 ret hret s hsetup ⟨hp10, hp11⟩⟩
-
+  refine ⟨implA, R, R0, TD, bW, ([]), loW, hiW, zV, pV, nV, nV, retW, s0, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup, pre0, hexEnv0, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
+    correctness implA R R0 TD bW ([]) loW hiW zV pV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s0 setup ⟨hp10, hp11⟩⟩
+  case h2 => exact (by rw [addr_if]; exact model_if)
+  case h3 => exact (by rw [addr_new]; exact model_new)
+  case h4 => exact (by rw [addr_mg]; exact model_mg)
+  case h5 => exact (by rw [addr_mv]; exact model_mv)
+  case h6 => exact (by rw [addr_w1]; exact model_wb1)
+  case h7 => exact (by rw [addr_w2]; exact model_wb2)
+  case h8 => exact (by rw [addr_cm]; exact hcmp)
+  case h9 => exact (by rw [show Fv256.Arm64.UnmarshalJSON.sbAddr = sbA by decide]; exact model_sb)
+  case hc1 => exact (⟨csNew, rfl, csNew_pre⟩)
+  case hc2 => exact (⟨csMg, rfl, csMg_pre⟩)
+  case hc3 => exact (⟨csMv, rfl, csMv_pre⟩)
+  case hc4 => exact (⟨csW1, rfl, csW1_pre⟩)
+  case hc5 => exact (⟨csW2, rfl, csW2_pre⟩)
+  case hc6 => exact (⟨csCm, rfl, csCm_pre⟩)
+  case hc7 => exact (⟨csIf, rfl, csIf_pre⟩)
+  case hc8 => exact (⟨csSb, rfl, csSb_pre⟩)
 
 /-- Non-vacuity on the unquoted path: the same runtime and contracts, the input is an unquoted 48-digit string. -/
 theorem unquoted : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -189,10 +203,24 @@ theorem unquoted : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b 
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalJSON.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalJSON.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalJSON.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ JPost Fv256.Arm64.UnmarshalJSON.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
-  obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12, hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8⟩ := Fv256.Arm64.UnmarshalJSONWit.unquoted_core
-  exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, h9, hret, hsetup, hp10, hp11, hp12,
-    hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8,
-    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 h9 ret hret s hsetup ⟨hp10, hp11⟩⟩
+  refine ⟨implA, R, R0, TD, bW, ([]), loW, hiW, zV, pHV, nU, nU, retW, s1, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup1, pre1, hexEnv0, unq1, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
+    correctness implA R R0 TD bW ([]) loW hiW zV pHV nU nU implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s1 setup1 ⟨hp10, hp11⟩⟩
+  case h2 => exact (by rw [addr_if]; exact model_if)
+  case h3 => exact (by rw [addr_new]; exact model_new)
+  case h4 => exact (by rw [addr_mg]; exact model_mg)
+  case h5 => exact (by rw [addr_mv]; exact model_mv)
+  case h6 => exact (by rw [addr_w1]; exact model_wb1)
+  case h7 => exact (by rw [addr_w2]; exact model_wb2)
+  case h8 => exact (by rw [addr_cm]; exact hcmp)
+  case h9 => exact (by rw [show Fv256.Arm64.UnmarshalJSON.sbAddr = sbA by decide]; exact model_sb)
+  case hc1 => exact (⟨csNew, rfl, csNew_pre⟩)
+  case hc2 => exact (⟨csMg, rfl, csMg_pre⟩)
+  case hc3 => exact (⟨csMv, rfl, csMv_pre⟩)
+  case hc4 => exact (⟨csW1, rfl, csW1_pre⟩)
+  case hc5 => exact (⟨csW2, rfl, csW2_pre⟩)
+  case hc6 => exact (⟨csCm, rfl, csCm_pre⟩)
+  case hc7 => exact (⟨csIf, rfl, csIf_pre⟩)
+  case hc8 => exact (⟨csSb, rfl, csSb_pre⟩)
 
 end Witness
 
