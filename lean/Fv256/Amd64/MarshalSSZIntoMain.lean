@@ -717,14 +717,12 @@ def csEr : State := { csEr0 with rip := BitVec.ofNat 64 cAddrE }
 
 theorem csEr_rip : csEr.rip = BitVec.ofNat 64 cAddrE := rfl
 
+set_option maxHeartbeats 2000000 in
 theorem csEr_frame : MemFrame mem0 memE [(sp0 - 4200, sp0 + 24), (BOX, BOX + 8)] := by
   unfold memE
   have h1 : (sp0 - 4200, sp0 + 24) ∈ [(sp0 - 4200, sp0 + 24), (BOX, BOX + 8)] := by simp
   have h2 : (BOX, BOX + 8) ∈ [(sp0 - 4200, sp0 + 24), (BOX, BOX + 8)] := by simp
-  exact ((((((MemFrame.refl _ _).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1
-    (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1
-    (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1
-    (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h2 (by simp only [BOX]; omega) (by simp only [BOX]; omega)
+  exact (((((((MemFrame.refl _ _).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h1 (by simp only [sp0]; omega) (by simp only [sp0]; omega)).writeLE _ h2 (by simp only [BOX]; omega) (by simp only [BOX]; omega)
 
 theorem csEr_view : view R0e.rt [] memE = view R0e.rt [] mem0 := by
   have hrt : R0e.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64), (CELL, CELL + 16)] := rfl
@@ -745,7 +743,7 @@ theorem csEr_pre : ErrorfLiveSite R0e cAddrE 4096 tErr iErr tInt iWrap 26 fmtNum
   have hrt : R0e.rt = [(HEAP, HEND), (BUMP, BUMP + 8), (WBUF, WBUF + 64), (CELL, CELL + 16)] := rfl
   have hrd : Janus.Contracts.Errorf.errorfReads csEr.mem (csEr.regs 0).toNat (csEr.regs 3).toNat (csEr.regs 1).toNat =
       [(fmtAddr, 26), (sp0 - 56, 48), (evData, 16), (textAddr, 21), (BOX, 8), (c32Addr, 8)] := by decide
-  refine ⟨by decide, by decide, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, ?_, ?_, ?_,
+  refine ⟨by decide, by unfold Janus.Contracts.ErrorfAmd64.RetLow; decide, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, ?_, ?_, ?_,
     ?_, ?_, by decide, liveSep_nil _, ?_⟩
   · unfold Janus.Contracts.Errorf.ArgsOK; simp only [Readable]; decide
   · unfold ReadsOutside; rw [hrd]; intro r hr
@@ -755,7 +753,7 @@ theorem csEr_pre : ErrorfLiveSite R0e cAddrE 4096 tErr iErr tInt iWrap 26 fmtNum
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
     rcases hr with rfl | rfl | rfl | rfl | rfl | rfl <;> exact Or.inr (Or.inl (by rw [hrt]; simp only [outside_cons, outside_nil, and_true, HEAP, HEND, HSIZE, BUMP, WBUF, CELL]; decide))
   · show R0e.ok cAddrE [(csEr.regs 0).toNat, (csEr.regs 3).toNat, (csEr.regs 1).toNat, (csEr.regs 7).toNat, (csEr.regs 6).toNat]
-    decide
+    trivial
   · show R0e.inv 138 [] (csEr.regs 14).toNat (view R0e.rt [] memE)
     rw [csEr_view]; exact rinv0 _
   · intro r hr
