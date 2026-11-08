@@ -9,7 +9,7 @@ theorem csSb8_pre : RtPre rtT 4096 Hw8 (slicebytetostringSpec Extracted.dataAddr
   · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]
     intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
   · show Hw8 (argWords csSb8 3) (csSb8.regs 28).toNat csSb8.sp.toNat (rtView rtT csSb8.mem)
-    refine ⟨Or.inl ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide⟩
+    refine ⟨⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide⟩
 
 def csSt08 : State := { s08 with regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 zp else if i = 2 then BitVec.ofNat 64 8 else s08.regs i }
 def csSt8 : State := { csSt08 with sp := BitVec.ofNat 64 (sp0 - 48), pc := BitVec.ofNat 64 stAddr }

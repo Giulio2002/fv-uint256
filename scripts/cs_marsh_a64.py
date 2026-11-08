@@ -15,9 +15,11 @@ theorem csSb{sfx}_pre : RtPre {rt} 4096 {H} ({SS}) csSb{sfx} := by
   · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]
     intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
   · show {H} (argWords csSb{sfx} 3) (csSb{sfx}.regs 28).toNat csSb{sfx}.sp.toNat (rtView {rt} csSb{sfx}.mem)
-    refine ⟨Or.inl ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [{acc}]; decide, by rw [{acc}]; decide⟩
+    refine ⟨{{SBW}}, by rw [{acc}]; decide, by rw [{acc}]; decide⟩
 
 '''
+    sbw = 'Or.inl ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩' if second == 'cb' else '⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩'
+    b = b.replace('{SBW}', sbw)
     if second == 'stb':
         b2 = f'''def csSt0{sfx} : State := {{ {s} with regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 zp else if i = 2 then BitVec.ofNat 64 {N} else {s}.regs i }}
 def csSt{sfx} : State := {{ csSt0{sfx} with sp := BitVec.ofNat 64 (sp0 - {k2}), pc := BitVec.ofNat 64 stAddr }}

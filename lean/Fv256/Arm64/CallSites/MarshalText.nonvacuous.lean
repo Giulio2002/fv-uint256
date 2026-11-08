@@ -9,7 +9,7 @@ theorem csSb_pre : RtPre rtT 4096 Hw (slicebytetostringSpec Extracted.dataAddr.�
   · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]
     intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
   · show Hw (argWords csSb 3) (csSb.regs 28).toNat csSb.sp.toNat (rtView rtT csSb.mem)
-    refine ⟨Or.inl ⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide⟩
+    refine ⟨⟨BitVec.toNat (BitVec.ofNat 64 zp), by decide⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide⟩
 
 def csSt0 : State := { s0 with regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 zp else if i = 2 then BitVec.ofNat 64 2 else s0.regs i }
 def csSt : State := { csSt0 with sp := BitVec.ofNat 64 (sp0 - 48), pc := BitVec.ofNat 64 stAddr }
