@@ -23,4 +23,5 @@ THIN_FILE nonvacuous [CORE_NAMESPACE]` rewrites the thin proof as `refine ⟨<co
 core-based row (UnmarshalJSON/Text, Scan, Format, ...).
 
 ## Audit results (auditor via /srv/janus-csa, STUB audit-only)
-- SetFromDecimal arm64: AUDIT-PASS (113 s)   - FromDecimal arm64: AUDIT-PASS (177 s)   - MustFromDecimal: queued
+- SetFromDecimal arm64: AUDIT-PASS (113 s)   - FromDecimal arm64: AUDIT-PASS (177 s)   - MustFromDecimal arm64: AUDIT-PASS (140 s; regenerated on fv/wrun with the (hp9).2 fix)
+- SetFromDecimal arm64 FULL verify (non-stub): FULL-PASS, rc=0, 212 s (warm)
