@@ -443,7 +443,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (ret : Nat) (s : Stat
   refine ⟨implAt, RW, ret, s0, arg, hc0, hc2, ?w2, ?w3, pre, ?w5,
     ⟨csSb, rfl, csSb_pre⟩,
     ⟨csCv, rfl, csCv_pre⟩,
-    correctness implAt RW arg hc0 hc2 ret ?w2 s0 ?w3 ⟨pre, ?w5⟩⟩
+    correctness implAt RW arg hc0 hc2 ret ?w2 s0 ?w3 pre⟩
   case w2 => exact by rw [linked_eq]; exact hret
   case w3 => exact by rw [linked_eq]; exact setup
   case w5 => exact by rw [hz]; decide

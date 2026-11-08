@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Value arm64: RtLive call sites (slicebytetostring [0,zp,16] at sp0-416; convTstring [zp,16] at sp0-32), closed L=[] b=2^20."""
-import subprocess, sys
+import subprocess, sys, re
 SS = 'slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»'
 def blk(nm, regs, k, addr, spec, live, okshape, nargs):
     return f'''def cs{nm}0 : State := {{ s0 with regs := fun i => {regs} else s0.regs i }}
@@ -34,6 +34,7 @@ s = open(f).read()
 s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
 ns = f'namespace Fv256.Arm64.{fn}\n'
 s = s.replace(ns, 'open Fv256.Arm64.CallSites\n\n' + ns, 1)
+s = re.sub(r'(correctness [^\n]*?) ⟨(pre8?), \?w5⟩⟩', r'\1 \2⟩', s)  # fv/wrun bug: `100 ≤ val` is not part of correctness' pre
 open(f, 'w').write(s)
 bf = f'lean/Fv256/Arm64/CallSites/{fn}.lean'
 open(bf, 'w').write(B)

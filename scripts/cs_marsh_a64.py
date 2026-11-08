@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """MarshalJSON / MarshalText arm64: Rt call sites (slicebytetostring + concatbyte3 | stringtoslicebyte), nonvacuous and big."""
-import subprocess, sys
+import subprocess, sys, re
 SS = 'slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»'
 def one(sfx, s, H, rt, acc, N, kss, second, k2):
     # first call: slicebytetostring [0, zp, N], sp0 - kss
@@ -66,6 +66,7 @@ for fn in sys.argv[1:]:
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
     ns = f'namespace Fv256.Arm64.{fn}\n'
     s = s.replace(ns, 'open Fv256.Arm64.CallSites\n\n' + ns, 1)
+    s = re.sub(r'(correctness [^\n]*?) ⟨(pre8?), \?w5⟩⟩', r'\1 \2⟩', s)  # fv/wrun bug: `100 ≤ val` is not part of correctness' pre
     open(f, 'w').write(s)
     for (thm, sfx, st, H, rt, acc, N, kss, sec, k2) in CFG[fn]:
         bf = f'lean/Fv256/Arm64/CallSites/{fn}.{thm}.lean'
