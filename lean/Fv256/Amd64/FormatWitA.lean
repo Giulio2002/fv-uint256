@@ -40,7 +40,7 @@ theorem stb2_len (h : Nat) : (stb2Code h).length = 36 := by simp [stb2Code, le32
 
 
 def Hw : RtReady := fun a _ sp view =>
-  ((∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) ∧ view.accessible hA 8 true = true ∧ view.accessible hB 8 true = true ∧
+  (((∃ p, a = [0, p, 2]) ∨ (∃ p, a = [0, p, 4])) ∨ (∃ x y, a = [x, y])) ∧ view.accessible hA 8 true = true ∧ view.accessible hB 8 true = true ∧
     (sp + 8 ≤ hA ∨ hA + 8 ≤ sp) ∧ (sp + 8 ≤ hB ∨ hB + 8 ≤ sp)
 
 /-! ### the rest of the runtime and the trivial callees -/
@@ -103,6 +103,7 @@ theorem model1 : RtContract64 (Extracted.program.ofImpl implAll) ssAddr rtT 4096
   simp only [Ready64, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8, hdA, hdB⟩ := ha
   simp only [hA, hB] at hA8 hB8 hdA hdB
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords64, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords64 s 3 = [0, p, 2] := hp
     simp [slicebytetostringSpec, argWords64, wordsFrom, GoABI.argReg, GoABI.intArgRegs, arg] at hp hstr hbuf hdis
@@ -168,6 +169,7 @@ theorem model2 : RtContract64 (Extracted.program.ofImpl implAll) stAddr rtT 4096
   simp only [Ready64, Hw, rtView_acc] at ha
   obtain ⟨hpp, hA8, hB8, hdA, hdB⟩ := ha
   simp only [hA, hB] at hA8 hB8 hdA hdB
+  replace hpp := hpp.resolve_right (fun ⟨x, y, hp⟩ => absurd (congrArg List.length hp) (by simp [argWords64, wordsFrom, slicebytetostringSpec, stringtoslicebyteSpec]))
   rcases hpp with ⟨p, hp⟩ | ⟨p, hp⟩
   · have hargs : argWords64 s 3 = [0, p, 2] := hp
     simp [stringtoslicebyteSpec, argWords64, wordsFrom, GoABI.argReg, GoABI.intArgRegs, arg] at hp hstr hbuf hdis
