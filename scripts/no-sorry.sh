@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fails if any .lean file under lean/Fv256 contains the token `sorry` (outside `--` comments), except files listed in
+# Fails if any .lean file under lean/Fv256 contains the token `sorry`, `admit` or `sorryAx` (outside `--` comments), except files listed in
 # WIP-SORRY.txt (format: path<TAB>owner<TAB>note). The allowlist MUST be empty at the final release (RELEASE=1 enforces it).
 # Run before every merge:  scripts/no-sorry.sh
 set -uo pipefail
@@ -18,7 +18,7 @@ if [ -n "${RELEASE:-}" ] && [ "$nok" -gt 0 ]; then echo "FAIL (RELEASE): $allow 
 fail=0
 while IFS= read -r f; do
   # (not `grep -q` in a pipe: with pipefail an early-exiting grep SIGPIPEs sed and the test would falsely say 'no sorry' on big files)
-  if [ "$(sed 's/--.*$//' "$f" | grep -cw 'sorry')" -gt 0 ]; then
+  if [ "$(sed 's/--.*$//' "$f" | grep -cwE 'sorry|admit|sorryAx')" -gt 0 ]; then
     if [ -n "${ok[$f]+x}" ]; then echo "allowed (WIP): $f"; else echo "FAIL: sorry in $f (not in $allow)"; fail=1; fi
   elif [ -n "${ok[$f]+x}" ]; then echo "note: $f is in $allow but no longer contains sorry (remove it)"; fi
 done < <(find lean/Fv256 -name '*.lean' | sort)
@@ -29,5 +29,11 @@ while IFS= read -r f; do
   hits="$(sed 's/--.*$//' "$f" | grep -nE "$iopat" | head -3)"
   if [ -n "$hits" ]; then echo "FAIL: IO / host dependence in $f: $(echo "$hits" | head -1 | cut -c1-120)"; fail=1; fi
 done < <(find lean -name '*.lean' -not -path '*/.lake/*' | sort)
+# second-layer lints (do not rely on literal tokens): (1) source-level: compile-time commands (#eval, run_cmd, run_tac, run_elab, run_meta, #exit,
+# initialize, @[init], unsafe), lakefile code-execution settings, and imports parsed by Lean's own header parser (no prelude / import all / foreign roots);
+python3 scripts/lint_source.py || fail=1
+# (2) Lean-level (RELEASE): every constant defined in an Fv256 module is checked after elaboration for IO types / IO primitives / initializers
+# (scripts/check-lean-lint; needs build/harness-*, a janus binary and the janus lake package, as scripts/check-spec-closure).
+if [ -n "${RELEASE:-}" ]; then python3 scripts/check-lean-lint || fail=1; fi
 [ $fail = 0 ] && echo "no-sorry: OK" || echo "no-sorry: FAILED"
 exit $fail

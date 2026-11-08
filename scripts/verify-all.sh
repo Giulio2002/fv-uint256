@@ -88,14 +88,14 @@ for f in lean/Fv256/Amd64v3/*.lean; do
 done
 
 run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never touches shared state besides build/*-$isa-$fn)
-  local isa="$1" fn="$2" kind="$3" sym="$4" dir full out cflags pf wt w r t0 rss tf
+  local isa="$1" fn="$2" kind="$3" sym="$4" dir full out cflags pf wt w r t0 rss tf cap; cap="$(row_cap "$isa" "$fn")"; export JANUS_MEM_MAX="$cap"
   t0=$(date +%s); tf="build/time-$isa-$fn"; rm -f "$tf"
   out="build/ex-$isa-$fn"
   if [ "$kind" = v3 ]; then
     # the witness theorems (Witness.nonvacuous ...) of the module are verified with correctness: mandatory under the Janus witness rule
     wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/Amd64v3/$fn.lean"); fi
     if $JANUS extract build/harness-amd64v3 "github.com/holiman/uint256.(*Int).$fn" "$out" >"build/log-$isa-$fn" 2>&1 &&
-       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$MEMCAP" $JANUS verify "$out" --proof "lean/Fv256/Amd64v3/$fn.lean" --proof-root lean --theorem "Fv256.Amd64v3.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
+       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/Amd64v3/$fn.lean" --proof-root lean --theorem "Fv256.Amd64v3.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
   else
     case "$isa" in arm64) dir=Arm64;; amd64) dir=Amd64;; esac
     case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
@@ -107,19 +107,25 @@ run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never 
     # every existential witness theorem declared in the module (Witness.nonvacuous, Grow.Witness.nonvacuous, Witness.big, ...): scripts/witness-theorems.py
     wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/$dir/$pf.lean"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
-       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$MEMCAP" $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
+       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
          --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
+  fi
     # UP3c: every fv-uint256 row must audit with runFree=false AND refutation=false (a row that claims no run is not a verified function spec): FAIL a row whose reports carry either flag
     if [ "$r" = PASS ] && { grep -rEqs '"(runFree|refutation)": *true' "$out/verified.json" "$out/verified" 2>/dev/null || grep -Eqs 'Non-vacuity: Verified \((run-free|refutation)' "build/log-$isa-$fn"; }; then
       echo "FAIL: the audit reports runFree=true or refutation=true for $isa $fn (every row must be a run-claiming function spec)" >>"build/log-$isa-$fn"; r="FAIL(runFree-or-refutation)"
     fi
-  fi
   rss=0; [ -s "$tf" ] && rss=$(( $(tail -1 "$tf" | tr -dc 0-9) / 1024 ))
-  echo "$r $(( $(date +%s) - t0 )) $rss ${#wt[@]}" >"build/res/$isa-$fn"
+  echo "$r $(( $(date +%s) - t0 )) $rss ${#wt[@]} $cap" >"build/res/$isa-$fn"
 }
-admit() {   # load and memory admission rules
-  local l m; l=$(cut -d' ' -f1 /proc/loadavg | cut -d. -f1); m=$(awk '/MemAvailable/{print int($2/1048576)}' /proc/meminfo)
-  [ "$l" -lt "$MAX_LOAD" ] && [ "$m" -ge "$MIN_MEM_GB" ]
+# per-row memory cap overrides: scripts/memcap-overrides.txt lines `ISA Fn CAP  # reason` (default MEMCAP, 24G)
+row_cap() {   # row_cap isa fn
+  local c; c=$(awk -v i="$1" -v f="$2" '$1==i && $2==f {print $3; exit}' "$root/scripts/memcap-overrides.txt" 2>/dev/null)
+  echo "${c:-$MEMCAP}"
+}
+admit() {   # admit isa fn : load and memory admission rules; a row with a cap override also needs (override - default) extra MemAvailable
+  local l m cap g extra=0; l=$(cut -d' ' -f1 /proc/loadavg | cut -d. -f1); m=$(awk '/MemAvailable/{print int($2/1048576)}' /proc/meminfo)
+  cap=$(row_cap "$1" "$2"); g=${cap%G}; [ "$g" -gt "${MEMCAP%G}" ] 2>/dev/null && extra=$(( g - ${MEMCAP%G} ))
+  [ "$l" -lt "$MAX_LOAD" ] && [ "$m" -ge $(( MIN_MEM_GB + extra )) ]
 }
 # schedule: known-heavy functions first (scripts/heavy-first.txt) so the tail of the run is short
 idx=(); for i in "${!jobs_fn[@]}"; do [ "${jobs_kind[$i]}" = done ] && continue; case "$heavyfirst" in *" ${jobs_fn[$i]} "*) idx=("$i" "${idx[@]}");; *) idx+=("$i");; esac; done
@@ -129,7 +135,7 @@ t_start=$(date +%s); lastlaunch=0
 for i in "${idx[@]}"; do
   while :; do
     running=$(jobs -rp | wc -l)
-    if [ "$running" -lt "$NPAR" ] && [ $(( $(date +%s) - lastlaunch )) -ge "${LAUNCH_GAP:-30}" ] && admit; then break; fi
+    if [ "$running" -lt "$NPAR" ] && [ $(( $(date +%s) - lastlaunch )) -ge "${LAUNCH_GAP:-30}" ] && admit "${jobs_isa[$i]}" "${jobs_fn[$i]}"; then break; fi
     sleep 5
   done
   run_job "${jobs_isa[$i]}" "${jobs_fn[$i]}" "${jobs_kind[$i]}" "${jobs_tag[$i]}" &
@@ -141,10 +147,10 @@ wait
 table=""; ttable=""
 for i in "${!jobs_fn[@]}"; do
   isa="${jobs_isa[$i]}"; fn="${jobs_fn[$i]}"
-  if [ -s "build/res/$isa-$fn" ]; then read -r r s m nw <"build/res/$isa-$fn"; else r="FAIL(no-result)"; s=0; m=0; nw=0; fi
+  if [ -s "build/res/$isa-$fn" ]; then read -r r s m nw cp <"build/res/$isa-$fn"; else r="FAIL(no-result)"; s=0; m=0; nw=0; fi
   case "$r" in PASS) ;; *) fail=1;; esac
   table+="$(printf '%-8s %-24s %s' "$isa" "$fn" "$r")"$'\n'
-  ttable+="$(printf '%-8s %-24s %-16s %7ss %7s MB  witnesses=%s' "$isa" "$fn" "$r" "$s" "$m" "${nw:-0}")"$'\n'
+  ttable+="$(printf '%-8s %-24s %-16s %7ss %7s MB  witnesses=%s cap=%s' "$isa" "$fn" "$r" "$s" "$m" "${nw:-0}" "${cp:-$MEMCAP}")"$'\n'
 done
 echo "== summary =="; printf '%s' "$table"
 echo "== timing (wall seconds, peak RSS of the largest process in the row, witness theorems verified) =="; printf '%s' "$ttable"

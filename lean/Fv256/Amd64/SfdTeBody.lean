@@ -190,8 +190,6 @@ macro "te_body" : tactic => `(tactic| (
     all_goals first
       | (exfalso; te_flags; done)
       | skip
-    run_tac do
-      Lean.logInfo m!"D goals {(← Lean.Elab.Tactic.getGoals).length}"
     all_goals
       refine te_post_intro ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ ?F (fun hF => ⟨q.toNat, _, ?_, rfl, ?obj⟩)
       case F =>
