@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
@@ -131,10 +132,24 @@ theorem pre : StackGuardOK s0 (0x378 + 24) ∧ StackWritable s0 4592 8 ∧ Extra
   · rw [hz] at h; exact absurd h (by decide)
   · rw [hz] at h; exact absurd h (by decide)
 
+/-- The call state of `runtime.slicebytetostring` (U-WITNESS-CALLSITE): `s0`'s memory at the stub's entry, `RSP` 64 below
+`s0`'s (inside the stack window), all argument words zero (`H0`). -/
+def csSs : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 ssAddr, regs := fun i => if i = 0 then 0 else if i = 4 then s0.regs 4 - 64#64 else s0.regs i }
+
+theorem csSs_rip : csSs.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") := rfl
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSs_pre : RtPre64 rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSs := by
+  sorry
+
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
     RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧
+      RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s (0x378 + 24) ∧ StackWritable s 4592 8 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -150,7 +165,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         (s.regs 14).toNat ((s.regs 4).toNat - 24 - 384 - 0x58) (rtView rt s.mem))) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4592, (s.regs 4).toNat + 8)]) := by
-  refine ⟨implAt, rtW, H0, ret, s0, arg, model, ?w1, ?w2, pre,
+  refine ⟨implAt, rtW, H0, ret, s0, arg, model, ⟨csSs, csSs_rip, csSs_pre⟩, ?w1, ?w2, pre,
     correctness implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
