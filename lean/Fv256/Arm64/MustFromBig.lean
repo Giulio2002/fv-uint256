@@ -265,8 +265,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
           s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
           Ptr s.mem pw (8 * len.toNat) false ∧ Outside x.toNat 32 rt ∧ Outside pw.toNat (8 * len.toNat) rt ∧
           Disjoint x.toNat 32 (s.sp.toNat - 4144) 4168 ∧ Disjoint pw.toNat (8 * len.toNat) (s.sp.toNat - 4144) 4168)) ∧
-    Go(∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectSite H rt 4096 s_c) ∧
-    Returns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectSite H rt 4096 s_c) ∧
+    GoReturns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
       match o with
       | .returned s' => ABIReturn s s' ∧ (x.toNat = 0 ∨ len.toNat ≤ 4) ∧
         (x.toNat = 0 → s'.regs 0 = 0) ∧

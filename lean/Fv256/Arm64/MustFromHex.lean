@@ -483,8 +483,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         (∀ e, e < 6 → s.mem.accessible (s.mem.readLE (errAddrOf e) 8 + 8) 8 false = true ∧
           Outside (s.mem.readLE (errAddrOf e) 8 + 8) 8 rt ∧
           Disjoint (s.mem.readLE (errAddrOf e) 8 + 8) 8 (s.sp.toNat - 4144) 4168)) ∧
-    Go(∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectSite H rt 4096 s_c) ∧
-    Returns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
+    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectSite H rt 4096 s_c) ∧
+    GoReturns ((Extracted.program.link impl).withExit ret) (goClass P) s fun o =>
       match o with
       | .returned s' => ABIReturn s s' ∧ (∃ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v) ∧
         (∀ v, parseHex (bytesAt s.mem hp.toNat) len.toNat = .ok v →
