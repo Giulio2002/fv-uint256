@@ -122,7 +122,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9⟩ := Fv256.Amd64.UjWit.nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9,
-    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
+    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h8 h7 ret hret s hsetup hp9⟩
 
 set_option maxRecDepth 100000 in
 theorem unquoted : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -174,7 +174,7 @@ theorem unquoted : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Iface
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9⟩ := Fv256.Amd64.UjWit.unq_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9,
-    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
+    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h8 h7 ret hret s hsetup hp9⟩
 
 end Witness
 
