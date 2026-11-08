@@ -553,10 +553,12 @@ set_option maxRecDepth 100000 in
 theorem csSb_pre : RtLivePre64 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive sbAddr [] 0x400 csSb := by
   have hok : R.ok sbAddr [(csSb.regs 0).toNat, (csSb.regs 3).toNat, (csSb.regs 1).toNat] := by
     rw [show sbAddr = sbA by decide]; exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (⟨rfl, 0, 0x301000, by decide⟩)))))
+  have hw : argWords64 csSb 3 = [0, 0x301000, 48] := by decide
   unfold RtLivePre64
   refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, hok, (inv0 twS dwS), by decide, liveSep_nil _, (by rw [rt_eq]; intro r hr; simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩
-  · simp [slicebytetostringSpec, argWords64, arg, BufOK, StrIn]; decide
-  · simp only [slicebytetostringSpec, argWords64, arg, ReadsOutside, calleeStack64, outside_cons, outside_nil]; decide
+  · simp only [slicebytetostringSpec, hw, arg, BufOK, StrIn, List.getD_cons_zero, List.getD_cons_succ]
+    exact ⟨Or.inl trivial, ⟨by decide, fun _ => by decide⟩, fun h => absurd rfl h⟩
+  · simp only [slicebytetostringSpec, hw, arg, ReadsOutside, calleeStack64, outside_cons, outside_nil, List.getD_cons_zero, List.getD_cons_succ]; decide
 
 /-- the contracts of `Scan.correctness` hold of the stub runtime -/
 theorem contracts_ok :

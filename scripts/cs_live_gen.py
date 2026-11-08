@@ -81,10 +81,12 @@ theorem csIf_pre : IfaceeqSite {R2} csIf :=
 theorem csSb_pre : RtLivePre64 4096 {R} (slicebytetostringSpec {c['st_addr']}) slicebytetostringLive {c['sb_addr']} [] {B} csSb := by
   have hok : {R}.ok {c['sb_addr']} [(csSb.regs 0).toNat, (csSb.regs 3).toNat, (csSb.regs 1).toNat] := by
     rw [show {c['sb_addr']} = sbA by decide]; exact {ok_sb}
+  have hw : argWords64 csSb 3 = [{c['sb_buf']}, {c['sb_p']}, 48] := by decide
   unfold RtLivePre64
   refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, hok, {inv}, by decide, liveSep_nil _, {sep}⟩
-  · simp [slicebytetostringSpec, argWords64, arg, BufOK, StrIn]; decide
-  · simp only [slicebytetostringSpec, argWords64, arg, ReadsOutside, calleeStack64, outside_cons, outside_nil]; decide
+  · simp only [slicebytetostringSpec, hw, arg, BufOK, StrIn, List.getD_cons_zero, List.getD_cons_succ]
+    exact ⟨Or.inl trivial, ⟨by decide, fun _ => by decide⟩, fun h => absurd rfl h⟩
+  · simp only [slicebytetostringSpec, hw, arg, ReadsOutside, calleeStack64, outside_cons, outside_nil, List.getD_cons_zero, List.getD_cons_succ]; decide
 ''')
     stmt = []
     L = '(Lc : List (Nat × Nat)) (bc : Nat)'

@@ -6,26 +6,26 @@ open Janus Janus.Amd64 Janus.Contracts
 
 namespace Fv256.CallSites
 
-instance (s : State) (stack nargs : Nat) : Decidable (CallOK64 s stack nargs) := by unfold CallOK64; infer_instance
-instance (m : Memory) (t : Nat) : Decidable (TypeOK m t) := by unfold TypeOK; infer_instance
-instance (s : State) (adj : Nat) : Decidable (GuardOK64 s adj) := by unfold GuardOK64; infer_instance
+scoped instance (s : State) (stack nargs : Nat) : Decidable (CallOK64 s stack nargs) := by unfold CallOK64; infer_instance
+scoped instance (m : Memory) (t : Nat) : Decidable (TypeOK m t) := by unfold TypeOK; infer_instance
+scoped instance (s : State) (adj : Nat) : Decidable (GuardOK64 s adj) := by unfold GuardOK64; infer_instance
 
-instance outsideDec (a n : Nat) : ∀ L : List (Nat × Nat), Decidable (Outside a n L)
+scoped instance outsideDec (a n : Nat) : ∀ L : List (Nat × Nat), Decidable (Outside a n L)
   | [] => isTrue trivial
   | (lo, hi) :: rs =>
     haveI := outsideDec a n rs
     inferInstanceAs (Decidable ((a + n ≤ lo ∨ hi ≤ a) ∧ Outside a n rs))
 
-instance (s : State) (adj : Nat) : Decidable (Janus.Amd64.GoABI.StackGuardOK s adj) :=
+scoped instance (s : State) (adj : Nat) : Decidable (Janus.Amd64.GoABI.StackGuardOK s adj) :=
   decidable_of_iff ((s.regs Janus.Amd64.GoABI.regG).toNat + Janus.Amd64.GoABI.stackguard0Offset + 8 ≤ 2 ^ 48 ∧
       s.mem.accessible ((s.regs Janus.Amd64.GoABI.regG).toNat + Janus.Amd64.GoABI.stackguard0Offset) 8 false = true ∧
       Janus.Amd64.GoABI.stackguard0 s + adj < (s.regs Janus.Amd64.GoABI.regSP).toNat)
     ⟨fun h => ⟨h.1, h.2.1, h.2.2⟩, fun h => ⟨h.noWrap, h.readable, h.below⟩⟩
-instance (s : State) (d nargs : Nat) : Decidable (MemAmd64.CallOK s d nargs) := by unfold MemAmd64.CallOK; infer_instance
-instance (s : State) (d nargs : Nat) : Decidable (MemAmd64.EqPre d nargs s) := by unfold MemAmd64.EqPre; infer_instance
-instance (s : State) (d nargs a n : Nat) : Decidable (MemAmd64.Input s d nargs a n) := by unfold MemAmd64.Input; infer_instance
-instance (m : Memory) : Decidable (IfaceModel.Desc m) := by unfold IfaceModel.Desc; infer_instance
-instance (m : Memory) (p n : Nat) : Decidable (Cmpstring.StrOK m p n) := by unfold Cmpstring.StrOK; infer_instance
+scoped instance (s : State) (d nargs : Nat) : Decidable (MemAmd64.CallOK s d nargs) := by unfold MemAmd64.CallOK; infer_instance
+scoped instance (s : State) (d nargs : Nat) : Decidable (MemAmd64.EqPre d nargs s) := by unfold MemAmd64.EqPre; infer_instance
+scoped instance (s : State) (d nargs a n : Nat) : Decidable (MemAmd64.Input s d nargs a n) := by unfold MemAmd64.Input; infer_instance
+scoped instance (m : Memory) : Decidable (IfaceModel.Desc m) := by unfold IfaceModel.Desc; infer_instance
+scoped instance (m : Memory) (p n : Nat) : Decidable (Cmpstring.StrOK m p n) := by unfold Cmpstring.StrOK; infer_instance
 
 theorem liveSep_nil (win : List (Nat × Nat)) : LiveSep [] win := fun r h => by simp at h
 
