@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
@@ -381,6 +382,53 @@ StackGuardOK s0 4600 ∧ Outside ((s0.regs 14).toNat + 16) 8 RW.rt ∧ StackWrit
       simp only [window64, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false] at hr
       rcases hr with rfl | rfl | rfl <;> simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, s0, g0, sp0, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil] <;> decide
 
+-- CALLSITE-BLOCK Value
+def csSb0 : Amd64.State :=
+  { s0 with regs := fun i => if i = 0 then 0 else if i = 3 then arg else if i = 1 then 16 else if i = 4 then BitVec.ofNat 64 (sp0 - 416) else s0.regs i }
+def csSb : Amd64.State := { csSb0 with rip := BitVec.ofNat 64 ssAddr }
+
+theorem csSb_rip : csSb.rip = BitVec.ofNat 64 ssAddr := rfl
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSb_pre : RtLivePre64 4096 RW (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive ssAddr [] 0x100000 csSb := by
+  have hrt : RW.rt = toyRt [] := rfl
+  have hw : argWords64 csSb 3 = [0, zp, 16] := by
+    unfold argWords64 csSb csSb0; decide +kernel
+  unfold RtLivePre64
+  refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, ?_⟩, ?_, ?_, by decide, liveSep_nil _, ?_⟩
+  · simp only [slicebytetostringSpec, hw, Contracts.arg, BufOK, StrIn]; exact ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, hw, ReadsOutside]; intro r hr; simp only [List.mem_singleton] at hr; subst hr; simp only [Contracts.arg, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, calleeStack64, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; refine ⟨?_, ?_, trivial⟩ <;> decide
+  · simp only [calleeStack64, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
+  · rw [hw]; exact Or.inl ⟨rfl, zp, by decide⟩
+  · exact s0_inv _ _ (by simp [HSIZE])
+  · intro r hr
+    simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
+
+def csCv0 : Amd64.State :=
+  { s0 with regs := fun i => if i = 0 then arg else if i = 3 then 16 else if i = 4 then BitVec.ofNat 64 (sp0 - 32) else s0.regs i }
+def csCv : Amd64.State := { csCv0 with rip := BitVec.ofNat 64 cvAddr }
+
+theorem csCv_rip : csCv.rip = BitVec.ofNat 64 cvAddr := rfl
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csCv_pre : RtLivePre64 4096 RW (convTstringSpec) convTstringLive cvAddr [] 0x100000 csCv := by
+  have hrt : RW.rt = toyRt [] := rfl
+  have hw : argWords64 csCv 2 = [zp, 16] := by
+    unfold argWords64 csCv csCv0; decide +kernel
+  unfold RtLivePre64
+  refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, ?_⟩, ?_, ?_, by decide, liveSep_nil _, ?_⟩
+  · trivial
+  · intro r hr; simp [convTstringSpec] at hr
+  · simp only [calleeStack64, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
+  · rw [hw]; exact Or.inr ⟨rfl, zp, by decide⟩
+  · exact s0_inv _ _ (by simp [HSIZE])
+  · intro r hr
+    simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
+
 /-- The preconditions, the `slicebytetostring` and `convTstring` live contracts (toy runtime serving both requests of the witness:
 `z = 10^15`, sixteen digits) and the second-call hypothesis are jointly satisfiable. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
@@ -411,16 +459,19 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (ret : Nat) (s 
             LiveAt R cvAddr [p, l] L b (convTstringLive.cost [p, l] M) (s.regs 14).toNat M
               (window64 ((s.regs 4).toNat - 32) 4096 2) ∧
             (InRanges p l R.rt → InRanges p l L))) ∧ 100 ≤ s.mem.readLE z.toNat 32 ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 ssAddr ∧ RtLivePre64 4096 R (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive ssAddr [] 0x100000 s_c) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 cvAddr ∧ RtLivePre64 4096 R convTstringSpec convTstringLive cvAddr [] 0x100000 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = Extracted.dataAddr.«type:string#f88732b8» ∧
         (∃ p l, BoxWords' R.rt s'.mem (s'.regs 3).toNat [p, l] ∧ StrOut s'.mem p l (decBytes (valueAt s z 32))) ∧
         s'.regs 1 = 0 ∧ s'.regs 7 = 0 ∧
         MemFrame s.mem s'.mem (R.rt ++ [((s.regs 4).toNat - 4600, (s.regs 4).toNat + 8)]) := by
   refine ⟨implAt, RW, ret, s0, arg, hc0, hc2, ?w2, ?w3, pre, ?w5,
+    ⟨csSb, csSb_rip, csSb_pre⟩,
+    ⟨csCv, csCv_rip, csCv_pre⟩,
     correctness implAt RW arg hc0 hc2 ret ?w2 s0 ?w3 pre⟩
   case w2 => exact by rw [linked_eq]; exact hret
   case w3 => exact by rw [linked_eq]; exact setup
   case w5 => exact by rw [hz]; decide
-
 end Witness
 
 end Fv256.Amd64.Value
