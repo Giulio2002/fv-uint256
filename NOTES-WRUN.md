@@ -1,57 +1,54 @@
-# NOTES-WRUN (FV-WRUN) HANDOVER, 2026-11-07 ~23:20
+# NOTES-WRUN (FV-WRUN) FULL HANDOVER, written at ~320k context, 2026-11-08 ~03:15. Successor: FV-WRUN2.
 
-Task: upgrade every fv-uint256 final-theorem witness to the Janus "returning-run" shape (U-WITNESS-RUN), then add the call-site conjunct
-(U-WITNESS-CALLSITE). Worktree /srv/fv-uint256-wrun, branch fv/wrun off fv/master b3b89b7a (lakefile pin untouched).
+Task: upgrade every fv-uint256 final-theorem witness to the Janus returning-run shape (U-WITNESS-RUN) and integrate the call-site conjunct
+(U-WITNESS-CALLSITE, written by FV-CSA = arm64, branch fv/csa; FV-CSB = amd64, branch fv/csb). Worktree /srv/fv-uint256-wrun, branch fv/wrun (off fv/master b3b89b7a, lakefile pin untouched).
 
-## Status
-- PHASE 1 DONE AND COMMITTED (86887ba5): the Returns/GoReturns conjunct + `correctness ...` proof in 314 witness theorems (292 row-files, both ISAs).
-  Rewritten by scripts/upgrade-witness-run.py (311), by hand (PaddedBytes arm64/amd64), amd64 DivMod was already in shape.
-  Only arm64 Add was audited/verified end-to-end (against Janus f0c6bbef, cold: 666 s). The rest is NOT yet compile-checked: expect a few type errors
-  (core-mode `obtain` proofs, `_` args for Format, HINTS) to appear in the sweep.
-- PHASE 2 NOT STARTED: call-site conjunct for the 82 contract-bearing witnesses (list below). WAITING for UP3b (a7a5a1e757be0f837) to publish the per-family
-  conjunct text that handles the `∀ L b, Summary` Live contracts: expected auditor false reject "does not unfold to a Summary" for NewobjectLive/WbLive/MallocgcLive/
-  RtLive (Audit.lean ~l.3068 only unfolds up to Summary, no forall telescope). Not confirmed: the IntoBig stub run was still in progress (see below).
-- Nothing about timings measured yet (subset: Add, Format, SetFromDecimal, Scan, UnmarshalJSON, IntoBig, both ISAs; before = fv/master files + old pin, after = upgraded).
+## Commits on fv/wrun (newest first)
+- 0db3fcb1 skip witness-only pin conjuncts in correctness's pre argument (script fix; 8 files FromBig/MustFromBig/MustFromDecimalMain/MustFromHex x ISAs)
+- 8a77140b parenthesize numeral substitutions `(2 : BitVec 64).toNat` (CmpBig, SetFromBig, WriteToSlice)
+- 86887ba5 the Returns/GoReturns conjunct in 314 witnesses (311 by script, 2 PaddedBytes by hand, amd64 DivMod already in shape)
+Re-generating from scratch (the script is idempotent only on already-upgraded text, so to re-run after a script fix do):
+  for f in $(cat files.txt); do git show 86887ba5~1:$f > $f; done; python3 scripts/upgrade-witness-run.py $(cat files.txt); git checkout HEAD -- lean/Fv256/{Arm64,Amd64}/PaddedBytes.lean
+  (files.txt = scratchpad list of the 292 row-files, scratchpad = /tmp/claude-0/-root/b301f400-a150-4f15-8f32-0b73b1894423/scratchpad; rows.txt has isa fn file nwit witnesses).
+  NOTE: do this BEFORE merging fv/csa/fv/csb (it overwrites witness text). After they add call-site conjuncts, only hand-fix.
 
-## Environment (all mine; delete when done)
-- Private janus: /srv/janus-wrun (detached worktree of /srv/janus-up3's repo, now at 29ff3727, bin/janus built with `lake build Janus.Tools.Audit janus-audit` +
-  `CGO_ENABLED=0 /usr/local/go/bin/go build -o bin/janus ./cmd/janus`). Repin = `git -C /srv/janus-wrun checkout --detach <rev>` + both builds + bump rev in the scratch lakefile.
-- Scratch audit tree: /srv/fv-uint256-wrun-aud (detached; lean/lakefile.toml git=/srv/janus-up3 rev=29ff372758d364539bc611f7011f6d2a32148b9b, `lake update janus` done).
-- Cache: /srv/janus-ops/jcache-wrun  (DELETE at the end; a new framework pin costs a cold ~10 min framework build + ~8 min leanchecker first verify).
-- Row runner: /tmp/claude-0/-root/b301f400-a150-4f15-8f32-0b73b1894423/scratchpad/arow.sh ISA FN [audit|full] (rsyncs lean/Fv256 from the wrun worktree into the scratch tree,
-  extracts with build/harness-* copied from /srv/fv-uint256/build, runs janus verify with all witness theorems); env STUB=1 sorries `correctness` first (scratch tree only).
-  Run it under `HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- timeout N ...`. NOTE: JANUS_STOP_AFTER_AUDIT=1 did NOT shortcut anything in the f0c6bbef build (it did a full verify).
-- Row list: scratchpad/rows.txt (isa fn file nwit witnesses), files.txt.
+## Compile sweep state (stub-correctness, pin 29ff3727; pin independent)
+Method: scratch trees /srv/fv-uint256-wrun-aud{,2,3,4} (own lean/Fv256 rsynced from the wrun worktree per row, `correctness` proofs replaced by `sorry` via scripts/stub-correctness.py);
+row = scratchpad/arow.sh ISA FN full (STUB=1, AUD=<tree>) under heavy-run; 4 workers `sweep2.sh W LIST OUT` over scratchpad/chunk{1..4}.txt, results scratchpad/sw2-res-{1..4}.txt, per-row logs
+scratchpad/sw-<isa>-<fn>.log. A row is COMPILE-OK iff the log reaches "Stage: axiom audit" (a module with a Lean error cannot; the sorryAx failures are expected). Never edit a running script (replace by mv).
+Snapshot (scratchpad/res-now.txt, 226/292 classified when written; sweep still running, workers 1-4 not finished): 219 COMPILE-OK, 7 COMPILE-FAIL:
+ 1 arm64 SetFromBig: `2.toNat` parse error (numeral hint substituted bare) -> FIXED 8a77140b
+ 2 arm64 FromBig, 3 amd64 FromBig, 4 arm64 MustFromBig: Application type mismatch: `?w3` pre group starts with `pinBitVec64 pw ∧ pinBitVec64 2 ∧ ...` -> FIXED 0db3fcb1 (projection `(?w3).2.2`)
+ 5 arm64 MustFromDecimal: same class at MustFromDecimalMain.lean:97 (probable; recheck) -> FIXED 0db3fcb1 (unconfirmed)
+ 6 amd64 UnmarshalText (2787 s) and 7 amd64 MustFromDecimal (2955 s): per-row timeout (3000 s) with NO Lean error. SUSPICIOUS (coordinator flag): real verify of amd64 UnmarshalText was ~243 s,
+   and `correctness` is stubbed here. The rewritten witness may force something heavy (the `correctness ...` application with `?w` holes, an `obtain` on a `*Wit*` core, a `decide`).
+   Settle by timing the witness module before/after the rewrite on that one file (git show 86887ba5~1:lean/Fv256/Amd64/UnmarshalTextMain.lean vs HEAD), same stub, same cache.
+   Suspects: core-mode witnesses (`obtain ⟨...⟩ := Fv256.Amd64.UtWit.nonvacuous_core` then `exact ⟨..., correctness ...⟩`): elaborating the `correctness` application against the huge
+   unfolded pre may unify expensively; try passing hypotheses/pre via `(by exact h..)` or `refine`, or give `correctness` explicit named args; or the stubbed `sorry` makes decide-heavy `Witness`
+   defs unavailable... also compare with old time to rule out cache/contention (load ~40 at the time, 4 parallel compiles).
+RERUN LIST after the sweep ends (files changed after the sweep read them, plus failures):
+ arm64+amd64: SetFromBig FromBig MustFromBig MustFromDecimal MustFromHex CmpBig WriteToSlice UnmarshalText ; (scratchpad/redo1.txt has the first six for both ISAs; add the rest)
+ Command: `printf 'arm64 FromBig\n...' > redo.txt; scratchpad/sweep2.sh 1 scratchpad/redo-res.txt redo.txt` (one worker; or 4 chunks as above). Also re-verify any row whose line in sw2-res says COMPILE-FAIL.
+
+## Environment (mine; delete at the end)
+- /srv/janus-wrun (pin 29ff3727, used by the running sweep; do NOT rebuild while the sweep runs), /srv/janus-wrun2 (8615b09c), /srv/janus-wrun3 = dba0069d (UP3 auditor for the integration audit, bin/janus built:
+  `cp -a .lake`, `LEAN_NUM_THREADS=8 memcap -m 24G lake build Janus.Tools.Audit janus-audit`, `CGO_ENABLED=0 /usr/local/go/bin/go build -o bin/janus ./cmd/janus`). All are detached worktrees of /srv/janus-up3's repo.
+- Scratch lakefile pin of the aud trees: lean/lakefile.toml git=/srv/janus-up3 rev=<full hash> then `lake update janus` in lean/. For dba0069d use the full hash from `git -C /srv/janus-up3 rev-parse dba0069d`.
+- Cache /srv/janus-ops/jcache-wrun (DELETE at end; each new pin = cold framework ~10 min + first leanchecker ~8 min); shared framework store JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore (arow.sh exports it).
+- extraction uses build/harness-* copied into /srv/fv-uint256-wrun/build (hash-matched to scripts/harness.sha256); flags from scripts/contract-flags.sh.
+- Newer auditor guidance: UP3b/UP3c accept both wrapper and separate call-site conjuncts (dba0069d); fv arm64 IntoBig verified there. SetFromDecimal thin-witness size-walk reject fixed at 056c9381 (included in dba0069d).
+
+## Integration plan (next, after the redo is green)
+1. FV-CSA (fv/csa, arm64) and FV-CSB (fv/csb, amd64) wrote CallSites/*.lean + conjunct insertion text on top of fv/wrun commit 8a77140b-era; they rebase onto fv/wrun after the compile fixes (0db3fcb1 or later: tell them the final hash once the redo is green).
+2. Merge fv/csa then fv/csb into fv/wrun (files overlap only in the witness theorems; take theirs for call-site text, keep my Returns text); never regenerate with the script after that.
+3. Switch the scratch trees to dba0069d (arow.sh: JANUS=/srv/janus-wrun3/bin/janus and `--janus-root /srv/janus-wrun3`; replace the file by mv). Audit sweep: arow.sh ISA FN audit, NO STUB (full real verify = proof check + audit),
+   4 parallel workers with the same admission rule (load<40, MemAvailable>80G, 24G memcap), start with the subset (Add, Format, SetFromDecimal, Scan, UnmarshalJSON, IntoBig both ISAs), record times.
+4. Timing before/after on the subset: before = fv/master files + old pin (/srv/janus-fvA-pin51d/bin/janus or the janus built from 51d592da), after = the integrated files at dba0069d; same warm cache.
+5. Report to main + FV-A2 (a66f673964e9e7ef5): rows upgraded 311 script + 3 hand, audit results, timings; tell UP3b/UP3c the tree is ready for the false-reject audit; delete jcache-wrun, the janus-wrun* and fv-uint256-wrun-aud* worktrees.
 
 ## Tools in the repo
-- scripts/upgrade-witness-run.py FILE... (idempotent; `--dry`): parses the main `correctness` (binders, hyps, Ensures/EnsuresGo atoms) and each witness theorem
-  (`∃ vars, hyps ∧ RetAddr ∧ CallSetup ∧ pre`), appends the Returns/GoReturns conjunct (post lambda renamed to the witness's variables), and rewrites the proof:
-  anonymous-constructor proofs keep all components (non-identifier ones become `?wK` holes + `case wK => exact ..`), proofs that are a bare theorem name
-  (`FdWit.nonvacuous_core`, `FormatWitB.nonvacuous_core`...) use `obtain ⟨vars, pattern⟩ := core; exact ⟨vars, pattern, correctness ...⟩`. Main binders that the witness
-  does not instantiate by a variable: positional rename via the CallSetup args, `HINTS` table (CmpBig/SetFromBig len, Format fW fP ... stack b0 zv RW ...), or `_`.
-  Pin conjuncts (`pinT`) are skipped as hypotheses. Extension point: `EXTRA_CONJUNCTS(ctx)` (returns extra conjunct texts; not wired to the proof yet) for the call-site conjunct.
-- scripts/stub-correctness.py (scratch trees only).
-
-## Phase 2: call-site conjunct (frozen by UP3, commit 29ff3727, NOTES-UP3.md "FROZEN (step 2)")
-For EVERY contract hypothesis c of the main theorem the witness statement must contain, with c's own instantiated entry/args and the SAME variables:
-    (∃ s_c : State, s_c.pc = BitVec.ofNat 64 <entry> ∧ <pre of c's Summary> s_c)         -- amd64: Janus.Amd64.State, s_c.rip
-  ICallContract[64] fn nargs stack above rt keep R P pres : entry = fn, pre = ICallPre[64] nargs stack above rt P
-  stub families (Newobject/Wb/Mallocgc/Memmove/Rt/Cmpstring/Ifaceeq/Errorf/ConvT64/TypeAssert/Makeslice): entry = Extracted.program.contractAddr "<name>" (value `newA` etc. in the
-  witness), pre = the Summary pre of the family def (e.g. NewobjectContract: NewobjectPre stack s ∧ Ready H rt [typ] s; NewobjectLive: ∀ L b, NewobjectPre ∧ StackRoom ∧ LiveAt R addr [typ] L b round (x28) mem calleeStack).
-  Proof term `⟨wsCall, rfl, wsCall_pre⟩` with closed `def wsCall : State` + `theorem wsCall_pre`. Templates: Janus examples/proofs/WriteTo.lean (arm64),
-  examples/proofs-amd64/WriteTo/Proof.lean, CountThenWrite; Janus/Contracts/ICallSat[Amd64].lean `wstate`/`wstate_pre`; fv lean/Fv256/InhabBase.lean `callSt`, `callSt64`.
-  Suggested construction for the stub runtimes: `s_c := { s0 with pc := ofNat <addr>, regs := <set arg registers> }` over the witness's existing s0 and reuse its runtime invariant
-  lemma (`inv0` : R.inv 0x400 [] (x28) (view R.rt [] mem), proved for s0.mem) for the LiveAt part; CallOK/StackRoom/TypeOK by `decide` on the concrete s0 frame.
-  Live families: wait for UP3b's text on the `∀ L b` (take L := [], b := 0x400 as inv0 does).
-Scripting hint: the call-site conjunct and its proof need per-witness concrete values, so generate the statement conjunct + `⟨wsCall_i, rfl, wsCall_i_pre⟩` in the script
-(EXTRA_CONJUNCTS) and write the `def wsCall_i` / lemma per (witness, contract) by hand or from a per-family template.
-
-## Verification plan (not yet done)
-1. repin done (29ff3727); run arow.sh on every row (all 292) in audit mode, ONE heavy job at a time (load<62, MemAvailable>=60G, df / >=70G), collect false rejects; fix rewrites.
-2. Phase 2 per family (below); re-audit.
-3. Timing subset before/after (warm cache), 4. report to main + FV-A2 (a66f673964e9e7ef5); tell UP3b when the tree is ready.
-
-## IntoBig arm64 result on pin 29ff3727 (942 s, cold): REJECTED "the contract hypothesis Janus.Contracts.NewobjectLiveContract does not unfold to a Summary (U-WITNESS-CALLSITE)" -> confirmed false reject for the forall-L-b Live families; reported to UP3b (a7a5a1e757be0f837). The Returns part was not the issue.
+- scripts/upgrade-witness-run.py (see header; HINTS table for main binders the witness replaces by literals: CmpBig/SetFromBig len=2, Format arm64/amd64 fW fP ... stack b0 zv RW...;
+  positional renames from CallSetup args; `_` for data binders only fixed by unification; pins skipped; EXTRA_CONJUNCTS hook unused), scripts/stub-correctness.py (scratch only).
 
 ## Work list (generated by the snippet in this file's history; 82 contract-bearing witnesses, 334 contract hypotheses)
 
@@ -525,3 +522,18 @@ Family -> witnesses. Each line = one contract hypothesis = one `(∃ s_c, s_c.pc
 - **arm64 Value.lean** `Arm64.Value.Witness.nonvacuous`: 2 contracts [RtLiveContract]; proof `by`; reusable: hret, pre, s0_inv, setup
 
 Total witnesses: 82
+## Update 2026-11-08: Janus pin for the full audit sweep = UP3b auditor 056c9381 (fixes the SetFromDecimal thin-witness size-walk reject), with JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore.
+Do it AFTER integrating fv/csa + fv/csb into fv/wrun. Build a janus worktree at 056c9381 (cp -a .lake from /srv/janus-wrun2, lake build Janus.Tools.Audit janus-audit, go build), bump the scratch lakefile rev.
+The compile sweep (stub-correctness, pin 29ff3727, 4 parallel workers with their own scratch trees /srv/fv-uint256-wrun-aud{,2,3,4}) logs: scratchpad sw-<isa>-<fn>.log, results sw2-res-*.txt.
+
+## Update (latest): auditor pin for the integration audit = agent/up3-vacuity dba0069d (accepts wrapper + separate call-site conjuncts; fv arm64 IntoBig verified there).
+Built at /srv/janus-wrun3 (bin/janus). For the integration audit: scratch lakefile rev = full hash of dba0069d, `lake update janus`, janus=/srv/janus-wrun3/bin/janus, --janus-root /srv/janus-wrun3,
+JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore (arow.sh already exports it; edit arow.sh JANUS=/srv/janus-wrun3/bin/janus and --janus-root accordingly; replace the file by mv, never edit in place while a sweep runs).
+The compile sweep (stub, pin 29ff3727) is pin independent: compile errors are the same.
+
+## SWEEP FINISHED (all 4 workers DONE): 265 COMPILE-OK, 15 COMPILE-FAIL of the 280 rows swept in parallel (+12 rows from the early serial run, all labelled FAIL by the old classifier: re-check them,
+they were the cheapest rows; the early serial log label is unreliable). Full per-row list: SWEEP-RESULTS-stub-compile.txt (committed). The sweep read the files BEFORE fixes 8a77140b/0db3fcb1 for many rows.
+FAILS (15): amd64 Format FromBig MarshalJSON MustFromDecimal UnmarshalJSON UnmarshalText Value; arm64 Format FromBig MarshalJSON MarshalText MustFromBig MustFromDecimal SetFromBig Value.
+Most show `Application type mismatch: The argument` (error cascades make the failing compiles slow: 1300-2950 s, one "resource limit"): same class as the pin fix (pre group with leading pinBitVec64/pin conjuncts, or main
+hypotheses count) -> REDO ALL 15 + the 12 early rows + CmpBig/WriteToSlice on the fixed tree (>= 0db3fcb1), then read the first error of each remaining failure in scratchpad/sw-<isa>-<fn>.log
+(`grep -A12 'rror:'`). Likely sub-causes to check per file: Value/MarshalJSON/MarshalText/Format (other witnesses in the file: .big/.nil with extra post-setup conjuncts: kpre trimming; Format hint tables).

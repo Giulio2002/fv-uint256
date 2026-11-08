@@ -467,7 +467,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
         v = ⟨s.mem.readLE (s.mem.readLE (errAddrOf e) 8 + 8) 8, s.mem.readLE (errAddrOf e + 8) 8⟩
       | .goexited _ => False := by
   refine ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ?w3,
-    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup ?w3⟩
+    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup (?w3).2⟩
   case w3 => exact ⟨trivial, pre⟩
 
 end Witness
