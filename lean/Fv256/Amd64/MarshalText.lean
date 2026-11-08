@@ -509,7 +509,7 @@ theorem big : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRe
         s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4608, (s.regs 4).toNat + 8)]) := by
   refine ⟨implAt8, rtT, Hw8, ret, s08, arg, model1_8, model2_8, ?w2, ?w3, pre8, ?w5,
-    correctness implAt8 rtT Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 ⟨pre8, ?w5⟩⟩
+    correctness implAt8 rtT Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 pre8⟩
   case w2 => exact by rw [linked_eq8]; exact hret8
   case w3 => exact by rw [linked_eq8]; exact setup8
   case w5 => exact by rw [hz8]; decide

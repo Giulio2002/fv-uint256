@@ -370,7 +370,17 @@ def upgrade(src, path, log):
             is_pin_leaf = lambda l: bool(re.match(r'^(?:[\w.]*\.)?pin\w*$', head(l)))
             items_post = items[isetup + 1:]
             adj = []
-            for it_, r_ in zip(items_post, pre_refs):
+            # witness-only conjuncts after correctness's precondition (e.g. `100 ≤ val`) must not enter the pre argument:
+            # cut after the first item boundary where the (flat or top-level) conjunct count reaches kpre; no such boundary = no cut
+            cut_ = None; cf_ = ct_ = 0; kept_ = 0
+            for i_, it_ in enumerate(items_post):
+                if not is_group(it_) and is_pin_leaf(it_): continue
+                lv_ = [l_ for l_ in leaves(it_) if not is_pin_leaf(l_)]
+                cf_ += len(lv_)
+                ct_ += len([x_ for x_ in group_items(it_) if not is_pin_leaf(x_)]) if is_group(it_) else 1
+                if cf_ == kpre or ct_ == kpre: cut_ = i_ + 1; break
+            for i_, (it_, r_) in enumerate(zip(items_post, pre_refs)):
+                if cut_ is not None and i_ >= cut_: break
                 if not is_group(it_) and is_pin_leaf(it_): continue
                 if is_group(it_):
                     k_ = 0
@@ -380,7 +390,7 @@ def upgrade(src, path, log):
                     if k_: r_ = '(' + r_ + ')' + '.2' * k_
                 adj.append(r_)
             if len(items_post) == len(pre_refs): pre_refs = adj
-            if len(pre_refs) > kpre: pre_refs = pre_refs[:kpre]
+            if cut_ is None and len(pre_refs) > kpre: pre_refs = pre_refs[:kpre]
             pre_arg = None if not pre_refs else (pre_refs[0] if len(pre_refs) == 1 else '⟨' + ', '.join(pre_refs) + '⟩')
             # ---- the call of the main theorem ----
             def val(v):
