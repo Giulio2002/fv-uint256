@@ -21,6 +21,6 @@ wt=(); while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(py
 [ $mode = audit ] && export JANUS_STOP_AFTER_AUDIT=1
 kw=""; [ -n "${KEEP:-}" ] && kw="--keep-workspace"
 t0=$(date +%s)
-memcap -m 24G $JANUS verify $out --proof lean/Fv256/$dir/$pf.lean --proof-root lean --janus-root /srv/janus-csa $kw --theorem Fv256.$dir.$pf.correctness "${wt[@]}" >>build/log-$isa-$fn 2>&1
+memcap -m ${MEMCAP:-24G} $JANUS verify $out --proof lean/Fv256/$dir/$pf.lean --proof-root lean --janus-root /srv/janus-csa $kw --theorem Fv256.$dir.$pf.correctness "${wt[@]}" >>build/log-$isa-$fn 2>&1
 rc=$?
 echo "ENDMARK $isa $fn $mode rc=$rc $(( $(date +%s)-t0 ))s"
