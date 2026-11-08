@@ -72,4 +72,7 @@ theorem liveSep_two {a e c f : Nat} {rt : List (Nat × Nat)} (h1 : Outside a (e 
       (s.mem.readLE ((s.regs 0).toNat + 8) 8 ≠ 0) ∧
       Iface.EqOK R s.mem (s.mem.readLE ((s.regs 0).toNat + 8) 8) (s.regs 3).toNat (s.regs 1).toNat)
 
+@[reducible] def MakesliceSite (H : RtReady) (rt : List (Nat × Nat)) (stack : Nat) (s : State) : Prop :=
+  MakeslicePre64 stack s ∧ Ready64 H rt [(s.regs 0).toNat, (s.regs 3).toNat, (s.regs 1).toNat] s
+
 end Fv256.CallSites

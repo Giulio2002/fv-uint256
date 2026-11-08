@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -316,6 +317,27 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, hH⟩
 
+-- CALLSITE-BLOCK PaddedBytes.mk
+/-- The call state of `runtime.makeslice` (U-WITNESS-CALLSITE): `makeslice(uint8, 5, 5)` at its entry in the caller's frame (`RSP = sp0 - 40`, as in `hH`). -/
+def csMk : Janus.Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice"),
+    regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then 5#64 else if i = 1 then 5#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csMk_pre : MakesliceSite H rt 4096 csMk := by
+  refine ⟨⟨by decide, by decide, by decide, by decide, by decide⟩, ?_⟩
+  have e0 : (csMk.regs 0).toNat = byteType := by
+    have hpt : byteType = tyA := by unfold tyA; decide
+    rw [hpt]; decide
+  have e1 : (csMk.regs 3).toNat = 5 := by decide
+  have e2 : (csMk.regs 1).toNat = 5 := by decide
+  have e3 : (csMk.regs 14).toNat = (s0.regs 14).toNat := by decide
+  have e4 : (csMk.regs 4).toNat = (s0.regs 4).toNat - 40 := by decide
+  show H [(csMk.regs 0).toNat, (csMk.regs 3).toNat, (csMk.regs 1).toNat] (csMk.regs 14).toNat (csMk.regs 4).toNat (rtView rt csMk.mem)
+  rw [e0, e1, e2, e3, e4]
+  exact hH
+
 /-- The preconditions and the allocator contract are jointly satisfiable: a concrete call state (with the toy allocator linked at
 the `runtime.makeslice` address) meets every hypothesis of `correctness`, for `n = 5`. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z n : BitVec 64),
@@ -329,6 +351,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     Buffer s z 32 false ∧ Outside z.toNat 32 rt ∧
     (z.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ z.toNat) ∧
     H [byteType, n.toNat, n.toNat] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem)) ∧
+    (∃ s_c : Janus.Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") ∧ Fv256.CallSites.MakesliceSite H rt 4096 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ (s'.regs 3).toNat = n.toNat ∧ (s'.regs 1).toNat = n.toNat ∧
         (0 < n.toNat → InRanges ptr n.toNat rt ∧ s'.mem.accessible ptr n.toNat true = true) ∧
         Spec.fromBE (fun i => s'.mem.readLE (ptr + i) 1) n.toNat = valueAt s z 32 % 2 ^ (8 * n.toNat) ∧
@@ -338,8 +361,8 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
 
 
 /-- The theorem fires: for this call and this allocator, `PaddedBytes(5)` returns a fresh 5-byte slice in `rt`. -/
-example := correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
-
+example := ⟨csMk, rfl, csMk_pre⟩,
+    correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
 end Witness
 
 end Fv256.Amd64.PaddedBytes

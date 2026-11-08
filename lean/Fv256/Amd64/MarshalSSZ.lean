@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -170,6 +171,27 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, ⟨by decide, by decide⟩,
     by simp only [rt, outside_cons, outside_nil]; decide, by decide, hH⟩
 
+-- CALLSITE-BLOCK MarshalSSZ.mk
+/-- The call state of `runtime.makeslice` (U-WITNESS-CALLSITE): `makeslice(uint8, 0, 32)` at its entry in the caller's frame (`RSP = sp0 - 40`, as in `hH`). -/
+def csMk : Janus.Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice"),
+    regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then 0#64 else if i = 1 then 32#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csMk_pre : MakesliceSite H rt 4096 csMk := by
+  refine ⟨⟨by decide, by decide, by decide, by decide, by decide⟩, ?_⟩
+  have e0 : (csMk.regs 0).toNat = byteType := by
+    have hpt : byteType = tyA := by unfold tyA; decide
+    rw [hpt]; decide
+  have e1 : (csMk.regs 3).toNat = 0 := by decide
+  have e2 : (csMk.regs 1).toNat = 32 := by decide
+  have e3 : (csMk.regs 14).toNat = (s0.regs 14).toNat := by decide
+  have e4 : (csMk.regs 4).toNat = (s0.regs 4).toNat - 40 := by decide
+  show H [(csMk.regs 0).toNat, (csMk.regs 3).toNat, (csMk.regs 1).toNat] (csMk.regs 14).toNat (csMk.regs 4).toNat (rtView rt csMk.mem)
+  rw [e0, e1, e2, e3, e4]
+  exact hH
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `rt`, `H`), the contract hypotheses, an admissible
 return address, a call state and the precondition. -/
 theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64) (ret : Nat) (s : State),
@@ -182,13 +204,14 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
         Buffer s z 32 false ∧ Outside z.toNat 32 rt ∧
         (z.toNat + 32 ≤ (s.regs 4).toNat - 4136 ∨ (s.regs 4).toNat + 24 ≤ z.toNat) ∧
         H [byteType, 0, 32] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt s.mem)) ∧
+    (∃ s_c : Janus.Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") ∧ Fv256.CallSites.MakesliceSite H rt 4096 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ (s'.regs 3).toNat = 32 ∧ (s'.regs 1).toNat = 32 ∧
         s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧ InRanges ptr 32 rt ∧ s'.mem.accessible ptr 32 true = true ∧
         s'.mem.readLE ptr 32 = valueAt s z 32 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)]) :=
   ⟨impl, rt, H, zp, ret, s0, hmk, hret, setup, pre,
+    ⟨csMk, rfl, csMk_pre⟩,
     correctness impl rt H zp hmk ret hret s0 setup pre⟩
-
 end Witness
 
 end Fv256.Amd64.MarshalSSZ
