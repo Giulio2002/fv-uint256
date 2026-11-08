@@ -20,7 +20,7 @@ done
 log=$Q/build/log-$isa-$fn; sz=$( [ -f $log ] && stat -c %s $log || echo 0 )
 rm -rf $Q/build/ex-$isa-$fn-nope
 [ $mode = audit ] && export STUB=1
-HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- timeout 3400 scripts/csa-row.sh $isa $fn $mode > $out.raw 2>&1
+HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- timeout 5400 scripts/csa-row.sh $isa $fn $mode > $out.raw 2>&1
 tail -c +$((sz+1)) $log > $out.log 2>/dev/null
 python3 scripts/csa-verdict.py $out.log $mode > $out 2>&1; cat $out.raw | grep ENDMARK >> $out
 }
