@@ -528,3 +528,8 @@ Total witnesses: 82
 ## Update 2026-11-08: Janus pin for the full audit sweep = UP3b auditor 056c9381 (fixes the SetFromDecimal thin-witness size-walk reject), with JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore.
 Do it AFTER integrating fv/csa + fv/csb into fv/wrun. Build a janus worktree at 056c9381 (cp -a .lake from /srv/janus-wrun2, lake build Janus.Tools.Audit janus-audit, go build), bump the scratch lakefile rev.
 The compile sweep (stub-correctness, pin 29ff3727, 4 parallel workers with their own scratch trees /srv/fv-uint256-wrun-aud{,2,3,4}) logs: scratchpad sw-<isa>-<fn>.log, results sw2-res-*.txt.
+
+## Update (latest): auditor pin for the integration audit = agent/up3-vacuity dba0069d (accepts wrapper + separate call-site conjuncts; fv arm64 IntoBig verified there).
+Built at /srv/janus-wrun3 (bin/janus). For the integration audit: scratch lakefile rev = full hash of dba0069d, `lake update janus`, janus=/srv/janus-wrun3/bin/janus, --janus-root /srv/janus-wrun3,
+JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore (arow.sh already exports it; edit arow.sh JANUS=/srv/janus-wrun3/bin/janus and --janus-root accordingly; replace the file by mv, never edit in place while a sweep runs).
+The compile sweep (stub, pin 29ff3727) is pin independent: compile errors are the same.
