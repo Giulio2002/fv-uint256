@@ -118,7 +118,8 @@ theorem csW_pre : ICallPre64 4 stack 56 rt
       (sc.regs 7).toNat = (sc.regs 1).toNat) csW := by
   have h0 : rlpBytes (rlpVal (strMem [0x80] 0x2000) zA.toNat) = [0x80] := by
     have : (strMem [0x80] 0x2000).readLE zA.toNat 32 = 0 := readLE_strMem_far _ _ _ _ (by simp [zA, zp])
-    simp [rlpVal, rlpBytes, this, zA, zp]
+    have h2 : (strMem [0x80] 0x2000).readLE 198656 32 = 0 := this
+    simp [rlpVal, rlpBytes, h2, zA, zp]
   have hret : (strMem [0x80] 0x2000).readLE (2 ^ 40) 8 < 2 ^ 47 := by
     rw [readLE_strMem_far _ _ _ _ (by simp)]; omega
   refine callSt64At_pre (by rfl) hret (by decide) (by omega) (by omega) ?_ ?_
