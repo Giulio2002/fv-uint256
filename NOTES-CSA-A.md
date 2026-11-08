@@ -35,3 +35,8 @@ Fixes found:
 - cs_marsh_a64.py: MarshalText's Hw has no disjunction; the sbts readiness is `⟨⟨p, _⟩, acc, acc⟩` (Or.inl/Or.inr only for MarshalJSON's two-shape Hw).
 Likely spots for remaining errors: decide on StrOut/ArgsOK over big memories (EncodeRLP, SSZInto/UnmarshalSSZ), the csEr_frame/csEr_view
 MemFrame chain (cs_ssz_a64.py), cost bounds by decide (Value, growslice). Rerun the generator, then scripts/csa-q.sh arm64 ROW audit.
+
+## FINAL (fork A): all 11 arm64 rows AUDIT-PASS (stub correctness, auditor /srv/janus-csa)
+Hex 106 s, PrettyDec 226 s, MarshalJSON, MarshalText, Value, EncodeRLP (FV-CSA2 applied the Value s0_inv explicit-args fix and the EncodeRLP two-step struct update),
+MarshalSSZAppend 810 s, MarshalSSZ 28 s, PaddedBytes 197 s, MarshalSSZInto 110 s, UnmarshalSSZ 168 s.
+cs_ssz_a64.py final fix: memE/frame built stepwise (mE1..mE6, fE1..fE6, rsE), R0e.ok by `trivial`, bullets aligned, maxHeartbeats 1e6 on csEr_pre.
