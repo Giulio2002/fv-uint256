@@ -54,7 +54,7 @@ theorem csMg_pre : MallocgcLiveSite {R} {ent('runtime.mallocgc')} 4096 [] {B} cs
 set_option maxRecDepth 100000 in
 theorem csMv_pre : MemmoveLiveSite {R} {ent('runtime.memmove')} 4096 [] {B} csMv :=
   ⟨by decide, by rw [addr_mv]; exact ⟨{ok_mv}, {inv}, liveSep_nil _, {sep}⟩, by decide,
-    by decide, by decide, by rw [{RT}]; simp only [calleeStack64, outside_cons, outside_nil]; decide, Or.inr (by rw [{RT}]; simp only [outside_cons, outside_nil]; decide), by simp only [outside_cons, outside_nil]; decide⟩
+    by decide, by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide, Or.inr (by rw [{RT}]; simp only [outside_cons, outside_nil]; decide), by simp only [outside_cons, outside_nil]; decide⟩
 
 set_option maxRecDepth 100000 in
 theorem csW1_pre : WbLiveSite {R} {ent('runtime.gcWriteBarrier1')} 4096 1 [] {B} csW1 :=
@@ -72,7 +72,7 @@ theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre64 16 csCm :=
 
 set_option maxRecDepth 100000 in
 theorem csIf_pre : IfaceeqSite {R2} csIf :=
-  ⟨⟨by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩,
+  ⟨⟨{c.get('env_tac', 'by decide')}, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide, by decide⟩,
     fun h => absurd (by decide) h⟩
 ''')
     if c.get('sb'):

@@ -8,11 +8,11 @@ sys.path.insert(0, __file__.rsplit('/', 1)[0])
 from cs_live_gen import block
 CFG = {
  'afd': dict(B='0x400', R2='(R3 TW)', nok=6, pos=dict(new=0, w1=2, w2=3, mg=4, mv=5), newty='numErrT', dst='zW', src='0x301000'),
- 'ut': dict(B='bW', R2='R0', nok=6, pos=dict(new=0, w1=1, w2=2, mg=3, mv=4, sb=5), newty='numErrT', dst='zW', src='0x301000', sb=True,
+ 'ut': dict(env_tac='by simp only [R0_env, Env0]; decide', B='bW', R2='R0', nok=6, pos=dict(new=0, w1=1, w2=2, mg=3, mv=4, sb=5), newty='numErrT', dst='zW', src='0x301000', sb=True,
             sb_addr='Fv256.Amd64.UnmarshalTextS.sbAddr', st_addr='Fv256.Amd64.UnmarshalTextS.stAddr', sb_buf='0', sb_p='0x301000',
             sb_ok='⟨rfl, 0, 0x301000, by decide, Or.inl (by decide)⟩'),
  'uj': None,
- 'sfd': dict(B='0x400', R2='R0', nok=5, pos=dict(new=0, w1=1, w2=2, mg=3, mv=4), newty='numErrT', dst='zW', src='0x301000'),
+ 'sfd': dict(env_tac='by simp only [R0_env, Env0]; decide', B='0x400', R2='R0', nok=5, pos=dict(new=0, w1=1, w2=2, mg=3, mv=4), newty='numErrT', dst='zW', src='0x301000'),
 }
 CFG['uj'] = CFG['ut']
 def main():
