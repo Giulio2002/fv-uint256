@@ -219,7 +219,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtRea
         (z.toNat ≠ 0 → FastPost rt 4608 7340032 7340032 RW RP RF RWr tab data ch s s' ∨
           BigPost R2 rt 4608 7340032 7340032 RW RP RF RBf tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, h14, h15, h16, hret, hsetup, hp17⟩ := Fv256.Amd64.FormatWitB.nonvacuous_core
-  exact ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, h14, h15, h16, hret, hsetup, hp17,
+  exact ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩,
     correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RP RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
 
 
@@ -255,7 +255,7 @@ theorem nil : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2
         (z.toNat ≠ 0 → FastPost rt 4608 7340032 7340032 RW RP RF RWr tab data ch s s' ∨
           BigPost R2 rt 4608 7340032 7340032 RW RP RF RBf tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, h14, h15, h16, hret, hsetup, hp17⟩ := Fv256.Amd64.FormatWitN.nil_core
-  exact ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, h14, h15, h16, hret, hsetup, hp17,
+  exact ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩,
     correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (0) RW RP RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
 
 
@@ -293,7 +293,7 @@ theorem big : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2
         (z.toNat ≠ 0 → FastPost rt 4608 7340032 7340032 RW RP RF RWr tab data ch s s' ∨
           BigPost R2 rt 4608 7340032 7340032 RW RP RF RBf tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, h14, h15, h16, hret, hsetup, hp17, hp18, hp19⟩ := Fv256.Amd64.FormatWitBig.nonvacuous_big_core
-  exact ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, h14, h15, h16, hret, hsetup, hp17, hp18, hp19,
+  exact ⟨impl, R, H, R2, rt, RW, RP, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17, hp18, hp19⟩,
     correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RP RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
 
 end Witness

@@ -250,7 +250,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R
         (z.toNat ≠ 0 → FastPost rt 4608 fa fa fa Rc Rc Rc Rc data ch s s' ∨
           BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩ := Fv256.Arm64.FormatWitB.nonvacuous_core
-  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16,
+  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, ⟨h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩,
     correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 
@@ -285,7 +285,7 @@ theorem nil : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtI
         (z.toNat ≠ 0 → FastPost rt 4608 fa fa fa Rc Rc Rc Rc data ch s s' ∨
           BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩ := Fv256.Arm64.FormatWitN.nil_core
-  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, h10, h11, h12, h13, h14, h15, hret, hsetup, hp16,
+  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, ⟨h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩,
     correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (0) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 
@@ -323,7 +323,7 @@ theorem big : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtI
         (z.toNat ≠ 0 → FastPost rt 4608 fa fa fa Rc Rc Rc Rc data ch s s' ∨
           BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18⟩ := Fv256.Arm64.FormatWitG.big_core
-  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18,
+  exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, ⟨h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18⟩,
     correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 end Witness
