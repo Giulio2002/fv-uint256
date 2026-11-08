@@ -1,6 +1,6 @@
-def csSb0 : State := {{ s0 with regs := fun i => if i = 28 then BitVec.ofNat 64 g0 else if i = 30 then BitVec.ofNat 64 ret else 0 }}
+def csSb0 : State := { s0 with regs := fun i => if i = 28 then BitVec.ofNat 64 g0 else if i = 30 then BitVec.ofNat 64 ret else 0 }
 /-- The call state of `runtime.slicebytetostring` (U-WITNESS-CALLSITE): at its entry, the empty string (`buf = nil, ptr = 0, n = 0`: every argument word is `0`, as `H0` asks). -/
-def csSb : State := {{ csSb0 with sp := BitVec.ofNat 64 (sp0 - 32), pc := BitVec.ofNat 64 ssAddr }}
+def csSb : State := { csSb0 with sp := BitVec.ofNat 64 (sp0 - 32), pc := BitVec.ofNat 64 ssAddr }
 
 set_option maxRecDepth 100000 in
 theorem csSb_pre : RtPre rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb := by

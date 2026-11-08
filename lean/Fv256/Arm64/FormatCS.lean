@@ -318,6 +318,12 @@ theorem ic_true (pc nargs : Nat) (hn : nargs ≤ 64) (hab : 8 + 8 * nargs ≤ 12
   csI_pre (m := flatMem) rfl rtT (outside_far 120 (by omega)) (by omega) (by omega) hn hab trivial
 
 open Janus.Contracts.IfaceModel in
+
+theorem ic_true (pc nargs : Nat) (hn : nargs ≤ 64) (hab : 8 + 8 * nargs ≤ 120) :
+    ICallPre nargs 4608 120 rtT (fun _ => True) (csI pc 0 0 0 0 0 flatMem) :=
+  csI_pre (m := flatMem) rfl rtT (outside_far 120 (by omega)) (by omega) (by omega) hn hab trivial
+
+open Janus.Contracts.IfaceModel in
 -- AGGREGATE-BEGIN
 
 theorem csAll16 (tab data ch : BitVec 64) (hch : ch = 100) :
