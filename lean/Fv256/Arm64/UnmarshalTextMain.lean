@@ -157,8 +157,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalText.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalText.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ UTPost Fv256.Arm64.UnmarshalText.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
-  refine ⟨implA, R, R0, TD, bW, ([]), loW, hiW, zV, pV, nV, nV, retW, s0, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup, pre0, hexEnv0, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
-    correctness implA R R0 TD bW ([]) loW hiW zV pV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s0 setup ⟨pre0, hexEnv0⟩⟩
+  refine ⟨implA, R, Janus.Contracts.IfaceModel.R0, Janus.Contracts.IfaceModel.TD, bW, ([]), loW, hiW, zV, pV, nV, nV, retW, s0, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup, pre0, hexEnv0, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
+    correctness implA R Janus.Contracts.IfaceModel.R0 Janus.Contracts.IfaceModel.TD bW ([]) loW hiW zV pV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s0 setup ⟨pre0, hexEnv0⟩⟩
   case h2 => exact (by rw [addr_if]; exact model_if)
   case h3 => exact (by rw [addr_new]; exact model_new)
   case h4 => exact (by rw [addr_mg]; exact model_mg)
@@ -203,8 +203,8 @@ theorem hex : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ IfaceeqSite R2 s_c) ∧
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalText.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalText.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ UTPost Fv256.Arm64.UnmarshalText.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
-  refine ⟨implA, R, R0, TD, bW, ([]), loW, hiW, zV, pHV, nV, nV, retW, s1, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup1, pre1, hexEnv0, ishex1, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
-    correctness implA R R0 TD bW ([]) loW hiW zV pHV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s1 setup1 ⟨pre1, hexEnv0⟩⟩
+  refine ⟨implA, R, Janus.Contracts.IfaceModel.R0, Janus.Contracts.IfaceModel.TD, bW, ([]), loW, hiW, zV, pHV, nV, nV, retW, s1, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup1, pre1, hexEnv0, ishex1, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
+    correctness implA R Janus.Contracts.IfaceModel.R0 Janus.Contracts.IfaceModel.TD bW ([]) loW hiW zV pHV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s1 setup1 ⟨pre1, hexEnv0⟩⟩
   case h2 => exact (by rw [addr_if]; exact model_if)
   case h3 => exact (by rw [addr_new]; exact model_new)
   case h4 => exact (by rw [addr_mg]; exact model_mg)
