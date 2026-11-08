@@ -14,7 +14,7 @@ It adds: import Fv256.Arm64.CallSites.Base + `open Fv256.Arm64.CallSites` to bot
 Conjunct shape: `∃ s_c : State, s_c.pc = BitVec.ofNat 64 (contractAddr "runtime.X") ∧ XLiveSite R addr 4096 [] 0x400 s_c` (closed L, b).
 Status: see COVERAGE of audits in NOTES-CSA.md.
 
-## IMPORTANT (audit of SetFromDecimal, 00:5x): thin witnesses of the form `obtain ⟨..⟩ := core; exact ⟨..⟩` are REJECTED by the auditor
+## (OBSOLETE: auditor at 056c9381+ reads obtain; --inline also breaks names opened only in the core file, e.g. R0/TD) IMPORTANT (audit of SetFromDecimal, 00:5x): thin witnesses of the form `obtain ⟨..⟩ := core; exact ⟨..⟩` are REJECTED by the auditor
 independently of the call-site conjuncts: "cannot read the sizes this witness instantiates for the runtime contract(s) ... at position `witness`
 ...: the proof term stuck at the constant `Exists.rec`; state the contracts' instantiation as an explicit `Exists.intro`/`⟨…⟩` or a lemma whose value
 is one (U-ICALL-STACK, witness)" (Audit.lean witnessSizes/proofHead, 8615b09c). Fix: `python3 scripts/cs_live_a64.py --inline CORE_FILE nonvacuous_core
