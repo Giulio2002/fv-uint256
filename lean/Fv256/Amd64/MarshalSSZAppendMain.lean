@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.MsaCommon
 import Fv256.Amd64.MsaDefs
 import Fv256.Amd64.MsaBlk0
@@ -141,19 +142,19 @@ instance (a n b k : Nat) : Decidable (Apart a n b k) := by unfold Apart; infer_i
 def u8A : Nat := janus_eval% u8T
 def grA : Nat := janus_eval% (Extracted.program.contractAddr "runtime.growslice")
 def tys : Tys := [(u8A, 1, 0)]
-def implAt : List Amd64.Segment := [growsliceSeg grA 0 16 8]
-def ok : Nat → List Nat → Prop := fun _ _ => False
+def implAt : List Amd64.Segment := [growsliceSeg grA 32 64 64]
+def ok : Nat → List Nat → Prop := fun a args => a = grA ∧ ∃ p, args = [p, 40, 32, 8, u8A]
 def R : RtInv := toyR tys ok
 def linked : Amd64.Program := Extracted.program.link implAt
 
 theorem addr_gr : Extracted.program.contractAddr "runtime.growslice" = grA := by decide
 theorem ut_eq : u8T = u8A := by decide
 
-theorem hok_gr : ∀ args, ok grA args → ∃ p, args = [p, 1, 0, 1, (u8A, 1, 0).1] := fun _ h => h.elim
+theorem hok_gr : ∀ args, ok grA args → ∃ p, args = [p, 40, 32, 8, (u8A, 1, 0).1] := fun _ h => h.2
 
 set_option maxHeartbeats 4000000 in
 theorem model_gr : RtLiveContract64 linked grA 4096 R growsliceSpec growsliceLive := by
-  janus64_live_growslice (u8A, 1, 0) 1 0 1 16 8 hok_gr
+  janus64_live_growslice (u8A, 1, 0) 40 32 8 64 64 hok_gr
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -270,6 +271,33 @@ theorem pre : StackGuardOK s0 4208 ∧ StackWritable s0 4208 24 ∧ (s0.regs 4).
   · rw [rt_eq]; simp only [outside_cons, outside_append, outside_nil, and_true]; decide
   · simp [Fv256.Amd64.Msa.Ready]
 
+-- CALLSITE-BLOCK w1
+def csG0 : Amd64.State :=
+  { s0 with regs := fun i => if i = 0 then dpV else if i = 3 then 40 else if i = 1 then 32 else if i = 7 then 8 else if i = 6 then BitVec.ofNat 64 u8A else if i = 4 then BitVec.ofNat 64 (sp0 - 64) else s0.regs i }
+/-- The call state of `runtime.growslice` (U-WITNESS-CALLSITE): `growslice(dp, 40, 32, 8, uint8)` at its entry, `RSP = sp0 - 64`. -/
+def csG : Amd64.State := { csG0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") }
+
+theorem csG_rip : csG.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") := rfl
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csG_pre : RtLivePre64 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 csG := by
+  have hw : argWords64 csG 5 = [dpA, 40, 32, 8, u8A] := by
+    unfold argWords64 csG csG0; decide +kernel
+  unfold RtLivePre64
+  refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · simp only [growsliceSpec, hw, Contracts.arg]
+    exact ⟨⟨by decide, by decide, by decide⟩, by decide, by decide, by decide, by decide, ⟨by decide, fun _ => by decide⟩⟩
+  · simp only [growsliceSpec, ReadsOutside, hw]
+    intro r hr
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> decide)
+  · rw [hw, addr_gr]; exact ⟨rfl, dpA, by decide⟩
+  · intro r hr
+    rw [rt_eq]
+    simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget, a live set and a call of
 `MarshalSSZAppend(z, dp, 0, 32)` satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (z dp len cap : BitVec 64)
@@ -296,11 +324,12 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : 
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
         4 * Kc len.toNat ≤ b ∧ Fv256.Amd64.Msa.Ready R ga u8T 4 (len.toNat + 8) cap.toNat) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") ∧ RtLivePre64 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
   refine ⟨implAt, R, 0x1000, [], zV, dpV, 0, 32, ret, s0, ?w0, hret, setup, pre,
+    ⟨csG, csG_rip, csG_pre⟩,
     correctness implAt R 0x1000 ([]) zV dpV 0 32 ?w0 ret hret s0 setup pre⟩
   case w0 => exact by rw [addr_gr]; exact model_gr
-
 end Witness
 
 namespace Grow.Witness
@@ -447,6 +476,33 @@ theorem pre : StackGuardOK s0 4208 ∧ StackWritable s0 4208 24 ∧ (s0.regs 4).
     intro p
     exact ⟨rfl, p, rfl⟩
 
+-- CALLSITE-BLOCK w2
+def csG0 : Amd64.State :=
+  { s0 with regs := fun i => if i = 0 then dpV else if i = 3 then 40 else if i = 1 then 32 else if i = 7 then 8 else if i = 6 then BitVec.ofNat 64 u8A else if i = 4 then BitVec.ofNat 64 (sp0 - 64) else s0.regs i }
+/-- The call state of `runtime.growslice` (U-WITNESS-CALLSITE): `growslice(dp, 40, 32, 8, uint8)` at its entry, `RSP = sp0 - 64`. -/
+def csG : Amd64.State := { csG0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") }
+
+theorem csG_rip : csG.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") := rfl
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csG_pre : RtLivePre64 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 csG := by
+  have hw : argWords64 csG 5 = [dpA, 40, 32, 8, u8A] := by
+    unfold argWords64 csG csG0; decide +kernel
+  unfold RtLivePre64
+  refine ⟨by decide, ?_, ?_, trivial, ⟨by decide, by simp only [calleeStack64, outside_cons, outside_nil]; decide⟩, ?_, inv0, by decide, liveSep_nil _, ?_⟩
+  · simp only [growsliceSpec, hw, Contracts.arg]
+    exact ⟨⟨by decide, by decide, by decide⟩, by decide, by decide, by decide, by decide, ⟨by decide, fun _ => by decide⟩⟩
+  · simp only [growsliceSpec, ReadsOutside, hw]
+    intro r hr
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> decide)
+  · rw [hw, addr_gr]; exact ⟨rfl, dpA, by decide⟩
+  · intro r hr
+    rw [rt_eq]
+    simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
+    rcases hr with rfl | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
+
 /-- All hypotheses of `correctness` hold together: a runtime (`impl`, `R`), a budget, a live set and a call of
 `MarshalSSZAppend(z, dp, 32, 32)` (one growslice request) satisfying the precondition. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (z dp len cap : BitVec 64)
@@ -473,11 +529,12 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : 
           (InRanges dp.toNat cap.toNat L ∨ Outside dp.toNat cap.toNat R.rt)) ∧
         (cap.toNat < len.toNat + 8 → (0 < len.toNat → s.mem.accessible dp.toNat len.toNat false = true)) ∧
         4 * Kc len.toNat ≤ b ∧ Fv256.Amd64.Msa.Ready R ga u8T 4 (len.toNat + 8) cap.toNat) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.growslice") ∧ RtLivePre64 4096 R growsliceSpec growsliceLive (Extracted.program.contractAddr "runtime.growslice") [] 0x1000 s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
   refine ⟨implAt, R, 0x1000, [], zV, dpV, 32, 32, ret, s0, ?w0, hret, setup, pre,
+    ⟨csG, csG_rip, csG_pre⟩,
     correctness implAt R 0x1000 ([]) zV dpV 32 32 ?w0 ret hret s0 setup pre⟩
   case w0 => exact by rw [addr_gr]; exact model_gr
-
 end Grow.Witness
 
 end Fv256.Amd64.MarshalSSZAppendMain
