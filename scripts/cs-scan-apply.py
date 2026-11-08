@@ -25,7 +25,7 @@ if 'csNew_pre' not in s:
     for p in parts[1:]:
         r = p.index('    RetAddr (Extracted.program.link impl) ret ∧')
         p = p[:r] + stmt + p[r:]
-        m = re.search(r'(\S*Witness\.hret) ', p)
+        m = re.search(r'(\S*Witness\.hret)[ ,]', p)
         p = p[:m.start()] + tq + ', ' + p[m.start():]
         out.append(p)
     s = 'theorem nonvacuous'.join(out)
