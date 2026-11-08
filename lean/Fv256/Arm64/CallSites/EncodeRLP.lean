@@ -15,8 +15,8 @@ theorem wsNew_pre : NewobjectSite H rt 4096 wsNew := by
 
 /-- The call state of the `Write` method (U-WITNESS-CALLSITE): `Write(p)` with `p = (heap, 4, 4)` holding `rlpBytes (*z)` (the bytes `83 01 12 34` written at `heap`),
 `X0 = w`, `SP = sp0 - 64`, at the method's entry. -/
-def wsWr0 : State := { s0 with regs := fun i => if i = 0 then wA else if i = 1 then BitVec.ofNat 64 heap else if i = 2 then 4 else if i = 3 then 4 else s0.regs i,
-    mem := s0.mem.writeLE heap 4 0x34120183 }
+def wsWr00 : State := { s0 with mem := s0.mem.writeLE heap 4 0x34120183 }
+def wsWr0 : State := { wsWr00 with regs := fun i => if i = 0 then wA else if i = 1 then BitVec.ofNat 64 heap else if i = 2 then 4 else if i = 3 then 4 else s0.regs i }
 def wsWr : State := { wsWr0 with sp := BitVec.ofNat 64 (sp0 - 64), pc := BitVec.ofNat 64 A0 }
 
 set_option maxRecDepth 100000 in
