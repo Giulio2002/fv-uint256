@@ -352,7 +352,7 @@ def csMg : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contract
 def csMv : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove"), regs := fun i => if i = 0 then BitVec.ofNat 64 0xFD000 else if i = 1 then BitVec.ofNat 64 strW else if i = 2 then 1 else csB.regs i }
 def csCm : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring"), regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else csB.regs i }
 def csIf : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq"), regs := fun i => if i = 0 then 0 else csB.regs i }
-def csSb : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring"), regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 hdrW else if i = 2 then 48 else csB.regs i }
+def csSb : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring"), regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 strW else if i = 2 then 48 else csB.regs i }
 
 set_option maxRecDepth 100000 in
 theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew := by
@@ -399,7 +399,7 @@ set_option maxRecDepth 100000 in
 theorem csSb_pre : RtLivePre 4096 R (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive (Extracted.program.contractAddr "runtime.slicebytetostring") [] 0x400 csSb := by
   have hok : R.ok (Extracted.program.contractAddr "runtime.slicebytetostring") (argWords csSb 3) := by
     rw [addr_sb]
-    exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (⟨rfl, 0, hdrW, by decide⟩)))))
+    exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (⟨rfl, 0, strW, by decide⟩)))))
   unfold RtLivePre
   refine ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_, ?_, trivial, ⟨guardOK_of (by decide) (by decide) (by decide), (by simp only [calleeStack, outside_cons, outside_nil]; decide)⟩, hok, inv0 0#64 0#64, by decide, liveSep_nil _, (by intro r hr; rw [rt_eq]; simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩
   · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, BufOK, StrIn]

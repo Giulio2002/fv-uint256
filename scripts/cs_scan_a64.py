@@ -17,7 +17,7 @@ def csMg : State := {{ csB with pc := BitVec.ofNat 64 (Extracted.program.contrac
 def csMv : State := {{ csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove"), regs := fun i => if i = 0 then BitVec.ofNat 64 0xFD000 else if i = 1 then BitVec.ofNat 64 strW else if i = 2 then 1 else csB.regs i }}
 def csCm : State := {{ csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring"), regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else csB.regs i }}
 def csIf : State := {{ csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq"), regs := fun i => if i = 0 then 0 else csB.regs i }}
-def csSb : State := {{ csB with pc := BitVec.ofNat 64 ({SB}), regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 hdrW else if i = 2 then 48 else csB.regs i }}
+def csSb : State := {{ csB with pc := BitVec.ofNat 64 ({SB}), regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 strW else if i = 2 then 48 else csB.regs i }}
 
 set_option maxRecDepth 100000 in
 theorem csNew_pre : NewobjectLiveSite R {A('runtime.newobject')} 4096 [] 0x400 csNew := by
@@ -64,7 +64,7 @@ set_option maxRecDepth 100000 in
 theorem csSb_pre : RtLivePre 4096 R (slicebytetostringSpec {ST}) slicebytetostringLive ({SB}) [] 0x400 csSb := by
   have hok : R.ok ({SB}) (argWords csSb 3) := by
     rw [addr_sb]
-    exact {okpos(5, 6, '⟨rfl, 0, hdrW, by decide⟩')}
+    exact {okpos(5, 6, '⟨rfl, 0, strW, by decide⟩')}
   unfold RtLivePre
   refine ⟨{CALLOK}, ?_, ?_, trivial, ⟨{GUARD}, {CS_OUT}⟩, hok, inv0 0#64 0#64, by decide, liveSep_nil _, {SEP2}⟩
   · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, BufOK, StrIn]
