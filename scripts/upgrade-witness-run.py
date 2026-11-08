@@ -366,6 +366,20 @@ def upgrade(src, path, log):
                 hyp_refs = [r_ for r_, p_ in zip(refs[:len(hyp_leaves)], is_pin) if not p_]; hret_ref = refs[iret]; setup_ref = refs[isetup]
                 pre_refs = refs[isetup + 1:]
                 vlist = ', '.join(pieces[:nv]); comp_refs = ', '.join(refs)
+            # pins in the precondition part (witness-only `pinBitVec64 x` conjuncts, alone or leading a group) are not part of main's pre
+            is_pin_leaf = lambda l: bool(re.match(r'^(?:[\w.]*\.)?pin\w*$', head(l)))
+            items_post = items[isetup + 1:]
+            adj = []
+            for it_, r_ in zip(items_post, pre_refs):
+                if not is_group(it_) and is_pin_leaf(it_): continue
+                if is_group(it_):
+                    k_ = 0
+                    for l_ in leaves(it_):
+                        if is_pin_leaf(l_): k_ += 1
+                        else: break
+                    if k_: r_ = '(' + r_ + ')' + '.2' * k_
+                adj.append(r_)
+            if len(items_post) == len(pre_refs): pre_refs = adj
             if len(pre_refs) > kpre: pre_refs = pre_refs[:kpre]
             pre_arg = None if not pre_refs else (pre_refs[0] if len(pre_refs) == 1 else '⟨' + ', '.join(pre_refs) + '⟩')
             # ---- the call of the main theorem ----
@@ -379,11 +393,16 @@ def upgrade(src, path, log):
             if len(margs) != len(wargs): raise Manual('arg lists differ in length')
             for ma, wa in zip(margs, wargs):
                 if re.match(r"^[\w']+$", ma) and ma != wa: ren[ma] = wa
-            ren_txt = {k: (v if re.match(r"^[\w.']+$", v) else '(' + v + ')') for k, v in ren.items()}
+            btype = {n_: ty_ for kk_, nn_, ty_ in main['binders'] for n_ in nn_}
+            def lit(k, v):
+                if re.match(r'^\d+$|^0x[0-9a-fA-F]+$', v):
+                    return f'({v} : BitVec 64)' if 'BitVec' in btype.get(k, '') else (v if 'Nat' in btype.get(k, '') else f'({v})')
+                return v if re.match(r"^[\w.']+$", v) else '(' + v + ')'
+            ren_txt = {k: lit(k, v) for k, v in ren.items()}
             stem = re.sub(r'.*/', '', path)[:-5]
             isa_ = 'arm64' if '/Arm64/' in path else 'amd64'
             hints = {**HINTS.get(stem, {}), **HINTS.get(f'{stem}/{isa_}', {}), **HINTS.get(f'{stem}/{isa_}/{name}', {})}
-            for k_, v_ in hints.items(): ren_txt[k_] = v_ if re.match(r"^[\w.']+$", v_) else '(' + v_ + ')'
+            for k_, v_ in hints.items(): ren_txt[k_] = lit(k_, v_)
             # types of data binders: those of the witness's own ∃ variables, plus the usual ones
             data_types = {'Nat', 'BitVec', 'Int', 'List', 'Fin', 'Bool', 'Res', 'RtInv', 'IfaceModel', 'RtReady', 'PanicRuntime', 'Segment'}
             for kind_, names_, ty in parse_binders(binders_txt): data_types.add(re.sub(r'^.*?\.', '', atoms(ty)[0]) if atoms(ty) else '')

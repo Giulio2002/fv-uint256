@@ -219,7 +219,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
           (s'.regs 1).toNat = (if Fv256.C.fromBigOv len.toNat then 1 else 0) ∧
           MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)])) := by
   refine ⟨impl, rt, H, xp, pw, 2, ret, s0, hnew, hret, setup, ?w3,
-    correctness impl rt H xp pw 2 hnew ret hret s0 setup ?w3⟩
+    correctness impl rt H xp pw 2 hnew ret hret s0 setup (?w3).2.2⟩
   case w3 => exact ⟨trivial, trivial, pre⟩
 
 end Witness

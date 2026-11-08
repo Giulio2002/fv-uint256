@@ -239,11 +239,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z d : BitVec 64), RetAddr Extr
     (z.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ z.toNat) ∧
     (d.toNat + (8 : BitVec 64).toNat ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 24 ≤ d.toNat) ∧
     (8 : BitVec 64).toNat ≤ (8 : BitVec 64).toNat) ∧
-    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min 8.toNat 32) =
-          valueAt s z 32 % 2 ^ (8 * min 8.toNat 32) ∧
-        Util.OnlyWrites2 s.mem s'.mem d.toNat (min 8.toNat 32) ((s.regs regSP).toNat - 8) 32 :=
+    Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min (8 : BitVec 64).toNat 32) =
+          valueAt s z 32 % 2 ^ (8 * min (8 : BitVec 64).toNat 32) ∧
+        Util.OnlyWrites2 s.mem s'.mem d.toNat (min (8 : BitVec 64).toNat 32) ((s.regs regSP).toNat - 8) 32 :=
   ⟨ret, s0, z, d, hret, setup, hpre,
-    correctness z d 8 8 ret hret s0 setup hpre⟩
+    correctness z d (8 : BitVec 64) (8 : BitVec 64) ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧
     Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min (8 : BitVec 64).toNat 32) =
