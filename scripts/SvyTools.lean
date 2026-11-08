@@ -87,10 +87,11 @@ private def isIOName (n : Name) : Bool :=
   ioRoots.any (fun r => r.isPrefixOf n) || (n.getRoot == `IO)
 
 /-- value-side: `elab`/`elab_rules` bodies legitimately mention the monad plumbing `IO.RealWorld` / `IO.Error` (the representation of
-`CommandElabM` etc.), which performs no effect; every other IO / System / liftIO reference in a VALUE is a primitive and is rejected. -/
+`CommandElabM` etc.) and process-local mutable cells (`IO.Ref` / `IO.mkRef`, with the bare type constant `IO` and the `ST`-to-`BaseIO` lift instance they elaborate to), none of which touches the host; every other IO / System / liftIO reference in a VALUE is a primitive and is rejected. -/
 private def isIOPrim (n : Name) : Bool :=
   isIOName n && !(`IO.RealWorld).isPrefixOf n && !(`IO.Error).isPrefixOf n && !(`EIO).isPrefixOf n && !(`BaseIO).isPrefixOf n
-    && !(`ST).isPrefixOf n
+    && !(`ST).isPrefixOf n && !(`IO.Ref).isPrefixOf n && !(`IO.mkRef).isPrefixOf n
+    && n != `IO && !(`IO.instMonadLiftSTRealWorldBaseIO).isPrefixOf n
 
 elab "#lint_io" : command => do
   let env ← getEnv
@@ -100,13 +101,13 @@ elab "#lint_io" : command => do
   let check (c : Name) (ci : ConstantInfo) (modName : String) : CommandElabM (Array String) := do
     let mut r : Array String := #[]
     for d in ci.type.getUsedConstants do
-      if isIOName d then r := r.push s!"@@IO {c} {modName} type-mentions {d}"; break
+      if isIOName d then r := r.push s!"@@IO {c} {modName} type-mentions {d}"
     match ci with
     | .thmInfo _ => pure ()
     | _ =>
       match ci.value? with
       | some v => for d in v.getUsedConstants do
-          if isIOPrim d then r := r.push s!"@@IO {c} {modName} value-references {d}"; break
+          if isIOPrim d then r := r.push s!"@@IO {c} {modName} value-references {d}"
       | none => pure ()
     if (Lean.getInitFnNameFor? env c).isSome || Lean.isIOUnitInitFn env c || (Lean.getBuiltinInitFnNameFor? env c).isSome
         || Lean.isIOUnitBuiltinInitFn env c then
