@@ -1,0 +1,3 @@
+# per-row memory cap overrides for scripts/verify-all.sh: `ISA Fn CAP` then a reason. Default is MEMCAP (24G). A row with an override is only started when MemAvailable > MIN_MEM_GB + (override - default).
+# Overrides never weaken a proof; they only raise the resource limit. Each needs a one-line reason.
+arm64 Format 32G   # kernel replay of Fv256.Arm64.By1Math reached the 24 GiB cap in a full verify under the new witness rules (not a proof verdict; fits at 24G on n11 run alone). Slimming the replay is queued post-release.
