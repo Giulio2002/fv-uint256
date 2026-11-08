@@ -15,7 +15,7 @@ theorem cs{nm}_pre : RtLivePre 4096 RW ({spec}) {live} {addr} [] 0x100000 cs{nm}
   · {{reads}}
   · simp only [calleeStack, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
   · {{ok}}
-  · exact s0_inv _ _ (by simp [HSIZE])
+  · exact s0_inv 0x100000 (cs{nm}.regs 28).toNat (by simp [HSIZE])
   · intro r hr
     simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
     rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)

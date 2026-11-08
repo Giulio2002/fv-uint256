@@ -10,7 +10,7 @@ theorem csSb_pre : RtLivePre 4096 RW (slicebytetostringSpec Extracted.dataAddr.�
   · simp only [slicebytetostringSpec, argWords, wordsFrom, arg, ReadsOutside]; intro r hr; simp at hr; subst hr; simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, Outside, calleeStack]; decide
   · simp only [calleeStack, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
   · exact Or.inl ⟨rfl, zp, by decide⟩
-  · exact s0_inv _ _ (by simp [HSIZE])
+  · exact s0_inv 0x100000 (csSb.regs 28).toNat (by simp [HSIZE])
   · intro r hr
     simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
     rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
@@ -27,7 +27,7 @@ theorem csCv_pre : RtLivePre 4096 RW (convTstringSpec) convTstringLive cvAddr []
   · intro r hr; simp [convTstringSpec] at hr
   · simp only [calleeStack, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
   · exact Or.inr ⟨rfl, zp, by decide⟩
-  · exact s0_inv _ _ (by simp [HSIZE])
+  · exact s0_inv 0x100000 (csCv.regs 28).toNat (by simp [HSIZE])
   · intro r hr
     simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
     rcases hr with rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
