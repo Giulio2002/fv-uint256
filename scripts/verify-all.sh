@@ -30,7 +30,8 @@ GO="${GO:-$(command -v go || true)}"
 # the proofs depend on the pinned Janus revision through lake (lean/lakefile.toml): fetch it once
 if [ ! -d lean/.lake/packages/janus ]; then (cd lean && lake update janus) || { echo "lake update janus failed"; exit 2; }; fi
 # ToBig's proof imports the IntoBig modules re-targeted at ToBig's extraction (generated, not committed)
-[ -f lean/Fv256/Arm64/ToBig.lean ] && bash scripts/gen-tb-intobig.sh lean
+# (the TB modules are committed; verify-all never rewrites tracked sources: it FAILS when they drift from their generator)
+bash scripts/check-generated.sh || { echo "error: generated TB modules are stale against scripts/gen-tb-intobig*.sh: regenerate, review, re-verify, commit" >&2; exit 2; }
 # per-function extraction flags (runtime contracts); see scripts/contract-flags.sh
 . "$root/scripts/contract-flags.sh"
 if [ -z "${SKIP_HARNESS:-}" ]; then
