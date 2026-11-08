@@ -142,7 +142,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
       | .goexited _ => False := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9⟩ := Fv256.Arm64.MFdWit.nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9,
-    correctness P impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
+    correctness P impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup (hp9).2⟩
 
 end Witness
 
