@@ -496,7 +496,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
       | .goexited _ => False := by
   refine ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ?w3,
     ⟨wsNew, rfl, wsNew_pre⟩,
-    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup ?w3⟩
+    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup (?w3).2⟩
   case w3 => exact ⟨trivial, pre⟩
 end Witness
 

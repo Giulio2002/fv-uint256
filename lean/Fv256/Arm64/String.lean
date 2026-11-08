@@ -145,7 +145,7 @@ theorem csSb_pre : RtPre rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.�
     intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
   · show Ready H0 rtW (argWords csSb 3) csSb
     intro j
-    simp [argWords, wordsFrom, arg, csSb, csSb0]
+    (simp [argWords, wordsFrom, arg, csSb, csSb0]) <;> (rcases j with _ | _ | _ | j <;> simp)
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),

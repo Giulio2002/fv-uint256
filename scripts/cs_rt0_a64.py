@@ -14,7 +14,7 @@ theorem csSb_pre : RtPre rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.Â
     intro r hr; simp at hr; subst hr; simp only [Outside, calleeStack]; decide
   Â· show Ready H0 rtW (argWords csSb 3) csSb
     intro j
-    simp [argWords, wordsFrom, arg, csSb, csSb0]
+    (simp [argWords, wordsFrom, arg, csSb, csSb0]) <;> (rcases j with _ | _ | _ | j <;> simp)
 '''
 for fn in sys.argv[1:]:
     f = f'lean/Fv256/Arm64/{fn}.lean'
