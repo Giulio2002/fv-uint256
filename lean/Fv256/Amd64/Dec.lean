@@ -45,6 +45,7 @@ namespace Witness
 
 open Janus.Contracts.SatAmd64
 open Janus.Contracts.Sat (rtW H0)
+open Fv256.CallSites
 
 def implAt : List Amd64.Segment := [{ name := "model", base := ssAddr, bytes := constCode64 0 0 0 }]
 def linked : Amd64.Program := { Extracted.program with segments := Extracted.program.segments ++ implAt }
@@ -124,8 +125,20 @@ theorem csSs_rip : csSs.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "r
 
 set_option maxRecDepth 100000 in
 theorem csSs_pre : RtPre64 rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSs := by
-  refine ⟨by decide, ?_, ?_, ?_, ?_⟩
-  all_goals sorry
+  have hargs : argWords64 csSs 3 = [0, 0, 0] := by
+    unfold argWords64 csSs; decide +kernel
+  refine ⟨by decide, ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, hargs, Contracts.arg, BufOK, StrIn]
+    simp
+  · simp only [slicebytetostringSpec, hargs, ReadsOutside]
+    intro r hr; simp only [List.mem_singleton] at hr; subst hr
+    simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]
+    exact ⟨Or.inl (by simp), Or.inl (by simp), trivial⟩
+  · split
+    · show ∀ j, Contracts.arg (argWords64 csSs 3) j = 0
+      intro j; rw [hargs]; simp only [Contracts.arg]
+      rcases j with _ | _ | _ | j <;> simp
+    · trivial
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
