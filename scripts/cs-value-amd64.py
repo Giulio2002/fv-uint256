@@ -22,10 +22,10 @@ theorem cs{nm}_pre : RtLivePre64 4096 RW ({spec}) {live} {addr} [] 0x100000 cs{n
   · {reads}
   · simp only [calleeStack64, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide
   · show RW.ok {addr} (argWords64 cs{nm} {nargs}); rw [hw]; {ok[1]}
-  · exact s0_inv _ _ (by simp [HSIZE])
+  · exact s0_inv 0x100000 (cs{nm}.regs 14).toNat (by simp [HSIZE])
   · intro r hr
     simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
-    rcases hr with rfl | rfl | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
+    rcases hr with (rfl | rfl) | rfl <;> (simp only [hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; decide)
 '''
 SSPRE = 'simp only [slicebytetostringSpec, hw, Contracts.arg, BufOK, StrIn]; exact ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩'
 SSRD = 'simp only [slicebytetostringSpec, hw, ReadsOutside]; intro r hr; simp only [List.mem_singleton] at hr; subst hr; simp only [Contracts.arg, hrt, toyRt, HEAP, HEND, HSIZE, BUMP, WBUF, calleeStack64, outside_append, outside_cons, outside_nil, List.map_nil, List.append_nil]; refine ⟨?_, ?_, trivial⟩ <;> decide'

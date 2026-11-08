@@ -21,11 +21,11 @@ theorem csG_pre : RtLivePre64 4096 R growsliceSpec growsliceLive (Extracted.prog
     intro r hr
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hr
     rcases hr with rfl | rfl <;> (simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]; refine ⟨?_, ?_, trivial⟩ <;> decide)
-  · rw [hw, addr_gr]; exact ⟨rfl, dpA, by decide⟩
+  · show R.ok _ (argWords64 csG 5); rw [hw, addr_gr]; exact ⟨rfl, dpA, by decide⟩
   · intro r hr
     rw [rt_eq]
     simp only [liveWin64, calleeStack64, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hr
-    rcases hr with rfl | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
+    rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
 
 '''
 f = 'lean/Fv256/Amd64/MarshalSSZAppendMain.lean'
