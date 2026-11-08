@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecC
 import Fv256.Util
@@ -499,10 +500,38 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4208 8 ∧ Extracted.progra
     refine ⟨by decide, by decide, ?_, by decide⟩
     decide
 
+/-- The call state of `runtime.slicebytetostring` (U-WITNESS-CALLSITE): `slicebytetostring(nil, HEAP, 3)` at its entry, in the
+caller's frame (`RSP = sp0 - 112`). -/
+def csSb : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 ssAddr, regs := fun i => if i = 0 then 0 else if i = 3 then BitVec.ofNat 64 HEAP else if i = 1 then BitVec.ofNat 64 3 else if i = 4 then BitVec.ofNat 64 (sp0 - 112) else s0.regs i }
+
+theorem csSb_rip : csSb.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") := rfl
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSb_pre : RtPre64 rtW 4096 H1 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb := by
+  have hargs : argWords64 csSb 3 = [0, HEAP, 3] := by
+    unfold argWords64 csSb; decide +kernel
+  refine ⟨by decide, ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, hargs, Contracts.arg, BufOK, StrIn]
+    refine ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, hargs, ReadsOutside]
+    intro r hr; simp only [List.mem_singleton] at hr; subst hr
+    simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]
+    refine ⟨?_, ?_, trivial⟩ <;> decide
+  · split
+    · show H1 (argWords64 csSb 3) (csSb.regs 14).toNat (csSb.regs 4).toNat (rtView rtW csSb.mem)
+      rw [hargs]
+      refine ⟨by decide, by decide, ?_, by decide⟩
+      decide
+    · trivial
+
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
     RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧
+      RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
     (StackGuardOK s 0 ∧ StackWritable s 4208 8 ∧ Extracted.program.DataLoaded s.mem ∧ s.xmm 15 = 0 ∧
@@ -514,7 +543,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
           (s.regs 14).toNat ((s.regs 4).toNat - 112) (rtView rt s.mem))) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ HexOut (valueAt s z 32) s'.mem (s'.regs 0).toNat (s'.regs 3).toNat ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 8)]) := by
-  refine ⟨implAt, rtW, H1, ret, s0, arg, model, ?w1, ?w2, pre,
+  refine ⟨implAt, rtW, H1, ret, s0, arg, model, ⟨csSb, csSb_rip, csSb_pre⟩, ?w1, ?w2, pre,
     correctness implAt rtW H1 arg model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
