@@ -10,6 +10,7 @@ def okpos(i, n, x):
 A = lambda x: f'(Extracted.program.contractAddr "{x}")'
 CALLOK = 'callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide)'
 GUARD = 'guardOK_of (by decide) (by decide) (by decide)'
+GI = '(Janus.Spec.guardOK_iff _ _).1 (' + GUARD + ')'
 SEP2 = ('(by intro r hr; rw [rt_eq]; simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr; '
         'rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide))')
 SEP1 = ('(by intro r hr; rw [rt_eq]; simp only [List.mem_singleton] at hr; subst hr; simp only [outside_cons, outside_nil]; decide)')
@@ -23,20 +24,14 @@ def block(NS):
 /-! ### Call-site states (U-WITNESS-CALLSITE): `s0` with `PC` at each runtime stub's entry and the argument registers of a request
 the toy runtime `R` serves (`ok`); the live set is `[]` and the budget `bW` (`inv0`). -/
 
-def csNew : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 numErrT else s0.regs i }}
+def csNew : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject"), regs := fun i => if i = 0 then BitVec.ofNat 64 numErrT else s0.regs i }}
 def csW1 : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") }}
 def csW2 : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") }}
-def csMg : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc"),
-    regs := fun i => if i = 0 then 1 else if i = 1 then 0 else if i = 2 then 0 else s0.regs i }}
-def csMv : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 loW else if i = 1 then BitVec.ofNat 64 0x301000 else if i = 2 then 1 else s0.regs i }}
-def csCm : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring"),
-    regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else s0.regs i }}
-def csIf : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq"),
-    regs := fun i => if i = 0 then 0 else s0.regs i }}
-def csSb : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring"),
-    regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 0x302000 else if i = 2 then 48 else s0.regs i }}
+def csMg : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc"), regs := fun i => if i = 0 then 1 else if i = 1 then 0 else if i = 2 then 0 else s0.regs i }}
+def csMv : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove"), regs := fun i => if i = 0 then BitVec.ofNat 64 loW else if i = 1 then BitVec.ofNat 64 0x301000 else if i = 2 then 1 else s0.regs i }}
+def csCm : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring"), regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else s0.regs i }}
+def csIf : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq"), regs := fun i => if i = 0 then 0 else s0.regs i }}
+def csSb : State := {{ s0 with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring"), regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 0x302000 else if i = 2 then 48 else s0.regs i }}
 
 set_option maxRecDepth 100000 in
 theorem csNew_pre : NewobjectLiveSite R {A('runtime.newobject')} 4096 [] bW csNew := by
@@ -62,13 +57,13 @@ theorem csMg_pre : MallocgcLiveSite R {A('runtime.mallocgc')} 4096 [] bW csMg :=
 
 set_option maxRecDepth 100000 in
 theorem csMv_pre : MemmoveLiveSite R {A('runtime.memmove')} 4096 [] bW csMv := by
-  refine ⟨⟨{GUARD}, {CALLOK}, {CS_OUT}⟩, ⟨?_, inv0, liveSep_nil _, {SEP2}⟩,
+  refine ⟨⟨{GI}, {CALLOK}, {CS_OUT}⟩, ⟨?_, inv0, liveSep_nil _, {SEP2}⟩,
     ⟨by decide, by decide, {CS_OUT}⟩, ⟨by decide, by decide, {CS_OUT}, Or.inr (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩⟩
   rw [addr_mv]; exact {okpos(4, N, '⟨rfl, loW, 0x301000, 1, by decide, by decide, by decide⟩')}
 
 set_option maxRecDepth 100000 in
 theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre 16 csCm :=
-  ⟨{CALLOK}, Or.inl rfl, Or.inl rfl⟩
+  ⟨{CALLOK}, Or.inl (by decide), Or.inl (by decide)⟩
 
 theorem r0env : R0.Env s0.mem (s0.regs 28) := by
   obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h, _, _⟩ := env0
@@ -76,7 +71,7 @@ theorem r0env : R0.Env s0.mem (s0.regs 28) := by
 
 set_option maxRecDepth 100000 in
 theorem csIf_pre : IfaceeqSite R0 csIf := by
-  refine ⟨⟨r0env, {GUARD}, {CALLOK}, ?_⟩, fun h => absurd (by decide) h⟩
+  refine ⟨⟨r0env, {GI}, {CALLOK}, ?_⟩, fun h => absurd (by decide) h⟩
   simp only [R0_priv, R0_depth, outside_cons, outside_nil, and_true]; decide
 
 set_option maxRecDepth 100000 in

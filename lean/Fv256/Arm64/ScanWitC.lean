@@ -345,20 +345,14 @@ theorem contracts_ok :
 stub's entry and the argument registers of a request the toy runtime `R` serves; live set `[]`, budget `0x400`. -/
 -- CALLSITE-BLOCK
 def csB : State := st 0#64 0#64
-def csNew : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 numErrT else csB.regs i }
+def csNew : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject"), regs := fun i => if i = 0 then BitVec.ofNat 64 numErrT else csB.regs i }
 def csW1 : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") }
 def csW2 : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") }
-def csMg : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc"),
-    regs := fun i => if i = 0 then 1 else if i = 1 then 0 else if i = 2 then 0 else csB.regs i }
-def csMv : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 0xFD000 else if i = 1 then BitVec.ofNat 64 strW else if i = 2 then 1 else csB.regs i }
-def csCm : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring"),
-    regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else csB.regs i }
-def csIf : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq"),
-    regs := fun i => if i = 0 then 0 else csB.regs i }
-def csSb : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring"),
-    regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 hdrW else if i = 2 then 48 else csB.regs i }
+def csMg : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc"), regs := fun i => if i = 0 then 1 else if i = 1 then 0 else if i = 2 then 0 else csB.regs i }
+def csMv : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove"), regs := fun i => if i = 0 then BitVec.ofNat 64 0xFD000 else if i = 1 then BitVec.ofNat 64 strW else if i = 2 then 1 else csB.regs i }
+def csCm : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.cmpstring"), regs := fun i => if i = 0 then 0 else if i = 1 then 0 else if i = 2 then 0 else if i = 3 then 0 else csB.regs i }
+def csIf : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq"), regs := fun i => if i = 0 then 0 else csB.regs i }
+def csSb : State := { csB with pc := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring"), regs := fun i => if i = 0 then 0 else if i = 1 then BitVec.ofNat 64 hdrW else if i = 2 then 48 else csB.regs i }
 
 set_option maxRecDepth 100000 in
 theorem csNew_pre : NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 csNew := by
@@ -384,13 +378,13 @@ theorem csMg_pre : MallocgcLiveSite R (Extracted.program.contractAddr "runtime.m
 
 set_option maxRecDepth 100000 in
 theorem csMv_pre : MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 csMv := by
-  refine ⟨⟨guardOK_of (by decide) (by decide) (by decide), callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), (by simp only [calleeStack, outside_cons, outside_nil]; decide)⟩, ⟨?_, inv0 0#64 0#64, liveSep_nil _, (by intro r hr; rw [rt_eq]; simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩,
+  refine ⟨⟨(Janus.Spec.guardOK_iff _ _).1 (guardOK_of (by decide) (by decide) (by decide)), callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), (by simp only [calleeStack, outside_cons, outside_nil]; decide)⟩, ⟨?_, inv0 0#64 0#64, liveSep_nil _, (by intro r hr; rw [rt_eq]; simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr; rcases hr with rfl | rfl <;> (simp only [outside_cons, outside_nil]; decide))⟩,
     ⟨by decide, by decide, (by simp only [calleeStack, outside_cons, outside_nil]; decide)⟩, ⟨by decide, by decide, (by simp only [calleeStack, outside_cons, outside_nil]; decide), Or.inr (by rw [rt_eq]; simp only [outside_cons, outside_nil]; decide)⟩⟩
   rw [addr_mv]; exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inl (⟨rfl, 0xFD000, strW, 1, by decide, by decide, by decide⟩)))))
 
 set_option maxRecDepth 100000 in
 theorem csCm_pre : Janus.Contracts.Cmpstring.CmpstringPre 16 csCm :=
-  ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), Or.inl rfl, Or.inl rfl⟩
+  ⟨callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), Or.inl (by decide), Or.inl (by decide)⟩
 
 theorem r3env : (R3 TW).Env csB.mem (csB.regs 28) := by
   obtain ⟨_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, h, _, _⟩ := env0 0#64 0#64
@@ -398,7 +392,7 @@ theorem r3env : (R3 TW).Env csB.mem (csB.regs 28) := by
 
 set_option maxRecDepth 100000 in
 theorem csIf_pre : IfaceeqSite (R3 TW) csIf := by
-  refine ⟨⟨r3env, guardOK_of (by decide) (by decide) (by decide), callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_⟩, fun h => absurd (by decide) h⟩
+  refine ⟨⟨r3env, (Janus.Spec.guardOK_iff _ _).1 (guardOK_of (by decide) (by decide) (by decide)), callOK_of (by decide) (by decide) (by decide) (by decide) (by decide) (by decide) (by decide), ?_⟩, fun h => absurd (by decide) h⟩
   simp only [R3_priv, R3_depth, outside_cons, outside_nil, and_true]; decide
 
 set_option maxRecDepth 100000 in
