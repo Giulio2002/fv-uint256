@@ -128,12 +128,12 @@ def fmt(t):
         ex = t.index('  exact ⟨impl', k)
         ee = t.index('correctness impl', ex)
         seg = t[ex:ee]
-        seg2 = seg.replace('⟩, h10, ', '⟩, ⟨h10, ', 1).replace('h10⟩, h11, ', 'h10⟩, ⟨h11, ', 1)
-        seg2 = seg2.rstrip()
-        assert seg2.endswith(',')
-        seg2 = seg2[:-1] + '⟩, hcs,\n    '
-        # the first group patterns: close h10.. group before hcs
-        seg2 = seg2.replace('hp16⟩, hcs', 'hp16⟩, hcs').replace('hp18⟩, hcs', 'hp18⟩, hcs')
+        if '⟨h10' in seg or '⟨h11' in seg:   # fv/wrun already nests the trailing group
+            seg2 = seg.rstrip() + ' hcs,\n    '
+        else:
+            seg2 = seg.replace('⟩, h10, ', '⟩, ⟨h10, ', 1).replace('h10⟩, h11, ', 'h10⟩, ⟨h11, ', 1).rstrip()
+            assert seg2.endswith(',')
+            seg2 = seg2[:-1] + '⟩, hcs,\n    '
         t = t[:ex] + seg2 + t[ee:]
     return t
 rw('Format', fmt)
