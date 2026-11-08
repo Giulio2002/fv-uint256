@@ -3,7 +3,7 @@
 # env STUB=1 sorries `correctness` (scratch tree only); KEEP=1 adds --keep-workspace
 set -u
 isa=$1; fn=$2; mode=${3:-audit}
-W=/srv/fv-uint256-csa; A=/srv/fv-uint256-csa-aud; JANUS=/srv/janus-up3/bin/janus
+W=/srv/fv-uint256-csa; A=/srv/fv-uint256-csa-aud; JANUS=/srv/janus-csb/bin/janus
 export JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore
 export LEAN_NUM_THREADS=8 JANUS_JOBS=2 JANUS_CACHE_DIR=/srv/janus-ops/jcache-csa
 rsync -a --delete $W/lean/Fv256/ $A/lean/Fv256/ ; cp $W/lean/Fv256.lean $A/lean/Fv256.lean
@@ -21,6 +21,6 @@ wt=(); while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(py
 [ $mode = audit ] && export JANUS_STOP_AFTER_AUDIT=1
 kw=""; [ -n "${KEEP:-}" ] && kw="--keep-workspace"
 t0=$(date +%s)
-memcap -m 24G $JANUS verify $out --proof lean/Fv256/$dir/$pf.lean --proof-root lean --janus-root /srv/janus-up3 $kw --theorem Fv256.$dir.$pf.correctness "${wt[@]}" >>build/log-$isa-$fn 2>&1
+memcap -m 24G $JANUS verify $out --proof lean/Fv256/$dir/$pf.lean --proof-root lean --janus-root /srv/janus-csb $kw --theorem Fv256.$dir.$pf.correctness "${wt[@]}" >>build/log-$isa-$fn 2>&1
 rc=$?
 echo "ENDMARK $isa $fn $mode rc=$rc $(( $(date +%s)-t0 ))s"
