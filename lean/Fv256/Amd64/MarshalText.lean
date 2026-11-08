@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Amd64.CallSites.Live
 import Fv256.Spec
 import Fv256.SpecE
 import Fv256.UtilE
@@ -302,6 +303,49 @@ theorem pre : StackGuardOK s0 (0x378 + 40) ∧ StackWritable s0 4608 8 ∧ Extra
     · simp only [s0, sp0, hA]; decide
     · simp only [s0, sp0, hB]; decide
 
+-- CALLSITE-BLOCK MarshalText.nonvacuous
+def csSb : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 ssAddr, regs := fun i => if i = 0 then 0 else if i = 3 then BitVec.ofNat 64 zp else if i = 1 then BitVec.ofNat 64 2 else if i = 4 then BitVec.ofNat 64 (sp0 - 432) else s0.regs i }
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSb_pre : RtPre64 rtT 4096 Hw (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb := by
+  have hargs : argWords64 csSb 3 = [0, zp, 2] := by
+    unfold argWords64 csSb; decide +kernel
+  refine ⟨by decide, ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, hargs, Contracts.arg, BufOK, StrIn]
+    refine ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, hargs, ReadsOutside]
+    intro r hr; simp only [List.mem_singleton] at hr; subst hr
+    simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]
+    refine ⟨?_, ?_, trivial⟩ <;> decide
+  · split
+    · show Hw (argWords64 csSb 3) (csSb.regs 14).toNat (csSb.regs 4).toNat (rtView rtT csSb.mem)
+      rw [hargs]
+      refine ⟨⟨zp, rfl⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide, by decide, by decide⟩
+    · trivial
+
+def csSt : Amd64.State :=
+  { s0 with rip := BitVec.ofNat 64 stAddr, regs := fun i => if i = 0 then 0 else if i = 3 then BitVec.ofNat 64 zp else if i = 1 then BitVec.ofNat 64 2 else if i = 4 then BitVec.ofNat 64 (sp0 - 48) else s0.regs i }
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSt_pre : RtPre64 rtT 4096 Hw (stringtoslicebyteSpec) csSt := by
+  have hargs : argWords64 csSt 3 = [0, zp, 2] := by
+    unfold argWords64 csSt; decide +kernel
+  refine ⟨by decide, ?_, ?_, trivial, ?_⟩
+  · simp only [stringtoslicebyteSpec, hargs, Contracts.arg, BufOK, StrIn]
+    refine ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [stringtoslicebyteSpec, hargs, ReadsOutside]
+    intro r hr; simp only [List.mem_singleton] at hr; subst hr
+    simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]
+    refine ⟨?_, ?_, trivial⟩ <;> decide
+  · split
+    · show Hw (argWords64 csSt 3) (csSt.regs 14).toNat (csSt.regs 4).toNat (rtView rtT csSt.mem)
+      rw [hargs]
+      refine ⟨⟨zp, rfl⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide, by decide, by decide⟩
+    · trivial
+
 /-- The preconditions, the `slicebytetostring` and `stringtoslicebyte` contracts (toy runtime blocks, readiness `Hw`), and the readiness hypothesis
 for the second call are jointly satisfiable. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
@@ -326,10 +370,14 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
       StrOut M p l (decBytes (s.mem.readLE z.toNat 32)) →
       DecAt rt 5163273 5176582 5134938 p l →
       H [0, p, l] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt M))) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 ssAddr ∧ RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 stAddr ∧ RtPre64 rt 4096 H stringtoslicebyteSpec s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ BytesHold s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (s'.regs 1).toNat (decBytes (valueAt s z 32)) ∧
         s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4608, (s.regs 4).toNat + 8)]) := by
   refine ⟨implAt, rtT, Hw, ret, s0, arg, model1, model2, ?w2, ?w3, pre,
+    ⟨csSb, rfl, csSb_pre⟩,
+    ⟨csSt, rfl, csSt_pre⟩,
     correctness implAt rtT Hw arg model1 model2 ret ?w2 s0 ?w3 pre⟩
   case w2 => exact by rw [linked_eq]; exact hret
   case w3 => exact by rw [linked_eq]; exact setup
@@ -337,7 +385,6 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
 
 
 /-! ### The large-value path (`z = 10^7`: eight digits, `FormatUint` path, both runtime calls made) -/
-
 open Fv256.ToyRuntime64 in
 def Hw8 : RtReady := fun a _ sp view =>
   (∃ p, a = [0, p, 8]) ∧ view.accessible hA 8 true = true ∧ view.accessible hB 8 true = true ∧
@@ -480,6 +527,49 @@ theorem pre8 : StackGuardOK s08 (0x378 + 40) ∧ StackWritable s08 4608 8 ∧ Ex
     · simp only [s08, sp0, hA]; decide
     · simp only [s08, sp0, hB]; decide
 
+-- CALLSITE-BLOCK MarshalText.big
+def csSb8 : Amd64.State :=
+  { s08 with rip := BitVec.ofNat 64 ssAddr, regs := fun i => if i = 0 then 0 else if i = 3 then BitVec.ofNat 64 zp else if i = 1 then BitVec.ofNat 64 8 else if i = 4 then BitVec.ofNat 64 (sp0 - 432) else s08.regs i }
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSb8_pre : RtPre64 rtT 4096 Hw8 (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») csSb8 := by
+  have hargs : argWords64 csSb8 3 = [0, zp, 8] := by
+    unfold argWords64 csSb8; decide +kernel
+  refine ⟨by decide, ?_, ?_, trivial, ?_⟩
+  · simp only [slicebytetostringSpec, hargs, Contracts.arg, BufOK, StrIn]
+    refine ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [slicebytetostringSpec, hargs, ReadsOutside]
+    intro r hr; simp only [List.mem_singleton] at hr; subst hr
+    simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]
+    refine ⟨?_, ?_, trivial⟩ <;> decide
+  · split
+    · show Hw8 (argWords64 csSb8 3) (csSb8.regs 14).toNat (csSb8.regs 4).toNat (rtView rtT csSb8.mem)
+      rw [hargs]
+      refine ⟨⟨zp, rfl⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide, by decide, by decide⟩
+    · trivial
+
+def csSt8 : Amd64.State :=
+  { s08 with rip := BitVec.ofNat 64 stAddr, regs := fun i => if i = 0 then 0 else if i = 3 then BitVec.ofNat 64 zp else if i = 1 then BitVec.ofNat 64 8 else if i = 4 then BitVec.ofNat 64 (sp0 - 48) else s08.regs i }
+
+open Fv256.CallSites in
+set_option maxRecDepth 100000 in
+theorem csSt8_pre : RtPre64 rtT 4096 Hw8 (stringtoslicebyteSpec) csSt8 := by
+  have hargs : argWords64 csSt8 3 = [0, zp, 8] := by
+    unfold argWords64 csSt8; decide +kernel
+  refine ⟨by decide, ?_, ?_, trivial, ?_⟩
+  · simp only [stringtoslicebyteSpec, hargs, Contracts.arg, BufOK, StrIn]
+    refine ⟨Or.inl (by decide), ⟨by decide, fun _ => by decide⟩, fun h => absurd (by decide) h⟩
+  · simp only [stringtoslicebyteSpec, hargs, ReadsOutside]
+    intro r hr; simp only [List.mem_singleton] at hr; subst hr
+    simp only [Contracts.arg, calleeStack64, outside_cons, outside_nil]
+    refine ⟨?_, ?_, trivial⟩ <;> decide
+  · split
+    · show Hw8 (argWords64 csSt8 3) (csSt8.regs 14).toNat (csSt8.regs 4).toNat (rtView rtT csSt8.mem)
+      rw [hargs]
+      refine ⟨⟨zp, rfl⟩, by rw [rtView_acc]; decide, by rw [rtView_acc]; decide, by decide, by decide⟩
+    · trivial
+
 /-- **Large-value witness**: `z = 10^7` (eight digits, `FormatUint` path): both runtime calls are made and the readiness hypothesis for the
 second call is exercised on the string `Dec` returns. -/
 theorem big : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
@@ -505,15 +595,18 @@ theorem big : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRe
       DecAt rt 5163273 5176582 5134938 p l →
       H [0, p, l] (s.regs 14).toNat ((s.regs 4).toNat - 40) (rtView rt M))) ∧
     100 ≤ s.mem.readLE z.toNat 32 ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 ssAddr ∧ RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 stAddr ∧ RtPre64 rt 4096 H stringtoslicebyteSpec s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ BytesHold s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (s'.regs 1).toNat (decBytes (valueAt s z 32)) ∧
         s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4608, (s.regs 4).toNat + 8)]) := by
   refine ⟨implAt8, rtT, Hw8, ret, s08, arg, model1_8, model2_8, ?w2, ?w3, pre8, ?w5,
+    ⟨csSb8, rfl, csSb8_pre⟩,
+    ⟨csSt8, rfl, csSt8_pre⟩,
     correctness implAt8 rtT Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 pre8⟩
   case w2 => exact by rw [linked_eq8]; exact hret8
   case w3 => exact by rw [linked_eq8]; exact setup8
   case w5 => exact by rw [hz8]; decide
-
 end Witness
 
 end Fv256.Amd64.MarshalText
