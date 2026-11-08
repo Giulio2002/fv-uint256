@@ -267,7 +267,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
       | .panicked v s' => x.toNat ≠ 0 ∧ 4 < len.toNat ∧ v = ⟨panicType, panicData⟩
       | .goexited _ => False := by
   refine ⟨impl, rt, H, xp, (Janus.Contracts.PanicModel.P0 [] 0), pw, 2, ret, s0, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, hret, setup, ?w3,
-    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H xp pw 2 hnew ret hret s0 setup ?w3⟩
+    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H xp pw 2 hnew ret hret s0 setup pre⟩
   case w3 => exact ⟨trivial, trivial, trivial, pre⟩
 
 end Witness
