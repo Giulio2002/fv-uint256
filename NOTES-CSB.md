@@ -49,3 +49,11 @@ Lean gotcha (FV-CSA): `{ s0 with a := .., b := .. }` over two fields on separate
 - Dec: csSs wired with `sorry` in csSs_pre (RtPre64 rtW 4096 H0 spec; state = s0 with rip=ssAddr, r0=0, RSP-64): to prove. Other RtContract64 rows (Hex PrettyDec MarshalJSON MarshalText String) need own H (Hex: args [0,p,3]...).
 - TODO: Format, RtLive (MarshalSSZAppend, Value), ConvT64/ErrorfLive (MarshalSSZInto, UnmarshalSSZ), Makeslice (MarshalSSZ, PaddedBytes), full verifies+timings, rebase on fv/wrun.
 - Silent rc=1 baseline run (FV-CSB's) could not be reproduced: my old-run log was overwritten; the one I reran failed with real compile errors printed. No kill in journal.
+
+## FV-CSB2 update 2 (2026-11-08 ~04:05)
+- fv/csb merged with fv/wrun 3f5e44c7 (merge 5aa690b4; conflicts in FromBig/MustFromBig/MustFromHex/MustFromDecimalMain resolved keeping csb side + the `pre` arg). Audit tree repinned to Janus dba0069d (repin.sh); full re-audit batch of all wired rows running (/srv/fv-uint256-csb-aud/rb.log).
+- AUDIT-PASSING on 056c9381 (warm, audit stage): IntoBig Bytes Clone NewInt FromBig FromHex MustFromBig MustFromHex ToBig EncodeRLP DivMod SetFromDecimal FromDecimal MustFromDecimal UnmarshalText UnmarshalJSON (all correctness + nonvacuous verified at audit stop).
+- Scan: audit run exceeded the 3000 s heavy-run timeout silently (no output, crow2 killed by timeout) on 056c9381: rowrun timeout now 5400. Wiring itself compiles (qc.sh).
+- Dec/String: csSs_pre is `sorry` (RtPre64 rtW 4096 H0 ...); must be proven before commit to fv/master. Hex/PrettyDec/MarshalJSON/MarshalText need own H (non-zero args), not wired.
+- NOT wired yet: Format, RtLive (MarshalSSZAppend, Value), ConvT64/ErrorfLive (MarshalSSZInto, UnmarshalSSZ), Makeslice (MarshalSSZ, PaddedBytes), RtContract64 rows Hex PrettyDec MarshalJSON MarshalText; full verifies + timings not done.
+- Tools: scripts/cs-rt64-zero.py (Dec/String-shaped), qc.sh FILE Fv256/Amd64/CallSites/Live with QC_C=<consumer dir from a prior run log> (6 s compile check).
