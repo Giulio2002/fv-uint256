@@ -3,9 +3,9 @@
 import subprocess, sys
 CFG = {'MarshalSSZ': (0, 32), 'PaddedBytes': (5, 5)}
 BLOCK = '''/-- The call state of `runtime.makeslice` (U-WITNESS-CALLSITE): `makeslice(uint8, {L}, {C})` at its entry in the caller's frame (`RSP = sp0 - 40`, as in `hH`). -/
-def csMk : Janus.Amd64.State :=
-  {{ s0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then {L}#64 else if i = 1 then {C}#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }}
+def csMk0 : Janus.Amd64.State :=
+  {{ s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then {L}#64 else if i = 1 then {C}#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }}
+def csMk : Janus.Amd64.State := {{ csMk0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") }}
 
 open Fv256.CallSites in
 set_option maxRecDepth 100000 in

@@ -319,9 +319,9 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
 
 -- CALLSITE-BLOCK PaddedBytes.mk
 /-- The call state of `runtime.makeslice` (U-WITNESS-CALLSITE): `makeslice(uint8, 5, 5)` at its entry in the caller's frame (`RSP = sp0 - 40`, as in `hH`). -/
-def csMk : Janus.Amd64.State :=
-  { s0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then 5#64 else if i = 1 then 5#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }
+def csMk0 : Janus.Amd64.State :=
+  { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then 5#64 else if i = 1 then 5#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }
+def csMk : Janus.Amd64.State := { csMk0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") }
 
 open Fv256.CallSites in
 set_option maxRecDepth 100000 in
@@ -357,12 +357,13 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         Spec.fromBE (fun i => s'.mem.readLE (ptr + i) 1) n.toNat = valueAt s z 32 % 2 ^ (8 * n.toNat) ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre,
+    ⟨csMk, rfl, csMk_pre⟩,
     correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
 
 
 /-- The theorem fires: for this call and this allocator, `PaddedBytes(5)` returns a fresh 5-byte slice in `rt`. -/
-example := ⟨csMk, rfl, csMk_pre⟩,
-    correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
+example := correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
+
 end Witness
 
 end Fv256.Amd64.PaddedBytes

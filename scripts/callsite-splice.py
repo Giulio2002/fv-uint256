@@ -23,7 +23,7 @@ ms = [m for m in re.finditer(r'^theorem\s+' + re.escape(a.theorem) + r'\b', src,
 m = ms[a.nth]
 start = m.start()
 # extent: up to the next top-level declaration / end line
-nxt = re.search(r'^(theorem|lemma|def|abbrev|end|namespace|/--|set_option|open|@\[)\b', src[m.end():], re.M)
+nxt = re.search(r'^(theorem|lemma|example|def|abbrev|end|namespace|/--|set_option|open|@\[)\b', src[m.end():], re.M)
 end = m.end() + (nxt.start() if nxt else len(src) - m.end())
 body = src[start:end]
 if a.conj:

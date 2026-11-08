@@ -173,9 +173,9 @@ theorem pre : StackGuardOK s0 0 ∧ StackWritable s0 4136 24 ∧ Extracted.progr
 
 -- CALLSITE-BLOCK MarshalSSZ.mk
 /-- The call state of `runtime.makeslice` (U-WITNESS-CALLSITE): `makeslice(uint8, 0, 32)` at its entry in the caller's frame (`RSP = sp0 - 40`, as in `hH`). -/
-def csMk : Janus.Amd64.State :=
-  { s0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice"),
-    regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then 0#64 else if i = 1 then 32#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }
+def csMk0 : Janus.Amd64.State :=
+  { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else if i = 3 then 0#64 else if i = 1 then 32#64 else if i = 4 then BitVec.ofNat 64 (sp0 - 40) else s0.regs i }
+def csMk : Janus.Amd64.State := { csMk0 with rip := BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.makeslice") }
 
 open Fv256.CallSites in
 set_option maxRecDepth 100000 in
