@@ -93,7 +93,7 @@ for f in lean/Fv256/Proofs/Amd64v3/*.lean; do
 done
 
 run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never touches shared state besides build/*-$isa-$fn)
-  local isa="$1" fn="$2" kind="$3" sym="$4" dir full out cflags pf wt w r t0 rss tf cap; cap="$(row_cap "$isa" "$fn")"; export JANUS_MEM_MAX="$cap"
+  local isa="$1" fn="$2" kind="$3" sym="$4" dir full out cflags pf cf cthm proofpath wt w r t0 rss tf cap; cap="$(row_cap "$isa" "$fn")"; export JANUS_MEM_MAX="$cap"
   t0=$(date +%s); tf="build/time-$isa-$fn"; rm -f "$tf"
   out="build/ex-$isa-$fn"
   if [ "$kind" = v3 ]; then
@@ -109,11 +109,15 @@ run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never 
     if ! contract_known "$fn"; then echo "no contract-flags case for $fn: add the flags of its verified extraction to scripts/contract-flags.sh (or scripts/noflags.txt)" >"build/log-$isa-$fn"; echo "FAIL(no-flags-case) 0 0" >"build/res/$isa-$fn"; return; fi
     # proof module: FnMain.lean, when it exists and holds `theorem correctness`, is the full-spec proof and wins over Fn.lean
     pf="$fn"; if [ -f "lean/Fv256/Proofs/$dir/${fn}Main.lean" ] && grep -q "theorem correctness" "lean/Fv256/Proofs/$dir/${fn}Main.lean"; then pf="${fn}Main"; fi
+    # CLAIM-FILE rows (spec redesign): when lean/Fv256/$dir/$fn.lean exists it holds the short commented claim `Fv256.$dir.$fn.correctness`
+    # (and the Witness theorems); janus verifies THAT file, which delegates to the proof module under Proofs/. Otherwise the legacy proof-file row.
+    cf="lean/Fv256/$dir/$fn.lean"; cthm="Fv256.$dir.$pf.correctness"
+    if [ -f "$cf" ] && grep -q "^theorem correctness" "$cf"; then proofpath="$cf"; cthm="Fv256.$dir.$fn.correctness"; else proofpath="lean/Fv256/Proofs/$dir/$pf.lean"; fi
     # every existential witness theorem declared in the module (Witness.nonvacuous, Grow.Witness.nonvacuous, Witness.big, ...): scripts/witness-theorems.py
-    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/Proofs/$dir/$pf.lean"); fi
+    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "$proofpath"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
-       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/Proofs/$dir/$pf.lean" --proof-root lean \
-         --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
+       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "$proofpath" --proof-root lean \
+         --theorem "$cthm" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
   fi
     # UP3c: every fv-uint256 row must audit with runFree=false AND refutation=false (a row that claims no run is not a verified function spec): FAIL a row whose reports carry either flag
     if [ "$r" = PASS ] && { grep -rEqs '"(runFree|refutation)": *true' "$out/verified.json" "$out/verified" 2>/dev/null || grep -Eqs 'Non-vacuity: Verified \((run-free|refutation)' "build/log-$isa-$fn"; }; then

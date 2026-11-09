@@ -1,0 +1,6 @@
+# Spec modules that are pure math (checked by scripts/check-spec-closure): path relative to lean/Fv256/
+Spec/Basic.lean
+Spec/Add.lean
+Spec/AddMod.lean
+Spec/Div.lean
+Spec/SetFromDecimal.lean

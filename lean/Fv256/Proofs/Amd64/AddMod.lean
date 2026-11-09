@@ -3,11 +3,24 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Common.CodeIn
 import Fv256.Proofs.Amd64.AddModSum
 import Fv256.Proofs.Amd64.EnsuresOfW
-import Fv256.Spec.Amd64.AddMod
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.AddMod
+
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Amd64/AddMod.lean` -/
+abbrev PreRaw (z x y m : BitVec 64) : State → Prop :=
+  fun s => StackGuardOK s 0x300 ∧ 0x380 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x348 0x28 ∧ Extracted.program.DataLoaded s.mem ∧
+        Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 false ∧
+        (z.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ z.toNat) ∧
+        (x.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ x.toNat) ∧
+        (y.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ y.toNat) ∧
+        (m.toNat + 32 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ m.toNat) ∧
+        (z = m ∨ z.toNat + 32 ≤ m.toNat ∨ m.toNat + 32 ≤ z.toNat) ∧
+        (z = x ∨ z.toNat + 32 ≤ x.toNat ∨ x.toNat + 32 ≤ z.toNat) ∧
+        (z = y ∨ z.toNat + 32 ≤ y.toNat ∨ y.toNat + 32 ≤ z.toNat) ∧
+        ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0x348 ∨ (s.regs regSP).toNat + 0x28 ≤ (s.regs regG).toNat + 16) ∧
+        ((s.regs regG).toNat + 24 ≤ z.toNat ∨ z.toNat + 32 ≤ (s.regs regG).toNat + 16)
 
 set_option maxRecDepth 100000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.AddModProg.program Extracted.program :=
@@ -29,14 +42,14 @@ theorem hsumE :
   obtain ⟨a, b, c, d, hl, rest⟩ := hpre
   exact h1 s hpc ⟨a, b, c, d, (hdl _).1 hl, rest⟩
 
-theorem correctness (z x y m : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x, y, m] (Pre z x y m)
+theorem correctness_proof (z x y m : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, y, m] (PreRaw z x y m)
       (fun s s' => s'.regs 0 = z ∧ s'.mem.readLE z.toNat 32 = Fv256.F.addmodSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32) (s.mem.readLE m.toNat 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x348, (s.regs regSP).toNat + 0x28)]) := by
   have := Fv256.Amd64.EnsuresOfW.ensures4w 0x380 0x348 0x300 0x28 (by decide) Fv256.F.addmodSpec hsumE z x y m
   exact this
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -75,18 +88,18 @@ theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
   decide
 
 set_option maxRecDepth 100000 in
-theorem hpre : Pre z x x x s0 := by
+theorem hpre : PreRaw z x x x s0 := by
   refine ⟨⟨by decide, by decide, by decide⟩, by unfold regSP; decide, ⟨by decide, by decide, by decide⟩, dataLoaded,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
     first | (unfold regSP regG; decide) | (unfold regSP; decide) | (unfold regG; decide) | decide
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y m : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y, m] s ∧ Pre z x y m s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, y, m] s ∧ PreRaw z x y m s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ s'.mem.readLE z.toNat 32 = Fv256.F.addmodSpec (s.mem.readLE x.toNat 32) (s.mem.readLE y.toNat 32) (s.mem.readLE m.toNat 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x348, (s.regs regSP).toNat + 0x28)] :=
   ⟨ret, s0, z, x, x, x, hret, setup, hpre,
-    correctness z x x x ret hret s0 setup hpre⟩
+    correctness_proof z x x x ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.AddMod

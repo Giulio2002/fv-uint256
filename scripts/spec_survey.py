@@ -125,6 +125,11 @@ def main():
             full = (f'github.com/holiman/uint256.(*Int).{fn}' if sym.startswith('(*uint256.Int).') else f'github.com/holiman/uint256.{fn}')
             flags = contract_flags(fn)
         f = f'{ld}/{d}/{pf}.lean'
+        # claim-file rows: lean/Fv256/<Isa>/<Fn>.lean holds `Fv256.<Isa>.<Fn>.correctness` and the Witness theorems
+        cf = f'lean/Fv256/{d}/{fn}.lean'
+        claim = isa != 'amd64v3' and os.path.isfile(cf) and re.search(r'^theorem correctness', open(cf).read(), re.M)
+        if claim:
+            f = cf; pf = fn
         if not os.path.isfile(f):
             res[key] = {'error': f'missing {f}'}; print(key, 'MISSING', f, flush=True); continue
         ex = f'{ws}/exout/{key}'

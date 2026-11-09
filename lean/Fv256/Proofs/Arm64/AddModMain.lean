@@ -33,7 +33,7 @@ theorem hdl (m : Janus.Arm64.Memory) : Extracted.program.DataLoaded m ↔ Fv256.
 theorem addmod_ext : Summary Extracted.program Extracted.entry Fv256.Arm64.AddModSeg.PreS Fv256.Arm64.AddModComp2.Post :=
   Janus.Contracts.EqHashModel.Summary.of_codeIn hcLib Fv256.Arm64.AddMod.addmod_summary
 
-theorem correctness (z x y m : BitVec 64) :
+theorem correctness_proof (z x y m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, m]
       (fun s => GuardOK s 816 ∧ s.sp.toNat % 16 = 0 ∧ 856 ≤ s.sp.toNat ∧ s.sp.toNat + 16 ≤ 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 856) 872 true = true ∧ Extracted.program.DataLoaded s.mem ∧
@@ -78,7 +78,7 @@ theorem correctness (z x y m : BitVec 64) :
     · exact h0
     · exact hv
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -153,8 +153,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y m : BitVec 64), RetAddr 
         val256 s'.mem z.toNat = Fv256.F.addmodSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem m.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 16)] :=
   ⟨ret, s0, z, x, x, x, hret, setup, hpre,
-    correctness z x x x ret hret s0 setup hpre⟩
+    correctness_proof z x x x ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.AddModMain

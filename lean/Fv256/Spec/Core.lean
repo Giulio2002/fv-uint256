@@ -1,12 +1,11 @@
 import Janus
+import Fv256.Spec.Basic
+import Fv256.Spec.Add   -- `Fv256.Spec.add` lives in its own pure file
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
 
 namespace Fv256.Spec
-
-/-- The modulus of 256-bit words. -/
-abbrev W : Nat := 2 ^ 256
 
 /-- `x.IsZero()`. -/
 def isZero (x : Nat) : Bool := x == 0
@@ -37,9 +36,6 @@ def not (x : Nat) : Nat := W - 1 - x
 
 /-- `z.Neg(x)`: two's complement negation modulo `2^256`. -/
 def neg (x : Nat) : Nat := (W - x) % W
-
-/-- `z.Add(x, y)`. -/
-def add (x y : Nat) : Nat := (x + y) % W
 
 /-- `z.Sub(x, y)`. -/
 def sub (x y : Nat) : Nat := (x + W - y) % W

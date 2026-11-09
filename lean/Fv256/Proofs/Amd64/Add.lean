@@ -1,10 +1,9 @@
 import Extracted
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Amd64.Add
 
 /-!
-# `(*uint256.Int).Add(x, y) *Int` (amd64): `z = x + y`
+# `(*uint256.Int).Add(x, y) *Int` (amd64): PROOF of the claim stated in `Fv256/Spec/Amd64/Add.lean` (read that file first)
 
 **Guarantee.** For all pointers `z`, `x`, `y` and every Go call state with them in `RAX` (receiver), `RBX`, `RCX` such that
 the return-address slot is writable, the 32 bytes at `z` are writable and those at `x`, `y` readable (below `2^48`),
@@ -12,14 +11,17 @@ the return-address slot is writable, the 32 bytes at `z` are writable and those 
 returns (no fault, no panic), obeys the ABI, returns `z` in `RAX`, the number at `z` afterwards is `Fv256.Spec.add` of
 the numbers at `x` and `y` before the call, and no byte outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` with value `0`.
+**Non-vacuity.** `Witness.nonvacuous` (in `Fv256/Amd64/Add.lean`): a concrete call satisfies the precondition; `returns`: it returns `z` with value `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Add
 
-theorem correctness (z x y : BitVec 64) :
+/-- equal or disjoint 32-byte objects -/
+def Alias (p q : BitVec 64) : Prop := p = q ∨ Disjoint p 32 q 32
+
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
         Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x ∧ Alias z y ∧ Alias x y)
@@ -32,9 +34,9 @@ theorem correctness (z x y : BitVec 64) :
   simp only [valueAt, Spec.add, Disjoint, Alias] at *
   rcases hzx with rfl | hzx <;> rcases hzy with rfl | hzy <;> rcases hxy with h | hxy
   all_goals try subst h
-  all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals (refine ⟨?_, ?_⟩; (· (try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try have := Util.readLE8_lt s.mem (y.toNat )); (try have := Util.readLE8_lt s.mem (y.toNat + 8)); (try have := Util.readLE8_lt s.mem (y.toNat + 16)); (try have := Util.readLE8_lt s.mem (y.toNat + 24)); simp only [Spec.add, Spec.W, Nat.reducePow]; dec_facts; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
+  all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals (refine ⟨?_, ?_⟩; (· (try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try have := Util.readLE8_lt s.mem (y.toNat )); (try have := Util.readLE8_lt s.mem (y.toNat + 8)); (try have := Util.readLE8_lt s.mem (y.toNat + 16)); (try have := Util.readLE8_lt s.mem (y.toNat + 24)); (try simp only [Spec.add, Spec.W, Nat.reducePow]); dec_facts; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -69,17 +71,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
         valueAt s' z 32 = Spec.add (valueAt s x 32) (valueAt s y 32) ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   simp only [valueAt, Spec.add]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Add
