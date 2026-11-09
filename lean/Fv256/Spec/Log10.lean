@@ -10,6 +10,10 @@ namespace Fv256.Spec
 /-- `r` is a correct result of `z.Log10()` for `z = x`: `0` when `x = 0`, otherwise `r` is the exponent with `10^r <= x < 10^(r+1)`. -/
 def IsLog10 (x r : Nat) : Prop := (x = 0 → r = 0) ∧ (x ≠ 0 → 10 ^ r ≤ x ∧ x < 10 ^ (r + 1))
 
+/-- The relation is decidable (for the `example` checks below). -/
+instance (x r : Nat) : Decidable (IsLog10 x r) :=
+  inferInstanceAs (Decidable ((x = 0 → r = 0) ∧ (x ≠ 0 → 10 ^ r ≤ x ∧ x < 10 ^ (r + 1))))
+
 example : IsLog10 0 0 := by decide
 example : IsLog10 9 0 := by decide
 example : IsLog10 10 1 := by decide

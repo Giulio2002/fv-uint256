@@ -4,3 +4,4 @@
 - New shared pure file Spec/Signed.lean (signed). CmpUint64/LtUint64/GtUint64 have no def of their own (use cmp/lt/gt).
 - Scripts patched (separate commit): Amd64v3 claim-file support (verify-all, check-spec-closure, spec_survey).
 - Status: step1 commit b29bd807; running equiv+verify. Then: restore, final clean verify, make build, lint, check-spec-closure, rm jcache.
+- amd64 equiv+verify: 18/19 PASS (incl v3 BitLen), Log10 amd64 failed due to Spec/Log10 missing Decidable instance (fixed, uncommitted at the time); arm64 pass running; then rerun amd64 Log10.
