@@ -120,6 +120,9 @@ def main():
     for k, v in sv.items():
         for c in v['consts']:
             allc[(c['name'], c['module'])] = c      # the same name can live in several modules (TB/FM copies of IntoBigDefs)
+    roots = {r for v in sv.values() for r in v['roots']}
+    # auxiliary constants of a final theorem's own statement (Witness.nonvacuous.match_1, ...) belong to the theorem, which stays in Proofs/
+    allc = {k: c for k, c in allc.items() if not any(c['name'].startswith(r + '.') for r in roots)}
     consts = list(allc.values())
     lines_by_mod, bad = resolve(consts)
     if bad:

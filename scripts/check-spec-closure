@@ -67,6 +67,8 @@ for key, v in sorted(sv.items()):
     if v.get('errors'):
         print('FAIL: %s: elaboration errors in survey: %s' % (key, v['errors'][0][:200])); fail = 1
     for c in v['consts']:
+        if any(c['name'].startswith(r + '.') for r in v['roots']):
+            continue      # auxiliary constant of the final theorem's own statement (e.g. Witness.nonvacuous.match_1): part of the theorem
         if c['module'].startswith('Fv256.Spec.') or c['module'] == 'Fv256.Spec':
             mods.add(c['module'])
             if c['kind'] != 'thm':
