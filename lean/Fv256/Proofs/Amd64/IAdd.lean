@@ -33,7 +33,7 @@ theorem correctness_proof (z x : BitVec 64) :
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw hds
   simp only [valueAt, Spec.add, Disjoint, Alias] at *
   rcases hzx with rfl | hzx
-  all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals (refine ⟨?_, ?_⟩; (· (try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); simp only [Spec.add, Spec.W, Nat.reducePow]; dec_facts; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
+  all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals (refine ⟨?_, ?_⟩; (· (try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try simp only [Spec.add, Spec.W, Nat.reducePow]); dec_facts; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
 namespace Wit
 

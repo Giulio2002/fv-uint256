@@ -26,7 +26,7 @@ theorem correctness_proof (z n : BitVec 64) :
   intro ret hret s hs ⟨hz, hz'⟩
   janus_intro hs
   all_goals simp only [Disjoint] at *
-  all_goals first | (exfalso; omega) | (janus_run; all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); have := n.isLt; simp only [Spec.addU, Spec.W, Nat.reducePow]; omega))
+  all_goals first | (exfalso; omega) | (janus_run; all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); have := n.isLt; (try simp only [Spec.addU, Spec.W, Nat.reducePow]); omega))
 
 namespace Wit
 

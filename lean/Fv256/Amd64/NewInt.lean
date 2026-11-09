@@ -1,5 +1,6 @@
 import Extracted
 import Fv256.Spec.NewInt
+import Fv256.Spec.Amd64.CallSites.Live
 import Fv256.Proofs.Amd64.NewInt
 
 /-!
@@ -13,6 +14,8 @@ the runtime is the explicit allocator contract `hnew` (not extracted); see `docs
 -/
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
+
+open Fv256.CallSites
 
 namespace Fv256.Amd64.NewInt
 

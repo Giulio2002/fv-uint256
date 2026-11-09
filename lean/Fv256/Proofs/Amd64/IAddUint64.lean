@@ -31,7 +31,7 @@ theorem correctness_proof (z n : BitVec 64) :
   janus64_intro hs
   simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw hds
   simp only [valueAt, Disjoint, Alias] at *
-  all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); have := n.isLt; refine ⟨?_, ?_⟩; (· simp only [Spec.addU, Spec.W, Nat.reducePow]; dec_goal; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
+  all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); have := n.isLt; refine ⟨?_, ?_⟩; (· (try simp only [Spec.addU, Spec.W, Nat.reducePow]); dec_goal; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
 namespace Wit
 
