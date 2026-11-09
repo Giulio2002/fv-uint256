@@ -1,8 +1,10 @@
 import Fv256.Proofs.Amd64.CallSites.Live
 import Extracted
+import Fv256.Spec.Util
+import Fv256.Spec.Core
+import Fv256.Spec.Amd64.CallSites.Live
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Amd64.NewInt
 
 /-!
 # `uint256.NewInt(val uint64) *Int` (amd64)
@@ -17,15 +19,18 @@ with `[ptr, ptr+32)` inside the runtime-owned ranges (a *fresh* object, disjoint
 **What is assumed.** Only the contract hypothesis `hnew` for the code linked at `runtime.newobject` (not extracted: `janus extract --contract
 runtime.newobject`); see `docs/RUNTIME-CONTRACTS.md` of Janus.
 
-**Non-vacuity.** `Witness.nonvacuous` / `Witness.returns`: a toy allocator (two instructions, returning a fixed zeroed heap) is linked at the `runtime.newobject` address, its contract `hnew` is proved by symbolic execution, and a concrete call state satisfies every precondition, so the hypotheses are jointly satisfiable and the theorem fires (the call returns a fresh object in `rt` holding the expected value).
+**Non-vacuity.** `Witness.nonvacuous` (in `Fv256/Amd64/NewInt.lean`) / `Witness.returns`: a toy allocator (two instructions, returning a fixed zeroed heap) is linked at the `runtime.newobject` address, its contract `hnew` is proved by symbolic execution, and a concrete call state satisfies every precondition, so the hypotheses are jointly satisfiable and the theorem fires (the call returns a fresh object in `rt` holding the expected value).
 -/
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts
 
 namespace Fv256.Amd64.NewInt
 
+/-- The address of `uint256.Int`'s type descriptor (the `LEA` before the call loads it): the extraction's only data object. -/
+def intType : Nat := dataBase Extracted.program 0
+
 set_option maxRecDepth 20000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (val : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (val : BitVec 64)
     (hnew : NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [val]
@@ -62,7 +67,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     omega
   · janus_frame
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 open Janus.Contracts.AllocSat (le_blockSize)
@@ -205,7 +210,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         s'.mem.readLE ptr 32 = Spec.setU z.toNat ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4128, (s.regs 4).toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, arg, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, hret, setup, pre,
-    correctness impl rt H arg hnew ret hret s0 setup pre⟩
+    correctness_proof impl rt H arg hnew ret hret s0 setup pre⟩
 
 
 
@@ -215,8 +220,8 @@ theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' �
         s'.mem.accessible ptr 32 true = true ∧
         s'.mem.readLE ptr 32 = Spec.setU arg.toNat ∧
         MemFrame s0.mem s'.mem (rt ++ [((s0.regs 4).toNat - 4128, (s0.regs 4).toNat + 24)])) :=
-  correctness impl rt H arg hnew ret hret s0 setup pre
+  correctness_proof impl rt H arg hnew ret hret s0 setup pre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.NewInt

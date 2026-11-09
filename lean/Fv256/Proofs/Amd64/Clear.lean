@@ -10,14 +10,14 @@ is writable, the 32 bytes at `z` are writable, those at `x` readable (below `2^4
 slot, and `z`, `x` are equal or disjoint, the call returns (no fault, no panic), obeys the ABI, returns `z` in `RAX`, the number
 at `z` afterwards is `Fv256.Spec.clear` of the number at `x` before the call, and no byte outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding `0`.
+**Non-vacuity.** `Witness.nonvacuous` (in `Fv256/Amd64/Clear.lean`): a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Clear
 
-theorem correctness (z : BitVec 64) :
+theorem correctness_proof (z : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧
         Disjoint z 32 (s.regs regSP) 8)
@@ -30,7 +30,7 @@ theorem correctness (z : BitVec 64) :
   simp only [valueAt, Disjoint] at *
   all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals (refine ⟨?_, ?_⟩; (· simp [Spec.clear]); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -59,18 +59,18 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z : BitVec 64), RetAddr Extrac
         valueAt s' z 32 = Spec.clear ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, hret, setup, hpre,
-    correctness z ret hret s0 setup hpre⟩
+    correctness_proof z ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   try simp only [valueAt]
   try decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Clear
 

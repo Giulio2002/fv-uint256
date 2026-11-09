@@ -1,7 +1,6 @@
 import Extracted
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Amd64.SubUint64
 
 /-!
 # `(*uint256.Int).SubUint64(x *Int, n uint64) *Int` (amd64): `z = Fv256.Spec.subU x n`
@@ -11,14 +10,17 @@ is writable, the 32 bytes at `z` are writable, those at `x` readable (below `2^4
 slot, and `z`, `x` are equal or disjoint, the call returns (no fault, no panic), obeys the ABI, returns `z` in `RAX`, the number
 at `z` afterwards is `Fv256.Spec.subU` of the number at `x` before the call, and no byte outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding `0`.
+**Non-vacuity.** `Witness.nonvacuous` (in `Fv256/Amd64/SubUint64.lean`): a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.SubUint64
 
-theorem correctness (z x n : BitVec 64) :
+/-- equal or disjoint 32-byte objects -/
+def Alias (p q : BitVec 64) : Prop := p = q ∨ Disjoint p 32 q 32
+
+theorem correctness_proof (z x n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, n]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧
         Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x)
@@ -32,7 +34,7 @@ theorem correctness (z x n : BitVec 64) :
   rcases hzx with rfl | hzx
   all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); have := n.isLt; refine ⟨?_, ?_⟩; (· first | (simp only [Util.subFlags_fst_toNat, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod, Spec.subU, Spec.W]; dec_goal; omega) | (simp only [Nat.lt_irrefl, decide_false, Bool.toNat_false, Nat.add_zero, ↓reduceIte, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Spec.subU, Spec.W]; try omega)); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -67,18 +69,18 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x n : BitVec 64), RetAddr Ex
         valueAt s' z 32 = Spec.subU (valueAt s x 32) n.toNat ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, x, n, hret, setup, hpre,
-    correctness z x n ret hret s0 setup hpre⟩
+    correctness_proof z x n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   try simp only [valueAt]
   try decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SubUint64
 

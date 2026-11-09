@@ -1,6 +1,22 @@
 import Janus
 import Fv256.Spec.Basic
 import Fv256.Spec.Add   -- `Fv256.Spec.add` lives in its own pure file
+import Fv256.Spec.AddOverflow
+import Fv256.Spec.AddUint64
+import Fv256.Spec.Sub
+import Fv256.Spec.SubOverflow
+import Fv256.Spec.SubUint64
+import Fv256.Spec.Neg
+import Fv256.Spec.Abs
+import Fv256.Spec.Not
+import Fv256.Spec.And
+import Fv256.Spec.Or
+import Fv256.Spec.Xor
+import Fv256.Spec.Clear
+import Fv256.Spec.Set
+import Fv256.Spec.SetOne
+import Fv256.Spec.SetAllOne
+import Fv256.Spec.SetUint64
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
@@ -9,15 +25,6 @@ namespace Fv256.Spec
 
 /-- `x.IsZero()`. -/
 def isZero (x : Nat) : Bool := x == 0
-
-/-- `z.And(x, y)`: bitwise and of the two numbers. -/
-def and (x y : Nat) : Nat := x &&& y
-
-/-- `z.Or(x, y)`. -/
-def or (x y : Nat) : Nat := x ||| y
-
-/-- `z.Xor(x, y)`. -/
-def xor (x y : Nat) : Nat := x ^^^ y
 
 /-- `z.Eq(x)`. -/
 def eq (x y : Nat) : Bool := x == y
@@ -30,15 +37,6 @@ def gt (x y : Nat) : Bool := decide (y < x)
 
 /-- `z.Cmp(x)`: -1, 0 or 1. -/
 def cmp (x y : Nat) : Int := if x < y then -1 else if x = y then 0 else 1
-
-/-- `z.Not(x)`: bitwise complement of a 256-bit number. -/
-def not (x : Nat) : Nat := W - 1 - x
-
-/-- `z.Neg(x)`: two's complement negation modulo `2^256`. -/
-def neg (x : Nat) : Nat := (W - x) % W
-
-/-- `z.Sub(x, y)`. -/
-def sub (x y : Nat) : Nat := (x + W - y) % W
 
 /-- `z.Mul(x, y)`. -/
 def mul (x y : Nat) : Nat := (x * y) % W
@@ -61,33 +59,6 @@ def slt (x y : Nat) : Bool := decide (signed x < signed y)
 /-- `z.Sgt(x)`: signed greater-than. -/
 def sgt (x y : Nat) : Bool := decide (signed y < signed x)
 
-/-- `z.Clear()`. -/
-def clear : Nat := 0
-
-/-- `z.SetOne()`. -/
-def one : Nat := 1
-
-/-- `z.SetAllOne()`: all 256 bits set. -/
-def allOne : Nat := W - 1
-
-/-- `z.Set(x)`. -/
-def set (x : Nat) : Nat := x
-
-/-- `z.AddOverflow(x, y)` overflow flag: the true sum does not fit in 256 bits. -/
-def addOv (x y : Nat) : Bool := decide (W ≤ x + y)
-
-/-- `z.SubOverflow(x, y)` overflow flag: `x < y`. -/
-def subOv (x y : Nat) : Bool := decide (x < y)
-
-/-- `z.AddUint64(x, n)`. -/
-def addU (x n : Nat) : Nat := (x + n) % W
-
-/-- `z.SubUint64(x, n)`. -/
-def subU (x n : Nat) : Nat := (x + W - n) % W
-
-/-- `z.SetUint64(n)`. -/
-def setU (n : Nat) : Nat := n
-
 /-- `x.BitLen()`: the number of significant bits (`0` for zero, otherwise `⌊log₂ x⌋ + 1`). -/
 def bitLen (x : Nat) : Nat := if x = 0 then 0 else Nat.log2 x + 1
 
@@ -97,9 +68,6 @@ def byteLen (x : Nat) : Nat := (bitLen x + 7) / 8
 /-- `z.Byte(n)` on the number `x`: the `n`-th byte of `x` counted from the most significant end
 (`n = 0` is the top byte); `0` when `n ≥ 32`. -/
 def byte (n x : Nat) : Nat := if n < 32 then x / 2 ^ (8 * (31 - n)) % 256 else 0
-
-/-- `z.Abs(x)`: the absolute value of the two's-complement reading, modulo `2^256`. -/
-def abs (x : Nat) : Nat := if x < 2 ^ 255 then x else (W - x) % W
 
 /-- `z.Lsh(x, n)`: shift left by `n` bits, modulo `2^256` (zero once `n ≥ 256`). -/
 def lsh (x n : Nat) : Nat := (x * 2 ^ n) % W

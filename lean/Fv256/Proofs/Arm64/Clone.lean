@@ -1,8 +1,10 @@
 import Extracted
+import Fv256.Spec.Util
+import Fv256.Spec.Core
+import Fv256.Spec.Arm64.CallSites.Base
 import Fv256.Proofs.Arm64.CallSites.Base
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Arm64.Clone
 
 /-!
 # `(*uint256.Int).Clone() *Int` (arm64)
@@ -17,7 +19,7 @@ with `[ptr, ptr+32)` inside the runtime-owned ranges (a *fresh* object, disjoint
 **What is assumed.** Only the contract hypothesis `hnew` for the code linked at `runtime.newobject` (not extracted: `janus extract --contract
 runtime.newobject`); see `docs/RUNTIME-CONTRACTS.md` of Janus.
 
-**Non-vacuity.** `Witness.nonvacuous` / `Witness.returns`: a toy allocator (two instructions, returning a fixed zeroed heap) is linked at the `runtime.newobject` address, its contract `hnew` is proved by symbolic execution, and a concrete call state satisfies every precondition, so the hypotheses are jointly satisfiable and the theorem fires (the call returns a fresh object in `rt` holding the expected value).
+**Non-vacuity.** `Witness.nonvacuous` (in `Fv256/Arm64/Clone.lean`) / `Witness.returns`: a toy allocator (two instructions, returning a fixed zeroed heap) is linked at the `runtime.newobject` address, its contract `hnew` is proved by symbolic execution, and a concrete call state satisfies every precondition, so the hypotheses are jointly satisfiable and the theorem fires (the call returns a fresh object in `rt` holding the expected value).
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
@@ -26,8 +28,14 @@ open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.Clone
 
+/-- The address of `uint256.Int`'s type descriptor, the argument `Clone` passes to `runtime.newobject`
+(the `ADRP` + `ADD` pair at `Clone+0x1c`), recomputed from the extracted words. -/
+def intType : Nat :=
+  adrpLdTarget (Extracted.entry + 0x1c) (segWord Extracted.program "github.com/holiman/uint256.(*Int).Clone" 7)
+    (segWord Extracted.program "github.com/holiman/uint256.(*Int).Clone" 8) 0
+
 set_option maxRecDepth 20000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hnew : NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -52,7 +60,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self, Util.readLE8_mod, Nat.reducePow]
   · janus_frame
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -202,7 +210,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre,
     ⟨wsNew, rfl, wsNew_pre⟩,
-    correctness impl rt H arg hnew ret hret s0 setup pre⟩
+    correctness_proof impl rt H arg hnew ret hret s0 setup pre⟩
 
 
 
@@ -211,8 +219,8 @@ theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' �
     ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 rt ∧ ptr % 16 = 0 ∧
         s'.mem.accessible ptr 32 true = true ∧ val256 s'.mem ptr = val256 s0.mem arg.toNat ∧
         MemFrame s0.mem s'.mem (rt ++ [(s0.sp.toNat - 4144, s0.sp.toNat + 24)])) :=
-  correctness impl rt H arg hnew ret hret s0 setup pre
+  correctness_proof impl rt H arg hnew ret hret s0 setup pre
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Clone

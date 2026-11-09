@@ -10,14 +10,14 @@ writable, those at `x` readable (below `2^48`) and `z`, `x` are equal or disjoin
 obeys the ABI, returns `z` in `X0`, the number at `z` afterwards is `Fv256.Spec.clear` of the number at `x` before the call,
 and no byte outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding `0`.
+**Non-vacuity.** `Witness.nonvacuous` (in `Fv256/Arm64/Clear.lean`): a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding `0`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Clear
 
-theorem correctness (z : BitVec 64) :
+theorem correctness_proof (z : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z]
       (fun s => Ptr32 s.mem z true)
       (fun s s' => s'.regs 0 = z ∧
@@ -27,7 +27,7 @@ theorem correctness (z : BitVec 64) :
   janus_intro hs
   all_goals first | (exfalso; omega) | (janus_run; all_goals (simp [Spec.clear]))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -57,17 +57,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z : BitVec 64), RetAddr Extrac
         val256 s'.mem z.toNat = Spec.clear ∧
         OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, hret, setup, hpre,
-    correctness z ret hret s0 setup hpre⟩
+    correctness_proof z ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   try decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Clear
 
