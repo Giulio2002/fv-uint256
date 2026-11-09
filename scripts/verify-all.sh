@@ -98,9 +98,12 @@ run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never 
   out="build/ex-$isa-$fn"
   if [ "$kind" = v3 ]; then
     # the witness theorems (Witness.nonvacuous ...) of the module are verified with correctness: mandatory under the Janus witness rule
-    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/Proofs/Amd64v3/$fn.lean"); fi
+    # claim-file row (spec redesign): lean/Fv256/Amd64v3/$fn.lean holds `Fv256.Amd64v3.$fn.correctness` + witnesses; else the legacy proof-file row
+    v3f="lean/Fv256/Proofs/Amd64v3/$fn.lean"; v3t="Fv256.Amd64v3.$fn.correctness"
+    if [ -f "lean/Fv256/Amd64v3/$fn.lean" ] && grep -q "^theorem correctness" "lean/Fv256/Amd64v3/$fn.lean"; then v3f="lean/Fv256/Amd64v3/$fn.lean"; fi
+    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "$v3f"); fi
     if $JANUS extract build/harness-amd64v3 "github.com/holiman/uint256.(*Int).$fn" "$out" >"build/log-$isa-$fn" 2>&1 &&
-       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/Proofs/Amd64v3/$fn.lean" --proof-root lean --theorem "Fv256.Amd64v3.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
+       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "$v3f" --proof-root lean --theorem "$v3t" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
   else
     case "$isa" in arm64) dir=Arm64;; amd64) dir=Amd64;; esac
     case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac

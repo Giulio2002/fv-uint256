@@ -127,7 +127,7 @@ def main():
         f = f'{ld}/{d}/{pf}.lean'
         # claim-file rows: lean/Fv256/<Isa>/<Fn>.lean holds `Fv256.<Isa>.<Fn>.correctness` and the Witness theorems
         cf = f'lean/Fv256/{d}/{fn}.lean'
-        claim = isa != 'amd64v3' and os.path.isfile(cf) and re.search(r'^theorem correctness', open(cf).read(), re.M)
+        claim = os.path.isfile(cf) and re.search(r'^theorem correctness', open(cf).read(), re.M)
         if claim:
             f = cf; pf = fn
         if not os.path.isfile(f):
