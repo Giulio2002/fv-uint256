@@ -5,7 +5,8 @@
 # usage: gen-tb-intobig-amd64.sh LEAN_DIR
 L=${1:-lean}; D=$L/Fv256/Amd64; mkdir -p $D/TB
 for m in IntoBigDefs IntoBigFinF IntoBigClose IntoBigLoop IntoBigTail IntoBigSlow3 IntoBigMid IntoBigT; do
-  python3 - "$D/$m.lean" "$D/TB/$m.lean" <<'PY'
+  src=$m; [ "$m" = IntoBigT ] && src=IntoBig   # the amd64 main module is IntoBig.lean (IntoBigT.lean no longer exists); its TB copy is TB/IntoBigT.lean
+  python3 - "$D/$src.lean" "$D/TB/$m.lean" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
 if 'namespace Witness' in s:

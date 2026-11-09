@@ -34,6 +34,6 @@ done < <(find lean -name '*.lean' -not -path '*/.lake/*' | sort)
 python3 scripts/lint_source.py || fail=1
 # (2) Lean-level (RELEASE): every constant defined in an Fv256 module is checked after elaboration for IO types / IO primitives / initializers
 # (scripts/check-lean-lint; needs build/harness-*, a janus binary and the janus lake package, as scripts/check-spec-closure).
-if [ -n "${RELEASE:-}" ]; then python3 scripts/check-lean-lint || fail=1; fi
+if [ -n "${RELEASE:-}" ]; then bash scripts/check-generated.sh || fail=1; python3 scripts/check-lean-lint || fail=1; fi
 [ $fail = 0 ] && echo "no-sorry: OK" || echo "no-sorry: FAILED"
 exit $fail

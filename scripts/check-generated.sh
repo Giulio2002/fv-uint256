@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
-# check-generated.sh: the generated-but-committed proof modules (lean/Fv256/{Arm64,Amd64}/TB/*.lean, produced by scripts/gen-tb-intobig*.sh from the IntoBig
-# modules) must equal their generator's output. Regenerates into a TEMP copy and diffs: it NEVER writes a tracked file. Exit 1 on drift
-# (fix: run `bash scripts/gen-tb-intobig.sh lean; bash scripts/gen-tb-intobig-amd64.sh lean`, review the diff, re-verify ToBig/IntoBig, commit).
+# check-generated.sh: every generated-but-committed proof module must equal its generator's output. Runs EVERY scripts/gen-*.sh (they take LEAN_DIR)
+# on a TEMP copy of lean/Fv256 (TB generators first, then the FM ones that read them) and diffs the whole tree: it NEVER writes a tracked file.
+# Exit 1 on drift or on a generator that fails. Fix: run the generators in place (same order as GEN_ORDER below), review the diff, re-verify the rows
+# whose import chain changed (ToBig, Format, IntoBig), commit.
+# scripts/gen-*.py (gen-amain, gen-amfdwit, gen-mfdwit) are historical one-shot generators with hard-coded paths into another worktree
+# (/srv/fv-uint256-wJ): they cannot be re-run here, their outputs are ordinary committed sources.
 set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd "$root"
+GEN_ORDER="gen-tb-intobig gen-tb-intobig-amd64 gen-fm-hex-arm64 gen-fm-hex-amd64 gen-fm-intobig-arm64 gen-fm-intobig-amd64"
+fail=0
+# every shell generator in the repo must be in GEN_ORDER (a new generator must be added here)
+for g in scripts/gen-*.sh; do b="$(basename "$g" .sh)"; case " $GEN_ORDER " in *" $b "*) ;; *) echo "check-generated: FAIL: $g is not listed in GEN_ORDER of scripts/check-generated.sh"; fail=1;; esac; done
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/lean"; cp -a lean/Fv256 "$tmp/lean/Fv256"
-fail=0
-[ -f lean/Fv256/Arm64/ToBig.lean ] && bash scripts/gen-tb-intobig.sh "$tmp/lean" || true
-[ -f lean/Fv256/Amd64/ToBig.lean ] && [ -f lean/Fv256/Amd64/IntoBigT.lean ] && [ -f scripts/gen-tb-intobig-amd64.sh ] && bash scripts/gen-tb-intobig-amd64.sh "$tmp/lean" || true
-for isa in Arm64 Amd64; do
-  if [ -d "lean/Fv256/$isa/TB" ]; then
-    if ! diff -ru "lean/Fv256/$isa/TB" "$tmp/lean/Fv256/$isa/TB" >"$tmp/diff-$isa" 2>&1; then
-      echo "check-generated: FAIL: lean/Fv256/$isa/TB is stale against its generator (the committed file differs from the generator output):"; head -30 "$tmp/diff-$isa"; fail=1
-    fi
-  fi
+for b in $GEN_ORDER; do
+  bash "scripts/$b.sh" "$tmp/lean" >"$tmp/gen-$b.log" 2>&1 || { echo "check-generated: FAIL: scripts/$b.sh failed on a temp copy:"; tail -5 "$tmp/gen-$b.log"; fail=1; }
 done
-[ $fail = 0 ] && echo "check-generated: OK (TB modules equal their generator output)"
+if ! diff -ru lean/Fv256 "$tmp/lean/Fv256" >"$tmp/diff" 2>&1; then
+  echo "check-generated: FAIL: generated modules differ from their generators' output (committed file vs generator):"; head -40 "$tmp/diff"; fail=1
+fi
+[ $fail = 0 ] && echo "check-generated: OK (all $(echo $GEN_ORDER | wc -w) generators reproduce the committed modules)"
 exit $fail

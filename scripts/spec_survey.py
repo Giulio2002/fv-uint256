@@ -106,8 +106,7 @@ def main():
     ws = os.path.abspath(os.environ.get('SPEC_WS', 'build/spec-ws'))
     pkg = os.environ.get('SPEC_JANUS_PKG', 'lean/.lake/packages/janus')
     janus = os.environ.get('JANUS') or (os.path.abspath('build/janus') if os.path.exists('build/janus') else 'janus')
-    if os.path.exists('scripts/gen-tb-intobig.sh') and os.path.exists(layout_dir() + '/Arm64/ToBig.lean'):
-        sh(['bash', 'scripts/gen-tb-intobig.sh', 'lean'])
+    # (no in-place regeneration of the TB/FM modules here: a check script never rewrites tracked proof sources; scripts/check-generated.sh fails on drift)
     prepare_ws(ws, pkg)
     ld = layout_dir()
     res = {}
