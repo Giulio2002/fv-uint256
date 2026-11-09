@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Build the harness for both ISAs, then extract and `janus verify` every function whose COVERAGE.md row says
+# Build the harness for both ISAs, then extract and `janus verify` every function whose docs/COVERAGE.md row says
 # `verified` for an ISA. Usage: JANUS=/path/to/janus scripts/verify-all.sh [FN ...]   (default: all verified)
-# Env: ROWS=N (rows verified in parallel, default 1; the final run uses 4); MEMCAP (per-row memory cap, default 24G); MAX_LOAD (40) and MIN_MEM_GB (80): admission rules checked before each row starts;
+# Env: ONLY_ISA=arm64|amd64|amd64v3 (verify one ISA only; amd64 includes the v3 row), ROWS=N (rows verified in parallel, default 1; the final run uses 4); MEMCAP (per-row memory cap, default 24G); MAX_LOAD (40) and MIN_MEM_GB (80): admission rules checked before each row starts;
 #      HEAVY_PRIORITY (default 0; rows go through /srv/janus-ops/bin/heavy-run when it exists, HEAVY_RUN=0 bypasses); JANUS_CACHE_DIR (default: a FRESH empty dir build/jcache-<stamp>; a non-empty dir is refused unless ALLOW_WARM_CACHE=1);
 #      WITNESS (default 1; every witness theorem is verified with correctness, WITNESS=0 disables); WITNESS=1 (also verify Witness.nonvacuous where the proof has it; needs the Janus witness rule), SKIP_HARNESS=1 (reuse build/harness-*, for parallel chunks), PER_FN_TIMEOUT (seconds, default 1800), LEAN_NUM_THREADS (4), JANUS_JOBS (2).
 set -uo pipefail
@@ -16,7 +16,7 @@ command -v memcap >/dev/null || { echo "error: memcap not found (every row must 
 MC=memcap
 HR=""; if [ "${HEAVY_RUN:-1}" != 0 ] && [ -x /srv/janus-ops/bin/heavy-run ]; then HR=/srv/janus-ops/bin/heavy-run; fi
 command -v /usr/bin/time >/dev/null || { echo "error: /usr/bin/time (GNU time) needed for peak RSS" >&2; exit 2; }
-# a FRESH cache: a cache built against another pin/extractor can poison kernel replay (see FV-A-HANDOVER fact 2)
+# a FRESH cache: a cache built against another pin/extractor can poison kernel replay 
 if [ -z "${JANUS_CACHE_DIR:-}" ]; then JANUS_CACHE_DIR="$root/build/jcache-$(date +%Y%m%d-%H%M%S)"; fi
 mkdir -p "$JANUS_CACHE_DIR"
 if [ -n "$(ls -A "$JANUS_CACHE_DIR" 2>/dev/null)" ] && [ -z "${ALLOW_WARM_CACHE:-}" ]; then echo "error: JANUS_CACHE_DIR=$JANUS_CACHE_DIR is not empty: the final run needs a fresh cache (ALLOW_WARM_CACHE=1 to override for a dev run)" >&2; exit 2; fi
@@ -65,7 +65,7 @@ declare -a order_isa order_fn
 heavyfirst=" $(grep -v '^#' "$root/scripts/heavy-first.txt" 2>/dev/null | tr '\n' ' ') "
 # A row whose per-ISA status is `todo` or `in progress (...)` is reported as MISSING and makes the run FAIL (never skipped silently).
 # rows: | `(*uint256.Int).Fn` | owner | arm64 status | amd64 status | ...  (functions: uint256.Fn or (*uint256.Int).Fn)
-mapfile -t rows < <(grep -E '^\| `' COVERAGE.md)
+mapfile -t rows < <(grep -E '^\| `' docs/COVERAGE.md)
 fail=0
 for row in "${rows[@]}"; do
   sym=$(echo "$row" | cut -d'|' -f2 | tr -d ' `')
@@ -74,6 +74,7 @@ for row in "${rows[@]}"; do
   [ $# -gt 0 ] && { case " $* " in *" $fn "*) ;; *) continue;; esac; }
   for pair in "arm64:$st_arm" "amd64:$st_amd"; do
     IFS=: read -r isa st <<<"$pair"
+    [ -z "${ONLY_ISA:-}" ] || [ "$ONLY_ISA" = "$isa" ] || continue
     case "$st" in
       verified*|partial*) jobs_isa+=("$isa"); jobs_fn+=("$fn"); jobs_kind+=(row); jobs_tag+=("$sym");;
       todo*|inprogress*|in-progress*) echo "MISSING ($st)" >"build/res/$isa-$fn.pre"; echo "MISSING 0 0" >"build/res/$isa-$fn"; fail=1
@@ -86,6 +87,7 @@ done
 for f in lean/Fv256/Proofs/Amd64v3/*.lean; do
   [ -e "$f" ] || continue
   fn="$(basename "$f" .lean)"
+  [ -z "${ONLY_ISA:-}" ] || [ "$ONLY_ISA" = amd64 ] || [ "$ONLY_ISA" = amd64v3 ] || continue
   [ $# -gt 0 ] && { case " $* " in *" $fn "*) ;; *) continue;; esac; }
   jobs_isa+=(amd64v3); jobs_fn+=("$fn"); jobs_kind+=(v3); jobs_tag+=("$fn")
 done
@@ -146,7 +148,7 @@ for i in "${idx[@]}"; do
 done
 wait
 # ---- summary --------------------------------------------------------------------------------------------------------------
-# "== summary ==" lines `ISA Fn VERDICT` are what mark-pin.py reads; the table after "== timing ==" has wall time, peak RSS (largest process) and the witness theorem count per row.
+# "== summary ==" lines `ISA Fn VERDICT` summarise each row; the table after "== timing ==" has wall time, peak RSS (largest process) and the witness theorem count per row.
 table=""; ttable=""
 for i in "${!jobs_fn[@]}"; do
   isa="${jobs_isa[$i]}"; fn="${jobs_fn[$i]}"

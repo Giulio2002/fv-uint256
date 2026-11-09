@@ -1,72 +1,68 @@
 # fv-uint256
 
-Machine-checked proofs, with [Janus](https://github.com/Giulio2002/Janus) (Lean 4), that the **compiled arm64 and amd64 machine code**
-of the exported functions and methods of [holiman/uint256](https://github.com/holiman/uint256) computes what an independent
-mathematical specification says.
+Machine-checked proofs, with [Janus](https://github.com/Giulio2002/Janus) (Lean 4), that the **compiled arm64 and amd64 machine code** of
+[holiman/uint256](https://github.com/holiman/uint256) computes what an independent mathematical specification says.
 
-`COVERAGE.md` lists every exported symbol with its status per ISA (`verified`, `todo`, or `blocked` with the exact reason).
-Nothing is claimed for a symbol that is not `verified` there.
+RESULTS: <filled at release>
 
-## Assumptions about initialized mutable globals
-Two kinds of assumption go beyond the machine code itself, and each is stated in the theorem, not hidden:
-* **Runtime contracts** (`runtime.newobject`, `makeslice`, ...): hypotheses of the pinned Janus allocation contracts.
-* **`Log10` reads two writable Go globals**, `uint256.pows64` and `uint256.pows` (`.noptrdata`). The binary's *initial* contents are the
-  powers of ten, but because the section is writable the extractor does not take it as code-time constant, so the theorem *assumes*
-  (`Tabs64`, `TabsBig` in `lean/Fv256/Proofs/Arm64/L10Defs.lean`) that, when `Log10` runs, they still hold `10^i` (and are readable and
-  disjoint from the callee's stack window). Nothing in uint256 writes them, but a program that mutates them voids the result.
+## What is verified
 
-## Status
-`COVERAGE.md` is the authoritative table (127 exported functions and methods). Verified so far: simple arithmetic, comparison and bit
-operations, `Mul`, `Lsh`/`Rsh` (arm64), `Byte`, `Cmp` and the `...Uint64` variants, conversions to and from big-endian bytes
-(`SetBytes32`, `PutUint256`, `WriteToArray32/20`, `Bytes32`), `Clone`, `NewInt`, `SizeSSZ`. Open: division and modular arithmetic, `Exp`,
-`Sqrt`, `Log10`, string and `big.Int` conversions, `SRsh`, `ExtendSign`, the other `SetBytesN`, amd64 shifts; the exact reason is in the table.
+* Library: `github.com/holiman/uint256` master `48f3f44` (`v1.3.3-0.20261018174624-48f3f4483d41`), built by the harness in `go/`.
+* Scope: **146 exported functions and methods**, each on **linux/arm64 and linux/amd64**, plus **one extra amd64 row** for the
+  `GOAMD64=v3` build of `BitLen`. The table with the per-row status and runtime contracts is [`docs/COVERAGE.md`](docs/COVERAGE.md).
+* For every row, `correctness` says: for every admissible call (any caller, any other register or memory content, aliasing as stated in
+  the precondition) the code returns without faulting or panicking, obeys the Go ABI, and leaves results and memory exactly as the
+  specification (`lean/Fv256/Spec/`, plain mathematics on `Nat`) says. Each proof module also carries non-vacuity witnesses
+  (`Witness.nonvacuous`, ...): a concrete call satisfies the precondition and reaches the claimed result, so the statement is not empty.
+* The instruction bytes are copied by `janus extract` out of the linked executable; Lean decodes and runs them in its ISA model.
+  Janus's kernel replay and audit check every theorem.
 
-Forms of guarantee beyond the plain `Ensures`:
-* **Slice arguments** (`SetBytes32`, `PutUint256`): a conjunction of `Returns` under `len ≥ 32` and `Panics` (the bounds-check stub) under `len < 32`.
-* **Memory frame**: `Fv256.Util.OnlyWrites2` says that the call changes no byte outside the result object and the callee's own stack window.
-* **Allocation** (`Clone`, `NewInt`): stated for every implementation of `runtime.newobject` satisfying Janus's pinned allocation contract
-  (`NewobjectContract`); the result is a fresh object inside the runtime-owned ranges. Each has a `Witness` that links a toy allocator at the contract address.
-* **Partial theorems** (`MarshalSSZAppend`, `MarshalSSZInto`, `UnmarshalSSZ`): status `partial` in `COVERAGE.md`; the theorem is complete for the stated scope (e.g. `len + 32 <= cap`, the success path) and says nothing about the other paths.
-* **Omitted callees**: the `Runtime contracts assumed` banner line printed by `janus verify` also lists omitted UNPINNED callees (e.g. `fmt.errorf` passed with `--contract`). Those are not assumptions: no code is copied for them, the statement carries no hypothesis about them, and reaching one is a fault, so a proof that closes shows the precondition excludes that path.
-* **Writable globals** (`Log10`): the tables `uint256.pows64` / `uint256.pows` live in writable `.noptrdata`, which the extractor does not copy; the statement therefore assumes (`Tabs64`, `TabsBig` in `L10Defs.lean`) that they are readable, disjoint from the callee's stack window and hold the powers of ten (only `10^20..10^77` of `pows` are claimed and read). The result is stated relationally: `v = 0 → r = 0` and `v ≠ 0 → 10^r ≤ v < 10^(r+1)`. One proof module per (top nonzero limb, its bit length) keeps each job small.
-* **`BitLen` on amd64** is proved for a `GOAMD64=v3` build (`lzcnt`); the default `v1` code uses `BSR` of a possibly zero limb, which the Janus
-  model does not accept (`COVERAGE.md`).
+What a reader must trust, and the known limitations, are listed in [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md).
 
-## Pinned inputs
-| input | value |
+## Toolchain
+
+| component | version |
 |---|---|
-| uint256 | tag `v1.3.2`, commit `a17fcfb6f8b0245533928fa96aace2cd4c2e9b18` (pure Go, no assembly) |
-| Janus | `9c94b45d453873141b5fbd54977bc05f2402c4f9` (`lean/lakefile.toml`, `lean/lake-manifest.json`) |
-| Go toolchain | `go1.26.0` (`GOTOOLCHAIN`), `CGO_ENABLED=0`, `-trimpath`; Lean `v4.34.1` |
+| Lean | `leanprover/lean4:v4.34.1` (`lean/lean-toolchain`) |
+| Janus | pinned in `lean/lakefile.toml` (`rev`, with `lean/lake-manifest.json`) |
+| Go | `go1.26.0` (`GOTOOLCHAIN=go1.26.0`, `CGO_ENABLED=0`, `-trimpath`); the harness hashes are pinned in `scripts/harness.sha256` |
+| Other | `python3`, GNU `time`, `memcap` (per-row memory cap used by `verify-all.sh`), `lake` |
 
-## Spec vs impl
-* **Spec** (`lean/Fv256/Spec.lean`): plain mathematics on `Nat`, a `uint256.Int` is a number `< 2^256`
-  (`+`, `-`, `*`, `/`, `%`, shifts, comparisons modulo `2^256`, signed variants through two's complement). It is written
-  without reference to the Go code or to any ISA.
-* **Impl**: the instruction bytes of the library function, copied by `janus extract` out of the linked linux/arm64 or
-  linux/amd64 executable (`go/cmd/harness` links every exported function). Lean decodes and runs them in its ISA model.
-* **Theorem** (`lean/Fv256/<Arm64|Amd64>/<Fn>.lean`): `correctness` says that for every admissible call (any caller, any
-  other register or memory content, pointer aliasing as stated in the precondition) the code returns without faulting or
-  panicking, obeys the Go ABI, and leaves results and memory exactly as `Fv256.Spec` says. The bridge between the two is only
-  the memory layout (`val256`/`valueAt`: 32 bytes read as a little-endian number, i.e. four `uint64` limbs).
-  Each theorem module also holds `Witness.nonvacuous` (a concrete call satisfies the precondition, so it is not contradictory)
-  and `Witness.returns` (that call reaches the claimed result).
+You need a built `janus` binary (`go build ./cmd/janus` in the Janus repository) and pass it as `JANUS=/path/to/janus`.
 
-## Trusted base
-Janus's kernel and audit (the verifier, the ELF byte copy, the Lean models of arm64 and amd64), the Lean kernel and
-`leanchecker`, Janus's SHA-pinned runtime contracts (only where a proof calls into the Go runtime), and the Go compiler/linker
-as an *input*: we verify the produced binary, not the compiler. Single-threaded code only. Axioms allowed: `propext`,
-`Classical.choice`, `Quot.sound`; no `sorry`, no `native_decide`.
+## Running the checks
 
-## Reproduce
-```sh
-git clone https://github.com/Giulio2002/Janus && git -C Janus checkout 9c94b45d453873141b5fbd54977bc05f2402c4f9
-(cd Janus && go build -o bin/janus ./cmd/janus)
-# requirements: a Go toolchain (GO=/path/to/go, or `go` on PATH, or /usr/local/go/bin/go; the script pins GOTOOLCHAIN=go1.26.0),
-# the Janus binary (JANUS=), lake/Lean (via elan) and network access for the first `lake update janus`
-JANUS=$PWD/Janus/bin/janus scripts/verify-all.sh          # every function marked verified, both ISAs, summary table
-JANUS=... scripts/verify-all.sh IsZero And                 # a subset
+A `Makefile` wraps the entry points (`make help` lists them):
+
+| command | what it does |
+|---|---|
+| `make build` | `lake build` of the `Fv256` library (the extraction-independent modules: specification and lemmas) |
+| `make verify` | `scripts/verify-all.sh`: build the harness, extract and `janus verify` every row (arm64, amd64, amd64v3) |
+| `make verify FN=Add` / `make verify ISA=arm64` | one function / one ISA |
+| `make audit` | audit only (`JANUS_STOP_AFTER_AUDIT=1`: the statement audit without the kernel replay of the proofs) |
+| `make lint` | `RELEASE=1 scripts/no-sorry.sh`: no `sorry`/axioms/`native_decide`, source and Lean-level lints, spec-closure check, generated-module check |
+| `make check-generated` | generated proof modules equal their generators' output |
+| `make clean` | remove `build/` |
+
+Environment: `JANUS` (path of the janus binary), `JANUS_CACHE_DIR` (must be a fresh empty directory for a release run), `ROWS`
+(rows verified in parallel, default 1), `MEMCAP` (per-row memory cap, default 24G), `PER_FN_TIMEOUT`. See the header of `scripts/verify-all.sh`.
+A full run takes many hours; a single row takes minutes to about an hour.
+
+Example: `make verify JANUS=$HOME/janus/bin/janus FN=Add ISA=arm64`.
+
+## Layout
+
 ```
-Needs Go, `bubblewrap`, elan (Lean 4.34.1). See `HOWTO.md` for the single-function commands.
-Developing against a local Janus checkout: temporarily replace the `[[require]]` in `lean/lakefile.toml` by
-`path = "/path/to/Janus"` (never commit that).
+README.md          this file
+Makefile           entry points
+docs/              COVERAGE.md (status table), HUMAN-REVIEW.md (what to review), DEVELOPMENT.md (tooling and proof techniques)
+go/                the harness: a program linking every exported uint256 function (its binary is pinned by hash)
+lean/              Lake package `fv256`
+  Fv256/Spec/        the specification and every definition a theorem STATEMENT depends on (reviewed by a human)
+  Fv256/Proofs/      proofs and proof-only definitions: Arm64/, Amd64/, Amd64v3/, Common/
+scripts/           verify-all.sh, lints (no-sorry.sh, lint_source.py, check-spec-closure, check-lean-lint), generators, pinned data files
+WIP-SORRY.txt      allowlist of unfinished modules for `no-sorry.sh`; empty at release
+```
+
+`Spec/` never imports `Proofs/`; `scripts/check-spec-closure` proves, with Lean itself, that every final theorem statement depends only on
+`Spec/`, Janus and the extraction.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """scripts/check-spec-closure -- RELEASE CHECK: every final theorem STATEMENT depends only on lean/Fv256/Spec/ + Janus + Extracted.
 
-For every theorem verify-all.sh verifies (`correctness` of each verified COVERAGE row / Amd64v3 file, plus every existential witness
+For every theorem verify-all.sh verifies (`correctness` of each verified docs/COVERAGE.md row / Amd64v3 file, plus every existential witness
 theorem) the Fv256 constants reachable from its TYPE, transitively through definitions (types and values, never theorem proofs), are
 computed by Lean itself (scripts/spec_survey.py + scripts/SvyTools.lean: statements elaborated, proofs replaced by `sorry`).
 FAILS (exit 1) if any such constant is defined outside module Fv256.Spec.* (i.e. outside lean/Fv256/Spec/), or if a Spec/ module
@@ -25,7 +25,7 @@ while args and args[0].startswith('--'):
     else: sys.exit('unknown option ' + args[0])
 fail = 0
 if not os.path.isdir('lean/Fv256/Spec') or not os.path.isdir('lean/Fv256/Proofs'):
-    sys.exit('check-spec-closure: FAIL: lean/Fv256/Spec and lean/Fv256/Proofs must exist (run scripts/restructure.py)')
+    sys.exit('check-spec-closure: FAIL: lean/Fv256/Spec and lean/Fv256/Proofs must exist')
 # 1. import hygiene, with imports parsed by LEAN'S OWN header parser (scripts/LintImports.lean via lint_source.parse_imports): `import A import B`
 # on one line, `import all`, comment tricks and `prelude` are seen as the compiler sees them. Spec/ may import only Fv256.Spec.* (and Janus,
 # Extracted, Lean, Std, Init), with no modifier; nothing in lean/ may use prelude / import all.

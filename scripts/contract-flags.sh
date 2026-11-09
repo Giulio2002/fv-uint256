@@ -1,4 +1,4 @@
-# sourced by verify-all.sh and tools/v.sh: `contract_flags Fn` prints the extra `janus extract` flags a function needs
+# sourced by verify-all.sh: `contract_flags Fn` prints the extra `janus extract` flags a function needs
 # (runtime calls that are not extracted but covered by a pinned Janus contract, or omitted unpinned callees on error paths)
 contract_flags() {
   case "$1" in

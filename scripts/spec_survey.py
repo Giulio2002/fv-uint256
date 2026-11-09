@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """scripts/spec_survey.py -- compute the SPEC CLOSURE of the final theorems, using Lean itself.
 
-For every function row that verify-all.sh verifies (COVERAGE.md status verified*/partial*, plus lean/Fv256/**/Amd64v3/*.lean) the
+For every function row that verify-all.sh verifies (docs/COVERAGE.md status verified*/partial*, plus lean/Fv256/**/Amd64v3/*.lean) the
 final theorem module is elaborated with the `SvyTools` elaborator (build/spec-ws/tools): every `theorem` body is replaced by `sorry`
 (statements are fully elaborated, so the survey needs seconds per function, not the proof time), then `#spec_closure` collects the
 Fv256 constants reachable from the TYPES of `correctness` and of every existential witness theorem (scripts/witness-theorems.py),
@@ -28,7 +28,7 @@ def layout_dir():
 
 
 def tasks(only, isas):
-    rows = [l for l in open('COVERAGE.md').read().splitlines() if l.startswith('| `')]
+    rows = [l for l in open('docs/COVERAGE.md').read().splitlines() if l.startswith('| `')]
     out = []
     for row in rows:
         c = [x.strip() for x in row.split('|')]
