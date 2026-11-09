@@ -137,6 +137,28 @@ def split(text):
 DECL_KINDS = {'theorem', 'lemma', 'def', 'abbrev', 'instance', 'structure', 'inductive', 'class', 'opaque', 'axiom', 'example'}
 CTX_KINDS = {'open', 'set_option', 'namespace', 'end', 'section', 'variable', 'universe', 'export'}
 
+def prune_empty_namespaces(chunks):
+    """chunks: list of (kind, text); drop `namespace N .. end N` pairs that contain only context commands (opens, set_options)"""
+    res = []; i = 0
+    while i < len(chunks):
+        k, t = chunks[i]
+        if k == 'namespace':
+            depth = 0; j = i; ok = True
+            while j < len(chunks):
+                kk = chunks[j][0]
+                if kk in ('namespace', 'section'): depth += 1
+                elif kk == 'end':
+                    depth -= 1
+                    if depth == 0: break
+                elif kk not in ('open', 'set_option', 'variable', 'universe', 'export'): ok = False
+                j += 1
+            if ok and j < len(chunks) and depth == 0:
+                i = j + 1; continue
+        res.append((k, t)); i += 1
+    return res
+
+
+
 if __name__ == '__main__':
     import sys
     t = open(sys.argv[1]).read()

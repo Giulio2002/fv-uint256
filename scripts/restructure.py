@@ -240,17 +240,19 @@ def main():
             parts = n.split('.')
             for i in range(1, len(parts)): kn.add('.'.join(parts[:i]))
         spec_parts.insert(1, '\n/-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/\n')
+        chunks = []
         for i, c in enumerate(cmds):
             if c.kind == 'import' or c.kind == 'comment':
                 continue
             body = text[c.start:c.end]
             if i in v['moved']:
                 body = re.sub(r'^(\s*(?:/--(?:.|\n)*?-/\s*)?(?:@\[[^\]]*\]\s*)*)private\s+', r'\1', body, count=1)
-                spec_parts.append(body.rstrip('\n') + '\n')
+                chunks.append(('decl', body.rstrip('\n') + '\n'))
             elif c.kind in LS.CTX_KINDS:
                 body = filter_ctx(body, kn, kc)
                 if body:
-                    spec_parts.append(body.rstrip('\n') + '\n')
+                    chunks.append((c.kind, body.rstrip('\n') + '\n'))
+        spec_parts += [t for _, t in LS.prune_empty_namespaces(chunks)]
         newfiles[path_of(spec_name(m))] = '\n'.join(spec_parts)
         keep = []
         for i, c in enumerate(cmds):

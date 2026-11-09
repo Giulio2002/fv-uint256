@@ -119,37 +119,6 @@ def qualified_names(text, cmds):
 CTX = LS.CTX_KINDS
 
 
-def prune_empty_namespaces(chunks):
-    """chunks: list of (kind, text); drop `namespace N .. end N` pairs that contain only context commands (opens, set_options)"""
-    res = []; i = 0
-    while i < len(chunks):
-        k, t = chunks[i]
-        if k == 'namespace':
-            depth = 0; j = i; ok = True
-            while j < len(chunks):
-                kk = chunks[j][0]
-                if kk in ('namespace', 'section'): depth += 1
-                elif kk == 'end':
-                    depth -= 1
-                    if depth == 0: break
-                elif kk not in ('open', 'set_option', 'variable', 'universe', 'export'): ok = False
-                j += 1
-            if ok and j < len(chunks) and depth == 0:
-                i = j + 1; continue
-        res.append((k, t)); i += 1
-    return res
-
-
-def split_generated(text, names, M, gen_spec):
-    """returns (spec_text or None, proof_text); gen_spec: dict old generated module -> spec module name (filled progressively)"""
-    cmds = LS.split(text)
-    qn = qualified_names(text, cmds)
-    spec_idx = {i for i, c in enumerate(cmds) if qn[i] in names}
-    head_end = min((c.start for c in cmds if c.kind != 'import'), default=len(text))
-    imps = imports_of(text[:head_end])
-    return cmds, spec_idx, imps
-
-
 def map_imports(imps, M, gen_proof, gen_spec):
     proof, spec = [], []
     for y in imps:
@@ -209,7 +178,7 @@ def split_back(view, out, M):
                     chunks.append(('decl', body.rstrip('\n') + '\n'))
                 elif c.kind in CTX:
                     chunks.append((c.kind, body.rstrip('\n') + '\n'))
-            chunks = prune_empty_namespaces(chunks)
+            chunks = LS.prune_empty_namespaces(chunks)
             stext = ''.join('import %s\n' % x for x in simps_u) + '\n/-! SPECIFICATION part (generated): the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/\n\n' + '\n'.join(t for _, t in chunks)
             dst = mod_path(out, sname); os.makedirs(os.path.dirname(dst), exist_ok=True); open(dst, 'w').write(stext)
             gen_spec[g] = [sname]
