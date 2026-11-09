@@ -43,7 +43,7 @@ theorem core (z ptr len cap : BitVec 64) (ret : Nat)
   · intro ⟨_hzw, _hzw'⟩
     janus_run
 
-theorem correctness (z ptr len cap : BitVec 64) :
+theorem correctness_proof (z ptr len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, ptr, len, cap]
       (fun s => GuardOK s 0 ∧ StackOK s 24 24 ∧ 22 ≤ len.toNat ∧ Ptr32 s.mem z true ∧ Ptr s.mem ptr 22 false ∧
         Disjoint z.toNat 32 ptr.toNat 22 ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
@@ -55,14 +55,14 @@ theorem correctness (z ptr len cap : BitVec 64) :
   exact (core z ptr len cap ret hret s hs hg hst).1 hl h1 h2 h3 h4 h5
 
 /-- The bounds check: with fewer than 22 bytes the call reaches the panic stub. -/
-theorem panics (z ptr len cap : BitVec 64) (ret : Nat)
+theorem panics_proof (z ptr len cap : BitVec 64) (ret : Nat)
     (hret : RetAddr Extracted.program ret) (s : State)
     (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s)
     (hg : GuardOK s 0) (hst : StackOK s 24 24) :
     len.toNat < 22 → Ptr32 s.mem z true → Panics (Extracted.program.withExit ret) s :=
   (core z ptr len cap ret hret s hs hg hst).2
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -101,7 +101,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
         val256 s'.mem z.toNat = Spec.fromBE (fun i => s.mem.readLE (ptr.toNat + i) 1) 22 ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 24) 48 := by
   refine ⟨ret, s0, z, ptr, 22, 22, hret, setup, ?w2,
-    correctness z ptr 22 22 ret hret s0 setup ?w2⟩
+    correctness_proof z ptr 22 22 ret hret s0 setup ?w2⟩
   case w2 => exact ⟨hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
@@ -110,6 +110,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
       Fv256.Util.OnlyWrites2 s0.mem s'.mem z.toNat 32 (s0.sp.toNat - 24) 48 :=
   (core z ptr 22 22 ret hret s0 setup hg hst).1 hpre.1 hpre.2.1 hpre.2.2.1 hpre.2.2.2.1 hpre.2.2.2.2.1 hpre.2.2.2.2.2
 
-end Witness
+end Wit
 
 end Fv256.Arm64.SetBytes22
