@@ -428,5 +428,46 @@ def write_umbrella():
 # ---------------------------------------------------------------------------------------------------------------- scripts / docs
 
 
+PATH_RULES = [
+    (re.compile(r'(lean/Fv256|\$L/Fv256|\$\{L\}/Fv256|Fv256)/(Arm64|Amd64v3|Amd64)(?!\w)'), lambda m: '%s/Proofs/%s' % (m.group(1), m.group(2))),
+    (re.compile(r'(lean/Fv256|\$L/Fv256|\$\{L\}/Fv256|\$snap/lean/Fv256)/(\$\{?(?:dir|D|isa|ISA|I)\}?)(?=/)'), lambda m: '%s/Proofs/%s' % (m.group(1), m.group(2))),
+    (re.compile(r"lean/Fv256/%s/"), lambda m: 'lean/Fv256/Proofs/%s/'),
+    (re.compile(r'lean/Fv256/\{Arm64,Amd64\}'), lambda m: 'lean/Fv256/Proofs/{Arm64,Amd64}'),
+]
+
+
+def rewrite_scripts(mapping):
+    """textual rewrite of paths and `import Fv256...` lines in scripts, templates, tools and docs"""
+    targets = []
+    for d in ('scripts', 'tools'):
+        for r, _, fs in os.walk(d):
+            if '__pycache__' in r: continue
+            for f in fs:
+                targets.append(os.path.join(r, f))
+    targets += [f for f in os.listdir('.') if f.endswith(('.md', '.sh', '.txt')) and os.path.isfile(f)]
+    imp = re.compile(r'(\bimport\s+)(Fv256(?:\.[\w@]+)+)')
+    n = 0
+    for p in targets:
+        if os.path.basename(p).startswith('gen-') or os.path.basename(p) in ('layout-map.json', 'tactic-whitelist.txt', 'check-generated.sh'): continue
+        if p.endswith(('restructure.py', 'leansplit.py', 'spec_survey.py', 'check-spec-closure', 'SvyTools.lean')): continue
+        try:
+            t = open(p).read()
+        except Exception:
+            continue
+        o = t
+        for rx, fn in PATH_RULES:
+            t = rx.sub(fn, t)
+        def fi(m):
+            mod = m.group(2)
+            if mod not in mapping and re.match(r'Fv256\.(Arm64|Amd64|Amd64v3)\.', mod):
+                return m.group(1) + proof_name(mod)
+            return m.group(1) + mapping.get(mod, mod)
+        t = imp.sub(fi, t)
+        t = re.sub(r'(import Fv256\\\.)(Arm64|Amd64)(?=\\\.)', r'\1Proofs\\.\2', t)
+        if t != o:
+            open(p, 'w').write(t); n += 1
+    print('rewrote %d script/doc files' % n)
+
+
 if __name__ == '__main__':
     main()
