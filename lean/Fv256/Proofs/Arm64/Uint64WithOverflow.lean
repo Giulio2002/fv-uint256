@@ -54,7 +54,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 0 ∧ (s'.regs 1).toNat % 256 = 0 := by
-  refine (correctness x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_, ?_⟩
   · rw [h.2.1]; try simp only [valueAt]

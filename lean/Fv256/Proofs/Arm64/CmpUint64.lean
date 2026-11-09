@@ -56,7 +56,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extr
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = 0#64 := by
-  refine (correctness z n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   rw [h.2]
