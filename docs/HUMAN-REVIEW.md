@@ -39,10 +39,25 @@ These are hypotheses or pinned trusted objects, stated in the theorem or printed
 
 ## 4. The non-vacuity witness rule
 
-A theorem with an unsatisfiable precondition proves nothing. Every `correctness` theorem is accompanied by existential witness theorems (`Witness.nonvacuous`:
-a concrete state satisfies the precondition; `Witness.returns`: the call reaches the claimed result; some rows have more, for example `Witness.hex`). `verify-all.sh`
-finds them with `scripts/witness-theorems.py` and passes each to `janus verify --theorem`; Janus enforces its witness rule on them. `check-spec-closure` also covers the witness statements. A row without its witnesses fails the run (`WITNESS=0` disables it
-for development only, never for a release).
+A theorem with an unsatisfiable precondition, or with contract hypotheses no code can meet, proves nothing. Janus therefore refuses to verify a main theorem
+without a paired, kernel-checked witness, and the witness rules are frozen in Janus `docs/SOUNDNESS.md` (U-WITNESS-RUN, U-WITNESS-CALLSITE, U-WITNESS-PAIR).
+
+* **What `Witness.nonvacuous` states.** Not merely that some state satisfies the precondition. It is, with the main theorem's binders turned into `∃`:
+
+  `∃ binders, hyps ∧ RetAddr ∧ CallSetup ∧ pre ∧ Returns (program.link impl).withExit ret ... (ABIReturn ∧ post)`
+
+  that is, a kernel-checked **returning run** from a state that satisfies the precondition, meeting the postcondition, tied by unification to the same
+  variables and the same hypotheses as `correctness`. The hypotheses are jointly satisfiable by concrete code, and a real run exists.
+* **Call-site conjuncts.** Every runtime-contract hypothesis additionally needs a conjunct in the same witness: a state at the call's entry pc that satisfies the
+  contract's call precondition (at the same variables). No contract hypothesis can hold vacuously (empty precondition, sizes pinned out of range, `P := False`).
+* **Strict pairing.** Janus refuses any main theorem without its paired witness: pairing is by name, `Witness.nonvacuous` with `correctness`, `Witness.<X>` only with
+  the main theorem `<X>`; a witness never vouches for another main. A main whose conclusion is only a panic, fault or trap needs a tied second instance.
+  Therefore `WITNESS=0` in `verify-all.sh` cannot produce a release result: Janus rejects the row, and the run is only usable for development of the proofs.
+  `verify-all.sh` finds the witness theorems with `scripts/witness-theorems.py` and passes each with `--theorem`; `check-spec-closure` also covers the witness statements.
+* **Extra witnesses** (`Witness.hex`, `Witness.big`, `Witness.nil`, `Witness.unquoted`, ...) are kernel-checked lemmas about additional paths. They are not audited
+  witnesses: they show those paths are inhabited but gate nothing.
+* **Limit (KA1).** A witness shows that SOME run returns and that each contract's call precondition is inhabited; it does not show that every contract call is
+  reachable on that run (see Known limitations).
 
 ## 5. The Janus trusted computing base
 
@@ -61,11 +76,13 @@ Axioms allowed in the proofs: `propext`, `Classical.choice`, `Quot.sound`; no `s
 
 ## 7. Known limitations
 
-* **Path reachability (KA1).** The extractor copies the functions reachable by direct branches from the entry; an indirect call it misses is absent from the
-  model and faults with `noCode` when reached. This can make a theorem unprovable but cannot make a false theorem provable (Janus `docs/SOUNDNESS.md`).
-  The extraction flags per row are in `scripts/contract-flags.sh`.
-* **Instance binders.** `janus verify` checks that every instance-implicit argument in the printed statement is a registered instance of the clean environment or
-  an instance binder of the theorem. A statement with extra instance binders is read as quantifying over them: review the binders printed in the statement.
+* **Path reachability (KA1).** Path reachability is not required: the witness exhibits, per contract hypothesis, a state at the callee's entry satisfying the
+  contract's call precondition, and a returning run of the whole theorem, but it does not show that the caller's path reaches the call with those arguments.
+  A contract that is vacuous only at the arguments of a call no witness run takes is accepted (Janus `docs/SOUNDNESS.md`, "Known limitation (UP3)").
+* **Extraction reachability.** The extractor copies the functions reachable by direct branches; an indirect call it misses is absent from the model and faults
+  with `noCode` when reached. That can make a theorem unprovable but cannot make a false theorem provable. The extraction flags per row are in `scripts/contract-flags.sh`.
+* **Instance binders.** A main theorem with a class-typed theorem-level binder cannot be witnessed, so Janus never verifies it; the statements in this repository
+  have none, and `janus verify` additionally checks that every instance-implicit argument of the printed statement is a registered instance of the clean environment.
 * **Binary-specific libraries.** Several library programs (division, decimal, exp, ...) hold the absolute addresses and bytes of this exact harness build; they
   are not relocatable. The SSZ and the simple rows are layout independent. Rebuilding the harness with another compiler or flags requires re-verifying.
 * **Architectures and modes.** Single-threaded code only; amd64 is checked for the default `GOAMD64=v1` build, plus the `BitLen` row for `v3`.

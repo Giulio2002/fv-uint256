@@ -12,8 +12,7 @@ RESULTS: <filled at release>
   `GOAMD64=v3` build of `BitLen`. The table with the per-row status and runtime contracts is [`docs/COVERAGE.md`](docs/COVERAGE.md).
 * For every row, `correctness` says: for every admissible call (any caller, any other register or memory content, aliasing as stated in
   the precondition) the code returns without faulting or panicking, obeys the Go ABI, and leaves results and memory exactly as the
-  specification (`lean/Fv256/Spec/`, plain mathematics on `Nat`) says. Each proof module also carries non-vacuity witnesses
-  (`Witness.nonvacuous`, ...): a concrete call satisfies the precondition and reaches the claimed result, so the statement is not empty.
+  specification (`lean/Fv256/Spec/`, plain mathematics on `Nat`) says. Each main theorem is paired with a kernel-checked `Witness.nonvacuous`: a returning run from a state satisfying the precondition (and a call-site state for every runtime contract), so the statement is not empty; Janus refuses a theorem without it.
 * The instruction bytes are copied by `janus extract` out of the linked executable; Lean decodes and runs them in its ISA model.
   Janus's kernel replay and audit check every theorem.
 
