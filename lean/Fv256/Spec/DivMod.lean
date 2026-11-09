@@ -8,20 +8,20 @@ import Fv256.Spec.Mod
 Division by zero is NOT an error and does not panic: both results are `0`.
 When `z` and `m` are the same object the Go code works on a fresh copy of `m`, so the second returned pointer is then a new
 object that holds the remainder; the number values are the same.
+
+There is nothing new to define: the quotient is exactly `Fv256.Spec.div x y` (`Spec/Div.lean`) and the remainder exactly
+`Fv256.Spec.mod x y` (`Spec/Mod.lean`), computed from the same inputs `x`, `y`. The machine claims state both.
 -/
 
 namespace Fv256.Spec
 
-/-- Value of `z.DivMod(x, y, m)`: the pair (quotient `Spec.div x y`, remainder `Spec.mod x y`), both `0` when `y = 0`. -/
-def divMod (x y : Nat) : Nat × Nat := (div x y, mod x y)
-
-/-- `7 = 2 * 3 + 1`. -/
-example : divMod 7 2 = (3, 1) := by decide
+/-- `7 = 2 * 3 + 1`: quotient and remainder. -/
+example : div 7 2 = 3 ∧ mod 7 2 = 1 := by decide
 
 /-- Division by zero gives `(0, 0)`. -/
-example : divMod 7 0 = (0, 0) := by decide
+example : div 7 0 = 0 ∧ mod 7 0 = 0 := by decide
 
 /-- The two results recombine: `x = q * y + r` for `y ≠ 0` (checked on one case). -/
-example : (divMod 100 7).1 * 7 + (divMod 100 7).2 = 100 := by decide
+example : div 100 7 * 7 + mod 100 7 = 100 := by decide
 
 end Fv256.Spec
