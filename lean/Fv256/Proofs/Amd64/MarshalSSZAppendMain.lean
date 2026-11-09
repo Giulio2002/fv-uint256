@@ -27,7 +27,7 @@ namespace Fv256.Amd64.MarshalSSZAppendMain
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 0 in
-theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : List (Nat × Nat))
     (z dp len cap : BitVec 64)
     (hgs : RtLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.growslice") 4096 R growsliceSpec growsliceLive) :
@@ -129,7 +129,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : List 
   · simp
 
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -328,11 +328,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : 
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
   refine ⟨implAt, R, 0x1000, [], zV, dpV, 0, 32, ret, s0, ?w0, hret, setup, pre,
     ⟨csG, csG_rip, csG_pre⟩,
-    correctness implAt R 0x1000 ([]) zV dpV 0 32 ?w0 ret hret s0 setup pre⟩
+    correctness_proof implAt R 0x1000 ([]) zV dpV 0 32 ?w0 ret hret s0 setup pre⟩
   case w0 => exact by rw [addr_gr]; exact model_gr
-end Witness
+end Wit
 
-namespace Grow.Witness
+namespace Grow.Wit
 
 set_option maxRecDepth 100000
 
@@ -533,8 +533,8 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (L : 
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ AppendPost R s s' z dp.toNat len.toNat cap.toNat b L := by
   refine ⟨implAt, R, 0x1000, [], zV, dpV, 32, 32, ret, s0, ?w0, hret, setup, pre,
     ⟨csG, csG_rip, csG_pre⟩,
-    correctness implAt R 0x1000 ([]) zV dpV 32 32 ?w0 ret hret s0 setup pre⟩
+    correctness_proof implAt R 0x1000 ([]) zV dpV 32 32 ?w0 ret hret s0 setup pre⟩
   case w0 => exact by rw [addr_gr]; exact model_gr
-end Grow.Witness
+end Grow.Wit
 
 end Fv256.Amd64.MarshalSSZAppendMain

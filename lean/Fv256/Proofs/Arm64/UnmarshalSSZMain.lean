@@ -398,7 +398,7 @@ theorem succblk (impl : List Segment) (z bp len cap : BitVec 64) :
   · janus_frame
 
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Laws) (H : RtReady)
+theorem correctness_proof (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Laws) (H : RtReady)
     (hf : ErrorfLive (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.errorf") 4096 R
       tErr iErr tInt iWrap 26 fmtNum 4294967296)
     (hconv : ConvT64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.convT64") Ri H)
@@ -419,7 +419,7 @@ The `fmt.errorf` stub and the `convT64` model code placed at the two contract ad
 constants cell (`errR`), the interface model `R0`, a state in which `ErrBadEncodedLength` holds its link-time image
 (`*errors.errorString` itab and the string `"bad ssz encoded length"`), an admissible return address. -/
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.Toy Janus.Contracts.ErrorfRealRt Janus.Contracts.IfaceModel Janus.Contracts.IfaceSat
 
@@ -678,16 +678,16 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (Ri : IfaceModel) (H 
   refine ⟨implAt, R0e, R0, Htrue, [], 176, evData, textAddr, 22, retA, s0, _, _, 300, 512, R0_laws, hf0, hconv0, hret0, setup, pre0, ?w6,
     ⟨csCv, rfl, csCv_pre⟩,
     ⟨csEr, rfl, csEr_pre⟩,
-    correctness implAt R0e R0 R0_laws Htrue hf0 hconv0 ([]) 176 evData textAddr 22 _ _ 300 512 retA hret0 s0 setup pre0⟩
+    correctness_proof implAt R0e R0 R0_laws Htrue hf0 hconv0 ([]) 176 evData textAddr 22 _ _ 300 512 retA hret0 s0 setup pre0⟩
   case w6 => exact by decide
 
 
 /-- The guarantee fires: the call returns the wrapped error. -/
 theorem returns : Returns ((Extracted.program.link implAt).withExit retA) s0 fun s' =>
     ABIReturn s0 s' ∧ Post R0e R0 [] 176 evData textAddr 22 (BitVec.ofNat 64 0x600000) (BitVec.ofNat 64 0x700000) 300 512 s0 s' :=
-  correctness implAt R0e R0 R0_laws Htrue hf0 hconv0 [] 176 evData textAddr 22 (BitVec.ofNat 64 0x600000)
+  correctness_proof implAt R0e R0 R0_laws Htrue hf0 hconv0 [] 176 evData textAddr 22 (BitVec.ofNat 64 0x600000)
     (BitVec.ofNat 64 0x700000) 300 512 retA hret0 s0 setup pre0
 
-end Witness
+end Wit
 
 end Fv256.Arm64.UnmarshalSSZMain

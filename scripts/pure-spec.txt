@@ -23,3 +23,6 @@ Spec/MustFromBig.lean
 Spec/MarshalSSZ.lean
 Spec/Value.lean
 Spec/EncodeRLP.lean
+Spec/MarshalSSZAppend.lean
+Spec/MarshalSSZInto.lean
+Spec/UnmarshalSSZ.lean
