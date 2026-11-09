@@ -191,7 +191,7 @@ theorem call_pre (R : RtInv) (b : Nat) (z : BitVec 64) (s sc : State) (X Y : Nat
     unfold Apart; rw [hg, hbp]; omega
 
 set_option maxRecDepth 20000 in
-theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hnew : NewobjectLiveContract (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
@@ -291,7 +291,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
         refine ⟨hh, hh.1, ?_, ?_, ?_⟩ <;> omega
 
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -474,10 +474,10 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z : BitVec
     ⟨csNew, rfl, csNew_pre⟩,
     ⟨csW1, rfl, csW1_pre⟩,
     ⟨csW2, rfl, csW2_pre⟩,
-    correctness implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
+    correctness_proof implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
   case w1 => exact by rw [addr_new]; exact model_new
   case w2 => exact by rw [addr_w1]; exact model_wb1
   case w3 => exact by rw [addr_w2]; exact model_wb2
-end Witness
+end Wit
 
 end Fv256.Arm64.ToBig

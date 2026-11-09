@@ -14,7 +14,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janu
 namespace Fv256.Amd64.EncodeRLP
 
 set_option maxRecDepth 100000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64)
     (hnew : NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H)
@@ -89,7 +89,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
         (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod]) <;> omega
       · first | rfl | simp [h_df])
 
-namespace Witness
+namespace Wit
 
 open Fv256.Inhab
 
@@ -163,9 +163,9 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 56 - stack, (s.regs 4).toNat + 32)]) := by
   refine ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, ?w1,
     ⟨csW, rfl, csW_pre⟩, hret, setup, pre,
-    correctness impl rt H A0 stack R0 zA tabA wA hnew ?w1 retA hret s0 setup pre⟩
+    correctness_proof impl rt H A0 stack R0 zA tabA wA hnew ?w1 retA hret s0 setup pre⟩
   case w1 => exact hw zA wA
 
-end Witness
+end Wit
 
 end Fv256.Amd64.EncodeRLP

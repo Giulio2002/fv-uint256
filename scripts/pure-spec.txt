@@ -26,3 +26,4 @@ Spec/EncodeRLP.lean
 Spec/MarshalSSZAppend.lean
 Spec/MarshalSSZInto.lean
 Spec/UnmarshalSSZ.lean
+Spec/ToBig.lean

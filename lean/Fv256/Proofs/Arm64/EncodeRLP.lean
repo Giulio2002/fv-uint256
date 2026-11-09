@@ -15,7 +15,7 @@ open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.EncodeRLP
 
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (fn stack : Nat) (R : Res)
     (z tab w : BitVec 64)
     (hnew : NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H)
@@ -87,7 +87,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
         (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, BitVec.toNat_sub, BitVec.toNat_add, Nat.reducePow, Nat.reduceMod]) <;>
           omega)
 
-namespace Witness
+namespace Wit
 
 -- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/EncodeRLP.lean
 def wsNew0 : State := { s0 with regs := fun i => if i = 0 then BitVec.ofNat 64 tyA else s0.regs i }
@@ -149,8 +149,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
   refine ⟨impl, rt, H, A0, stack, R0, zA, tabA, wA, retA, s0, hnew, ?w1, hret, setup, pre,
     ⟨wsNew, rfl, wsNew_pre⟩,
     ⟨wsWr, rfl, wsWr_pre⟩,
-    correctness impl rt H A0 stack R0 zA tabA wA hnew ?w1 retA hret s0 setup pre⟩
+    correctness_proof impl rt H A0 stack R0 zA tabA wA hnew ?w1 retA hret s0 setup pre⟩
   case w1 => exact hw zA wA
-end Witness
+end Wit
 
 end Fv256.Arm64.EncodeRLP
