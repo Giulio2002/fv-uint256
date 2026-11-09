@@ -8,14 +8,14 @@ import Fv256.Proofs.Common.Util
 **Guarantee.** For every pointer `x` (the receiver, `X0`) and every Go call state such that the 32 bytes at `x` are readable
 (below `2^48`), the call returns (no fault, no panic), obeys the ABI, and the result (`X0`/`RAX`) is the number of significant bits (`Fv256.Spec.bitLen`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: the result for the zero number.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: the result for the zero number.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.BitLen
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x] (fun s => Ptr32 s.mem x false)
       (fun s s' => (s'.regs 0).toNat = Spec.bitLen (val256 s.mem x.toNat)) := by
   intro ret hret s hs ⟨hx, hx'⟩
@@ -23,7 +23,7 @@ theorem correctness (x : BitVec 64) :
   janus_run
   all_goals (have b0 := Util.readLE8_lt s.mem (x.toNat ); have b1 := Util.readLE8_lt s.mem (x.toNat + 8); have b2 := Util.readLE8_lt s.mem (x.toNat + 16); have b3 := Util.readLE8_lt s.mem (x.toNat + 24); have c0 := Util.clz_bl 64 (s.mem.readLE (x.toNat ) 8) (Util.readLE8_lt s.mem (x.toNat )); have c1 := Util.clz_bl 64 (s.mem.readLE (x.toNat + 8) 8) (Util.readLE8_lt s.mem (x.toNat + 8)); have c2 := Util.clz_bl 64 (s.mem.readLE (x.toNat + 16) 8) (Util.readLE8_lt s.mem (x.toNat + 16)); have c3 := Util.clz_bl 64 (s.mem.readLE (x.toNat + 24) 8) (Util.readLE8_lt s.mem (x.toNat + 24)); simp only [Util.readLE8_mod, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *; (try rw [Util.bl_4 _ _ _ _ b0 b1 b2]); (try rw [Util.bl_3 _ _ _ b0 b1 b2]); (try rw [Util.bl_2 _ _ b0 b1]); (try simp only [ne_eq]); (repeat' split) <;> omega)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -48,7 +48,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ Ptr32 s.mem x false ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat = Spec.bitLen (val256 s.mem x.toNat) :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 0 := by
@@ -58,6 +58,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   rw [h.2]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.BitLen

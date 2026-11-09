@@ -9,14 +9,14 @@ import Fv256.Proofs.Common.Util
 the 32 bytes at each are readable (below `2^48`; they may be equal or overlap arbitrarily) the call returns (no fault,
 no panic), obeys the ABI, and the `bool` result is `Fv256.Spec.lt` of the number at the receiver and the number at `x` (`AL`, low byte of `RAX`), the numbers being read before the call.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Lt
 
-theorem correctness (z x : BitVec 64) :
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false)
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.lt (valueAt s z 32) (valueAt s x 32)).toNat) := by
@@ -27,7 +27,7 @@ theorem correctness (z x : BitVec 64) :
   janus64_run [Util.readLE_32]
   simp only [Spec.lt]; exact Util.lt_ite _ _ _ _ _ _ _ _ (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _) (Util.readLE8_lt _ _)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -56,7 +56,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
     (StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (Spec.lt (valueAt s z 32) (valueAt s x 32)).toNat :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 0 := by
@@ -67,6 +67,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Lt

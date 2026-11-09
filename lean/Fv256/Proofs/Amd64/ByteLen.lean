@@ -10,14 +10,14 @@ such that the 32 bytes at `x` are readable (below `2^48`), the call returns (no 
 
 **Note.** The default build uses `BSR` on a limb that may be zero (destination undefined by the ISA); the statement holds for every value of that undefined result (it is replaced by `CMOVE`). Verified against Janus 494e1168 (undefined-value stream), not the pinned revision.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: the result for the zero number.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: the result for the zero number.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.ByteLen
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => StackWritable s 0 8 ∧ Buffer s x 32 false)
       (fun s s' => (s'.regs 0).toNat = Spec.byteLen (valueAt s x 32)) := by
@@ -29,7 +29,7 @@ theorem correctness (x : BitVec 64) :
   all_goals (have b0 := Util.readLE8_lt s.mem (x.toNat ); have b1 := Util.readLE8_lt s.mem (x.toNat + 8); have b2 := Util.readLE8_lt s.mem (x.toNat + 16); have b3 := Util.readLE8_lt s.mem (x.toNat + 24); have c0 := Util.clz_bl 64 (s.mem.readLE (x.toNat ) 8) (Util.readLE8_lt s.mem (x.toNat )); have c1 := Util.clz_bl 64 (s.mem.readLE (x.toNat + 8) 8) (Util.readLE8_lt s.mem (x.toNat + 8)); have c2 := Util.clz_bl 64 (s.mem.readLE (x.toNat + 16) 8) (Util.readLE8_lt s.mem (x.toNat + 16)); have c3 := Util.clz_bl 64 (s.mem.readLE (x.toNat + 24) 8) (Util.readLE8_lt s.mem (x.toNat + 24)); have nz0 : s.mem.readLE x.toNat 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE x.toNat 8) := fun h => (by simp [Spec.bitLen, h]); have nz1 : s.mem.readLE (x.toNat + 8) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (x.toNat + 8) 8) := fun h => (by simp [Spec.bitLen, h]); have nz2 : s.mem.readLE (x.toNat + 16) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (x.toNat + 16) 8) := fun h => (by simp [Spec.bitLen, h]); have nz3 : s.mem.readLE (x.toNat + 24) 8 ≠ 0 → 1 ≤ Spec.bitLen (s.mem.readLE (x.toNat + 24) 8) := fun h => (by simp [Spec.bitLen, h]); have z0 : s.mem.readLE x.toNat 8 = 0 → Spec.bitLen (s.mem.readLE x.toNat 8) = 0 := fun h => (by simp [Spec.bitLen, h]); rw [Util.bl_amd _ _ (by simp [BitVec.add_assoc]) (by (repeat' split) <;> simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] <;> omega)]; simp only [Spec.byteLen, Util.readLE8_mod, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *; (try rw [Util.bl_4 _ _ _ _ b0 b1 b2]); (try rw [Util.bl_3 _ _ _ b0 b1 b2]); (try rw [Util.bl_2 _ _ b0 b1]); (try simp only [ne_eq]); (repeat' split) <;> (try simp only [BitVec.toNat_add, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *) <;> omega)
 
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -55,7 +55,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     (StackWritable s 0 8 ∧ Buffer s x 32 false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat = Spec.byteLen (valueAt s x 32) :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 0 := by
@@ -66,6 +66,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.ByteLen

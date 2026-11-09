@@ -8,14 +8,14 @@ import Fv256.Proofs.Common.Util
 **Guarantee.** For every pointer `x` (the receiver, `RAX`) and every Go call state whose return-address slot is writable and
 such that the 32 bytes at `x` are readable (below `2^48`), the call returns (no fault, no panic), obeys the ABI, and the result (`X0`/`RAX`) is the low 64 bits of the 256-bit little-endian number at `x` (`Fv256.Spec.uint64` and the overflow flag `Fv256.Spec.uint64Ov`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: the result for the zero number.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: the result for the zero number.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Uint64WithOverflow
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => StackWritable s 0 8 ∧ Buffer s x 32 false)
       (fun s s' => (s'.regs 0).toNat = Spec.uint64 (valueAt s x 32) ∧
@@ -27,7 +27,7 @@ theorem correctness (x : BitVec 64) :
   janus64_run [Util.readLE_32]
   all_goals ((try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); refine ⟨?_, ?_⟩ <;> (simp only [Spec.uint64, Spec.uint64Ov, Nat.reducePow, Nat.or_eq_zero_iff, BitVec.toNat_or, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reduceMod] at *; (repeat' split) <;> (try simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at *) <;> (dec_facts; omega)))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -54,7 +54,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat = Spec.uint64 (valueAt s x 32) ∧
         (s'.regs 3).toNat % 256 = (Spec.uint64Ov (valueAt s x 32)).toNat :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 0 ∧ (s'.regs 3).toNat % 256 = 0 := by
@@ -67,6 +67,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   · rw [h.2.2]; try simp only [valueAt]
     decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Uint64WithOverflow

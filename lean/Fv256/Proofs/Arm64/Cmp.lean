@@ -9,14 +9,14 @@ import Fv256.Proofs.Common.Util
 (below `2^48`; they may be equal or overlap arbitrarily) the call returns (no fault, no panic), obeys the ABI, and
 the `int` result is `Fv256.Spec.cmp` of the number at the receiver and the number at `x` (`X0`, read as a signed 64-bit integer: -1, 0 or 1), the numbers being read before the call.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `0`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Cmp
 
-theorem correctness (z x : BitVec 64) :
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => Ptr32 s.mem z false ∧ Ptr32 s.mem x false)
       (fun s s' => (s'.regs 0) = BitVec.ofInt 64 (Spec.cmp (val256 s.mem z.toNat) (val256 s.mem x.toNat))) := by
@@ -25,7 +25,7 @@ theorem correctness (z x : BitVec 64) :
   janus_run
   all_goals ((try have := Util.readLE8_lt s.mem (z.toNat)); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat)); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try simp only [janus_post] at *); (try simp only [Nat.or_eq_zero_iff] at *); simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *; have hb := Util.borrow4_dec _ _ _ _ _ _ _ _ (Util.readLE8_lt s.mem z.toNat) (Util.readLE8_lt s.mem (z.toNat + 8)) (Util.readLE8_lt s.mem (z.toNat + 16)) (Util.readLE8_lt s.mem (z.toNat + 24)) (Util.readLE8_lt s.mem x.toNat) (Util.readLE8_lt s.mem (x.toNat + 8)) (Util.readLE8_lt s.mem (x.toNat + 16)) (Util.readLE8_lt s.mem (x.toNat + 24)); have hzz := Util.zero4_iff _ _ _ _ _ _ _ _ (Util.readLE8_lt s.mem z.toNat) (Util.readLE8_lt s.mem (z.toNat + 8)) (Util.readLE8_lt s.mem (z.toNat + 16)) (Util.readLE8_lt s.mem (z.toNat + 24)) (Util.readLE8_lt s.mem x.toNat) (Util.readLE8_lt s.mem (x.toNat + 8)) (Util.readLE8_lt s.mem (x.toNat + 16)) (Util.readLE8_lt s.mem (x.toNat + 24)); (try simp only [hb, hzz, Util.ite01_eq1, Util.ite01_eq0] at *); simp only [Util.cmp_ofInt]; dec_facts; (repeat' split) <;> (try simp only [BitVec.reduceEq, BitVec.reduceNe]) <;> first | rfl | omega)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -55,7 +55,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
     (Ptr32 s.mem z false ∧ Ptr32 s.mem x false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0) = BitVec.ofInt 64 (Spec.cmp (val256 s.mem z.toNat) (val256 s.mem x.toNat)) :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0) = 0#64 := by
@@ -65,6 +65,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   rw [h.2]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Cmp

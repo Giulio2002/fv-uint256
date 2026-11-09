@@ -7,7 +7,7 @@ import Fv256.Proofs.Common.Util
 
 **Guarantee.** For every pointer `z` (the receiver, `X0`) and every `n` (`X1`) such that the 32 bytes at `z` are readable (below `2^48`), the call returns (no fault, no panic), obeys the ABI, and the `bool` result is `Fv256.Spec.lt` of the number at the receiver and `n` (`X0`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns the value for `z = 0`, `n = 0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns the value for `z = 0`, `n = 0`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
@@ -15,7 +15,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 namespace Fv256.Arm64.LtUint64
 
 
-theorem correctness (z n : BitVec 64) :
+theorem correctness_proof (z n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, n]
       (fun s => Ptr32 s.mem z false)
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.lt (val256 s.mem z.toNat) n.toNat).toNat) := by
@@ -24,7 +24,7 @@ theorem correctness (z n : BitVec 64) :
   janus_run
   all_goals ((try have := Util.readLE8_lt s.mem (z.toNat)); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try simp only [janus_post] at *); (try simp only [Nat.or_eq_zero_iff] at *); simp only [Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *; simp only [Spec.lt]; dec_facts; (repeat' split) <;> (try simp only [BitVec.reduceEq, BitVec.reduceNe, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]) <;> first | omega | rfl)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -52,7 +52,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extr
     (Ptr32 s.mem z false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (Spec.lt (val256 s.mem z.toNat) n.toNat).toNat :=
   ⟨ret, s0, z, n, hret, setup, hpre,
-    correctness z n ret hret s0 setup hpre⟩
+    correctness_proof z n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 0 := by
@@ -63,6 +63,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   try simp only [val256]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.LtUint64

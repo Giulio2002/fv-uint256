@@ -8,14 +8,14 @@ import Fv256.Proofs.Common.Util
 **Guarantee.** For every pointer `x` (the receiver, `X0`) and every Go call state such that the 32 bytes at `x` are readable
 (below `2^48`), the call returns (no fault, no panic), obeys the ABI, and the `bool` result (low byte) is `Fv256.Spec.isUint64` of the number at `x`.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: the result for the zero number.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: the result for the zero number.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.IsUint64
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x] (fun s => Ptr32 s.mem x false)
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.isUint64 (val256 s.mem x.toNat)).toNat) := by
   intro ret hret s hs ⟨hx, hx'⟩
@@ -23,7 +23,7 @@ theorem correctness (x : BitVec 64) :
   janus_run
   all_goals ((try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); simp only [Spec.isUint64, BitVec.toNat_or, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod, Nat.or_eq_zero_iff]; (repeat' split) <;> simp_all [Nat.or_eq_zero_iff] <;> (dec_facts; omega))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -48,7 +48,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ Ptr32 s.mem x false ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (Spec.isUint64 (val256 s.mem x.toNat)).toNat :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 1 := by
@@ -58,6 +58,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   rw [h.2]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.IsUint64

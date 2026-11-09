@@ -31,8 +31,8 @@ before the call: `v = 0 → r = 0` and `v ≠ 0 → 10^r ≤ v < 10^(r+1)` (so `
 extractor does not take their contents from the binary; `Tabs64`/`TabsBig` (Fv256.Arm64.L10Defs) state that they are readable
 and hold these values (nothing in the program writes them), and are disjoint from the callee's 32-byte stack window.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call state (with the tables in memory) satisfies the preconditions;
-`Witness.returns`: for the value 12345 the call returns 4.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call state (with the tables in memory) satisfies the preconditions;
+`Wit.returns`: for the value 12345 the call returns 4.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
@@ -372,7 +372,7 @@ theorem disp3 (x : BitVec 64) :
   · exact c3_64 x ret hret s hs ⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hd, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, lo, hi⟩
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => GuardOK s 0 ∧ StackOK s 32 0 ∧ Extracted.program.DataLoaded s.mem ∧ Ptr32 s.mem x false ∧ Disjoint x.toNat 32 (s.sp.toNat - 32) 32 ∧
         Tabs64 s.mem ∧ TabsBig s.mem ∧ Disjoint P64 P64sz (s.sp.toNat - 32) 32 ∧ Disjoint PB PBsz (s.sp.toNat - 32) 32)
@@ -400,7 +400,7 @@ theorem correctness (x : BitVec 64) :
   · have := disp3 x ret hret s hs ⟨⟨hg1, hg2, hg3⟩, hst, hd, hx, hdis, hT64, hTB, hd64, hdB, h3⟩
     refine this.mono fun s' ⟨hab, hr⟩ => ⟨hab, fun hz => by omega, fun _ => hr⟩
 
-namespace Witness
+namespace Wit
 
 def ret : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -444,7 +444,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (val256 s.mem x.toNat = 0 → (s'.regs 0).toNat = 0) ∧
         (val256 s.mem x.toNat ≠ 0 → 10 ^ (s'.regs 0).toNat ≤ val256 s.mem x.toNat ∧ val256 s.mem x.toNat < 10 ^ ((s'.regs 0).toNat + 1)) :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
@@ -465,6 +465,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   · have : 10 ^ 5 ≤ 10 ^ r := Nat.pow_le_pow_right (by decide) hr
     omega
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Log10
