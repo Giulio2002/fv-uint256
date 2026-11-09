@@ -58,6 +58,8 @@ theorem correctness
 
 namespace Witness
 
+open Fv256.Amd64.UnmarshalSSZMain.Wit
+
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 open Janus.Contracts.Toy Janus.Contracts.ErrorfRealRt Janus.Contracts.IfaceModel Janus.Contracts.IfaceSatAmd64
 

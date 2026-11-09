@@ -12,7 +12,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts Janus
 
 set_option linter.unusedSimpArgs false
 
-namespace Fv256.Arm64.EncodeRLP.Witness
+namespace Fv256.Arm64.EncodeRLP.Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -181,4 +181,4 @@ theorem pre : 4104 ≤ stack ∧ CodePtrOK A0 ∧ GuardOK s0 0 ∧ StackOK s0 (6
     by unfold Disjoint; decide, by decide, by decide, by simp only [rt, outside_cons, outside_nil]; decide, by decide,
     hH tyBig (Or.inl rfl), hH tyOne (Or.inr rfl)⟩
 
-end Fv256.Arm64.EncodeRLP.Witness
+end Fv256.Arm64.EncodeRLP.Wit

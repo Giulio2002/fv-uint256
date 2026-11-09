@@ -11,7 +11,7 @@ the itab word `tab+24`.  The value at `z` is `0x011234`, a 17-bit number: the mu
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Contracts Janus.Contracts.ICall Fv256.Rlp
 
-namespace Fv256.Amd64.EncodeRLP.Witness
+namespace Fv256.Amd64.EncodeRLP.Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 open Janus.Contracts.AllocSat (le_blockSize)
@@ -184,4 +184,4 @@ theorem pre : 4104 ≤ stack ∧ A0 < 2 ^ 47 ∧
     Or.inl (by decide), by decide, by decide, by simp only [rt, outside_cons, outside_nil]; decide, by decide,
     hH tyBig (Or.inl rfl), hH tyOne (Or.inr rfl)⟩
 
-end Fv256.Amd64.EncodeRLP.Witness
+end Fv256.Amd64.EncodeRLP.Wit

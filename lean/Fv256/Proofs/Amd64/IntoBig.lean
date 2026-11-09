@@ -7,7 +7,7 @@ namespace Fv256.Amd64.IntoBig
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 4000000 in
-theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
     (hwb1 : WbLiveContract64 (Extracted.program.link impl)
@@ -92,7 +92,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : Bi
       | janus_frame
       | (trace_state; fail "x5")
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -262,12 +262,12 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp
     Pre R b z bp s ∧ PreX z bp s ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Post R z bp s s' := by
   refine ⟨implAt, R, 0x400, zV, bpV, ret, s0, ?w0, ?w1, ?w2, ⟨[], 0x400, csNew, csNew_rip, csNew_pre⟩, ⟨[], 0x400, csW1, csW1_rip, csW1_pre⟩, ⟨[], 0x400, csW2, csW2_rip, csW2_pre⟩, hret, setup, pre, preX,
-    correctness implAt R 0x400 zV bpV ?w0 ?w1 ?w2 ret hret s0 setup ⟨pre, preX⟩⟩
+    correctness_proof implAt R 0x400 zV bpV ?w0 ?w1 ?w2 ret hret s0 setup ⟨pre, preX⟩⟩
   case w0 => exact by rw [addr_new]; exact model_new
   case w1 => exact by rw [addr_w1]; exact model_wb1
   case w2 => exact by rw [addr_w2]; exact model_wb2
 
-end Witness
+end Wit
 
 
 end Fv256.Amd64.IntoBig

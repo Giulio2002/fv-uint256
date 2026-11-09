@@ -17,6 +17,7 @@ form the proof uses is `Fv256/Proofs/Arm64/PaddedBytesBridge.lean`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.PaddedBytes
 

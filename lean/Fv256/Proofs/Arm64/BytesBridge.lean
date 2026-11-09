@@ -3,6 +3,7 @@ import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
 import Fv256.Proofs.Common.BytesBridge
 import Fv256.Spec.Bytes
+import Fv256.Proofs.Arm64.Bytes
 
 /-!
 # arm64: `Bytes` postcondition bridge (readable byte-list form versus the proof's number-reading form)

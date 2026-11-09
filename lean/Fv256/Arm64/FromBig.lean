@@ -17,6 +17,7 @@ form the proof uses is `Fv256/Proofs/Arm64/FromBigBridge.lean`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
+open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.FromBig
 
@@ -54,6 +55,8 @@ theorem correctness
     (fun s s' _ q => (Bridge.post_iff rt x pw len s s').1 q)
 
 namespace Witness
+
+open Fv256.Arm64.FromBig.Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 

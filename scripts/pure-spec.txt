@@ -27,3 +27,4 @@ Spec/MarshalSSZAppend.lean
 Spec/MarshalSSZInto.lean
 Spec/UnmarshalSSZ.lean
 Spec/ToBig.lean
+Spec/IntoBig.lean

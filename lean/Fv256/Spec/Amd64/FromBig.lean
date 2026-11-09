@@ -14,7 +14,7 @@ namespace Fv256.Amd64.FromBig
 
 def intType : Nat := dataBase Extracted.program 0
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 
@@ -25,6 +25,6 @@ def pinBitVec64 (_k : BitVec 64) : Prop := True
 
 open Fv256.CallSites
 
-end Witness
+end Wit
 
 end Fv256.Amd64.FromBig

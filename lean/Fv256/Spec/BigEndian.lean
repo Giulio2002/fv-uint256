@@ -8,7 +8,8 @@ Pure mathematics over `Nat`. `beBytes n x` is the `n`-byte big-endian encoding o
 namespace Fv256.Spec
 
 /-- The `n`-byte BIG-endian encoding of `x`, as a list of byte values: element `i` (0 = first = most significant) is
-`⌊x / 256^(n-1-i)⌋ mod 256`. When `x ≥ 256^n` the high bytes are dropped, i.e. this encodes `x mod 256^n`. -/
+`⌊x / 256^(n-1-i)⌋ mod 256`. When `x ≥ 256^n` the high bytes are dropped, i.e. this encodes `x mod 256^n`.
+The natural-number subtraction `n - 1 - i` never truncates, because `i < n` for every `i` in `List.range n`. -/
 def beBytes (n x : Nat) : List Nat := (List.range n).map fun i => x / 256 ^ (n - 1 - i) % 256
 
 /-- The `n`-byte LITTLE-endian encoding of `x`: element `i` (0 = first = least significant) is `⌊x / 256^i⌋ mod 256`.

@@ -58,6 +58,8 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
 
 namespace Witness
 
+open Fv256.Amd64.MustFromBig.Wit
+
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
 /-- NON-VACUITY: a concrete machine state (with a toy allocator and a concrete panic runtime) satisfies `Pre` and its call has the outcome

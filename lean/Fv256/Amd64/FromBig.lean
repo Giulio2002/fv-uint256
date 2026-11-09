@@ -56,6 +56,8 @@ theorem correctness
 
 namespace Witness
 
+open Fv256.Amd64.FromBig.Wit
+
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
 /-- NON-VACUITY: a concrete machine state satisfies `Pre` and its call returns with `Post`, so `Pre` is not unsatisfiable and `correctness` is not empty. -/
