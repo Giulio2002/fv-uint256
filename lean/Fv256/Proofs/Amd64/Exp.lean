@@ -3,12 +3,11 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Common.CodeIn
 import Fv256.Proofs.Amd64.ExpMain
 import Fv256.Proofs.Amd64.EnsuresOfW
-import Fv256.Spec.Amd64.Exp
 
 /-!
 # `(*uint256.Int).Exp(base, exponent *Int) *Int` (amd64): `z = base ** exponent mod 2^256`
 
-Guarantee: for every call satisfying `Pre` (stack-growth check falls through, the window `[RSP-0xa8, RSP+0x20)` writable, the 32 bytes at `z`
+Guarantee: for every call satisfying `PreRaw` (stack-growth check falls through, the window `[RSP-0xa8, RSP+0x20)` writable, the 32 bytes at `z`
 writable, those at `base` and `exponent` readable, none overlapping the window, `stackguard0` outside the window, rodata loaded),
 the call returns, obeys the ABI, returns `z` in `RAX`, the number at `z` afterwards is `Fv256.F.expSpec` of the numbers at `base`
 and `exponent` before the call (`base^exponent mod 2^256`), and nothing outside `z[0..32)` and the window changes. `z`, `base`, `exponent` may overlap arbitrarily.
@@ -18,6 +17,16 @@ Non-vacuity: `Witness.nonvacuous`.
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.Exp
+
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Amd64/Exp.lean` -/
+abbrev PreRaw (z b e : BitVec 64) : State → Prop :=
+  fun s => StackGuardOK s 0x20 ∧ 0x100 ≤ (s.regs regSP).toNat ∧ StackWritable s 0xa8 0x20 ∧ Buffer s z 32 true ∧
+        Buffer s b 32 false ∧ Buffer s e 32 false ∧
+        (z.toNat + 32 ≤ (s.regs regSP).toNat - 0xa8 ∨ (s.regs regSP).toNat + 0x20 ≤ z.toNat) ∧
+        (b.toNat + 32 ≤ (s.regs regSP).toNat - 0xa8 ∨ (s.regs regSP).toNat + 0x20 ≤ b.toNat) ∧
+        (e.toNat + 32 ≤ (s.regs regSP).toNat - 0xa8 ∨ (s.regs regSP).toNat + 0x20 ≤ e.toNat) ∧
+        ((s.regs regG).toNat + 24 ≤ (s.regs regSP).toNat - 0xa8 ∨ (s.regs regSP).toNat + 0x20 ≤ (s.regs regG).toNat + 16) ∧
+        Extracted.program.DataLoaded s.mem
 
 set_option maxRecDepth 100000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.ExpProg.program Extracted.program :=
@@ -50,13 +59,13 @@ theorem hsumE :
   obtain ⟨a, b, c, d, e, f, g, h, i, j, k, l, hl⟩ := hpre
   exact h1 s hpc ⟨a, b, c, d, e, f, g, h, i, j, k, l, (hdl _).1 hl⟩
 
-theorem correctness (z b e : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, b, e] (Pre z b e)
+theorem correctness_proof (z b e : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, b, e] (PreRaw z b e)
       (fun s s' => s'.regs 0 = z ∧ valueAt s' z 32 = Fv256.F.expSpec (valueAt s b 32) (valueAt s e 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0xa8, (s.regs regSP).toNat + 0x20)]) :=
   Fv256.Amd64.EnsuresOfW.ensures3w 0x100 0xa8 0x20 0x20 (by decide) (by decide) Fv256.F.expSpec hsumE z b e
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -95,18 +104,18 @@ theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
   decide
 
 set_option maxRecDepth 100000 in
-theorem hpre : Pre z x x s0 := by
+theorem hpre : PreRaw z x x s0 := by
   refine ⟨⟨by decide, by decide, by decide⟩, by unfold regSP; decide, ⟨by decide, by decide, by decide⟩,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, ?_, dataLoaded⟩ <;>
     first | (unfold regSP regG; decide) | (unfold regSP; decide) | (unfold regG; decide) | decide
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b e : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b, e] s ∧ Pre z b e s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b, e] s ∧ PreRaw z b e s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = Fv256.F.expSpec (valueAt s b 32) (valueAt s e 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0xa8, (s.regs regSP).toNat + 0x20)] :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Exp

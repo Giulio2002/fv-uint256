@@ -10,7 +10,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.MulModWithReciprocal
 
-theorem correctness (z x y m mu : BitVec 64) :
+theorem correctness_proof (z x y m mu : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, m, mu]
       (fun s => StackGuardOK s 0x298 ∧ 0x2f0 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x2e8 0x30 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s m 32 false ∧ Buffer s mu 40 false ∧
@@ -28,7 +28,7 @@ theorem correctness (z x y m mu : BitVec 64) :
   Fv256.Amd64.MulModRecCorr.correctness_param Fv256.Amd64.Reduce4.reduce4_summary z x y m mu
 
 set_option exponentiation.threshold 600
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -96,8 +96,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y m mu : BitVec 64), RetAd
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x2e8, (s.regs regSP).toNat),
           ((s.regs regSP).toNat + 8, (s.regs regSP).toNat + 0x30)] :=
   ⟨ret, s0, z, x, y, m, mu, hret, setup, hpre,
-    correctness z x y m mu ret hret s0 setup hpre⟩
+    correctness_proof z x y m mu ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.MulModWithReciprocal

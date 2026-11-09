@@ -5,7 +5,6 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Arm64.SummaryEnsures
 import Fv256.Proofs.Arm64.ExpMain
 import Fv256.Proofs.Arm64.CodeIn
-import Fv256.Spec.Arm64.Exp
 
 /-!
 # `(*uint256.Int).Exp(base, exponent *Int) *Int` (arm64): `z = base ** exponent mod 2^256`
@@ -22,6 +21,14 @@ panic), obeys the ABI, returns `z` in `X0`, the number at `z` afterwards is `Fv2
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Exp
+
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Arm64/Exp.lean` -/
+abbrev PreRaw (z b e : BitVec 64) : State → Prop :=
+  fun s => GuardOK s 32 ∧ StackOK s 168 40 ∧ 336 ≤ s.sp.toNat ∧
+    ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 168 ∨ s.sp.toNat + 40 ≤ (s.regs 28).toNat + 16) ∧
+    Ptr32 s.mem z true ∧ Ptr32 s.mem b false ∧ Ptr32 s.mem e false ∧
+    Disjoint z.toNat 32 (s.sp.toNat - 168) 208 ∧ Disjoint b.toNat 32 (s.sp.toNat - 168) 208 ∧
+    Disjoint e.toNat 32 (s.sp.toNat - 168) 208 ∧ Extracted.program.DataLoaded s.mem
 
 set_option maxRecDepth 200000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ExpProg.program Extracted.program :=
@@ -50,8 +57,8 @@ theorem exp_summary_ex : Summary Extracted.program Extracted.entry
   obtain ⟨a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, hl⟩ := hpre
   exact h1 s hpc ⟨a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, (hdl _).1 hl⟩
 
-theorem correctness (z b e : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, b, e] (Pre z b e)
+theorem correctness_proof (z b e : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, b, e] (PreRaw z b e)
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.expSpec (val256 s.mem b.toNat) (val256 s.mem e.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 168, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32)]) := by
@@ -80,7 +87,7 @@ theorem correctness (z b e : BitVec 64) :
     rw [e0] at hf h0
     exact ⟨⟨hsp2, h28, h29, h18⟩, h0, hv, hf⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel
 
@@ -124,19 +131,19 @@ theorem dataLoadedW : Extracted.program.DataLoaded s0.mem := by
   decide
 
 set_option maxRecDepth 100000 in
-theorem hpreW : Pre zW xW xW s0 := by
+theorem hpreW : PreRaw zW xW xW s0 := by
   refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, by decide, by decide,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, dataLoadedW⟩ <;>
     (unfold Disjoint; decide)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b e : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b, e] s ∧ Pre z b e s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, b, e] s ∧ PreRaw z b e s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.expSpec (val256 s.mem b.toNat) (val256 s.mem e.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 168, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 32)] :=
   ⟨retW, s0, zW, xW, xW, hretW, setupW, hpreW,
-    correctness zW xW xW retW hretW s0 setupW hpreW⟩
+    correctness_proof zW xW xW retW hretW s0 setupW hpreW⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Exp

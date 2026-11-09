@@ -4,3 +4,12 @@ Spec/Add.lean
 Spec/AddMod.lean
 Spec/Div.lean
 Spec/SetFromDecimal.lean
+Spec/IAddMod.lean
+Spec/MulMod.lean
+Spec/IMulMod.lean
+Spec/MulModWithReciprocal.lean
+Spec/IMulModWithReciprocal.lean
+Spec/MulDivOverflow.lean
+Spec/MulDivOverflowRem.lean
+Spec/Exp.lean
+Spec/IExp.lean

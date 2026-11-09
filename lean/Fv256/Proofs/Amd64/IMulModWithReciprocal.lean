@@ -5,7 +5,6 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Amd64.IMulModWithReciprocalCore
 import Fv256.Proofs.Amd64.ReduceSpec
 import Fv256.Proofs.Amd64.Reduce4
-import Fv256.Spec.Amd64.IMulModWithReciprocal
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -13,14 +12,17 @@ set_option exponentiation.threshold 600
 
 namespace Fv256.Amd64.IMulModWithReciprocal
 
-theorem correctness (z x m : BitVec 64) (mu : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x, m, mu] (Pre z x m mu)
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Amd64/IMulModWithReciprocal.lean` -/
+abbrev PreRaw := Fv256.Amd64.IMulModWithReciprocalCore.Pre
+
+theorem correctness_proof (z x m : BitVec 64) (mu : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, m, mu] (PreRaw z x m mu)
       (fun s s' => s'.regs 0 = z ∧
         valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x320, (s.regs regSP).toNat)])  :=
   Fv256.Amd64.IMulModWithReciprocalCore.correctness_param Fv256.Amd64.Reduce4.reduce4_summary z x m mu
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -52,8 +54,8 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x
     rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3) with rfl | rfl | rfl | rfl <;> rfl, rfl⟩
 
 set_option maxRecDepth 100000 in
-theorem hpre : Pre z x m mu s0 := by
-  unfold Pre Fv256.Amd64.IMulModWithReciprocalCore.Pre
+theorem hpre : PreRaw z x m mu s0 := by
+  unfold PreRaw Fv256.Amd64.IMulModWithReciprocalCore.Pre
   refine ⟨⟨by decide, by decide, by decide⟩, by unfold regSP; decide, ⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
     (first | ((try unfold Apart); (try unfold regSP); (try unfold regG); decide) | skip)
@@ -67,14 +69,14 @@ theorem hpre : Pre z x m mu s0 := by
   constructor <;> decide
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m mu : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m, mu] s ∧ Pre z x m mu s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m, mu] s ∧ PreRaw z x m mu s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x320, (s.regs regSP).toNat)] :=
   ⟨ret, s0, z, x, m, mu, hret, setup, hpre,
-    correctness z x m mu ret hret s0 setup hpre⟩
+    correctness_proof z x m mu ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 
 end Fv256.Amd64.IMulModWithReciprocal
