@@ -17,6 +17,8 @@ form the proof uses is `Fv256/Proofs/Amd64/UnmarshalSSZBridge.lean`.
 -/
 
 open Janus Janus.Tactic Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Errorf
+  Janus.Contracts Janus.Contracts.Errorf Janus.Contracts.ErrorfAmd64 Janus.Contracts.PoolAmd64
+  Janus.Contracts.ErrorfRealFmt Janus.Spec.Map Janus.Spec.Type Janus.Contracts.Iface Janus.Contracts.IfaceAmd64
 
 namespace Fv256.Amd64.UnmarshalSSZ
 
@@ -59,6 +61,7 @@ theorem correctness
 namespace Witness
 
 open Fv256.Amd64.UnmarshalSSZMain.Wit
+open Fv256.CallSites
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 open Janus.Contracts.Toy Janus.Contracts.ErrorfRealRt Janus.Contracts.IfaceModel Janus.Contracts.IfaceSatAmd64

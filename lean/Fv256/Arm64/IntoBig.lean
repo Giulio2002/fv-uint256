@@ -59,8 +59,8 @@ open Janus.Contracts.Toy Janus.Contracts.LiveSat Janus.Contracts.LiveStub
 
 /-- NON-VACUITY: a concrete machine state satisfies `Pre` and its call returns with `Post`, so `Pre` is not unsatisfiable and `correctness` is not empty. -/
 theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret : Nat) (s : State), NewobjectLiveContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧ WbLiveContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧ WbLiveContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧ RetAddr (Extracted.program.link impl) ret ∧ CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, bp] s ∧ Claim.Pre R b z bp s ∧ (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧ (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧ (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧ Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Claim.Post R z bp s s' := by
-  obtain ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h6, h7, h8, hr⟩ := Wit.nonvacuous
-  exact ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h6, h7, h8, hr.mono fun s' hq => ⟨hq.1, (Bridge.post_iff R z bp s s').1 hq.2⟩⟩
+  obtain ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h5x, h6, h7, h8, hr⟩ := Wit.nonvacuous
+  exact ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, ⟨h5, h5x⟩, h6, h7, h8, hr.mono fun s' hq => ⟨hq.1, (Bridge.post_iff R z bp s s').1 hq.2⟩⟩
 
 end Witness
 

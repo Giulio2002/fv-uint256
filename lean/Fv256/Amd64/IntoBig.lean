@@ -61,8 +61,8 @@ open Fv256.CallSites
 
 /-- NON-VACUITY: a concrete machine state satisfies `Pre` and its call returns with `Post`, so `Pre` is not unsatisfiable and `correctness` is not empty. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64) (ret : Nat) (s : State), NewobjectLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R ∧ WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R 1 ∧ WbLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2 ∧ (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 L b s_c) ∧ (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 L b s_c) ∧ (∃ (L : List (Nat × Nat)) (b : Nat) (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ WbLiveSite R (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 L b s_c) ∧ RetAddr (Extracted.program.link impl) ret ∧ CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, bp] s ∧ Claim.Pre R b z bp s ∧ Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Claim.Post R z bp s s' := by
-  obtain ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h6, h7, h8, hr⟩ := Wit.nonvacuous
-  exact ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h6, h7, h8, hr.mono fun s' hq => ⟨hq.1, (Bridge.post_iff R z bp s s').1 hq.2⟩⟩
+  obtain ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h6, h7, h8, h8x, hr⟩ := Wit.nonvacuous
+  exact ⟨impl, R, b, z, bp, ret, s, h0, h1, h2, h3, h4, h5, h6, h7, ⟨h8, h8x⟩, hr.mono fun s' hq => ⟨hq.1, (Bridge.post_iff R z bp s s').1 hq.2⟩⟩
 
 end Witness
 

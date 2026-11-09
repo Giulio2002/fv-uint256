@@ -17,6 +17,7 @@ form the proof uses is `Fv256/Proofs/Arm64/UnmarshalSSZBridge.lean`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Errorf Janus.Contracts Janus.Contracts.Errorf
+  Janus.Contracts.Iface Janus.Contracts.ErrorfRealFmt Janus.Spec.Map Janus.Spec.Type
 open Fv256.Arm64.CallSites
 
 namespace Fv256.Arm64.UnmarshalSSZ

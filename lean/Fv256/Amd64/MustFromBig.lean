@@ -59,6 +59,7 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.Segme
 namespace Witness
 
 open Fv256.Amd64.MustFromBig.Wit
+open Fv256.CallSites
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 

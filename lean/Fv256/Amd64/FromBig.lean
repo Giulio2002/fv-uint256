@@ -57,6 +57,7 @@ theorem correctness
 namespace Witness
 
 open Fv256.Amd64.FromBig.Wit
+open Fv256.CallSites
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 

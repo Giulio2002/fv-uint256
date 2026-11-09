@@ -26,7 +26,7 @@ theorem post_iff (R : RtInv) (b : Nat) (L : List (Nat × Nat)) (z dp len cap : B
       MemFrame s.mem s'.mem [(dp.toNat + len.toNat, dp.toNat + len.toNat + 32), (s.sp.toNat - 4232, s.sp.toNat + 40)]) ∧
     (cap.toNat < len.toNat + 32 → InRanges (s'.regs 0).toNat (s'.regs 2).toNat R.rt ∧
       (∃ b' L', R.inv b' L' (s.regs 28).toNat (view R.rt L' s'.mem) ∧ InRanges (s'.regs 0).toNat (s'.regs 2).toNat L') ∧
-      MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp.toNat + len.toNat, dp.toNat + cap.toNat)]))) := by
+      MemFrame s.mem s'.mem (R.rt ++ [(s.sp.toNat - 4232, s.sp.toNat + 40), (dp.toNat, dp.toNat + cap.toNat)]))) := by
   unfold Fv256.Arm64.MarshalSSZAppendG.AppendPost
   simp only [Janus.Spec.val256, ← Fv256.Proofs.Bytes.mem_leBytes_iff_rd]
   try exact Iff.rfl
