@@ -202,7 +202,10 @@ def main():
                         out.append(m.group(1) + spec_of[old])
                     # imports of pure-proof modules are dropped from spec files
                 else:
-                    out.append(m.group(1) + mapping.get(old, old) + m.group(3))
+                    if old not in mapping and re.match(r'Fv256\.(Arm64|Amd64|Amd64v3)\.', old):
+                        out.append(m.group(1) + proof_name(old) + m.group(3))     # generated TB/FM modules
+                    else:
+                        out.append(m.group(1) + mapping.get(old, old) + m.group(3))
             else:
                 out.append(ln)
         return '\n'.join(out)
