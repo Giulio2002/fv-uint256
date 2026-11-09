@@ -38,7 +38,7 @@ local macro "bltac" : tactic => `(tactic| (
 
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hnew : NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -97,7 +97,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
                (try simp only [Nat.zero_mul, Nat.zero_add]) <;> (try ac_rfl)
          · janus_frame)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -251,19 +251,19 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4176, s.sp.toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, arg, hnew, hret, setup, pre,
     ⟨wsNew, rfl, wsNew_pre⟩,
-    correctness impl rt H arg hnew ret hret s0 setup pre⟩
+    correctness_proof impl rt H arg hnew ret hret s0 setup pre⟩
 
 
 
 /-- The theorem fires: for the number `0x1234` the call returns a slice of length 2 inside a fresh object. -/
 theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧ (s'.regs 1).toNat = 2 ∧ (s'.regs 2).toNat = 2) := by
-  refine (correctness impl rt H arg hnew ret hret s0 setup pre).mono ?_
+  refine (correctness_proof impl rt H arg hnew ret hret s0 setup pre).mono ?_
   intro s' ⟨hab, ptr, _, _, _, _, h1, h2, _⟩
   have e : Spec.byteLen (val256 s0.mem arg.toNat) = 2 := by
     unfold val256; decide
   rw [e] at h1 h2
   exact ⟨hab, h1, h2⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Bytes

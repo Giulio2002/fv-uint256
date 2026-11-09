@@ -63,7 +63,7 @@ namespace Fv256.Arm64.PaddedBytes
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z n : BitVec 64) (hn : n.toNat ≤ 2 ^ 48)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z n : BitVec 64) (hn : n.toNat ≤ 2 ^ 48)
     (hmk : MakesliceContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, n]
@@ -209,7 +209,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       exact (case31 impl rt H z hmk ret hret s hs hpre).mono fun s' ⟨hab, ptr, a, b, c, d, e, f, g⟩ =>
         ⟨hab, ptr, a, b, c, fun _ => ⟨d, e⟩, f, g⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -367,15 +367,15 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre,
     ⟨csMk, rfl, csMk_pre⟩,
-    correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
+    correctness_proof impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
 
 
 /-- The theorem fires: for `n = 5` the call returns a slice of length and capacity 5 inside a fresh object. -/
 theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧ (s'.regs 1).toNat = 5 ∧ (s'.regs 2).toNat = 5) := by
-  refine (correctness impl rt H zp 5#64 (by decide) hmk ret hret s0 setup pre).mono ?_
+  refine (correctness_proof impl rt H zp 5#64 (by decide) hmk ret hret s0 setup pre).mono ?_
   intro s' ⟨hab, ptr, _, h1, h2, _⟩
   exact ⟨hab, h1, h2⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.PaddedBytes

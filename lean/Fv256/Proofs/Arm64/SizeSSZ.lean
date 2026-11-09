@@ -14,14 +14,14 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.SizeSSZ
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x] (fun _ => True)
       (fun s s' => (s'.regs 0).toNat = Spec.sizeSSZ) := by
   intro ret hret s hs _
   janus_intro hs
   janus_run
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -46,16 +46,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     CallSetup (Extracted.program.withExit ret) Extracted.entry [x] s ∧ True ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat = Spec.sizeSSZ :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 32 := by
-  refine (correctness x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   rw [h.2]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.SizeSSZ

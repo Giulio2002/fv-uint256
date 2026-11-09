@@ -44,7 +44,7 @@ local macro "blclr" : tactic => `(tactic| (
 
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hnew : NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -112,7 +112,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
       )
     · janus_frame
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 open Janus.Contracts.AllocSat (le_blockSize)
@@ -262,7 +262,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         Spec.fromBE (fun i => s'.mem.readLE (ptr + (if Spec.byteLen (valueAt s z 32) = 0 then 0 else 32 - Spec.byteLen (valueAt s z 32)) + i) 1) (Spec.byteLen (valueAt s z 32)) = valueAt s z 32 ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4192, (s.regs 4).toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, arg, hnew, ⟨csNew, csNew_rip, csNew_pre⟩, hret, setup, pre,
-    correctness impl rt H arg hnew ret hret s0 setup pre⟩
+    correctness_proof impl rt H arg hnew ret hret s0 setup pre⟩
 
 
 
@@ -273,8 +273,8 @@ theorem returns : Returns (linked.withExit ret) s0 (fun s' => ABIReturn s0 s' �
       (s'.regs 3).toNat = Spec.byteLen (valueAt s0 arg 32) ∧ (s'.regs 1).toNat = Spec.byteLen (valueAt s0 arg 32) ∧
       Spec.fromBE (fun i => s'.mem.readLE (ptr + (if Spec.byteLen (valueAt s0 arg 32) = 0 then 0 else 32 - Spec.byteLen (valueAt s0 arg 32)) + i) 1) (Spec.byteLen (valueAt s0 arg 32)) = valueAt s0 arg 32 ∧
       MemFrame s0.mem s'.mem (rt ++ [((s0.regs 4).toNat - 4192, (s0.regs 4).toNat + 24)])) :=
-  correctness impl rt H arg hnew ret hret s0 setup pre
+  correctness_proof impl rt H arg hnew ret hret s0 setup pre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Bytes

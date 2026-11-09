@@ -18,7 +18,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 namespace Fv256.Arm64.CmpBig
 
 set_option maxHeartbeats 16000000 in
-theorem correctness (z x pw len : BitVec 64) :
+theorem correctness_proof (z x pw len : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => GuardOK s 0 ∧ StackOK s 72 16 ∧ Ptr32 s.mem z false ∧ Ptr s.mem x 32 false ∧ s.mem.readLE x.toNat 1 < 2 ∧
         s.mem.readLE (x.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (x.toNat + 16) 8 = len.toNat ∧
@@ -96,7 +96,7 @@ theorem correctness (z x pw len : BitVec 64) :
             exact absurd h4 (by rw [hl0]; decide))
        · janus_frame)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -143,13 +143,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x pw : BitVec 64), RetAddr E
               (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) (2 : BitVec 64).toNat))) ∧
         MemFrame s.mem s'.mem [(s.sp.toNat + 8, s.sp.toNat + 16), (s.sp.toNat - 72, s.sp.toNat)] :=
   ⟨ret, s0, z, x, pw, hret, setup, hpre,
-    correctness z x pw (2 : BitVec 64) ret hret s0 setup hpre⟩
+    correctness_proof z x pw (2 : BitVec 64) ret hret s0 setup hpre⟩
 
 
 /-- `0` compared with `-(5 + 2^64)`: the result is `+1`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = 1 := by
-  refine (correctness z x pw 2 ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x pw 2 ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   rw [h.2.1]
@@ -164,6 +164,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   rw [hz, Fv256.C.cmpBig_neg _ _ (by omega)]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.CmpBig

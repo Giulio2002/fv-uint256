@@ -57,7 +57,7 @@ bytes of `dest` read as the big-endian number `Fv256.Spec.fromBE` equal to the l
 -/
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (z d len cap : BitVec 64) :
+theorem correctness_proof (z d len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, d, len, cap]
       (fun s => GuardOK s 0 ∧ StackOK s 24 24 ∧ Ptr32 s.mem z false ∧ len.toNat < 2 ^ 48 ∧
         Ptr s.mem d len.toNat true ∧ Disjoint z.toNat 32 d.toNat len.toNat ∧
@@ -201,7 +201,7 @@ theorem correctness (z d len cap : BitVec 64) :
       have := case31 z d cap ret hret s hs ⟨hg, hst, hz, hd, hzd, hzs, hds, by simpa using hcap⟩
       simpa using this
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -240,14 +240,14 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z d : BitVec 64), RetAddr Extr
           val256 s.mem z.toNat % 2 ^ (8 * min (8 : BitVec 64).toNat 32) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat (min (8 : BitVec 64).toNat 32) (s.sp.toNat - 24) 48 :=
   ⟨ret, s0, z, d, hret, setup, hpre,
-    correctness z d (8 : BitVec 64) (8 : BitVec 64) ret hret s0 setup hpre⟩
+    correctness_proof z d (8 : BitVec 64) (8 : BitVec 64) ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧
     Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min (8 : BitVec 64).toNat 32) =
       val256 s0.mem z.toNat % 2 ^ (8 * min (8 : BitVec 64).toNat 32) ∧
     Util.OnlyWrites2 s0.mem s'.mem d.toNat (min (8 : BitVec 64).toNat 32) (s0.sp.toNat - 24) 48) :=
-  correctness z d 8 8 ret hret s0 setup hpre
+  correctness_proof z d 8 8 ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Arm64.WriteToSlice

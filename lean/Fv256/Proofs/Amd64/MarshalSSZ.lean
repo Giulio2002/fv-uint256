@@ -19,7 +19,7 @@ namespace Fv256.Amd64.MarshalSSZ
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hmk : MakesliceContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -58,7 +58,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
 As Janus' `AllocSatAmd64`: `mov $0x10000, %eax; ret` placed at `runtime.newobject` returns the start of a zeroed 64 KiB heap;
 `H` says the argument is a type descriptor of at most 32 KiB inside `rt` and the heap is writable and zero; `hnew` is proved by
 running that code; `s0` is a concrete call of `MarshalSSZ` on the big.Int `-(5 + 2^64)`; `fires` applies `correctness`. -/
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 open Janus.Contracts.AllocSat (le_blockSize)
@@ -210,7 +210,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (rt : List (Nat × Na
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)]) :=
   ⟨impl, rt, H, zp, ret, s0, hmk, hret, setup, pre,
     ⟨csMk, rfl, csMk_pre⟩,
-    correctness impl rt H zp hmk ret hret s0 setup pre⟩
-end Witness
+    correctness_proof impl rt H zp hmk ret hret s0 setup pre⟩
+end Wit
 
 end Fv256.Amd64.MarshalSSZ

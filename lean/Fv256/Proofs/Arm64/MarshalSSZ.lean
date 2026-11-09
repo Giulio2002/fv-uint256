@@ -23,7 +23,7 @@ namespace Fv256.Arm64.MarshalSSZ
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hmk : MakesliceContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -58,7 +58,7 @@ Same pattern as Janus' `audit/round9/controls/NewPair_witness.lean`: a two-instr
 `runtime.newobject` (`MOVZ X0, #1, LSL #16; RET`) returns the start of a 64 KiB zeroed heap; `H` says the argument is a type
 descriptor of at most 32 KiB inside `rt`; `hnew` is proved by running that code; `s0` is a concrete call of `MarshalSSZ`
 on the big.Int `-(5 + 2^64)` satisfying the whole precondition. `fires` applies `correctness` to it. -/
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -217,7 +217,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
   ⟨impl, rt, H, zp, ret, s0, hmk, hret, setup, pre,
     ⟨csMk, rfl, csMk_pre⟩,
-    correctness impl rt H zp hmk ret hret s0 setup pre⟩
-end Witness
+    correctness_proof impl rt H zp hmk ret hret s0 setup pre⟩
+end Wit
 
 end Fv256.Arm64.MarshalSSZ

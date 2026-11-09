@@ -1,6 +1,7 @@
 import Janus
 import Fv256.Spec.Basic
 import Fv256.Spec.Add   -- `Fv256.Spec.add` lives in its own pure file
+import Fv256.Spec.SizeSSZ   -- `Fv256.Spec.sizeSSZ` lives in its own pure file
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
@@ -123,8 +124,5 @@ def extendSign (x b : Nat) : Nat :=
   if b < 31 then
     (if x / 2 ^ (8 * b + 7) % 2 = 1 then x % 2 ^ (8 * b + 8) + (W - 2 ^ (8 * b + 8)) else x % 2 ^ (8 * b + 8))
   else x
-
-/-- `z.SizeSSZ()`: the SSZ encoding of a `uint256` has 32 bytes. -/
-def sizeSSZ : Nat := 32
 
 end Fv256.Spec

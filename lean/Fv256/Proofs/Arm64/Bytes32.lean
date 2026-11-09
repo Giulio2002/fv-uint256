@@ -19,7 +19,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Bytes32
 
-theorem correctness (z : BitVec 64) :
+theorem correctness_proof (z : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z]
       (fun s => Ptr32 s.mem z false ∧ StackOK s 56 40 ∧ Disjoint z.toNat 32 (s.sp.toNat - 56) 96 ∧ s.regs 29 = s.sp - 8#64)
       (fun s s' => Spec.fromBE (fun i => s'.mem.readLE (s.sp.toNat + 8 + i) 1) 32 = val256 s.mem z.toNat ∧
@@ -38,7 +38,7 @@ theorem correctness (z : BitVec 64) :
     omega
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -67,13 +67,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (s.sp.toNat + 8 + i) 1) 32 = val256 s.mem z.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem (s.sp.toNat + 8) 32 (s.sp.toNat - 56) 56 :=
   ⟨ret, s0, z, hret, setup, hpre,
-    correctness z ret hret s0 setup hpre⟩
+    correctness_proof z ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ Fv256.Spec.fromBE (fun i => s'.mem.readLE (s0.sp.toNat + 8 + i) 1) 32 = val256 s0.mem z.toNat ∧
       Fv256.Util.OnlyWrites2 s0.mem s'.mem (s0.sp.toNat + 8) 32 (s0.sp.toNat - 56) 56 :=
-  correctness z ret hret s0 setup hpre
+  correctness_proof z ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Bytes32

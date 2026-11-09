@@ -14,7 +14,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.HashTreeRoot
 
 set_option maxHeartbeats 8000000 in
-theorem correctness (z : BitVec 64) :
+theorem correctness_proof (z : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 112 40 ∧ Buffer s z 32 false ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 112 ∨ (s.regs regSP).toNat + 40 ≤ z.toNat))
@@ -38,7 +38,7 @@ theorem correctness (z : BitVec 64) :
     omega
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -67,15 +67,15 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.mem.readLE ((s.regs regSP).toNat + 8) 32 = valueAt s z 32 ∧ s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧
         Util.OnlyWrites2 s.mem s'.mem ((s.regs regSP).toNat + 8) 32 ((s.regs regSP).toNat - 112) 112 :=
   ⟨ret, s0, z, hret, setup, hpre,
-    correctness z ret hret s0 setup hpre⟩
+    correctness_proof z ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.mem.readLE ((s0.regs regSP).toNat + 8) 32 = valueAt s0 z 32 ∧ s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧
       Fv256.Util.OnlyWrites2 s0.mem s'.mem ((s0.regs regSP).toNat + 8) 32 ((s0.regs regSP).toNat - 112) 112 := by
-  refine (correctness z ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z ret hret s0 setup hpre).mono ?_
   intro s' h
   exact ⟨h.1, h.2.1, h.2.2.1, h.2.2.2.1, h.2.2.2.2⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.HashTreeRoot

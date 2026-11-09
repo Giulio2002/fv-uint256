@@ -48,7 +48,7 @@ theorem core (z ptr len cap : BitVec 64) (ret : Nat)
     · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
   · janus_run
 
-theorem correctness (z ptr len cap : BitVec 64) :
+theorem correctness_proof (z ptr len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, ptr, len, cap]
       (fun s => GuardOK s 0 ∧ StackOK s 24 24 ∧ 32 ≤ len.toNat ∧ Ptr32 s.mem z false ∧ Ptr s.mem ptr 32 true ∧
         Disjoint z.toNat 32 ptr.toNat 32 ∧ Disjoint z.toNat 32 (s.sp.toNat - 24) 48 ∧
@@ -66,7 +66,7 @@ theorem panics (z ptr len cap : BitVec 64) (ret : Nat)
     len.toNat < 32 → Panics (Extracted.program.withExit ret) s :=
   (core z ptr len cap ret hret s hs hg hst).2
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -104,7 +104,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (ptr.toNat + i) 1) 32 = val256 s.mem z.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem ptr.toNat 32 (s.sp.toNat - 24) 48 := by
   refine ⟨ret, s0, z, ptr, 32, 32, hret, setup, ?w2,
-    correctness z ptr 32 32 ret hret s0 setup ?w2⟩
+    correctness_proof z ptr 32 32 ret hret s0 setup ?w2⟩
   case w2 => exact ⟨hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
@@ -113,6 +113,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
       Fv256.Util.OnlyWrites2 s0.mem s'.mem ptr.toNat 32 (s0.sp.toNat - 24) 48 :=
   (core z ptr 32 32 ret hret s0 setup hg hst).1 hpre.1 hpre.2.1 hpre.2.2.1 hpre.2.2.2.1 hpre.2.2.2.2.1 hpre.2.2.2.2.2
 
-end Witness
+end Wit
 
 end Fv256.Arm64.PutUint256
