@@ -1,6 +1,6 @@
 import Extracted
-import Fv256.Spec
-import Fv256.Util
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
 
 /-!
 # `(*uint256.Int).ExtendSign(x, byteNum *Int) *Int` (arm64): sign extension from byte `byteNum`

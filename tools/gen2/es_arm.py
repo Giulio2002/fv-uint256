@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# es_arm.py : writes lean/Fv256/Arm64/ExtendSign.lean (from es_arm_head.lean)
+# es_arm.py : writes lean/Fv256/Proofs/Arm64/ExtendSign.lean (from es_arm_head.lean)
 import os, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def rd(p, o): return f"s.mem.readLE ({p}.toNat + {o}) 8" if o else f"s.mem.readLE {p}.toNat 8"
@@ -52,4 +52,4 @@ t = open(ROOT + '/tools/gen2/es_arm_head.lean').read()
 for c, (X, Y) in CONFIGS.items():
     col = 8 if c in 'DE' else 6
     t = t.replace('@@' + c + '@@', "\n".join(ind(block(X, Y), col)).lstrip())
-open(ROOT + '/lean/Fv256/Arm64/ExtendSign.lean', 'w').write(t)
+open(ROOT + '/lean/Fv256/Proofs/Arm64/ExtendSign.lean', 'w').write(t)

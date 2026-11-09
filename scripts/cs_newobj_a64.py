@@ -25,7 +25,7 @@ theorem wsNew_pre : NewobjectSite {Hn} {rtn} 4096 wsNew := by
 '''
 def apply(fn):
     K, hH = CFG[fn]
-    f = f'lean/Fv256/Arm64/{fn}.lean'
+    f = f'lean/Fv256/Proofs/Arm64/{fn}.lean'
     subprocess.run(['git', 'checkout', 'fv/wrun', '--', f], check=True)
     s = open(f).read()
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
@@ -35,7 +35,7 @@ def apply(fn):
     open(f, 'w').write(s)
     Hn = 'HW' if fn == 'DivMod' else 'H'; rtn = 'rtW' if fn == 'DivMod' else 'rt'
     blk = BLOCK.format(K=K, hH=hH, Hn=Hn, rtn=rtn)
-    bf = f'lean/Fv256/Arm64/CallSites/{fn}.lean'
+    bf = f'lean/Fv256/Proofs/Arm64/CallSites/{fn}.lean'
     open(bf, 'w').write(blk)
     A = '(Extracted.program.contractAddr "runtime.newobject")'
     r = subprocess.run(['python3', 'scripts/callsite-splice.py', f, 'nonvacuous', '--block', bf,

@@ -6,7 +6,7 @@ export LEAN_PATH=$O:$C/janus/.lake/build/lib/lean
 L=/root/.elan/toolchains/leanprover--lean4---v4.34.1/bin/lean
 cd /srv/fv-uint256-csa/lean
 for m in "$@"; do
-  p=Fv256/Arm64/${m//.//}; mkdir -p $O/$(dirname $p)
+  p=Fv256/Proofs/Arm64/${m//.//}; mkdir -p $O/$(dirname $p)
   rm -f $O/$p.olean $O/$p.ilean; t0=$(date +%s)
   LEAN_NUM_THREADS=8 memcap -m 24G $L -o $O/$p.olean $p.lean 2>&1 | grep -v "warning\|^  \|linter\|^Note" | head -60
   echo "== $m rc=${PIPESTATUS[0]} $(( $(date +%s)-t0 ))s"

@@ -21,7 +21,7 @@ for idx in range(min(n,len(blocks))):
     c=blocks[idx]
     if '\n⊢' not in c: continue
     h=c[:c.index('\n⊢')]; g=c[c.index('\n⊢')+2:]
-    g=g.split('\nFv256/Arm64')[0]
+    g=g.split('\nFv256/Proofs/Arm64')[0]
     hyps=[];cur=None
     for l in h.split('\n')[1:]:
         if re.match(r'^\S',l):
@@ -49,5 +49,5 @@ for idx in range(min(n,len(blocks))):
   {g} := by
   PROOF
 """)
-open(out,'w').write("import Fv256.UtilF\nimport Fv256.UtilAM\n\nset_option maxRecDepth 100000\nset_option linter.all false\nnamespace "+ns+"\n\n"+"\n".join(res)+"\nend "+ns+"\n")
+open(out,'w').write("import Fv256.Proofs.Common.UtilF\nimport Fv256.UtilAM\n\nset_option maxRecDepth 100000\nset_option linter.all false\nnamespace "+ns+"\n\n"+"\n".join(res)+"\nend "+ns+"\n")
 print(len(res),"shapes")

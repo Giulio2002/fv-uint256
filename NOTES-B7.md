@@ -95,7 +95,7 @@ DONE (all sorry-free, each file < 40 s with `lake env lean`): Fv256/SfdTopMath.l
  numErrItab 0xf6940, errItab 0xf6920, synConst 0xf5940, strconvErrSyntax 0x1b5eb0, wbFlag 0x1e34c0, fnStr 0xeb483, contract addrs via SfdProg.program.contractAddr).
 Spec changes vs 2e2ff749: only TopSpec.Mod gained `8 ≤ R2.depth` (documented; Janus Iface.lean:84). fd window trick: fromDecimal is called with window [lo, s.sp-48) so caller's FP/LR words survive.
 Decoderune: SfdDecode.DecPost narrowed to [(sp-24,sp-8),(sp+8,sp+16)] (callee never touches the caller FP slot; matches arm64 calleeStack convention).
-Build: `HEAVY_PRIORITY=0 /srv/janus-ops/bin/heavy-run -- ../build_lb.sh Fv256.Arm64.SfdTopD`; fast iteration: `cd lean; lake env lean Fv256/Arm64/SfdTopX.lean` (needs olean of imports -> lake build once).
+Build: `HEAVY_PRIORITY=0 /srv/janus-ops/bin/heavy-run -- ../build_lb.sh Fv256.Arm64.SfdTopD`; fast iteration: `cd lean; lake env lean Fv256/Proofs/Arm64/SfdTopX.lean` (needs olean of imports -> lake build once).
 Janus pin for the lake build is still 655a23fa (lakefile); the final verify must use /srv/janus-fvA-pin77f/bin/janus (77fb30cc) — repin lakefile (`lake update janus`) first or rely on Lake-free verify.
 
 REMAINING (not started):

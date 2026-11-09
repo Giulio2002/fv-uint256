@@ -29,7 +29,7 @@ body="\n".join(f"  ({san(n)} :{san(ty)})" for n,ty in keep)
 g=san(g)
 if '\n    MemFrame' in g: g=g[:g.index('\n    MemFrame')].rstrip().rstrip('∧').rstrip()
 g=g.replace("s'.mem","w_d2").strip()
-src2=f"""import Fv256.UtilF
+src2=f"""import Fv256.Proofs.Common.UtilF
 open Janus Janus.Amd64
 set_option maxRecDepth 100000
 example {decl}

@@ -18,16 +18,16 @@ YY='(x801m208 + 2 ^ 64 * x801m210 + 2 ^ 128 * x801m218 + 2 ^ 192 * y3)'
 Wd='(if 2 ^ 574 < %s * %s then (%s + 2 ^ 320 - 1) %% 2 ^ 320 else %s)'%(R4p,YY,R4p,R4p)
 V14='x801rcx x801rdx x801rbx x801rsi x801r8 x801r9 x801m40 x801m48 x801m50 x801m60 x801m208 x801m210 x801m218 y3'
 L=[]; w=L.append
-w('''import Fv256.Amd64.RecipArith5p
-import Fv256.Amd64.RecipArith5q
-import Fv256.Amd64.RecipArith5c
-import Fv256.Amd64.RecipArith5d
-import Fv256.Amd64.RecipStage5Lem
-import Fv256.Amd64.RecipG.C_801_9d4
-import Fv256.Amd64.RecipG.C_9d4_b47
-import Fv256.Amd64.RecipG.G_b47_b9f
-import Fv256.Amd64.RecipG.G_b9f_bed
-import Fv256.Amd64.RecipG.G_bed_c49
+w('''import Fv256.Proofs.Amd64.RecipArith5p
+import Fv256.Proofs.Amd64.RecipArith5q
+import Fv256.Proofs.Amd64.RecipArith5c
+import Fv256.Proofs.Amd64.RecipArith5d
+import Fv256.Proofs.Amd64.RecipStage5Lem
+import Fv256.Proofs.Amd64.RecipG.C_801_9d4
+import Fv256.Proofs.Amd64.RecipG.C_9d4_b47
+import Fv256.Proofs.Amd64.RecipG.G_b47_b9f
+import Fv256.Proofs.Amd64.RecipG.G_b9f_bed
+import Fv256.Proofs.Amd64.RecipG.G_bed_c49
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 

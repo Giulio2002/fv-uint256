@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# rsh_amd.py [debug] : writes lean/Fv256/Amd64/Rsh.lean
+# rsh_amd.py [debug] : writes lean/Fv256/Proofs/Amd64/Rsh.lean
 import os
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
@@ -81,7 +81,7 @@ def bullet(v, nb):
         body+="        · first | (exfalso; omega) | (\n"+"".join("            "+l+"\n" for l in lines)+"            )\n"
     body+="      · simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self]\n"
     return out+body*nb
-t=open(ROOT+'/lean/Fv256/Amd64/Neg.lean').read()
+t=open(ROOT+'/lean/Fv256/Proofs/Amd64/Neg.lean').read()
 t=t.replace('Neg','Rsh').replace('(z x : BitVec 64)','(z x n : BitVec 64)').replace('[z, x]','[z, x, n]')
 t=t.replace('Spec.neg (valueAt s x 32)','Spec.rsh (valueAt s x 32) n.toNat')
 t=t.replace("theorem correctness","set_option maxHeartbeats 16000000 in\ntheorem correctness",1)
@@ -110,4 +110,4 @@ t=t.replace("if i = 3 then x else if i = 4","if i = 3 then x else if i = 1 then 
 t=t.replace("rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl <;> rfl, rfl⟩","rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2) with rfl | rfl | rfl <;> rfl, rfl⟩")
 t=t.replace("⟨ret, s0, z, x, hret, setup, hpre⟩","⟨ret, s0, z, x, n, hret, setup, hpre⟩").replace("correctness z x ret hret s0 setup hpre","correctness z x n ret hret s0 setup hpre")
 t=t.replace('(*uint256.Int).Rsh(x *Int) *Int` (amd64): `z = Fv256.Spec.neg x`','(*uint256.Int).Rsh(x *Int, n uint) *Int` (amd64): `z = x >> n`').replace('is `Fv256.Spec.neg` of the number at `x` before the call','is `Fv256.Spec.rsh` of the number at `x`, shifted right by `n` (`RCX`, any 64-bit value), before the call').replace('it returns `z` holding `0`','it returns `z` holding the shifted value of `x`')
-open(ROOT+'/lean/Fv256/Amd64/Rsh.lean','w').write(t)
+open(ROOT+'/lean/Fv256/Proofs/Amd64/Rsh.lean','w').write(t)

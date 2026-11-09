@@ -3,7 +3,7 @@
 import sys
 CFG = {'Hex': (112, 3), 'PrettyDec': (400, 5)}
 fn = sys.argv[1]; K, N = CFG[fn]
-f = f'lean/Fv256/Amd64/{fn}.lean'; s = open(f).read()
+f = f'lean/Fv256/Proofs/Amd64/{fn}.lean'; s = open(f).read()
 if 'csSb_pre' in s: print('skip'); sys.exit()
 s = s.replace('\nimport ', '\nimport Fv256.Amd64.CallSites.Live\nimport ', 1)
 blk = f'''/-- The call state of `runtime.slicebytetostring` (U-WITNESS-CALLSITE): `slicebytetostring(nil, HEAP, {N})` at its entry, in the

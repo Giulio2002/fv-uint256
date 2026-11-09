@@ -66,8 +66,8 @@ else:
 reg = 'X0' if arm else 'RAX'
 rets = "s'.regs 0 = 0#64" if kind == 'cmp' else "(s'.regs 0).toNat % 256 = 0"
 out = f"""import Extracted
-import Fv256.Spec
-import Fv256.Util
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
 
 /-!
 # `(*uint256.Int).{fn}(n uint64) {desc[0]}` ({isa})

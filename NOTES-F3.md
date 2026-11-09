@@ -1,7 +1,7 @@
 # Format path (ii), arm64 -- FV-F3 (branch fv/wf3, worktree /srv/fv-uint256-wf3) -- STATE 2026-11-07
 
-arm64 (ii): DONE, sorry-free.  Top lemma `Fv256.Arm64.FormatFast.fast_arm64` (lean/Fv256/Arm64/FormatFastAll.lean), axioms
-[propext, Classical.choice, Quot.sound] (lean/Fv256/Arm64/FormatFastAxioms.lean).  Checked with lake/lean in the kept janus workspace
+arm64 (ii): DONE, sorry-free.  Top lemma `Fv256.Arm64.FormatFast.fast_arm64` (lean/Fv256/Proofs/Arm64/FormatFastAll.lean), axioms
+[propext, Classical.choice, Quot.sound] (lean/Fv256/Proofs/Arm64/FormatFastAxioms.lean).  Checked with lake/lean in the kept janus workspace
 (build/ws-Arm64.txt; extraction build/ex2-arm64-Format = copy of fv/wf2's, binarySha256 431fb0a9...; pin d52a1656 janus-wr-pin2).
 NOT run through `janus verify` (these are lemmas, no Ensures theorem; FV-G's assembly does the audit run).
 
@@ -20,7 +20,7 @@ Not proved / out of scope here: the nil path (i), the big path (iii), the assemb
 (only `Fv256.FormatFastA64.Sat.fpre_sat`: FPre alone is satisfiable by a concrete state, rt = []).  The contracts' satisfiability is Janus's.
 The Hex frame had to be strengthened (see below).
 
-## Modules (lean/Fv256/Arm64/FormatFast*.lean, namespace Fv256.Arm64.FormatFast; Extracted-free defs in lean/Fv256/FormatFastDefsA64.lean, FormatFastFactsA64.lean)
+## Modules (lean/Fv256/Proofs/Arm64/FormatFast*.lean, namespace Fv256.Arm64.FormatFast; Extracted-free defs in lean/Fv256/FormatFastDefsA64.lean, FormatFastFactsA64.lean)
 W (Width site), PF (Precision + 5 Flag sites), B (14 branch segments cont/big), Sites (site_rt applications), Sw (verb switch), Pre (pre_fast chain),
 Dec (dec_call, library summary dec_summary_ext), DecStr, Stb (stringtoslicebyte, Dec path), StbX (Hex path, [2:]), Wr (Write + epilogue + ret, dec and hex),
 DecPath, HexSum/Hex/HexPath, All.  Generators in scratch/gen_{pf,b,sw,sites,pre,wr}.py (not part of the proof).
@@ -41,7 +41,7 @@ Fast loop: build/lrea.sh FILE (PRE="mods to lake build first") in the kept works
 build/vwa.sh FormatFastProbe probe.  Cold Dec chain build in the workspace is ~40 min (once); FM/Hex ~3 min.
 
 ## (iii) arm64 big path -- DONE, sorry-free (2026-11-07)
-`Fv256.Arm64.FormatFast.big_path` (lean/Fv256/Arm64/FormatFastBig.lean; BigA = *slot=0 + IntoBig summary (call_pre), BigB = static big.Format call).
+`Fv256.Arm64.FormatFast.big_path` (lean/Fv256/Proofs/Arm64/FormatFastBig.lean; BigA = *slot=0 + IntoBig summary (call_pre), BigB = static big.Format call).
 Axioms: propext, Classical.choice, Quot.sound.  Entry: S at Format+0x204 with FPre/FInv of (ii)'s exit 2.
 IntoBig modules: scripts/gen-fm-intobig-arm64.sh -> Arm64/FM/IntoBig*.lean (IntoBig = Format+0x1750, entry literal 0xb5780 as `ibEntry` def).
  Two differences from the ToBig retarget, both needed: (1) `Extracted.entry` -> a *definition* `Fv256.Arm64.IntoBig.ibEntry`, not a literal;

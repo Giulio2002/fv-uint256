@@ -21,7 +21,7 @@ def blk(v):
        "· rw [h]; simp only [Nat.reduceSub, Nat.reduceMul, Nat.reduceAdd]; simp [hN]"]
     B=["simp only [Spec.byte]", "split <;> omega"]
     return A,B,B
-t=open(ROOT+'/lean/Fv256/Arm64/Neg.lean').read()
+t=open(ROOT+'/lean/Fv256/Proofs/Arm64/Neg.lean').read()
 t=t.replace('Neg','Byte').replace('(*uint256.Int).Byte(x *Int)','(*uint256.Int).Byte(n *Int)')
 t=t.replace('Spec.neg (val256 s.mem x.toNat)','Spec.byte (val256 s.mem x.toNat) (val256 s.mem z.toNat)')
 k=t.index("  rcases hzx with rfl | hzx")
@@ -37,4 +37,4 @@ def side(v):
     return out
 t=t[:k]+"  rcases hzx with rfl | hzx\n  · "+side('z').lstrip()+"  · "+side('x').lstrip()+t[k2:]
 t=t.replace("Fv256.Spec.neg` of the number at `x` before the call","Fv256.Spec.byte` of the number at `x` (the index) and the number at `z` before the call").replace("`z = Fv256.Spec.neg x`","`z = byte n of z`")
-open(ROOT+'/lean/Fv256/Arm64/Byte.lean','w').write(t)
+open(ROOT+'/lean/Fv256/Proofs/Arm64/Byte.lean','w').write(t)

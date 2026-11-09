@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gb3.py: helpers for FV-B3 stage glue generation"""
 import re
-D='/srv/fv-uint256-wBm/lean/Fv256/Amd64/'
+D='/srv/fv-uint256-wBm/lean/Fv256/Proofs/Amd64/'
 LIVE=open(D+'RecipLive.lean').read()
 def ldef(name):
     i=LIVE.index('def %s (s S : State)'%name)

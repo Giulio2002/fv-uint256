@@ -2,7 +2,7 @@ import re, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4seg as g
 def hi_names(cut=0x1cd):
-    t = open(g.ROOT + '/lean/Fv256/Amd64/ReduceSegA.lean').read()
+    t = open(g.ROOT + '/lean/Fv256/Proofs/Amd64/ReduceSegA.lean').read()
     i = t.index('def PostA'); j = t.index('theorem segA ', i); d = t[i:j]
     body = d[d.index('∃ '):]
     rest = body[2:].split(', ', 1)[1]

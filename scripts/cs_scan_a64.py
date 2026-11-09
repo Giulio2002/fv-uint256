@@ -86,7 +86,7 @@ def conj():
       (f'∃ s_c : State, s_c.pc = BitVec.ofNat 64 sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec stAddr) slicebytetostringLive sbAddr L b s_c', '⟨Fv256.Arm64.Scan.Witness.csSb, rfl, Fv256.Arm64.Scan.Witness.csSb_pre⟩'),
     ]
 
-wc = 'lean/Fv256/Arm64/ScanWitC.lean'
+wc = 'lean/Fv256/Proofs/Arm64/ScanWitC.lean'
 s = open(wc).read()
 if 'CALLSITE-BLOCK' not in s:
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
@@ -94,7 +94,7 @@ if 'CALLSITE-BLOCK' not in s:
     i = s.index('/-- The statement of the witness theorem `Scan.Witness.nonvacuous`')
     s = s[:i] + BLOCK.lstrip('\n') + s[i:]
     open(wc, 'w').write(s)
-f = 'lean/Fv256/Arm64/Scan.lean'
+f = 'lean/Fv256/Proofs/Arm64/Scan.lean'
 t = open(f).read()
 if 'CallSites.Base' not in t:
     t = t.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)

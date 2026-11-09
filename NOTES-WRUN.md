@@ -8,7 +8,7 @@ Task: upgrade every fv-uint256 final-theorem witness to the Janus returning-run 
 - 8a77140b parenthesize numeral substitutions `(2 : BitVec 64).toNat` (CmpBig, SetFromBig, WriteToSlice)
 - 86887ba5 the Returns/GoReturns conjunct in 314 witnesses (311 by script, 2 PaddedBytes by hand, amd64 DivMod already in shape)
 Re-generating from scratch (the script is idempotent only on already-upgraded text, so to re-run after a script fix do):
-  for f in $(cat files.txt); do git show 86887ba5~1:$f > $f; done; python3 scripts/upgrade-witness-run.py $(cat files.txt); git checkout HEAD -- lean/Fv256/{Arm64,Amd64}/PaddedBytes.lean
+  for f in $(cat files.txt); do git show 86887ba5~1:$f > $f; done; python3 scripts/upgrade-witness-run.py $(cat files.txt); git checkout HEAD -- lean/Fv256/Proofs/{Arm64,Amd64}/PaddedBytes.lean
   (files.txt = scratchpad list of the 292 row-files, scratchpad = /tmp/claude-0/-root/b301f400-a150-4f15-8f32-0b73b1894423/scratchpad; rows.txt has isa fn file nwit witnesses).
   NOTE: do this BEFORE merging fv/csa/fv/csb (it overwrites witness text). After they add call-site conjuncts, only hand-fix.
 
@@ -22,7 +22,7 @@ Snapshot (scratchpad/res-now.txt, 226/292 classified when written; sweep still r
  5 arm64 MustFromDecimal: same class at MustFromDecimalMain.lean:97 (probable; recheck) -> FIXED 0db3fcb1 (unconfirmed)
  6 amd64 UnmarshalText (2787 s) and 7 amd64 MustFromDecimal (2955 s): per-row timeout (3000 s) with NO Lean error. SUSPICIOUS (coordinator flag): real verify of amd64 UnmarshalText was ~243 s,
    and `correctness` is stubbed here. The rewritten witness may force something heavy (the `correctness ...` application with `?w` holes, an `obtain` on a `*Wit*` core, a `decide`).
-   Settle by timing the witness module before/after the rewrite on that one file (git show 86887ba5~1:lean/Fv256/Amd64/UnmarshalTextMain.lean vs HEAD), same stub, same cache.
+   Settle by timing the witness module before/after the rewrite on that one file (git show 86887ba5~1:lean/Fv256/Proofs/Amd64/UnmarshalTextMain.lean vs HEAD), same stub, same cache.
    Suspects: core-mode witnesses (`obtain ⟨...⟩ := Fv256.Amd64.UtWit.nonvacuous_core` then `exact ⟨..., correctness ...⟩`): elaborating the `correctness` application against the huge
    unfolded pre may unify expensively; try passing hypotheses/pre via `(by exact h..)` or `refine`, or give `correctness` explicit named args; or the stubbed `sorry` makes decide-heavy `Witness`
    defs unavailable... also compare with old time to rule out cache/contention (load ~40 at the time, 4 parallel compiles).

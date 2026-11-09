@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""g4s3.py: lean/Fv256/Amd64/R4ArithS3.lean : the 5-limb subtraction unit 0x47f -> 0x4ac."""
+"""g4s3.py: lean/Fv256/Proofs/Amd64/R4ArithS3.lean : the 5-limb subtraction unit 0x47f -> 0x4ac."""
 import sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4eq, g4anf
@@ -9,7 +9,7 @@ a = ['x47fm88', 'x47fm10', 'x47fm8', 'x47fm18', 'x47fm0']
 b = ['x47frbx', 'x47frsi', 'x47fr8', 'x47frax', 'x47fr11']
 outs = ['x4acrcx', 'x4acrdx', 'x4acrbx', 'x4acrsi', 'x4acr8']
 D = '18446744073709551616'
-out = 'import Fv256.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
+out = 'import Fv256.Proofs.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
 out += 'theorem bvsub_toNat (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) : (BitVec.ofNat 64 a - BitVec.ofNat 64 b).toNat = (a + 2 ^ 64 - b) % 2 ^ 64 := by\n  simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]\n  omega\n\n'
 vars_ = a + b + outs + ['x4acr9']
 out += 'theorem s3_arith (%s : Nat)\n' % ' '.join(vars_)
@@ -26,4 +26,4 @@ out += '  clear h_x4acr9 h_x4acrcx\n'
 rest = [eqs[n] for n in outs[1:]] + [cond.split(' < ', 1)[1]]
 out += '\n'.join(g4anf.anf(rest, 'q')) + '\n'
 out += '  omega\n\nend Fv256.Amd64.R4Seg\n'
-open(ROOT + '/lean/Fv256/Amd64/R4ArithS3.lean', 'w').write(out)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4ArithS3.lean', 'w').write(out)

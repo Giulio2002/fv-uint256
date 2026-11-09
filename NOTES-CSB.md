@@ -6,7 +6,7 @@ JANUS_FRAMEWORK_STORE=/srv/janus-ops/fwstore (crow2.sh). Row runner: `HEAVY_PRIO
 Rule learned: complex rows take state from core modules; the cs conjunct goes in each core's exists-statement AND the wrapper's (obtain/exact).
 
 ## Done in the worktree (written, NOT yet compiled/audited)
-- Extracted-free helpers: lean/Fv256/Amd64/CallSites/{Base,Live}.lean (compile clean with plain lean).
+- Extracted-free helpers: lean/Fv256/Proofs/Amd64/CallSites/{Base,Live}.lean (compile clean with plain lean).
 - scripts/cs-newobject.py applied: Bytes Clone NewInt FromBig FromHex MustFromBig MustFromHex (csNew); DivMod (csNewW in DivModW); EncodeRLP (csNew + csW via callSt64At).
 - IntoBig, ToBig: csNew/csW1/csW2 (rsp = s0.rsp-32).
 - scripts/cs_live_gen.py + cs-live-apply.py (`--core T.. --wrap W..`): Live family block (new, mallocgc, memmove, wb1, wb2, cmpstring, ifaceeq, [sbts]); applied to SetFromDecimal (cfg sfd).
@@ -36,12 +36,12 @@ Proposed workaround (FV-CSA is testing it; confirm with them): wrap each multi-p
 My generated conjuncts (Live block, csNew-type ones with two-part pre such as `NewobjectPre64 ∧ Ready64`, ifaceeq, memmove, IntoBig/ToBig, EncodeRLP newobject) use the multi-part form, so they must be changed to the wrapped-def form if the workaround is confirmed. Audit-only takes ~25 s once fwstore is warm.
 
 ## CONFIRMED by FV-CSA (arm64 IntoBig/NewInt audit pass): the `@[reducible] def ...Site` wrapper is REQUIRED for multi-part pres.
-Also: closed `L := []`, `b := 0x400` inside the pre works (no `∃ L b` needed). Their wrappers: lean/Fv256/Arm64/CallSites/Base.lean on branch fv/csa (NewobjectSite, NewobjectLiveSite, MallocgcLiveSite, MemmoveLiveSite, WbLiveSite, IfaceeqSite) and scripts/cs-apply-*.sh: port to amd64 (rip, R14, calleeStack64) into lean/Fv256/Amd64/CallSites/Base.lean, then change cs_live_gen.py / cs-newobject.py / IntoBig / ToBig / EncodeRLP conjuncts to `∃ s_c, s_c.rip = ofNat addr ∧ XSite ... s_c`.
+Also: closed `L := []`, `b := 0x400` inside the pre works (no `∃ L b` needed). Their wrappers: lean/Fv256/Proofs/Arm64/CallSites/Base.lean on branch fv/csa (NewobjectSite, NewobjectLiveSite, MallocgcLiveSite, MemmoveLiveSite, WbLiveSite, IfaceeqSite) and scripts/cs-apply-*.sh: port to amd64 (rip, R14, calleeStack64) into lean/Fv256/Proofs/Amd64/CallSites/Base.lean, then change cs_live_gen.py / cs-newobject.py / IntoBig / ToBig / EncodeRLP conjuncts to `∃ s_c, s_c.rip = ofNat addr ∧ XSite ... s_c`.
 Lean gotcha (FV-CSA): `{ s0 with a := .., b := .. }` over two fields on separate lines gave a parse error; use two-step defs.
 
 ## FV-CSB2 update (2026-11-08 ~01:40)
 - KEY RULE (from FV-CSA): auditor matches the whole contract pre against ONE conjunct => write multi-part pres through `@[reducible] ...Site` defs
-  (lean/Fv256/Amd64/CallSites/Live.lean: NewobjectSite, NewobjectLiveSite, MallocgcLiveSite, MemmoveLiveSite, WbLiveSite, IfaceeqSite) + Decidable instances for CallOK64/TypeOK/GuardOK64.
+  (lean/Fv256/Proofs/Amd64/CallSites/Live.lean: NewobjectSite, NewobjectLiveSite, MallocgcLiveSite, MemmoveLiveSite, WbLiveSite, IfaceeqSite) + Decidable instances for CallOK64/TypeOK/GuardOK64.
 - PASSING audit+verify (pin 8615b09c, warm ~25-190 s): IntoBig, Bytes, Clone, NewInt, FromHex, DivMod (1141 s cold deps).
 - Fixed: FromBig/MustFromBig/MustFromHex (correctness arg must be `pre`, not `?w3`: WRUN-era bug), ToBig (Site), EncodeRLP csW_pre simp. These + SetFromDecimal/FromDecimal/MustFromDecimal/UnmarshalText/UnmarshalJSON/Scan wired, running in batch (see /srv/fv-uint256-csb-aud/rb.log).
 - Repinned audit tree to Janus 056c9381 (scripts: /srv/fv-uint256-csb-aud/repin.sh REV). 
@@ -56,7 +56,7 @@ Lean gotcha (FV-CSA): `{ s0 with a := .., b := .. }` over two fields on separate
 - Scan: audit run exceeded the 3000 s heavy-run timeout silently (no output, crow2 killed by timeout) on 056c9381: rowrun timeout now 5400. Wiring itself compiles (qc.sh).
 - Dec/String: csSs_pre is `sorry` (RtPre64 rtW 4096 H0 ...); must be proven before commit to fv/master. Hex/PrettyDec/MarshalJSON/MarshalText need own H (non-zero args), not wired.
 - NOT wired yet: Format, RtLive (MarshalSSZAppend, Value), ConvT64/ErrorfLive (MarshalSSZInto, UnmarshalSSZ), Makeslice (MarshalSSZ, PaddedBytes), RtContract64 rows Hex PrettyDec MarshalJSON MarshalText; full verifies + timings not done.
-- Tools: scripts/cs-rt64-zero.py (Dec/String-shaped), qc.sh FILE Fv256/Amd64/CallSites/Live with QC_C=<consumer dir from a prior run log> (6 s compile check).
+- Tools: scripts/cs-rt64-zero.py (Dec/String-shaped), qc.sh FILE Fv256/Proofs/Amd64/CallSites/Live with QC_C=<consumer dir from a prior run log> (6 s compile check).
 
 ## HANDOVER (FV-CSB2, ~04:50, context ~300k) -> next agent
 - Audit pin dba0069d (repinned, bin/janus + janus-audit built; /srv/fv-uint256-csb-aud/lean/lakefile.toml rev bumped). Re-audit batch running in background (rowbatch.sh, log /srv/fv-uint256-csb-aud/rb.log, ends with BATCHEND), order: IntoBig Bytes Clone NewInt FromBig FromHex MustFromBig MustFromHex ToBig EncodeRLP DivMod SetFromDecimal FromDecimal MustFromDecimal UnmarshalText UnmarshalJSON Scan.

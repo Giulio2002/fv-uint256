@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """g4link.py: linkA lemma: PostA s S  ->  L<cut> s S (live witnesses) + R4Regs + R4Mem  (witnesses are the A-variables mod 2^64).
-usage: g4link.py CUT_HEX  -> writes lean/Fv256/Amd64/R4LinkA.lean in /srv/fv-uint256-wf-r4"""
+usage: g4link.py CUT_HEX  -> writes lean/Fv256/Proofs/Amd64/R4LinkA.lean in /srv/fv-uint256-wf-r4"""
 import re, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4seg as g
 cut = int(sys.argv[1], 16)
 ROOT = g.ROOT
-t = open(ROOT + '/lean/Fv256/Amd64/ReduceSegA.lean').read()
+t = open(ROOT + '/lean/Fv256/Proofs/Amd64/ReduceSegA.lean').read()
 i = t.index('def PostA'); j = t.index('theorem segA ', i)
 d = t[i:j]
 body = d[d.index('∃ ') :]
@@ -46,7 +46,7 @@ for (k, key), nm in zip(its, names):
         wit.append('%s %% 18446744073709551616' % v)
         leaves.append('exact f%d' % n)
     leaves.append('exact Nat.mod_lt _ (by decide)')
-out = ['import Fv256.Amd64.R4Live', 'import Fv256.Amd64.ReduceSegA', '', 'open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic', 'open Fv256.Amd64.ReduceSpec Fv256.Amd64.ReduceSegA', '',
+out = ['import Fv256.Proofs.Amd64.R4Live', 'import Fv256.Proofs.Amd64.ReduceSegA', '', 'open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic', 'open Fv256.Amd64.ReduceSpec Fv256.Amd64.ReduceSegA', '',
        'namespace Fv256.Amd64.R4Seg', '']
 vs = ' '.join(vars_)
 eqs = [(nm, w) for nm, w in zip(names, wit)]
@@ -71,5 +71,5 @@ out.append('  · refine ⟨?_, ?_⟩')
 out.append('    · and_intros <;> rfl')
 out.append('    · and_intros' + ''.join('\n      · exact f%d' % n for n, f in enumerate(facts) if re.fullmatch(r"\(v\d+ = .*\)", f)))
 out.append('\nend Fv256.Amd64.R4Seg\n')
-open(ROOT + '/lean/Fv256/Amd64/R4LinkA.lean', 'w').write('\n'.join(out))
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4LinkA.lean', 'w').write('\n'.join(out))
 print(len(facts), len(vars_))

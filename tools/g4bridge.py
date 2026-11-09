@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""g4bridge.py: lean/Fv256/Amd64/R4ArithBA.lean : the weighted A-words equal the truncated partial-product sum T of MulModTrunc.trunc_q."""
+"""g4bridge.py: lean/Fv256/Proofs/Amd64/R4ArithBA.lean : the weighted A-words equal the truncated partial-product sum T of MulModTrunc.trunc_q."""
 import sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4rows, g4hi, g4anf
@@ -27,7 +27,7 @@ T = ('2 ^ 256 * ((%s * %s / 2 ^ 64) + (%s * %s / 2 ^ 64) + (%s * %s / 2 ^ 64) + 
      % (a3, u0, a2, u1, a1, u2, a0, u3, a4, u0, a3, u1, a2, u2, a1, u3, a0, u4, a4, u1, a3, u2, a2, u3, a1, u4, a4, u2, a3, u3, a2, u4, a4, u3, a3, u4, a4, u4))
 limbs = sorted({t for n in wv for t in re.findall(r'\b[XUM]\d+\b', words[n])} | set(a) | set(u))
 atoms = sorted({m for n in wv for m in re.findall(r'([XUM]\d+) \* ([XUM]\d+)', words[n])} | {(a[i], u[j]) for i in range(5) for j in range(5)})
-out = 'import Fv256.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
+out = 'import Fv256.Proofs.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
 out += 'theorem mulb2 (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) : a * b < 2 ^ 128 := by\n  have := Nat.mul_lt_mul\'\' ha hb\n  rwa [← Nat.pow_add] at this\n\n'
 out += 'theorem bridgeA (%s : Nat)\n' % ' '.join(limbs + wv)
 for v in limbs: out += '    (b_%s : %s < 2 ^ 64)\n' % (v, v)
@@ -38,5 +38,5 @@ for x, y in atoms:
 out += '\n'.join(g4anf.anf([words[n] for n in wv] , 'p')) + '\n'
 # T's divisions need ANF too: generalise them via the same helper on a pseudo expression
 out += '  omega\n\nend Fv256.Amd64.R4Seg\n'
-open(ROOT + '/lean/Fv256/Amd64/R4ArithBA.lean', 'w').write(out)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4ArithBA.lean', 'w').write(out)
 print(len(out))

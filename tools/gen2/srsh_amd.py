@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# srsh_amd.py : writes lean/Fv256/Amd64/SRsh.lean (positive branch reuses the amd64 Rsh handlers)
+# srsh_amd.py : writes lean/Fv256/Proofs/Amd64/SRsh.lean (positive branch reuses the amd64 Rsh handlers)
 import os, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 src = open(ROOT + '/tools/gen2/rsh_amd.py').read()
@@ -93,4 +93,4 @@ def blk(v, nb):
     return out
 t = open(ROOT + '/tools/gen2/srsh_amd_head.lean').read()
 t = t.replace('@@Z@@', blk('z', 8 + 10).lstrip()).replace('@@X@@', blk('x', 8 + 10).lstrip())
-open(ROOT + '/lean/Fv256/Amd64/SRsh.lean', 'w').write(t)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/SRsh.lean', 'w').write(t)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3 -I
-# sb_ensures_arm.py N... : rewrites lean/Fv256/Arm64/SetBytes<N>.lean so that `correctness` is an `Ensures` statement
+# sb_ensures_arm.py N... : rewrites lean/Fv256/Proofs/Arm64/SetBytes<N>.lean so that `correctness` is an `Ensures` statement
 # (the case len >= N) and the bounds-check panic (len < N) is the separate theorem `panics`; the proof body is the former
 # `correctness`, now `core`.
 import os, re, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 for n in map(int, sys.argv[1:]):
-    p = f"{ROOT}/lean/Fv256/Arm64/SetBytes{n}.lean"
+    p = f"{ROOT}/lean/Fv256/Proofs/Arm64/SetBytes{n}.lean"
     s = open(p).read()
     if "theorem core" in s: continue
     m = re.search(r"StackOK s (\d+) (\d+)\)", s); B, A = m.group(1), m.group(2)

@@ -49,5 +49,5 @@ if __name__ == '__main__':
     fw = {n: 1 << (320 + 64 * i) for i, n in enumerate(qn)}
     dropped = {7: lambda ia, nA: '2 ^ 256 * ((%s + %s) %% 2 ^ 64)' % (ia[nA.index('x2b5r11')], ia[nA.index('x2b5ma8')])}
     t, info, om, units = rows(cuts, fw, 's1', dropped)
-    open('/srv/fv-uint256-wf-r4/lean/Fv256/Amd64/R4ArithRows.lean', 'w').write("import Fv256.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n" + t + "\nend Fv256.Amd64.R4Seg\n")
+    open('/srv/fv-uint256-wf-r4/lean/Fv256/Proofs/Amd64/R4ArithRows.lean', 'w').write("import Fv256.Proofs.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n" + t + "\nend Fv256.Amd64.R4Seg\n")
     for i in info: print(i['k'], i['cap'], i['S'][:80])

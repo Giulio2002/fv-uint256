@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -I
 # alloc_witness.py : appends a concrete `Witness` (toy allocator at the runtime.newobject address, as in the Janus
-# audit control NewPair_witness) to lean/Fv256/{Arm64,Amd64}/{NewInt,Clone}.lean.  Idempotent: replaces an existing Witness block.
+# audit control NewPair_witness) to lean/Fv256/Proofs/{Arm64,Amd64}/{NewInt,Clone}.lean.  Idempotent: replaces an existing Witness block.
 import os, re
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ARM_COMMON = r'''namespace Witness

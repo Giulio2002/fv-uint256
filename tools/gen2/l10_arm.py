@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# l10_arm.py [k:m ...] : writes lean/Fv256/Arm64/Log10.lean and lean/Fv256/Arm64/L10Cases/C<k>_<m>.lean
+# l10_arm.py [k:m ...] : writes lean/Fv256/Proofs/Arm64/Log10.lean and lean/Fv256/Proofs/Arm64/L10Cases/C<k>_<m>.lean
 # (one module per (index k of the top nonzero limb, bit length m of that limb); the zero input is case Zero)
 import os, re, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -73,7 +73,7 @@ def case(k, m):
         L.append("    repeat' split at hbr")
         L.append("    all_goals omega)")
     return "\n".join(L)
-os.makedirs(ROOT + '/lean/Fv256/Arm64/L10Cases', exist_ok=True)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Arm64/L10Cases', exist_ok=True)
 for (k, m) in cases:
-    open(ROOT + f'/lean/Fv256/Arm64/L10Cases/C{k}_{m}.lean', 'w').write(
+    open(ROOT + f'/lean/Fv256/Proofs/Arm64/L10Cases/C{k}_{m}.lean', 'w').write(
         HDR + OPEN + "namespace Fv256.Arm64.Log10\n\n" + case(k, m) + "\n\nend Fv256.Arm64.Log10\n")

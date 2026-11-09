@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """a64chain.py NAME c0 c1 ... ck : compose consecutive generated arm64 segments/chains (cut ABSOLUTE addresses hex) into one chain unit
-lean/Fv256/Arm64/R4G/C_A_Z.lean (theorem c_A_Z, def PC_A_Z) + sidecar .json. Units: G_A_B.lean (g) or C_A_B.lean (c)."""
+lean/Fv256/Proofs/Arm64/R4G/C_A_Z.lean (theorem c_A_Z, def PC_A_Z) + sidecar .json. Units: G_A_B.lean (g) or C_A_B.lean (c)."""
 import re, sys, os, json
 sys.path.insert(0, os.path.dirname(__file__))
 import r4gen as G
 ROOT = G.ROOT
-D = ROOT + '/lean/Fv256/Arm64/R4G/'
+D = ROOT + '/lean/Fv256/Proofs/Arm64/R4G/'
 def split_top(s, sep=' ∧ '):
     out = []; d = 0; cur = ''; i = 0
     while i < len(s):
@@ -54,7 +54,7 @@ def emit(name, cuts):
         u['outargs'] = [mp.get(a, a) for a in u['outargs']]
         u['invars'] = actual
     A, Z = offs[0], offs[-1]
-    imports = ''.join('import Fv256.Arm64.R4G.%s_%x_%x\n' % (u.get('kind', 'g').upper(), u['A'], u['B']) for u in units)
+    imports = ''.join('import Fv256.Proofs.Arm64.R4G.%s_%x_%x\n' % (u.get('kind', 'g').upper(), u['A'], u['B']) for u in units)
     invars = units[0]['invars']
     allnew = []; alleqs = []; allextras = []
     for u in units: allnew += u['newvars']; alleqs += u['eqs']; allextras += u['extras']
@@ -96,6 +96,6 @@ def emit(name, cuts):
     open(D + 'c_%x_%x.obtain' % (A, Z), 'w').write('  unfold %s at h\n  obtain ⟨%s, hLz, %s%shRz, hMz⟩ := h\n' % (L, ', '.join(allnew), ', '.join(['h_' + n for n, e in alleqs] + allhx), ', ' if (alleqs or allhx) else ''))
     return f
 def HDR_IMPORTS(units):
-    return ''.join('import Fv256.Arm64.R4G.%s_%x_%x\n' % ('C' if u.get('kind') == 'c' else 'G', u['A'], u['B']) for u in units)
+    return ''.join('import Fv256.Proofs.Arm64.R4G.%s_%x_%x\n' % ('C' if u.get('kind') == 'c' else 'G', u['A'], u['B']) for u in units)
 if __name__ == '__main__':
     print(emit(sys.argv[1], sys.argv[2:]))

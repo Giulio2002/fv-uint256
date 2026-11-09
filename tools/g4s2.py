@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""g4s2.py: generate lean/Fv256/Amd64/R4ArithS2.lean: B = (Q*M) % 2^320 for the second multiplication (cuts 2f8 .. 47f)."""
+"""g4s2.py: generate lean/Fv256/Proofs/Amd64/R4ArithS2.lean: B = (Q*M) % 2^320 for the second multiplication (cuts 2f8 .. 47f)."""
 import sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4arith, g4seg as g
@@ -23,7 +23,7 @@ fin = dict(zip(n47, res.values())) if False else res
 outs_act = [res[o] for o in outs]
 allnew = [n for n, e in eqs]
 allv = invars + [n for n in allnew if n not in invars]
-out = 'import Fv256.Amd64.R4Seg0\n\nset_option exponentiation.threshold 400\nnamespace Fv256.Amd64.R4Seg\n\n'
+out = 'import Fv256.Proofs.Amd64.R4Seg0\n\nset_option exponentiation.threshold 400\nnamespace Fv256.Amd64.R4Seg\n\n'
 out += 'theorem mulb (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) : a * b < 2 ^ 128 := by\n  have := Nat.mul_lt_mul\'\' ha hb\n  rwa [← Nat.pow_add] at this\n\n'
 out += prod_text + adc_text
 Q = ' + '.join('2 ^ %d * %s' % (64 * i, v) if i else v for i, v in enumerate(q))
@@ -64,5 +64,5 @@ out += '  have hchain := %s\n' % chain
 out += '  clear %s\n' % ' '.join(tags)
 out += '  have hBlt : %s < 2 ^ 320 := by omega\n' % Bs
 out += '  rw [hfull]\n  omega\n\nend Fv256.Amd64.R4Seg\n'
-open(ROOT + '/lean/Fv256/Amd64/R4ArithS2.lean', 'w').write(out)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4ArithS2.lean', 'w').write(out)
 print(len(out), len(allv), len(eqs))

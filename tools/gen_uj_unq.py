@@ -1,4 +1,4 @@
-pre=open('/srv/fv-uint256-wI6/tools/uj_pre.txt').read().replace("%IMPORTS%","import Fv256.Arm64.UnmarshalJSONHead\n")
+pre=open('/srv/fv-uint256-wI6/tools/uj_pre.txt').read().replace("%IMPORTS%","import Fv256.Proofs.Arm64.UnmarshalJSONHead\n")
 B0="(BitVec.setWidth 32 (BitVec.ofNat 64 (s.mem.readLE pI.toNat 1))).toNat = 34"
 BL="(BitVec.setWidth 32 (BitVec.ofNat 64 (s.mem.readLE (pI.toNat + (nI.toNat - 1)) 1))).toNat = 34"
 br={'a':("(nI.toNat : Int) < 2","hc1","not_q_short hc1"),
@@ -65,4 +65,4 @@ theorem ju_{n} (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : 
       ⟨hok, heof, hrange, hsyn⟩, hFr⟩
 '''
     t=t.replace("PreJ.toU cfg hpreJ hnq","PreJ.toU cfg hpreJ hnq").replace("dec_call_pre cfg","UnmarshalDecJ.dec_call_pre cfg").replace("dec_post cfg","UnmarshalDecJ.dec_post cfg").replace("sfd_inst (C","UnmarshalDecJ.sfd_inst (C").replace("SbPost.mk","UnmarshalDecJ.SbPost.mk")
-    open(f'/srv/fv-uint256-wI6/lean/Fv256/Arm64/UnmarshalJSONJu{n}.lean','w').write(pre+t+"\nend Fv256.Arm64.UnmarshalJSON\n")
+    open(f'/srv/fv-uint256-wI6/lean/Fv256/Proofs/Arm64/UnmarshalJSONJu{n}.lean','w').write(pre+t+"\nend Fv256.Arm64.UnmarshalJSON\n")

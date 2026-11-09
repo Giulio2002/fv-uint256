@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# pad_amd.py [k ...] : writes lean/Fv256/Amd64/PaddedBytes.lean, PadDefs.lean and PadCases/Case<k>.lean (k = 0..31, 32 = Big)
+# pad_amd.py [k ...] : writes lean/Fv256/Proofs/Amd64/PaddedBytes.lean, PadDefs.lean and PadCases/Case<k>.lean (k = 0..31, 32 = Big)
 import os, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ks = [int(a) for a in sys.argv[1:]] or list(range(33))
@@ -70,16 +70,16 @@ def byteType : Nat := dataBase Extracted.program 0
 
 end Fv256.Amd64.PaddedBytes
 """
-os.makedirs(ROOT + '/lean/Fv256/Amd64/PadCases', exist_ok=True)
-open(ROOT + '/lean/Fv256/Amd64/PadDefs.lean', 'w').write(DEFS)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Amd64/PadCases', exist_ok=True)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/PadDefs.lean', 'w').write(DEFS)
 for k in ks:
     mod = "CaseBig" if k == 32 else f"Case{k}"
-    open(ROOT + f'/lean/Fv256/Amd64/PadCases/{mod}.lean', 'w').write(
+    open(ROOT + f'/lean/Fv256/Proofs/Amd64/PadCases/{mod}.lean', 'w').write(
         "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Amd64.PadDefs\n" + OPEN + "namespace Fv256.Amd64.PaddedBytes\n\n" + case(k) + "\n\nend Fv256.Amd64.PaddedBytes\n")
 
 M = "import Extracted\nimport Fv256.Spec\nimport Fv256.SpecC\nimport Fv256.Util\nimport Fv256.UtilC\nimport Fv256.Amd64.PadDefs\n"
-for k in range(32): M += f"import Fv256.Amd64.PadCases.Case{k}\n"
-M += "import Fv256.Amd64.PadCases.CaseBig\n"
+for k in range(32): M += f"import Fv256.Proofs.Amd64.PadCases.Case{k}\n"
+M += "import Fv256.Proofs.Amd64.PadCases.CaseBig\n"
 M += '''
 /-!
 # `(*uint256.Int).PaddedBytes(n int) []byte` (amd64)
@@ -114,4 +114,4 @@ for k in range(32):
     else:
         M += f"      exact (case{k} impl rt H z hmk ret hret s hs hpre).mono fun s' ⟨hab, ptr, a, b, c, d, e, f, g⟩ =>\n        ⟨hab, ptr, a, b, c, fun _ => ⟨d, e⟩, f, g⟩\n"
 M += "\n" + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pad_amd_witness.lean')).read() + "\nend Fv256.Amd64.PaddedBytes\n"
-open(ROOT + '/lean/Fv256/Amd64/PaddedBytes.lean', 'w').write(M)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/PaddedBytes.lean', 'w').write(M)

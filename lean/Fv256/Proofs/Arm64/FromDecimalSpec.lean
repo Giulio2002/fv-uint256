@@ -1,0 +1,256 @@
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
+import Fv256.Proofs.Common.SpecI
+import Fv256.Proofs.Common.UtilI
+import Fv256.Proofs.Arm64.SfdTopSpec
+import Fv256.Proofs.Arm64.SfdEnvC
+import Fv256.Spec.Arm64.FromDecimalSpec
+
+/-!
+# `FromDecimal` (arm64): precondition and the `SetFromDecimal` call-site lemma (Extracted-free)
+
+`PreC`: the model facts of `SfdTopSpec.TopPre` minus the receiver `z` (which `newobject` allocates inside the proof).
+`toppre_of_call`: from `PreC` at the entry state and the facts of the state at the `SetFromDecimal` call (the object `z` that
+`newobject` returned, the memory frame, the runtime invariant after the allocation), `TopPre` for that call.
+-/
+
+open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I Fv256.C
+open Fv256.Arm64.SfdTopSpec
+
+namespace Fv256.Arm64.FromDecimalSpec
+
+variable (C : SfdCfg)
+
+theorem outside_of_in {rt : List (Nat × Nat)} {z n : Nat} (hz : InRanges z n rt) :
+    ∀ rs : List (Nat × Nat), (∀ r ∈ rs, r.1 ≤ r.2) → (∀ r ∈ rs, Outside r.1 (r.2 - r.1) rt) → Outside z n rs := by
+  intro rs
+  induction rs with
+  | nil => intros; trivial
+  | cons r rs ih =>
+    intro hw ho
+    obtain ⟨a, b⟩ := r
+    simp only [outside_cons]
+    refine ⟨?_, ih (fun r hr => hw r (List.mem_cons_of_mem _ hr)) (fun r hr => ho r (List.mem_cons_of_mem _ hr))⟩
+    obtain ⟨q, hq, h1, h2⟩ := hz
+    have hab := hw (a, b) (List.mem_cons_self ..)
+    have := MemFrame.outside_mem (ho (a, b) (List.mem_cons_self ..)) hq
+    simp only at hab this
+    omega
+
+theorem outside_sub_stack (rt : List (Nat × Nat)) (lo hi sp a n : Nat) (hlo : lo + 4576 ≤ sp) (hhi : sp + 24 ≤ hi)
+    (h : Outside a n (rt ++ [(lo, hi)])) :
+    Outside a n [(lo, hi)] ∧ Outside a n (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
+  simp only [outside_append, outside_cons, outside_nil, and_true] at h ⊢
+  obtain ⟨h1, h2⟩ := h
+  exact ⟨h2, h1, by omega, by omega⟩
+
+/-- the reads of the spill slots of `FromDecimal`'s frame in the memory at the `SetFromDecimal` call -/
+theorem s3_reads {rt : List (Nat × Nat)} {m0 mN : Janus.Arm64.Memory} {lo hi sp ra v29 vn vp zN : Nat}
+    (hlo : lo + 4576 ≤ sp) (hhi : sp + 24 ≤ hi) (hrt9 : Outside lo (hi - lo) rt)
+    (hMF : MemFrame ((((m0.writeLE (sp - 48) 8 ra).writeLE (sp - 56) 8 v29).writeLE (sp + 16) 8 vn).writeLE (sp + 8) 8 vp) mN
+      (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)])) :
+    (mN.writeLE (sp - 16) 8 zN).readLE (sp - 48) 8 = ra % 2 ^ 64 ∧
+    (mN.writeLE (sp - 16) 8 zN).readLE (sp - 56) 8 = v29 % 2 ^ 64 ∧
+    (mN.writeLE (sp - 16) 8 zN).readLE (sp - 16) 8 = zN % 2 ^ 64 := by
+  have o1 : ∀ a n, lo ≤ a → a + n ≤ hi → (a + n ≤ sp - 48 - 4096 ∨ sp - 48 - 8 ≤ a) → (a + n ≤ sp - 48 + 8 ∨ sp - 48 + 8 + 8 ≤ a) →
+      Outside a n (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]) := by
+    intro a n h1 h2 h3 h4
+    rw [outside_append]
+    refine ⟨Outside.of_sub hrt9 h1 (by omega), ?_⟩
+    simp only [outside_cons, outside_nil, and_true]
+    exact ⟨h3, h4⟩
+  refine ⟨?_, ?_, ?_⟩
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [hMF.readLE (sp - 48) 8 (o1 (sp - 48) 8 (by omega) (by omega) (by omega) (by omega))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+    rw [hMF.readLE (sp - 56) 8 (o1 (sp - 56) 8 (by omega) (by omega) (by omega) (by omega))]
+    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+  · simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint, Janus.Arm64.Memory.readLE_writeLE_self]
+
+/-- a byte of the string is unchanged between the entry memory and the memory at the `SetFromDecimal` call -/
+theorem str_read {rt : List (Nat × Nat)} {L : List (Nat × Nat)} {m0 M0 mN : Janus.Arm64.Memory} {lo hi sp zN a : Nat}
+    (hlo : lo + 4576 ≤ sp) (hhi : sp + 24 ≤ hi)
+    (hM0 : MemFrame m0 M0 [(lo, hi)])
+    (hMF : MemFrame M0 mN (rt ++ [(sp - 48 - 4096, sp - 48 - 8), (sp - 48 + 8, sp - 48 + 8 + 8)]))
+    (hLF : LiveFrame M0 mN L [])
+    (hwin : a + 1 ≤ lo ∨ hi ≤ a) (hs : Outside a 1 rt ∨ InRanges a 1 L) :
+    (mN.writeLE (sp - 16) 8 zN).readLE a 1 = m0.readLE a 1 := by
+  simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]
+  have h1 : M0.readLE a 1 = m0.readLE a 1 := hM0.readLE a 1 (by simp only [outside_cons, outside_nil, and_true]; exact hwin)
+  rcases hs with h | h
+  · rw [hMF.readLE a 1 (by
+      rw [outside_append]
+      refine ⟨h, ?_⟩
+      simp only [outside_cons, outside_nil, and_true]
+      omega)]
+    exact h1
+  · rw [hLF.readLE a 1 h (by simp)]
+    exact h1
+
+theorem chunkOK_mono {R : RtInv} {R2 : IfaceModel} {L L' : List (Nat × Nat)} {b : Nat} {sp sl : BitVec 64} {lo hi hi3 : Nat}
+    {m m' : Janus.Arm64.Memory} (h : ChunkOK C R R2 L b sp sl lo hi m) (hL : ∀ r ∈ L, r ∈ L') (hh : hi3 ≤ hi)
+    (hacc : m'.accessible sp.toNat sl.toNat false = true) : ChunkOK C R R2 L' b sp sl lo hi3 m' := by
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩ := h
+  exact ⟨h1, h2, h3, hacc, h5, by omega, h7.elim Or.inl (fun hi => Or.inr (hi.of_subset hL)), h8⟩
+
+theorem toppre_of_call {R : RtInv} {R2 : IfaceModel} {T b : Nat} {L : List (Nat × Nat)} {lo hi tI : Nat}
+    {pS nS zv : BitVec 64} {s S3 : State} {hi3 : Nat}
+    (hpre : PreC C R R2 T b L lo hi tI pS nS s) (hh3 : hi3 ≤ hi) (hh3' : s.sp.toNat - 16 ≤ hi3)
+    (hr0 : S3.regs 0 = zv) (hr1 : S3.regs 1 = pS) (hr2 : S3.regs 2 = nS) (hsp3 : S3.sp = s.sp - 48#64)
+    (hr28 : S3.regs 28 = s.regs 28) (h30a : (S3.regs 30).toNat % 4 = 0) (h30b : (S3.regs 30).toNat < 2 ^ 48)
+    (hF : MemFrame s.mem S3.mem (R.rt ++ [(lo, hi)]))
+    (hz : InRanges zv.toNat 32 R.rt) (hzL : ApartAll zv.toNat 32 L) (hza : s.mem.accessible zv.toNat 32 true = true) (hz48 : zv.toNat + 32 ≤ 2 ^ 48)
+    (hInv : R.inv (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) (S3.regs 28).toNat
+      (view R.rt (L ++ [(zv.toNat, zv.toNat + 32)]) S3.mem)) :
+    TopPre C R R2 T (b - 32) (L ++ [(zv.toNat, zv.toNat + 32)]) lo hi3 zv pS nS S3 := by
+  obtain ⟨-, -, h0, h3, hMod, hEnv, hlo, hhi, hok, hbud, hMult, hMt, hMk, hE1, hE2, hE3, hB1, hB2, hB3, hInit, hMa, hMo, hMr, hMb, hacP, hp48, hPS, hPR, hCh⟩ := hpre
+  have hEnv' := hEnv
+  obtain ⟨e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18⟩ := hEnv'
+  have hsp : S3.sp.toNat = s.sp.toNat - 48 := by
+    rw [hsp3]; have := s.sp.isLt; simp only [BitVec.toNat_sub, BitVec.toNat_ofNat]; omega
+  have hspS : 48 ≤ s.sp.toNat := by omega
+  have e3s : hi3 ≤ 2 ^ 48 := by omega
+  have e9s : Outside lo (hi3 - lo) R.rt := Outside.of_sub e9 (Nat.le_refl _) (by omega)
+  have e10s : Outside lo (hi3 - lo) R2.priv := Outside.of_sub e10 (Nat.le_refl _) (by omega)
+  have e13s : (s.regs 28).toNat + 16 + 8 ≤ lo ∨ hi3 ≤ (s.regs 28).toNat + 16 := by omega
+  have e14s : ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(lo, hi3)] := by
+    intro r hr
+    have := e14 r hr
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
+  have e5s : s.mem.accessible lo (hi3 - lo) true = true :=
+    Janus.Arm64.Memory.accessible_sub s.mem e5 (Or.inr rfl) (Nat.le_refl _) (by omega)
+  have e18s : ∀ r ∈ L, Outside r.1 (r.2 - r.1) [(lo, hi3)] := by
+    intro r hr
+    have := e18 r hr
+    simp only [outside_cons, outside_nil, and_true] at this ⊢
+    omega
+  have hrt : ∀ a n, Outside a n R.rt → Outside a n [(lo, hi)] → S3.mem.readLE a n = s.mem.readLE a n := by
+    intro a n h1 h2
+    exact hF.readLE a n (by rw [outside_append]; exact ⟨h1, h2⟩)
+  have hMod' := hMod
+  obtain ⟨m1, md8, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12⟩ := hMod'
+  have hzP : Outside zv.toNat 32 R2.priv := outside_of_in hz _ hInit.2.2.2.2 m4
+  have hzS : ∀ r ∈ staticRanges C T, Outside r.1 (r.2 - r.1) [(zv.toNat, zv.toNat + 32)] := by
+    intro r hr
+    have h2 := InRanges.apart hz (b := r.1) (k := r.2 - r.1) (m7 r hr)
+    simp only [outside_cons, outside_nil, and_true]
+    unfold Apart at h2; omega
+  have hLs : ∀ r ∈ L, r ∈ L ++ [(zv.toNat, zv.toNat + 32)] := fun r hr => List.mem_append_left _ hr
+  have hWinZ : Apart lo (hi - lo) zv.toNat 32 := InRanges.apart hz e9
+  have hGZ : Apart ((s.regs 28).toNat + 16) 8 zv.toNat 32 := InRanges.apart hz e11
+  unfold TopPre
+  refine ⟨h30a, h30b, hr0, hr1, hr2, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · -- Mod
+    refine ⟨m1, md8, m2, m3, m4, ?_, m6, m7, m8, m9, m10, m11, m12⟩
+    intro r hr
+    rcases List.mem_append.1 hr with h | h
+    · exact m5 r h
+    · simp only [List.mem_singleton] at h; subst h; simpa using hzP
+  · -- Env
+    have hgz : (S3.regs 28).toNat = (s.regs 28).toNat := by rw [hr28]
+    refine ⟨by omega, by omega, e3s, by omega, ?_, by rw [hgz]; exact e6, ?_, ?_, e9s, e10s, by rw [hgz]; exact e11,
+      by rw [hgz]; exact e12, by rw [hgz]; exact e13s, e14s, ?_, ?_, hInv, ?_⟩
+    · rw [hF.accessible]; exact e5s
+    · rw [hgz, hF.accessible]; exact e7
+    · rw [hgz, hrt _ _ e11 (by simp only [outside_cons, outside_nil, and_true]; omega)]; exact e8
+    · refine StaticOK.frame e15 hF ?_
+      intro r hr
+      rw [outside_append]
+      refine ⟨m7 r hr, ?_⟩
+      have := e14 r hr
+      exact this
+    · rw [hr28]; refine m1.env_frame _ _ _ e16 (Janus.Spec.Map.Agrees.of_memFrame hF ?_)
+      intro a ha
+      obtain ⟨r, hr, h1, h2⟩ := ha
+      have a1 := MemFrame.outside_mem e10 hr
+      have a2 : Outside a 1 R.rt := Outside.of_sub (m4 r hr) h1 (by omega)
+      rw [outside_append]
+      refine ⟨a2, ?_⟩
+      simp only [outside_cons, outside_nil, and_true]
+      omega
+    · intro r hr
+      rcases List.mem_append.1 hr with h | h
+      · exact e18s r h
+      · simp only [List.mem_singleton] at h; subst h
+        simp only [outside_cons, outside_nil, and_true]
+        unfold Apart at hWinZ; omega
+  · omega
+  · omega
+  · -- MultOK
+    obtain ⟨u1, u2, u3⟩ := hMult
+    have u2' := u2
+    simp only [outside_cons, outside_nil, and_true] at u2'
+    refine ⟨by rw [hF.accessible]; exact u1, ?_, ?_⟩
+    · have := InRanges.apart hz hMt
+      simp only [outside_cons, outside_nil, and_true]
+      unfold Apart at this
+      exact ⟨by omega, by omega⟩
+    · intro k hk1 hk2
+      obtain ⟨v1, v2, v3, v4⟩ := u3 k hk1 hk2
+      have v4' := v4
+      simp only [outside_cons, outside_nil, and_true] at v4'
+      have hread : S3.mem.readLE (C.mulTab + 8 * k) 8 = s.mem.readLE (C.mulTab + 8 * k) 8 :=
+        hrt _ _ (Outside.of_sub hMt (by omega) (by omega))
+          (by simp only [outside_cons, outside_nil, and_true]; omega)
+      rw [hread]
+      have hMk' := hMk k hk1 hk2
+      generalize s.mem.readLE (C.mulTab + 8 * k) 8 = pp at *
+      refine ⟨by rw [hF.accessible]; exact v1, v2, ?_, ?_⟩
+      · have hv : S3.mem.readLE pp 32 = s.mem.readLE pp 32 :=
+          hrt pp 32 hMk' (by simp only [outside_cons, outside_nil, and_true]; exact v4'.1)
+        show S3.mem.readLE pp 32 = _
+        rw [hv]
+        exact v3
+      · have := InRanges.apart hz hMk'
+        unfold Apart at this
+        simp only [outside_cons, outside_nil, and_true]
+        exact ⟨by omega, by omega⟩
+  · -- ioEOF
+    rw [hF.accessible]; exact hE1
+  · have := InRanges.apart hz hE3
+    unfold Apart at this
+    simp only [outside_cons, outside_nil, and_true] at hE2 ⊢
+    exact ⟨by omega, by omega⟩
+  · rw [hF.accessible]; exact hMa
+  · have := InRanges.apart hz hMr
+    unfold Apart at this
+    simp only [outside_cons, outside_nil, and_true] at hMo ⊢
+    exact ⟨by omega, by omega⟩
+  · exact hMr
+  · intro k hk
+    rw [hrt _ _ (Outside.of_sub hMr (by omega) (by omega)) (by
+      simp only [outside_cons, outside_nil, and_true] at hMo ⊢
+      omega)]
+    exact hMb k hk
+  · rw [hF.accessible]; exact hB1
+  · have := InRanges.apart hz hB3
+    unfold Apart at this
+    simp only [outside_cons, outside_nil, and_true] at hB2 ⊢
+    exact ⟨by omega, by omega⟩
+  · -- Ptr32 z
+    exact ⟨by rw [hF.accessible]; exact hza, hz48⟩
+  · unfold Apart at hWinZ; omega
+  · exact Or.inr ⟨(zv.toNat, zv.toNat + 32), List.mem_append_right _ (List.mem_singleton_self _), Nat.le_refl _, Nat.le_refl _⟩
+  · exact hzP
+  · exact hzS
+  · rw [hr28]; unfold Apart at hGZ; omega
+  · rw [hF.accessible]; exact Or.inr hacP
+  · exact hp48
+  · omega
+  · rcases hPR with h | h
+    · have := InRanges.apart hz h
+      unfold Apart at this; omega
+    · have := hzL.apart_of_inRanges h
+      omega
+  · -- ChunkAll
+    intro sp sl h1 h2 h3 h4
+    have := hCh sp sl h1 h2 h3 h4
+    have hbs : blockSize 32 true = 32 := by decide
+    rw [hbs] at hCh
+    have this := hCh sp sl h1 h2 h3 h4
+    refine chunkOK_mono C this (fun r hr => List.mem_append_left _ hr) hh3 ?_
+    rw [hF.accessible]; exact this.2.2.2.1
+
+end Fv256.Arm64.FromDecimalSpec

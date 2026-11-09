@@ -2,9 +2,9 @@ import sys,re
 sys.path.insert(0,'/srv/fv-uint256-wf/scratch')
 from genG1 import *
 import emitG2
-LEAN='/srv/fv-uint256-wf/lean/Fv256/Amd64/'
+LEAN='/srv/fv-uint256-wf/lean/Fv256/Proofs/Amd64/'
 # --- type 1 lemmas
-hdr='''import Fv256.Amd64.AddModShapes
+hdr='''import Fv256.Proofs.Amd64.AddModShapes
 /-! AddMod amd64 generic path (m[3]=0 or reduction needed): closers for the no-overflow aliasing variants (generated). -/
 open Janus Janus.Amd64
 set_option maxRecDepth 100000
@@ -24,13 +24,13 @@ body=src[src.index('theorem gA'):src.index('end Fv256.F')]
 open(LEAN+'AddModShapesG.lean','w').write(hdr+body+"\nend Fv256.F\n")
 # --- gen theorem
 
-lines=open('/srv/fv-uint256-wf/lean/Fv256/Amd64/AddModGen.lean').read().split('\n')
+lines=open('/srv/fv-uint256-wf/lean/Fv256/Proofs/Amd64/AddModGen.lean').read().split('\n')
 # keep through the janus_frame line
 k=[j for j,l in enumerate(lines) if l.startswith('  all_goals (first | janus_frame | skip)')][0]
 pre=lines[:k+1]
 pre=[l for l in pre]
-idx=[j for j,l in enumerate(pre) if l.startswith('import Fv256.Amd64.ModSum')][0]
-pre.insert(idx+1,'import Fv256.Amd64.AddModShapes\nimport Fv256.Amd64.AddModShapesG\nimport Fv256.Amd64.AddModTac')
+idx=[j for j,l in enumerate(pre) if l.startswith('import Fv256.Proofs.Amd64.ModSum')][0]
+pre.insert(idx+1,'import Fv256.Proofs.Amd64.AddModShapes\nimport Fv256.Amd64.AddModShapesG\nimport Fv256.Amd64.AddModTac')
 out=pre[:]
 def bclose(i):
     c=emitG2.closer(i).replace('KEYNAME','hL2')

@@ -17,14 +17,14 @@ theorem csSb_pre : RtPre rtW 4096 H0 (slicebytetostringSpec Extracted.dataAddr.�
     (simp [argWords, wordsFrom, arg, csSb, csSb0]) <;> (rcases j with _ | _ | _ | j <;> simp)
 '''
 for fn in sys.argv[1:]:
-    f = f'lean/Fv256/Arm64/{fn}.lean'
+    f = f'lean/Fv256/Proofs/Arm64/{fn}.lean'
     subprocess.run(['git', 'checkout', 'fv/wrun', '--', f], check=True)
     s = open(f).read()
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
     ns = f'namespace Fv256.Arm64.{fn}\n'
     s = s.replace(ns, 'open Fv256.Arm64.CallSites\n\n' + ns, 1)
     open(f, 'w').write(s)
-    bf = f'lean/Fv256/Arm64/CallSites/{fn}.lean'
+    bf = f'lean/Fv256/Proofs/Arm64/CallSites/{fn}.lean'
     open(bf, 'w').write(BLOCK)
     r = subprocess.run(['python3', 'scripts/callsite-splice.py', f, 'nonvacuous', '--block', bf,
         '--conj', '∃ s_c : State, s_c.pc = BitVec.ofNat 64 ssAddr ∧ RtPre rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c',

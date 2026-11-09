@@ -1,0 +1,27 @@
+import Fv256.Proofs.Amd64.RecipG.G_b9f_bed
+import Fv256.Proofs.Amd64.RecipG.G_bed_c49
+
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
+
+namespace Fv256.Amd64.RecipSeg
+
+def PC_b9f_c49 (s : State) (y3 : Nat) (xb9frcx xb9frdx xb9frbx xb9fm40 xb9fm48 xb9fm50 xb9fm60 : Nat) (S' : State) : Prop :=
+  ∃ xbedrdi xbedr8 xbedr10 xbedr12 xbedr15 xc49rcx xc49rdx xc49rbx xc49rsi xc49r9 xc49r11 xc49m78 xc49m80 xc49m88 xc49m90, Lc49 s S' xc49rcx xc49rdx xc49rbx xc49rsi xc49r9 xc49r11 xc49m78 xc49m80 xc49m88 xc49m90 ∧ xbedrdi = (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm60 else BitVec.ofNat 64 xb9fm60 - 1#64).toNat ∧ xbedr8 = (if xb9frdx = 0 then BitVec.ofNat 64 xb9frbx else BitVec.ofNat 64 ((xb9frbx % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9fm60 < 1)).toNat) % 18446744073709551616)).toNat ∧ xbedr10 = (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm50 else BitVec.ofNat 64 ((xb9fm50 % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9frbx < (decide (xb9fm60 < 1)).toNat)).toNat) % 18446744073709551616)).toNat ∧ xbedr12 = (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm48 else BitVec.ofNat 64 ((xb9fm48 % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9fm50 < (decide (xb9frbx < (decide (xb9fm60 < 1)).toNat)).toNat)).toNat) % 18446744073709551616)).toNat ∧ xbedr15 = (if xb9frdx = 0 then BitVec.ofNat 64 xb9fm40 else BitVec.ofNat 64 ((xb9fm40 % 18446744073709551616 + 18446744073709551616 - 0 % 18446744073709551616 - (decide (xb9fm48 < (decide (xb9fm50 < (decide (xb9frbx < (decide (xb9fm60 < 1)).toNat)).toNat)).toNat)).toNat) % 18446744073709551616)).toNat ∧ xc49rcx = (if (BitVec.ofNat 64 xb9frcx).msb = true then 0#64 else BitVec.ofNat 64 xb9frcx).toNat ∧ xc49rdx = (if (BitVec.ofNat 64 xb9frcx).msb = true then BitVec.ofNat 64 (xbedrdi + xbedrdi) else BitVec.ofNat 64 xbedrdi).toNat ∧ xc49rbx = (if (BitVec.ofNat 64 xb9frcx).msb = true then BitVec.ofNat 64 (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) else BitVec.ofNat 64 xbedr8).toNat ∧ xc49rsi = (if (BitVec.ofNat 64 xb9frcx).msb = true then BitVec.ofNat 64 (xbedr10 + xbedr10 + (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) / 18446744073709551616) else BitVec.ofNat 64 xbedr10).toNat ∧ xc49r9 = (if (BitVec.ofNat 64 xb9frcx).msb = true then BitVec.ofNat 64 (xbedr12 + xbedr12 + (xbedr10 + xbedr10 + (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) else BitVec.ofNat 64 xbedr12).toNat ∧ xc49r11 = (if (BitVec.ofNat 64 xb9frcx).msb = true then BitVec.ofNat 64 (xbedr15 + xbedr15 + (xbedr12 + xbedr12 + (xbedr10 + xbedr10 + (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) else BitVec.ofNat 64 xbedr15).toNat ∧ xc49m78 = (if (BitVec.ofNat 64 xb9frcx).msb = true then (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) % 18446744073709551616 else xbedr8) % 18446744073709551616 ∧ xc49m80 = (if (BitVec.ofNat 64 xb9frcx).msb = true then (xbedr10 + xbedr10 + (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616 else xbedr10) % 18446744073709551616 ∧ xc49m88 = (if (BitVec.ofNat 64 xb9frcx).msb = true then (xbedr12 + xbedr12 + (xbedr10 + xbedr10 + (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616 else xbedr12) % 18446744073709551616 ∧ xc49m90 = (if (BitVec.ofNat 64 xb9frcx).msb = true then (xbedr15 + xbedr15 + (xbedr12 + xbedr12 + (xbedr10 + xbedr10 + (xbedr8 + xbedr8 + (xbedrdi + xbedrdi) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) / 18446744073709551616) % 18446744073709551616 else xbedr15) % 18446744073709551616 ∧ RecRegs s S' ∧ RecMem s S'.mem y3
+
+set_option maxHeartbeats 64000000 in
+set_option maxRecDepth 200000 in
+theorem c_b9f_c49 {y3 : Nat} (s S : State) (hpc : S.rip = BitVec.ofNat 64 (recEntry + 0xb9f)) (hs : RecPre s)
+    (hR : RecRegs s S) (hM : RecMem s S.mem y3) (xb9frcx xb9frdx xb9frbx xb9fm40 xb9fm48 xb9fm50 xb9fm60 : Nat) (hL : Lb9f s S xb9frcx xb9frdx xb9frbx xb9fm40 xb9fm48 xb9fm50 xb9fm60) :
+    ReachesRet Fv256.RecipProg.program (BitVec.ofNat 64 (recEntry + 0xc49)) S (PC_b9f_c49 s y3 xb9frcx xb9frdx xb9frbx xb9fm40 xb9fm48 xb9fm50 xb9fm60) := by
+  refine Fv256.SegCompose.seg_trans (g_b9f_bed (y3 := y3) s S hpc hs hR hM xb9frcx xb9frdx xb9frbx xb9fm40 xb9fm48 xb9fm50 xb9fm60 hL) ?_
+  intro S1 hpc1 hq1
+  unfold P_b9f_bed at hq1
+  obtain ⟨xbedrdi, xbedr8, xbedr10, xbedr12, xbedr15, hL1, h_xbedrdi, h_xbedr8, h_xbedr10, h_xbedr12, h_xbedr15, hR1, hM1⟩ := hq1
+  refine Fv256.SegCompose.seg_mono (g_bed_c49 (y3 := y3) s S1 hpc1 hs hR1 hM1 xb9frcx xbedrdi xbedr8 xbedr10 xbedr12 xbedr15 hL1) ?_
+  intro S2 hq2
+  unfold P_bed_c49 at hq2
+  obtain ⟨xc49rcx, xc49rdx, xc49rbx, xc49rsi, xc49r9, xc49r11, xc49m78, xc49m80, xc49m88, xc49m90, hL2, h_xc49rcx, h_xc49rdx, h_xc49rbx, h_xc49rsi, h_xc49r9, h_xc49r11, h_xc49m78, h_xc49m80, h_xc49m88, h_xc49m90, hR2, hM2⟩ := hq2
+  unfold PC_b9f_c49
+  exact ⟨xbedrdi, xbedr8, xbedr10, xbedr12, xbedr15, xc49rcx, xc49rdx, xc49rbx, xc49rsi, xc49r9, xc49r11, xc49m78, xc49m80, xc49m88, xc49m90, hL2, h_xbedrdi, h_xbedr8, h_xbedr10, h_xbedr12, h_xbedr15, h_xc49rcx, h_xc49rdx, h_xc49rbx, h_xc49rsi, h_xc49r9, h_xc49r11, h_xc49m78, h_xc49m80, h_xc49m88, h_xc49m90, hR2, hM2⟩
+
+end Fv256.Amd64.RecipSeg

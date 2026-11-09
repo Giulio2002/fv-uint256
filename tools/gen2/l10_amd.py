@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# l10_amd.py [k:m ...] : writes lean/Fv256/Amd64/L10Cases/C<k>_<m>.lean (one module per top nonzero limb k and its bit length m) and Zero.lean
+# l10_amd.py [k:m ...] : writes lean/Fv256/Proofs/Amd64/L10Cases/C<k>_<m>.lean (one module per top nonzero limb k and its bit length m) and Zero.lean
 import os, re, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def _addr(sym):
@@ -81,7 +81,7 @@ def case(k, m):
     else:
         body += "  all_goals (\n    simp only [valueAt, Util.readLE_32]\n    (try simp only [Util.dec_ite] at hbr)\n    (repeat' split at *) <;> (try simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod] at hbr) <;> first | omega | exact (hbr trivial).elim)\n"
     return "\n".join(L) + " := by\n".replace(" := by\n", "\n") + body if False else "\n".join(L) + "\n" + body
-os.makedirs(ROOT + '/lean/Fv256/Amd64/L10Cases', exist_ok=True)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Amd64/L10Cases', exist_ok=True)
 for (k, m) in cases:
-    open(ROOT + f'/lean/Fv256/Amd64/L10Cases/C{k}_{m}.lean', 'w').write(
+    open(ROOT + f'/lean/Fv256/Proofs/Amd64/L10Cases/C{k}_{m}.lean', 'w').write(
         HDR + OPEN + "namespace Fv256.Amd64.Log10\n\n" + case(k, m) + "\nend Fv256.Amd64.Log10\n")

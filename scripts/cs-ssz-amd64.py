@@ -73,9 +73,9 @@ theorem csEr_pre : ErrorfLiveSite R0e cAddrE 4096 tErr iErr tInt iWrap 26 fmtNum
 '''
 for fn, c in CFG.items():
     if len(sys.argv) > 1 and fn not in sys.argv[1:]: continue
-    f = f'lean/Fv256/Amd64/{fn}.lean'
+    f = f'lean/Fv256/Proofs/Amd64/{fn}.lean'
     s = open(f).read()
-    if 'import Fv256.Amd64.CallSites.Live' not in s:
+    if 'import Fv256.Proofs.Amd64.CallSites.Live' not in s:
         s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Amd64.CallSites.Live\n', 1)
     open(f, 'w').write(s)
     bf = f'/tmp/cs-{fn}.lean'

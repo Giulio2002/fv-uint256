@@ -14,7 +14,7 @@
 - Extraction (Janus 655a23fa = /srv/janus-fvA-pin655/bin/janus; harness /srv/fv-uint256/build/harness-arm64): symbol is `github.com/holiman/uint256.Reciprocal`
   (NOT `(*Int).Reciprocal`); `build/ex-arm64-Recip` (untracked) holds Extracted.lean: Reciprocal 507 words at 0xb8d80, calls `(*Int).Lsh` (0xbcbf0, 77 words),
   stubs panicdivide 0x507a0 / gopanic 0x84400 / morestack 0x88540.
-- lean/Fv256/Arm64/RecipProg.lean generated (tools/gen_libprog_arm64.py with --fn Reciprocal --fn (*Int).Lsh, 2nd extraction = Lsh); compiles
+- lean/Fv256/Proofs/Arm64/RecipProg.lean generated (tools/gen_libprog_arm64.py with --fn Reciprocal --fn (*Int).Lsh, 2nd extraction = Lsh); compiles
   (build/lc.sh with absolute path). Namespace Fv256.Arm64.RecipProg, `program`.
 - Disassembly: build/recip-arm64.dis (objdump -D -b binary -m aarch64 --adjust-vma=0xb8d80 build/recip-arm64.bin). Landmarks: entry stack check 0xb8d80;
   zeroing of the 5-word result at sp+0x118 (result slot = caller frame, mu written through it); m3==0 -> 0xb9528 (ret, mu stays 0); pow2 test at b8dbc..b8de8
@@ -24,7 +24,7 @@
   Register allocation differs completely from amd64 (no spills in the stages), so the amd64 carry-chain lemmas (RecipArith*) cannot be reused verbatim;
   the closed forms (stage3q, stage4V, sqw, etc.) and the python model are the same since the Go source is the same.
 - Plan for whoever continues: (1) arm64 liveness tool (like tools/x86live.py) + `gseg.py`-style skeleton using `janus_run` on arm64 (check whether gen_segment.py
-  arm64 mode landed on fv/wf); cuts at stage boundaries (about 8-12 segments of 40-60 instructions); (2) SegCompose from fv/wg lean/Fv256/Arm64/SegCompose.lean;
+  arm64 mode landed on fv/wf); cuts at stage boundaries (about 8-12 segments of 40-60 instructions); (2) SegCompose from fv/wg lean/Fv256/Proofs/Arm64/SegCompose.lean;
   (3) per-stage carry-chain lemmas as janus_carry equalities to recipR1.. (reuse RecipArith4/5 ideas); (4) Extracted theorem + witness + verify.
 
 ## arm64 progress (session 2)
@@ -42,13 +42,13 @@
 - Differences to amd64: the Lsh call can probably be run INLINE (77 instructions, n=clz<64 prunes the branches) instead of via a summary: no arm64 Lsh library summary exists;
   results are written to the caller-frame slots sp+280..312 (sp = entry sp - 0x110), no result pointer. Prologue: sp' = sp-0x110, x29/x30 saved at [sp'-8].
 - NEXT (not started): arm64 analog of gseg.py (a64seg.py): parse the janus_run state print for arm64 (`setReg`/`regs` function + `writeLE` chain), L<cut> live defs from arm64live,
-  segments through Fv256.Arm64.SegCompose (fv/wg lean/Fv256/Arm64/SegCompose.lean: seg_trans on ReachesRet), arithmetic lemmas with UtilAM (awc_fst, awc_c, sbc_num) + janus_carry.
+  segments through Fv256.Arm64.SegCompose (fv/wg lean/Fv256/Proofs/Arm64/SegCompose.lean: seg_trans on ReachesRet), arithmetic lemmas with UtilAM (awc_fst, awc_c, sbc_num) + janus_carry.
 
 ## arm64 progress (session 3): first janus_run skeleton
 - wip-b4/arm64_skel_seg0.lean: skeleton `seg0` (entry .. b8e08, i.e. through the inline `bl Lsh`) over Fv256.Arm64.RecipProg.program with precondition
   RecPre (lr%4=0, lr<2^56, GuardOK s 0x90, StackOK s 0x118 0x30, x28 apart from window, x0 32 readable bytes apart from window).
   Compile: LEAN_PATH=<framework lib>:build/ol655 lean -Dpp.deepTerms=true (framework = /srv/janus-ops/jcache-shared/v1/framework/3f949a7d48d2680d5332b3c9/.lake/build/lib/lean);
-  lean/Fv256/Arm64/RecipProg.olean must be in build/ol655 (build/lc.sh <abs path>). State printing works (setReg chain over `s.regs`, `sp`, `flags := addSub ..`, `mem := ((s.mem.writeLE ..)`) —
+  lean/Fv256/Proofs/Arm64/RecipProg.olean must be in build/ol655 (build/lc.sh <abs path>). State printing works (setReg chain over `s.regs`, `sp`, `flags := addSub ..`, `mem := ((s.mem.writeLE ..)`) —
   easy to parse (cf. tools/gseg.py parse_trace, replace `setRegF`->`setReg`, regs 4 -> `s.sp`).
 - OPEN PROBLEM (first thing to fix): `janus_run until [recEntry+0x6c]` and later FAIL with "stuck after 35 instructions ... s.regs 30": the pow2 path (cbz x4 at +0x68 -> ret at b9524)
   is NOT pruned by my hypotheses hnp / hnp2 (stated as `¬ (X).toNat = 0` and `¬ X = 0#64` with X = (m3 &&& (m3-1)) ||| (m2 ||| (m1 ||| m0)) in BitVec.ofNat of readLE, matching the

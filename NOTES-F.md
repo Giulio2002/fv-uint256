@@ -3,9 +3,9 @@
 ## reduce4 (amd64) -- internal library summary
 `uint256.(*Int).reduce4` is an internal (unexported-in-spirit) helper of MulMod/MulModWithReciprocal, so it has no COVERAGE row of its own and no
 Witness: it is proved as a **library summary** `Fv256.Amd64.Reduce4.reduce4_summary : R4Summary` over the Extracted-free program
-`Fv256.ReduceProg` (lean/Fv256/Amd64/Reduce4.lean, commit 1862ab9).  Consumers (MulMod, MulModWithReciprocal, IMulMod, IMulModWithReciprocal
+`Fv256.ReduceProg` (lean/Fv256/Proofs/Amd64/Reduce4.lean, commit 1862ab9).  Consumers (MulMod, MulModWithReciprocal, IMulMod, IMulModWithReciprocal
 amd64) instantiate it with `Fv256.CodeIn.lib_summary`; their witnesses cover it end to end.
-- Statement (lean/Fv256/Amd64/ReduceSpec.lean): `R4Pre` (Go ABI: RAX=z 32 B writable, RBX=x 64 B, RCX=m 32 B with nonzero top limb, RDI=mu 40 B;
+- Statement (lean/Fv256/Proofs/Amd64/ReduceSpec.lean): `R4Pre` (Go ABI: RAX=z 32 B writable, RBX=x 64 B, RCX=m 32 B with nonzero top limb, RDI=mu 40 B;
   stack window 0x120, guard 0xb0, buffers apart from the frame, `RecipWeak m mu`), `R4Post` (z = x % m; rsp+8, rbp, r14, xmm15, df, mxcsr preserved;
   MemFrame [(z,z+32),(rsp-0x120,rsp),(rsp+8,rsp+0x10)], i.e. the return slot is untouched).
 - Proof architecture (all `Extracted`-free, default heartbeats, no sorry, axioms propext/Classical.choice/Quot.sound):

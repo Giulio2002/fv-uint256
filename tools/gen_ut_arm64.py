@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# generates lean/Fv256/Arm64/UnmarshalText.lean: five single-path branch theorems + dispatch
+# generates lean/Fv256/Proofs/Arm64/UnmarshalText.lean: five single-path branch theorems + dispatch
 pre = open('/srv/fv-uint256-wI6/tools/ut_pre.txt').read()
 B0 = "(BitVec.setWidth 32 (BitVec.ofNat 64 (s.mem.readLE pI.toNat 1))).toNat = 48"
 B1 = "(BitVec.setWidth 32 (BitVec.ofNat 64 (s.mem.readLE (pI.toNat + 1) 1))).toNat"
@@ -120,7 +120,7 @@ for name, (cond, pat, hexb, hexl) in branches.items():
     refine ⟨fun _ => hexPart_of (by simp [setReg_apply]) (by simp [setReg_apply]) rfl ⟨hok, herr⟩,
       fun hh => absurd hIsHex hh, hFr⟩
 '''
-    open('/srv/fv-uint256-wI6/lean/Fv256/Arm64/UnmarshalTextBr%s.lean' % name, 'w').write(pre + t.rstrip() + '\n\nend Fv256.Arm64.UnmarshalText\n')
+    open('/srv/fv-uint256-wI6/lean/Fv256/Proofs/Arm64/UnmarshalTextBr%s.lean' % name, 'w').write(pre + t.rstrip() + '\n\nend Fv256.Arm64.UnmarshalText\n')
 out.append('''/-- the dispatch over the five paths -/
 theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pI nI cI : BitVec 64)
@@ -144,5 +144,5 @@ theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T
 
 end Fv256.Arm64.UnmarshalText
 ''')
-mainpre = pre.replace('import Fv256.Arm64.UnmarshalTextHead\n', ''.join('import Fv256.Arm64.UnmarshalTextBr%s\n' % n for n in branches))
-open('/srv/fv-uint256-wI6/lean/Fv256/Arm64/UnmarshalText.lean','w').write(mainpre + "\n".join(out))
+mainpre = pre.replace('import Fv256.Proofs.Arm64.UnmarshalTextHead\n', ''.join('import Fv256.Proofs.Arm64.UnmarshalTextBr%s\n' % n for n in branches))
+open('/srv/fv-uint256-wI6/lean/Fv256/Proofs/Arm64/UnmarshalText.lean','w').write(mainpre + "\n".join(out))

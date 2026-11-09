@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""g4s1.py: generate lean/Fv256/Amd64/R4ArithS1b.lean : Q * 2^320 <= T < Q * 2^320 + 2^320 for cuts 1cd .. 2f8 (rows + capacities)."""
+"""g4s1.py: generate lean/Fv256/Proofs/Amd64/R4ArithS1b.lean : Q * 2^320 <= T < Q * 2^320 + 2^320 for cuts 1cd .. 2f8 (rows + capacities)."""
 import sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4rows, g4hi, g4anf, g4chain
@@ -20,7 +20,7 @@ words = {n: '(%s) %% 18446744073709551616' % conv(e) for n, (v, e) in hi.items()
 wv = [n for n in words if n in om[0]]          # words that carry a weight
 atoms = sorted({m for n in wv for m in re.findall(r'([XUM]\d+) \* ([XUM]\d+)', words[n])})
 limbs = sorted({t for n in wv for t in re.findall(r'\b[XUM]\d+\b', words[n])})
-out = 'import Fv256.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
+out = 'import Fv256.Proofs.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
 out += 'theorem mulbb (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) : a * b ≤ (2 ^ 64 - 1) * (2 ^ 64 - 1) := by\n  exact Nat.mul_le_mul (by omega) (by omega)\n\n'
 out += rtext
 Psi0 = info[0]['lhs']
@@ -121,6 +121,6 @@ top += '  clear %s\n' % ' '.join(['b_' + v for v in limbs + free + wv + newall] 
 top += '  omega\n\n'
 fin += top
 fin_text = fin
-open(ROOT + '/lean/Fv256/Amd64/R4ArithS1.lean', 'w').write(out + 'end Fv256.Amd64.R4Seg\n')
-open(ROOT + '/lean/Fv256/Amd64/R4ArithS1F.lean', 'w').write('import Fv256.Amd64.R4ArithS1\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\ntheorem bdm {v E : Nat} (h : v = E % 18446744073709551616) : v < 2 ^ 64 := by rw [h]; exact Nat.mod_lt _ (by decide)\n\n' + fin_text + 'end Fv256.Amd64.R4Seg\n')
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4ArithS1.lean', 'w').write(out + 'end Fv256.Amd64.R4Seg\n')
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4ArithS1F.lean', 'w').write('import Fv256.Proofs.Amd64.R4ArithS1\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\ntheorem bdm {v E : Nat} (h : v = E % 18446744073709551616) : v < 2 ^ 64 := by rw [h]; exact Nat.mod_lt _ (by decide)\n\n' + fin_text + 'end Fv256.Amd64.R4Seg\n')
 print(len(out), len(wv), len(atoms))

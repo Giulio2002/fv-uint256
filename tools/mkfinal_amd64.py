@@ -3,7 +3,7 @@
 from the *Corr / *Core param files by dropping the reduce4 hypothesis and instantiating it with R4NAME."""
 import re, sys
 imp, r4 = sys.argv[1], sys.argv[2]
-D = "lean/Fv256/Amd64/"
+D = "lean/Fv256/Proofs/Amd64/"
 def stmt(path, name):
     t = open(D + path).read()
     a = t.index("theorem correctness_param")

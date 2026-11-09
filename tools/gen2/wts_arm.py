@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# wts_arm.py [k ...] : writes lean/Fv256/Arm64/WriteToSlice.lean and lean/Fv256/Arm64/WtsCases/Case<k>.lean
+# wts_arm.py [k ...] : writes lean/Fv256/Proofs/Arm64/WriteToSlice.lean and lean/Fv256/Proofs/Arm64/WtsCases/Case<k>.lean
 # (the byte loop is unrolled: one module per min(len,32), so each module stays small)
 import os, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -55,19 +55,19 @@ def lemma(k):
     L.append("  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]")
     return "\n".join(L)
 HDR = """import Extracted
-import Fv256.Spec
-import Fv256.Util
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
 """
 OPEN = """
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 """
-os.makedirs(ROOT + '/lean/Fv256/Arm64/WtsCases', exist_ok=True)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Arm64/WtsCases', exist_ok=True)
 for k in ks:
-    open(ROOT + f'/lean/Fv256/Arm64/WtsCases/{mname(k)}.lean', 'w').write(
+    open(ROOT + f'/lean/Fv256/Proofs/Arm64/WtsCases/{mname(k)}.lean', 'w').write(
         HDR + OPEN + "namespace Fv256.Arm64.WriteToSlice\n\n" + lemma(k) + "\n\nend Fv256.Arm64.WriteToSlice\n")
 if len(ks) == 33:
-    imports = "".join(f"import Fv256.Arm64.WtsCases.{mname(k)}\n" for k in ks)
+    imports = "".join(f"import Fv256.Proofs.Arm64.WtsCases.{mname(k)}\n" for k in ks)
     main = HDR + imports + OPEN + "namespace Fv256.Arm64.WriteToSlice\n" + """
 /-!
 # `(*uint256.Int).WriteToSlice(dest []byte)` (arm64)
@@ -156,4 +156,4 @@ end Witness
 
 end Fv256.Arm64.WriteToSlice
 """
-    open(ROOT + '/lean/Fv256/Arm64/WriteToSlice.lean', 'w').write(main)
+    open(ROOT + '/lean/Fv256/Proofs/Arm64/WriteToSlice.lean', 'w').write(main)

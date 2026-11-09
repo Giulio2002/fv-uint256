@@ -11,5 +11,5 @@ Prereqs: Go (this repo's go/ uses GOTOOLCHAIN=go1.26.0), Janus checkout built: `
    plus `namespace Witness` with `nonvacuous` (a concrete state satisfies the precondition) and `returns` (that call returns
    the expected value). Proof: `janus_intro hs; janus_run` (arm64) / `janus64_intro hs; janus64_run [readLE_32]` (amd64), then arithmetic.
    Templates: Janus `examples/proofs/Eq32.lean` (arm64), `examples/proofs-amd64/Double/Proof.lean` (amd64, StackWritable s 0 8 + simp regSP).
-4. Verify: `memcap $JANUS verify build/ex-arm64-IsZero --proof lean/Fv256/Arm64/IsZero.lean --proof-root lean --theorem Fv256.Arm64.IsZero.correctness`
+4. Verify: `memcap $JANUS verify build/ex-arm64-IsZero --proof lean/Fv256/Proofs/Arm64/IsZero.lean --proof-root lean --theorem Fv256.Arm64.IsZero.correctness`
    (`scripts/verify-all.sh Fn` wraps this for a whole function). Warm run takes about 30-60 s; it runs the audit and kernel replay.

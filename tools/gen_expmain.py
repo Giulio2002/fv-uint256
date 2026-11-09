@@ -1,6 +1,6 @@
 import re,sys
 # builds the top-k odd block for ExpMain from the top0 template
-src=open('/srv/fv-uint256-wf/lean/Fv256/Amd64/ExpMain.lean').read()
+src=open('/srv/fv-uint256-wf/lean/Fv256/Proofs/Amd64/ExpMain.lean').read()
 EP="BitVec.toNat (s.regs 1)"
 def E(k): return "(Arm64.Memory.readLE s.mem (%s + %d) 8)"%(EP,8*k) if k else "(Arm64.Memory.readLE s.mem (%s) 8)"%EP
 def block_entry(k, names, c, extra_inv_tail):

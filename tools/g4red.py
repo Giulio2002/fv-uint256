@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""g4red.py: lean/Fv256/Amd64/R4Arith.lean : theorem reduce4_arith (all chain facts -> dsum % M = x % M)."""
+"""g4red.py: lean/Fv256/Proofs/Amd64/R4Arith.lean : theorem reduce4_arith (all chain facts -> dsum % M = x % M)."""
 import sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4s1, g4s2, g4s3, g4bridge, g4arith, g4seg as g, g4hi
@@ -34,7 +34,7 @@ n47 = local_names(0x47f); at47 = names_at(0x47f); m3 = dict(zip(n47, at47))
 n4 = local_names(0x4ac); at4 = names_at(0x4ac)
 def Sx(vs_): return ' + '.join(v if i == 0 else '%d * %s' % (1 << (64 * i), v) for i, v in enumerate(vs_))
 # ---- lemma statement
-out = ('import Fv256.Amd64.R4ArithS1F\nimport Fv256.Amd64.R4ArithS2\nimport Fv256.Amd64.R4ArithS3\nimport Fv256.Amd64.R4ArithBA\nimport Fv256.Amd64.R4Value\n\n'
+out = ('import Fv256.Proofs.Amd64.R4ArithS1F\nimport Fv256.Amd64.R4ArithS2\nimport Fv256.Amd64.R4ArithS3\nimport Fv256.Amd64.R4ArithBA\nimport Fv256.Amd64.R4Value\n\n'
        'set_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\nopen Fv256.F\n\n')
 out += 'theorem r4_comb (P Psi T Q N : Nat) (h : Q * N ≤ Psi) (h\' : Psi < Q * N + N) (hb : Psi = T) (ht1 : T ≤ P) (ht2 : P < T + N) :\n    Q * N ≤ P ∧ P < Q * N + 2 * N := by omega\n\n'
 d = ['d%d' % i for i in range(5)]
@@ -116,4 +116,4 @@ P.append('  rw [hA, hBB] at s3')
 P.append('  rw [hMn] at hd')
 P.append('  have fin := r4_value X0 X1 X2 X3 X4 X5 X6 X7 U0 U1 U2 U3 U4 M0 M1 M2 M3 (%s) (%s) (%s) %s (%s) %s hM3 hRW c1.1 c1.2 s2 s3.1 s3.2 hd' % (Qs2, Bs2, R13, act_r9, dsum, ' '.join('b_' + v for v in limbs[:-1])))
 P.append('  exact ⟨hMn, by rw [hMn]; exact fin⟩')
-open(ROOT + '/lean/Fv256/Amd64/R4Arith.lean', 'w').write(out + '\n'.join(P) + '\n\nend Fv256.Amd64.R4Seg\n')
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4Arith.lean', 'w').write(out + '\n'.join(P) + '\n\nend Fv256.Amd64.R4Seg\n')

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""generate lean/Fv256/Amd64/AddMod{Fast,Gen}.lean (the case lemmas of AddMod amd64)"""
+"""generate lean/Fv256/Proofs/Amd64/AddMod{Fast,Gen}.lean (the case lemmas of AddMod amd64)"""
 import re,sys
 R='/srv/fv-uint256-wf/'
 def rd(v,i): return f"(s.mem.readLE ({v}.toNat + {8*i}) 8)" if i else f"(s.mem.readLE {v}.toNat 8)"
@@ -20,21 +20,21 @@ POST="""fun s s' => s'.regs 0 = z ∧ s'.mem.readLE z.toNat 32 = Fv256.F.addmodS
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x348, (s.regs regSP).toNat + 0x28)]"""
 FASTC="(s.mem.readLE (m.toNat + 24) 8 ≠ 0 ∧ s.mem.readLE (x.toNat + 24) 8 ≤ s.mem.readLE (m.toNat + 24) 8 ∧ s.mem.readLE (y.toNat + 24) 8 ≤ s.mem.readLE (m.toNat + 24) 8)"
 HEAD="""import Extracted
-import Fv256.Spec
-import Fv256.Util
-import Fv256.SpecB
-import Fv256.UtilB
-import Fv256.SpecB2
-import Fv256.UtilB2
-import Fv256.SpecF
-import Fv256.UtilF
-import Fv256.CodeIn
-import Fv256.ChainProg
-import Fv256.ModProg
-import Fv256.Amd64.UdivremA
-import Fv256.Amd64.UdivremK
-import Fv256.Amd64.UdivremL
-import Fv256.Amd64.ModSum
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
+import Fv256.Proofs.Common.SpecB
+import Fv256.Proofs.Common.UtilB
+import Fv256.Proofs.Common.SpecB2
+import Fv256.Proofs.Common.UtilB2
+import Fv256.Proofs.Common.SpecF
+import Fv256.Proofs.Common.UtilF
+import Fv256.Proofs.Common.CodeIn
+import Fv256.Proofs.Common.ChainProg
+import Fv256.Proofs.Common.ModProg
+import Fv256.Proofs.Amd64.UdivremA
+import Fv256.Proofs.Amd64.UdivremK
+import Fv256.Proofs.Amd64.UdivremL
+import Fv256.Proofs.Amd64.ModSum
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -83,7 +83,7 @@ fast+=f"""  janus64_run [{RW}]
 
 end Fv256.Amd64.AddModFast
 """
-open(R+'lean/Fv256/Amd64/AddModFast.lean','w').write(fast)
+open(R+'lean/Fv256/Proofs/Amd64/AddModFast.lean','w').write(fast)
 
 # ---------- Gen ----------
 INTRO_GEN=INTRO.replace("hcase⟩","hcase⟩")+"""  have bm3 := Util.readLE8_lt s.mem (m.toNat + 24)
@@ -137,4 +137,4 @@ theorem gen (z x y m : BitVec 64) :
 
 end Fv256.Amd64.AddModGen
 """
-open(R+'lean/Fv256/Amd64/AddModGen.lean','w').write(gen)
+open(R+'lean/Fv256/Proofs/Amd64/AddModGen.lean','w').write(gen)

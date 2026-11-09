@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# lsh_arm.py [debug]  : writes lean/Fv256/Arm64/Lsh.lean
+# lsh_arm.py [debug]  : writes lean/Fv256/Proofs/Arm64/Lsh.lean
 import os
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) if '/gen2/' in os.path.abspath(__file__) else os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
@@ -48,7 +48,7 @@ def block(v):
         else:
             out += "    · " + lim + h + "\n"
     return out
-t = open(ROOT+'/lean/Fv256/Arm64/Neg.lean').read()
+t = open(ROOT+'/lean/Fv256/Proofs/Arm64/Neg.lean').read()
 t = t.replace('Neg', 'Lsh').replace('(z x : BitVec 64)', '(z x n : BitVec 64)').replace('[z, x]', '[z, x, n]')
 t = t.replace('Spec.neg (val256 s.mem x.toNat)', 'Spec.lsh (val256 s.mem x.toNat) n.toNat')
 L = t.split('\n')
@@ -62,4 +62,4 @@ out = out.replace("def x : BitVec 64 := BitVec.ofNat 64 (DST + 32)", "def x : Bi
 out = out.replace("[z, x, n] s0 :=", "[z, x, n] s0 :=").replace("rcases (by omega : i = 0 ∨ i = 1) with rfl | rfl <;> rfl", "rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2) with rfl | rfl | rfl <;> rfl")
 out = out.replace("∃ (ret : Nat) (s : State) (z x n : BitVec 64)", "∃ (ret : Nat) (s : State) (z x n : BitVec 64)").replace("⟨ret, s0, z, x, hret, setup, hpre⟩", "⟨ret, s0, z, x, n, hret, setup, hpre⟩")
 out = out.replace("correctness z x ret hret s0 setup hpre", "correctness z x n ret hret s0 setup hpre")
-open(ROOT+'/lean/Fv256/Arm64/Lsh.lean', 'w').write(out)
+open(ROOT+'/lean/Fv256/Proofs/Arm64/Lsh.lean', 'w').write(out)

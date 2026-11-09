@@ -28,9 +28,9 @@ theorem csG_pre : RtLivePre64 4096 R growsliceSpec growsliceLive (Extracted.prog
     rcases hr with (rfl | rfl) | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
 
 '''
-f = 'lean/Fv256/Amd64/MarshalSSZAppendMain.lean'
+f = 'lean/Fv256/Proofs/Amd64/MarshalSSZAppendMain.lean'
 s = open(f).read()
-if 'import Fv256.Amd64.CallSites.Live' not in s:
+if 'import Fv256.Proofs.Amd64.CallSites.Live' not in s:
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Amd64.CallSites.Live\n', 1)
 for a, b in [('def implAt : List Amd64.Segment := [growsliceSeg grA 0 16 8]\ndef ok : Nat → List Nat → Prop := fun _ _ => False',
               'def implAt : List Amd64.Segment := [growsliceSeg grA 32 64 64]\ndef ok : Nat → List Nat → Prop := fun a args => a = grA ∧ ∃ p, args = [p, 40, 32, 8, u8A]'),

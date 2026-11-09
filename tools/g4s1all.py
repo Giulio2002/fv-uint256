@@ -29,7 +29,7 @@ Qv = ' + '.join(('2 ^ %d * %s' % (64 * i, v)) if i else v for i, v in enumerate(
 Tdef = ' + '.join(('2 ^ %d * %s' % (om[0][n].bit_length() - 1, n)) if om[0][n] != 1 else n for n in invars if n in om[0])
 invars = [n for n in invars if n not in ('x1cdm128',)]
 allv = limbs + invars + [n for n, e in eqs]
-out = 'import Fv256.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
+out = 'import Fv256.Proofs.Amd64.R4Seg0\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n'
 out += 'theorem mulbb (a b : Nat) (ha : a < 2 ^ 64) (hb : b < 2 ^ 64) : a * b ≤ (2 ^ 64 - 1) * (2 ^ 64 - 1) := by\n  exact Nat.mul_le_mul (by omega) (by omega)\n\n'
 out += 'theorem s1_all (%s : Nat)\n' % ' '.join(allv)
 for v in limbs: out += '    (b_%s : %s < 2 ^ 64)\n' % (v, v)
@@ -40,5 +40,5 @@ for a, b in sorted(atoms):
     out += '  have := mulbb %s %s b_%s b_%s\n  have := Nat.mul_comm %s %s\n' % (a, b, a, b, a, b)
 exprs = [e for n, e in word_eqs] + [e for n, e in eqs]
 out += '\n'.join(g4anf.anf(exprs, 's')) + '\n  omega\n\nend Fv256.Amd64.R4Seg\n'
-open(ROOT + '/lean/Fv256/Amd64/R4ArithS1all.lean', 'w').write(out)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4ArithS1all.lean', 'w').write(out)
 print(len(out), len(allv))

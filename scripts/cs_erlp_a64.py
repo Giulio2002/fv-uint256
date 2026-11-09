@@ -31,14 +31,14 @@ theorem wsWr_pre : ICallPre 4 stack 96 rt
   · simp only [rt, outside_cons, outside_nil]; decide
   · refine ⟨by decide, by decide, fun _ => by decide, by decide⟩
 '''
-f = 'lean/Fv256/Arm64/EncodeRLP.lean'
+f = 'lean/Fv256/Proofs/Arm64/EncodeRLP.lean'
 subprocess.run(['git', 'checkout', 'fv/wrun', '--', f], check=True)
 s = open(f).read()
 s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
 ns = 'namespace Fv256.Arm64.EncodeRLP\n'
 s = s.replace(ns, 'open Fv256.Arm64.CallSites\n\n' + ns, 1)
 open(f, 'w').write(s)
-bf = 'lean/Fv256/Arm64/CallSites/EncodeRLP.lean'
+bf = 'lean/Fv256/Proofs/Arm64/CallSites/EncodeRLP.lean'
 open(bf, 'w').write(BLOCK)
 pc = lambda a: f'∃ s_c : State, s_c.pc = BitVec.ofNat 64 {a} ∧ '
 N = '(Extracted.program.contractAddr "runtime.newobject")'

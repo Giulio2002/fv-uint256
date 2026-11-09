@@ -15,6 +15,6 @@ def conv(e):
     return e
 D = lambda x: 1 if x > 0 else 0
 def run(chain, env):
-    eqs = ast.literal_eval(open('/srv/fv-uint256-wBm/lean/Fv256/Amd64/RecipG/c_%s.eqs' % chain).read())
+    eqs = ast.literal_eval(open('/srv/fv-uint256-wBm/lean/Fv256/Proofs/Amd64/RecipG/c_%s.eqs' % chain).read())
     for n, e in eqs: env[n] = eval(conv(e), {'D': D}, env)
     return env

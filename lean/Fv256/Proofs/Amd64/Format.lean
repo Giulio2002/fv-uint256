@@ -1,0 +1,336 @@
+import Extracted
+import Fv256.Proofs.Common.SpecFormat
+import Fv256.Proofs.Common.SegCompose
+import Fv256.Proofs.Common.UtilE
+import Fv256.Proofs.Common.IntoBigCommon
+import Fv256.Proofs.Amd64.FormatPrefix
+import Fv256.Proofs.Amd64.FormatNil
+import Fv256.Proofs.Amd64.FormatFastAll
+import Fv256.Proofs.Amd64.FormatTransfer
+import Fv256.Proofs.Amd64.FormatFastHexSum
+import Fv256.Proofs.Amd64.FormatBig
+import Fv256.Proofs.Amd64.FormatCS
+import Fv256.Proofs.Amd64.FormatWitB
+import Fv256.Proofs.Amd64.FormatWitN
+import Fv256.Proofs.Amd64.FormatWitBig
+import Fv256.Proofs.Amd64.FormatInhabit
+import Fv256.Proofs.Amd64.FormatInhabitNil
+import Fv256.Spec.Amd64.Format
+
+/-!
+# `(*uint256.Int).Format(s fmt.State, ch rune)` (amd64): the assembly
+
+Entry: `prefix_nz` / `prefix_z` (prologue, spills) to `Format+0x45` / `Format+0x20`, then the nil path (`FormatNil.nil_path`), or the fast path
+(`FormatFast.fast_amd64`, two exits), whose second exit enters the big path (iii), taken here as the explicit hypothesis `hbig`
+(the engine worker's lemma) and the named assumption `CalleePreservesRt R2`.
+-/
+
+open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Contracts Janus.Contracts.ICall Janus.Contracts.EqHashModel
+open Fv256.FormatFast Fv256.Amd64.FormatTransfer Fv256.Amd64.FormatFast
+open Janus.Spec.Type (IfaceModel)
+
+set_option linter.unusedVariables false
+set_option linter.unusedSimpArgs false
+
+namespace Fv256.Amd64.Format
+
+theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.program impl)
+    (R : IfaceModel) (hl : R.Laws) (H : Janus.Contracts.RtReady)
+    (hta : Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H)
+    (R2 : RtInv)
+    (hnew : NewobjectLiveContract64 (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.newobject") 4096 R2)
+    (hwb1 : WbLiveContract64 (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1)
+    (hwb2 : WbLiveContract64 (Extracted.program.ofImpl impl)
+      (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2)
+    (rt : List (Nat × Nat))
+    (hss : RtContract64 (Extracted.program.ofImpl impl) ssAddr rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»))
+    (hst : RtContract64 (Extracted.program.ofImpl impl) stAddr rt 4096 H stringtoslicebyteSpec)
+    (fW fP fF fWr stack b0 zv : Nat) (RW RP RF RWr RFp RBf : Res)
+    (h4568 : 4568 ≤ stack)
+    (z tab data ch : BitVec 64)
+    (hW : ICallContract64 (Extracted.program.link impl) fW 1 stack 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2))
+    (hP : ICallContract64 (Extracted.program.link impl) fP 1 stack 80 rt (fun _ => []) RP (fun _ => True) (RtPreserves64 R2))
+    (hF : ICallContract64 (Extracted.program.link impl) fF 2 stack 80 rt (fun _ => []) RF (fun _ => True) (RtPreserves64 R2))
+    (hWr : ICallContract64 (Extracted.program.link impl) fWr 4 stack 80 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes zv (ch.toNat % 2 ^ 32))))
+    (hFp : ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 stack 80 rt (fun _ => [])
+      RFp (Fv256.Amd64.FormatNil.FpArg data))
+    (hBf : ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 stack 80 rt (fun _ => [])
+      RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat zv ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
+        (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32)) :
+    Ensures (Extracted.program.link impl) Extracted.entry [z, tab, data, ch]
+      (PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data)
+      (fun s s' =>
+        (z.toNat = 0 → NilPost R rt stack RFp tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt stack fP fF RW RP RF RWr tab data ch s s' ∨
+          BigPost R2 rt stack fP fF RW RP RF RBf tab data ch s s')) := by
+  have hcP : RtContract64 (P0H impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») :=
+    RtContract64.of_codeIn (codeIn_ofImpl_restrict_of_apart64 hI [nmHex]) hss
+  have hcL : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») :=
+    RtContract64.of_codeIn (codeIn_ofImpl_of_apart64 hI) hss
+  have hc2L : RtContract64 (Extracted.program.link impl) stAddr rt 4096 H stringtoslicebyteSpec :=
+    RtContract64.of_codeIn (codeIn_ofImpl_of_apart64 hI) hst
+  refine Fv256.E.ensures_of_summary64 (spre := fun s => ∃ ret, RetAddr (Extracted.program.link impl) ret ∧
+      CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+      PreF R H R2 rt stack b0 fW fP fF fWr zv z tab data s)
+    (Q := fun s s' => ABIReturn s s' ∧ _) ?_ (fun ret s hret hs hp => ⟨ret, hret, hs, hp⟩) (fun _ _ _ _ _ _ h => h)
+  intro s hrip ⟨ret, hret, hs, hpre⟩
+  obtain ⟨⟨hrt32, hdrt, ht1, ht2, ht3⟩, hc, hnil, hfast⟩ := hpre
+  have hr0 : s.regs 0 = z := hs.args 0 (by simp)
+  have hr3 : s.regs 3 = tab := hs.args 1 (by simp)
+  have hr1 : s.regs 1 = data := hs.args 2 (by simp)
+  have hr7 : s.regs 7 = ch := hs.args 3 (by simp)
+  have hretv : s.mem.readLE (s.regs 4).toNat 8 < 2 ^ 47 := by
+    rw [hs.ret]; exact hret.user
+  have hx0 : s.xmm 15 = 0 := hs.zero
+  have hdf0 : s.df = false := hs.df
+  obtain ⟨hg, hal, hstk, hhi, hacc, hout⟩ := hc
+  have hc' : PreCommon rt stack s := ⟨hg, hal, hstk, hhi, hacc, hout⟩
+  by_cases hz : z.toNat = 0
+  · obtain ⟨hn, hH⟩ := hnil hz
+    have P1 := FormatPrefix.prefix_z impl rt stack fW fP fF fWr z tab data ch s hrip hr0 hr3 hr1 hr7 hz hg hal hstk hhi hacc hout
+    refine Fv256.SegCompose.seg_trans P1 (fun S0 hr hq => ?_)
+    obtain ⟨hz0, hz3, hz1, hz7, hrs4, hrs5, hr14, hxmm, hdf, hfs, h58, h60, hfr, hrbp, hreg⟩ := hq
+    have hrn := rsp0_toNat (s := s) (by omega) hrs4
+    have hz0' : S0.regs 0 = 0#64 := by rw [hz0]; exact BitVec.eq_of_toNat_eq (by simpa using hz)
+    have hnp := nilpre_of hl hc' hn hz0' hz3 hz1 hrs4 hrs5 hr14 hxmm hdf hx0 hdf0 hretv h60 hfr
+    have hco := hn.1
+    have hws := priv_out hco
+    have hdo' : Outside Fv256.Amd64.FormatNil.descA 24 (PFL (s.regs 4).toNat) := by
+      have := hn.2.2.1
+      simp only [outside_cons, outside_nil, and_true] at this; rw [pfl_out]; omega
+    have hty : tab.toNat ≠ 0 → Fv256.Amd64.FormatNil.tyOf S0 tab = Fv256.Amd64.FormatNil.tyOf s tab := fun h => by
+      unfold Fv256.Amd64.FormatNil.tyOf; exact hfr.readLE _ _ (hn.2.2.2.1 h).2.2.2.2.2
+    have hH' : tab.toNat ≠ 0 → H [Fv256.Amd64.FormatNil.descA, Fv256.Amd64.FormatNil.tyOf S0 tab] (S0.regs 14).toNat
+        ((S0.regs 4).toNat - 8) (rtView R.priv S0.mem) := fun h => by
+      rw [hty h, hr14, hrn, rtView_frame hreg (fun a hin => bytes_frame hfr (hws a 1 hin)),
+        show (s.regs 4).toNat - 72 - 8 = (s.regs 4).toNat - 80 by omega]
+      exact hH h
+    have hra : S0.mem.readLE ((S0.regs 4).toNat + 72) 8 = s.mem.readLE (s.regs 4).toNat 8 := by
+      rw [hrn, show (s.regs 4).toNat - 72 + 72 = (s.regs 4).toNat by omega]
+      exact hfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
+    have hnil := Fv256.Amd64.FormatNil.nil_path impl R hl H hta rt stack RFp tab data hFp S0 hr hnp hH'
+    rw [retAddrOf_eq, ← hra]
+    refine ReachesRet.mono hnil (fun S' hq' => ⟨abi_of (by omega) hrs4 hrbp hr14 hxmm hq'.1 hq'.2.1 hq'.2.2.1 hq'.2.2.2.1,
+      fun _ => ?_, fun h => absurd hz h⟩)
+    have hfrm := hq'.2.2.2.2.2.2.1
+    rw [hrn] at hfrm
+    obtain ⟨j0, j3, j1, hR⟩ := hq'.2.2.2.2.2.2.2
+    rw [wOf_frame (R := R) hfr hdo' (fun h => (hn.2.2.2.1 h).2.2.2.2.2), hrn] at hR
+    refine ⟨hfr.trans hfrm (fun a n h => ?_), j0, j3, j1, hR⟩
+    simp only [NilFLE, outside_append] at h
+    exact ⟨h.2, h.1⟩
+  · obtain ⟨hf, hx, hzv, hinv, hwin, hbe⟩ := hfast hz
+    have P1 := FormatPrefix.prefix_nz impl rt stack fW fP fF fWr z tab data ch s hrip hr0 hr3 hr1 hr7 hz hg hal hstk hhi hacc hout
+    refine Fv256.SegCompose.seg_trans P1 (fun S0 hr hq => ?_)
+    obtain ⟨hz0, hz3, hz1, hz7, hrs4, hrs5, hr14, hxmm, hdf, hfs, h58, h60, hfr, hrbp, hreg⟩ := hq
+    have hrn := rsp0_toNat (s := s) (by omega) hrs4
+    have hfpre := fpre_of hc' hf hz0 hz3 hz1 hrs4 hrs5 h58 h60 hfr
+    obtain ⟨xdl, xg1, xg2, xg3, xgo, xgd, xH⟩ := fx_of hc' hf hx hrs4 hr14 hfr hreg
+    obtain ⟨xH1, xH2, xH3, xH4, xH5⟩ := xH
+    have hzd : z.toNat + 32 ≤ (s.regs 4).toNat - 80 - stack ∨ (s.regs 4).toNat + 48 ≤ z.toNat := hf.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2
+    have hzv0 : S0.mem.readLE z.toNat 32 = zv := by rw [rdW (stack := stack) hfr hzd]; exact hzv
+    have hWr' : ICallContract64 (Extracted.program.link impl) fWr 4 stack 80 rt (fun _ => []) RWr
+        (FastWP data (Fv256.FormatSpec.fastBytes (S0.mem.readLE z.toNat 32) ((S0.regs 7).toNat % 2 ^ 32))) := by
+      rw [hzv0, hz7]; exact hWr
+    have hra : S0.mem.readLE ((S0.regs 4).toNat + 72) 8 = s.mem.readLE (s.regs 4).toNat 8 := by
+      rw [hrn, show (s.regs 4).toNat - 72 + 72 = (s.regs 4).toNat by omega]
+      exact hfr.readLE _ _ (by simp only [outside_cons, outside_nil, and_true]; omega)
+    have hxS0 : S0.xmm 15 = 0 := by rw [hxmm]; exact hx0
+    have hdfS0 : S0.df = false := by rw [hdf]; exact hdf0
+    have hwR' : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) R2.rt := by
+      rw [hrn, show (s.regs 4).toNat - 72 - 8 - stack = (s.regs 4).toNat - 80 - stack by omega]; exact hwin
+    have hzd' : (s.regs 14).toNat + 24 ≤ (s.regs 4).toNat - 80 - stack ∨ (s.regs 4).toNat + 48 ≤ (s.regs 14).toNat + 16 := hx.2.2.2.2.2.1
+    have hret47 : S0.mem.readLE ((S0.regs 4).toNat + 72) 8 < 2 ^ 47 := by rw [hra]; exact hretv
+    have hrt := fast_amd64 impl R2 rt H stack fW fP fF fWr RW RP RF RWr z tab data hI hW hP hF S0 hWr' hcL hcP hc2L hrt32 hr hfpre hwR'
+      h4568 xdl hdrt ht1 ht2 ht3 xg1 xg2 xg3 xgo xgd hxS0 hdfS0 xH1 xH2 xH3 xH4 xH5 hret47
+    obtain ⟨k, S', hsteps, t, ht, hrip', hq'⟩ := hrt.regions
+    simp only [List.map, List.mem_cons, List.mem_singleton, List.not_mem_nil, or_false] at ht
+    rw [retAddrOf_eq, ← hra]
+    rcases ht with rfl | rfl
+    · refine ⟨k, S', hsteps, hrip', ?_⟩
+      obtain ⟨⟨⟨e4, e5, e14, ex, hfrm, hwr⟩, hph, hch⟩, -⟩ := hq'
+      rw [hz7] at hph hch
+      refine ⟨abi_of (by omega) hrs4 hrbp hr14 hxmm e4 e5 e14 ex, fun h => absurd h hz, fun _ => Or.inl ?_⟩
+      rw [hrn] at hfrm
+      refine ⟨hfr.trans hfrm (fun a n h => ?_), hwr, hph, hch⟩
+      simp only [outside_append] at h
+      exact ⟨h.2, h.1⟩
+    · obtain ⟨⟨hfi, hk, hnp⟩, hreg'⟩ := hq'
+      rw [hz7] at hnp
+      have hfi' := hfi
+      obtain ⟨i4, i5, i14, ix, idf, ifs, ifr, i50, i58, i60, i68⟩ := hfi'
+      have hinv0 : R2.inv b0 [] (S0.regs 14).toNat (view R2.rt [] S0.mem) := by
+        rw [hr14, view_frame hfr hreg hstk hwin]; exact hinv
+      have hinv1 : R2.inv b0 [] (S'.regs 14).toNat (view R2.rt [] S'.mem) := by rw [i14]; exact hk b0 [] hinv0
+      have hfi2 : FInv rt stack z tab data (ch.toNat % 2 ^ 32) S0 S' := by rw [hz7] at hfi; exact hfi
+      have hbr := bigR2_of hbe hstk hrs4 hr14 hfr hzd'
+      have hdl' : Extracted.program.DataLoaded S'.mem :=
+        dataLoaded_FL xdl hreg' hdrt (by simpa using hfpre.2.2.2.2.2.2.2.1) ifr
+      obtain ⟨k2, S2, hs2, hr2, hq2⟩ := Fv256.Amd64.FormatBig.big_path impl hI R2 b0 hnew hwb1 hwb2 rt stack fW fP fF fWr zv RBf z tab data ch hBf
+        S0 S' hz hfpre hzv0 hrip' hfi2 h4568 hwR' hdl' xg1 xg2 xgo xgd hxS0 hdfS0 hbr hret47 hinv1
+      refine ⟨k + k2, S2, hsteps.trans hs2, hr2, ?_⟩
+      obtain ⟨b4, b5, b14, bx, bfr, bP⟩ := hq2
+      refine ⟨abi_of (by omega) hrs4 hrbp hr14 hxmm b4 b5 b14 bx, fun h => absurd h hz, fun _ => Or.inr ?_⟩
+      rw [hrn] at bfr
+      refine ⟨hfr.trans bfr (fun a n h => ?_), hnp, bP⟩
+      simp only [outside_append] at h
+      exact ⟨h.2, by simp only [outside_append]; exact h.1⟩
+
+namespace Witness
+open Janus.Contracts.IfaceSatAmd64 Fv256.FormatFast Fv256.Amd64.FormatFast Janus.Spec.Type
+
+/-- all hypotheses of `correctness` and its precondition `PreF` hold together: fast path, `z = 16`, `ch = 'd'` -/
+theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+    (RW RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    (Fv256.Amd64.FormatWitA.pinT z tab data ch ret s rt impl R H R2 RW RW RF RWr RFp RBf ∧
+    Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
+    Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
+    NewobjectLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
+    WbLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1 ∧
+    WbLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2) ∧
+    (RtContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RtContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
+      stringtoslicebyteSpec ∧
+    4568 ≤ 4608 ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 1 4608 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2) ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 1 4608 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2) ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 2 4608 80 rt (fun _ => []) RF (fun _ => True) (RtPreserves64 R2)) ∧
+    (ICallContract64 (Extracted.program.link impl) 7340032 4 4608 80 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes 16 (ch.toNat % 2 ^ 32))) ∧
+    ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 4608 80 rt (fun _ => [])
+      RFp (Fv256.Amd64.FormatNil.FpArg data) ∧
+    ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 4608 80 rt (fun _ => [])
+      RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat 16 ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
+        (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+    PreF R H R2 rt 4608 1024 7340032 7340032 7340032 7340032 16 z tab data s) ∧
+    ((∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Amd64.FormatCS.TypeAssertSite R H s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ Fv256.CallSites.NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ Fv256.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ Fv256.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre64 rt 4096 H stringtoslicebyteSpec s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 1 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 1 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 2 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 4 4608 80 rt (Fv256.FormatFast.FastWP data (Fv256.FormatSpec.fastBytes 16 (ch.toNat % 2 ^ 32))) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "fmt.Fprint") ∧ ICallPre64 5 4608 80 rt (Fv256.Amd64.FormatNil.FpArg data) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "math/big.(*Int).Format") ∧ ICallPre64 4 4608 80 rt (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat 16 ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧ (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) s_c)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → NilPost R rt 4608 RFp tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt 4608 7340032 7340032 RW RW RF RWr tab data ch s s' ∨
+          BigPost R2 rt 4608 7340032 7340032 RW RW RF RBf tab data ch s s') := by
+  obtain ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs⟩ := Fv256.Amd64.FormatWitB.nonvacuous_core
+  exact ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs,
+    correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
+
+
+/-- the same for the nil receiver (`z = 0`) -/
+theorem nil : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+    (RW RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    (Fv256.Amd64.FormatWitA.pinT z tab data ch ret s rt impl R H R2 RW RW RF RWr RFp RBf ∧
+    Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
+    Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
+    NewobjectLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
+    WbLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1 ∧
+    WbLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2) ∧
+    (RtContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RtContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
+      stringtoslicebyteSpec ∧
+    4568 ≤ 4608 ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 1 4608 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2) ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 1 4608 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2) ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 2 4608 80 rt (fun _ => []) RF (fun _ => True) (RtPreserves64 R2)) ∧
+    (ICallContract64 (Extracted.program.link impl) 7340032 4 4608 80 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes 0 (ch.toNat % 2 ^ 32))) ∧
+    ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 4608 80 rt (fun _ => [])
+      RFp (Fv256.Amd64.FormatNil.FpArg data) ∧
+    ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 4608 80 rt (fun _ => [])
+      RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat 0 ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
+        (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+    PreF R H R2 rt 4608 1024 7340032 7340032 7340032 7340032 0 z tab data s) ∧
+    ((∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Amd64.FormatCS.TypeAssertSite R H s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ Fv256.CallSites.NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ Fv256.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ Fv256.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre64 rt 4096 H stringtoslicebyteSpec s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 1 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 1 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 2 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 4 4608 80 rt (Fv256.FormatFast.FastWP data (Fv256.FormatSpec.fastBytes 0 (ch.toNat % 2 ^ 32))) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "fmt.Fprint") ∧ ICallPre64 5 4608 80 rt (Fv256.Amd64.FormatNil.FpArg data) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "math/big.(*Int).Format") ∧ ICallPre64 4 4608 80 rt (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat 0 ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧ (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) s_c)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → NilPost R rt 4608 RFp tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt 4608 7340032 7340032 RW RW RF RWr tab data ch s s' ∨
+          BigPost R2 rt 4608 7340032 7340032 RW RW RF RBf tab data ch s s') := by
+  obtain ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs⟩ := Fv256.Amd64.FormatWitN.nil_core
+  exact ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs,
+    correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (0) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
+
+
+
+/-- the big path is really taken: some query is answered "not plain" (verb `q`), with `R2` serving `IntoBig`'s allocations -/
+theorem big : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+    (RW RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
+    (Fv256.Amd64.FormatWitA.pinT z tab data ch ret s rt impl R H R2 RW RW RF RWr RFp RBf ∧
+    Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
+    Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
+      (Extracted.program.contractAddr "runtime.typeAssert") R H ∧
+    NewobjectLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R2 ∧
+    WbLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 R2 1 ∧
+    WbLiveContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R2 2) ∧
+    (RtContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
+      (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
+    RtContract64 (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.stringtoslicebyte") rt 4096 H
+      stringtoslicebyteSpec ∧
+    4568 ≤ 4608 ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 1 4608 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2) ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 1 4608 80 rt (fun _ => []) RW (fun _ => True) (RtPreserves64 R2) ∧
+    ICallContract64 (Extracted.program.link impl) 7340032 2 4608 80 rt (fun _ => []) RF (fun _ => True) (RtPreserves64 R2)) ∧
+    (ICallContract64 (Extracted.program.link impl) 7340032 4 4608 80 rt (fun _ => []) RWr
+      (FastWP data (Fv256.FormatSpec.fastBytes 16 (ch.toNat % 2 ^ 32))) ∧
+    ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.Fprint") 5 4608 80 rt (fun _ => [])
+      RFp (Fv256.Amd64.FormatNil.FpArg data) ∧
+    ICallContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "math/big.(*Int).Format") 4 4608 80 rt (fun _ => [])
+      RBf (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat 16 ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧
+        (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) ∧
+    RetAddr (Extracted.program.link impl) ret ∧
+    CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, tab, data, ch] s ∧
+    PreF R H R2 rt 4608 1024 7340032 7340032 7340032 7340032 16 z tab data s ∧
+    z.toNat ≠ 0 ∧ NotPlain RW RW RF data tab ch 7340032 7340032 (ch.toNat % 2 ^ 32)) ∧
+    ((∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.typeAssert") ∧ Fv256.Amd64.FormatCS.TypeAssertSite R H s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ Fv256.CallSites.NewobjectLiveSite R2 (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") ∧ Fv256.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier1") 4096 1 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") ∧ Fv256.CallSites.WbLiveSite R2 (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 2 [] 0x400 s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧ RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.stringtoslicebyte") ∧ RtPre64 rt 4096 H stringtoslicebyteSpec s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 1 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 1 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 2 4608 80 rt (fun _ => True) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 7340032 ∧ ICallPre64 4 4608 80 rt (Fv256.FormatFast.FastWP data (Fv256.FormatSpec.fastBytes 16 (ch.toNat % 2 ^ 32))) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "fmt.Fprint") ∧ ICallPre64 5 4608 80 rt (Fv256.Amd64.FormatNil.FpArg data) s_c) ∧
+    (∃ (s_c : State), s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "math/big.(*Int).Format") ∧ ICallPre64 4 4608 80 rt (fun sc => ∃ P : BitVec 64, sc.regs 0 = P ∧ Fv256.IntoBig.BigObj sc.mem P.toNat 16 ∧ sc.regs 3 = tab ∧ sc.regs 1 = data ∧ (sc.regs 7).toNat % 2 ^ 32 = ch.toNat % 2 ^ 32) s_c)) ∧
+    Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ (z.toNat = 0 → NilPost R rt 4608 RFp tab data s s') ∧
+        (z.toNat ≠ 0 → FastPost rt 4608 7340032 7340032 RW RW RF RWr tab data ch s s' ∨
+          BigPost R2 rt 4608 7340032 7340032 RW RW RF RBf tab data ch s s') := by
+  obtain ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17, hp18, hp19⟩, hcs⟩ := Fv256.Amd64.FormatWitBig.nonvacuous_big_core
+  exact ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17, hp18, hp19⟩, hcs,
+    correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
+
+end Witness
+
+end Fv256.Amd64.Format

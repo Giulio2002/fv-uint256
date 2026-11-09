@@ -2,7 +2,7 @@
 """merge-l10.py ISA(Amd64|Arm64) N : merge the generated L10Cases/*.lean case modules into N modules G01..GNN (same theorems)."""
 import sys,re,os,glob
 isa,n=sys.argv[1],int(sys.argv[2])
-d='lean/Fv256/%s/'%isa
+d='lean/Fv256/Proofs/%s/'%isa
 names=[os.path.basename(f)[:-5] for f in glob.glob(d+'L10Cases/*.lean') if not os.path.basename(f).startswith('G')]
 def key(s):
     if s=='Zero': return (-1,0)

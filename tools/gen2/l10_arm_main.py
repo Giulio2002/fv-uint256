@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# l10_arm_main.py : writes lean/Fv256/Arm64/L10Cases/Zero.lean and lean/Fv256/Arm64/Log10.lean (the dispatcher over the 256 case modules)
+# l10_arm_main.py : writes lean/Fv256/Proofs/Arm64/L10Cases/Zero.lean and lean/Fv256/Proofs/Arm64/Log10.lean (the dispatcher over the 256 case modules)
 import os
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OPEN = "\nopen Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec\n\n"
@@ -11,12 +11,12 @@ INTRO = "⟨⟨hg1, hg2, hg3⟩, ⟨hal, hb, ha, hw⟩, hd, ⟨hx, hx'⟩, hdis,
 z = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Arm64.L10Defs\n" + OPEN + "namespace Fv256.Arm64.Log10\n\n"
 z += "set_option maxHeartbeats 64000000 in\ntheorem zero (x : BitVec 64) :\n    Ensures Extracted.program Extracted.entry [x]\n      (fun s => " + PRE + " ∧\n        " + " ∧ ".join(la(j) + " = 0" for j in range(4)) + ")\n"
 z += "      (fun s s' => (s'.regs 0).toNat = 0) := by\n  intro ret hret s hs " + INTRO + ", hz0, hz1, hz2, hz3⟩\n  janus_intro hs\n  simp only [Disjoint] at hdis hd64 hdB\n  janus_data hd [hw]\n  janus_run [hz0, hz1, hz2, hz3]\n  all_goals omega\n\nend Fv256.Arm64.Log10\n"
-os.makedirs(ROOT + '/lean/Fv256/Arm64/L10Cases', exist_ok=True)
-open(ROOT + '/lean/Fv256/Arm64/L10Cases/Zero.lean', 'w').write(z)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Arm64/L10Cases', exist_ok=True)
+open(ROOT + '/lean/Fv256/Proofs/Arm64/L10Cases/Zero.lean', 'w').write(z)
 # --- main
 M = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\nimport Fv256.Arm64.L10Defs\nimport Fv256.Arm64.L10Cases.Zero\n"
 for k in range(4):
-    for m in range(1, 65): M += f"import Fv256.Arm64.L10Cases.C{k}_{m}\n"
+    for m in range(1, 65): M += f"import Fv256.Proofs.Arm64.L10Cases.C{k}_{m}\n"
 M += '''
 /-!
 # `(*uint256.Int).Log10() int` (arm64)
@@ -72,4 +72,4 @@ M += f"      refine this.mono fun s' ⟨hab, hr⟩ => ⟨hab, fun hz => by omega
 M += f"  · have := disp3 x ret hret s hs ⟨⟨hg1, hg2, hg3⟩, hst, hd, hx, hdis, hT64, hTB, hd64, hdB, h3⟩\n"
 M += f"    refine this.mono fun s' ⟨hab, hr⟩ => ⟨hab, fun hz => by omega, fun _ => hr⟩\n\n"
 M += open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'l10_arm_witness.lean')).read()
-open(ROOT + '/lean/Fv256/Arm64/Log10.lean', 'w').write(M)
+open(ROOT + '/lean/Fv256/Proofs/Arm64/Log10.lean', 'w').write(M)

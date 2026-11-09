@@ -3,7 +3,7 @@
 Edits FormatWitB (nonvacuous_core), FormatWitBig (nonvacuous_big_core), FormatWitN (nil_core), Format.lean (3 witnesses); appends csAll16/csAll0 to FormatCS.lean.
 (FormatWitA's Hw / models and hw_of in B/Big are edited by hand.)"""
 import subprocess
-D = 'lean/Fv256/Amd64/'
+D = 'lean/Fv256/Proofs/Amd64/'
 for f in ['FormatWitB', 'FormatWitBig', 'FormatWitN', 'Format']:
     subprocess.run(['git', 'checkout', 'HEAD', '--', D + f + '.lean'], check=True)
 for f in ['FormatWitB', 'FormatWitBig']:  # hw_of: Hw accepts also the 2-argument list
@@ -68,7 +68,7 @@ def unify_rp(t):
     t = t.replace('R0z, R0z, R0z, R0z, R0z, R0z,', 'R0z, R0z, R0z, R0z, R0z,')
     return re.sub(r'\bRP\b', 'RW', t)
 
-IMP = 'import Fv256.Amd64.FormatCS\n'
+IMP = 'import Fv256.Proofs.Amd64.FormatCS\n'
 def core(zv, tail_old, tail_new, imp_after):
     def f(t):
         t = t.replace(imp_after, imp_after + IMP, 1)
@@ -80,13 +80,13 @@ def core(zv, tail_old, tail_new, imp_after):
     return f
 def st_core(t0, t1):  # the 'PreF ... s) := by' becomes 'PreF ... s) ∧ CS := by'  (statement end); handled by the generic ' := by\n  refine' split above
     pass
-rw('FormatWitB', core('16', 'pre⟩⟩', 'pre⟩, Fv256.Amd64.FormatCS.csAll16 tabV dataV chV (by decide)⟩', 'import Fv256.Amd64.FormatWitA\n'))
-rw('FormatWitBig', core('16', 'bigPath_taken⟩⟩', 'bigPath_taken⟩, Fv256.Amd64.FormatCS.csAll16 tabV dataV chV (by decide)⟩', 'import Fv256.Amd64.FormatWitA\n'))
-rw('FormatWitN', core('0', 'preN⟩⟩', 'preN⟩, Fv256.Amd64.FormatCS.csAll0 0 0 chV (by decide)⟩', 'import Fv256.Amd64.FormatWitB\n'))
+rw('FormatWitB', core('16', 'pre⟩⟩', 'pre⟩, Fv256.Amd64.FormatCS.csAll16 tabV dataV chV (by decide)⟩', 'import Fv256.Proofs.Amd64.FormatWitA\n'))
+rw('FormatWitBig', core('16', 'bigPath_taken⟩⟩', 'bigPath_taken⟩, Fv256.Amd64.FormatCS.csAll16 tabV dataV chV (by decide)⟩', 'import Fv256.Proofs.Amd64.FormatWitA\n'))
+rw('FormatWitN', core('0', 'preN⟩⟩', 'preN⟩, Fv256.Amd64.FormatCS.csAll0 0 0 chV (by decide)⟩', 'import Fv256.Proofs.Amd64.FormatWitB\n'))
 
 # Format.lean: three witnesses
 def ff(t):
-    t = t.replace('import Fv256.Amd64.FormatWitB\n', 'import Fv256.Amd64.FormatCS\nimport Fv256.Amd64.FormatWitB\n', 1)
+    t = t.replace('import Fv256.Proofs.Amd64.FormatWitB\n', 'import Fv256.Proofs.Amd64.FormatCS\nimport Fv256.Amd64.FormatWitB\n', 1)
     # 1. statements: insert (CS) conjunct before 'Returns' of each witness
     for zv, name in (('16', 'nonvacuous'), ('0', 'nil'), ('16', 'big')):
         i = t.index('theorem %s : ∃' % name)

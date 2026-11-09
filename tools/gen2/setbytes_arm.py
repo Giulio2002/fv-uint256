@@ -6,7 +6,7 @@ import sys
 n = int(sys.argv[1]); mode = sys.argv[2] if len(sys.argv) > 2 else 'probe'
 below = int(sys.argv[3]) if len(sys.argv) > 3 else 24
 above = int(sys.argv[4]) if len(sys.argv) > 4 else 24
-tmpl = open(ROOT+'/lean/Fv256/Arm64/SetBytes32.lean').read()
+tmpl = open(ROOT+'/lean/Fv256/Proofs/Arm64/SetBytes32.lean').read()
 s = tmpl.replace('SetBytes32', f'SetBytes{n}').replace('32 ≤ len.toNat', f'{n} ≤ len.toNat').replace('len.toNat < 32', f'len.toNat < {n}')
 s = s.replace('StackOK s 24 24', f'StackOK s {below} {above}').replace('StackOK s0 24 24', f'StackOK s0 {below} {above}')
 s = s.replace('(s.sp.toNat - 24) 48', f'(s.sp.toNat - {below}) {below+above}').replace('(s0.sp.toNat - 24) 48', f'(s0.sp.toNat - {below}) {below+above}')
@@ -42,4 +42,4 @@ if mode == 'probe':
     k = s.index("\nnamespace Witness")
     s = s[:k] + "\nend Fv256.Arm64.SetBytes%d\n" % n
 s = s.replace('theorem correctness','set_option maxHeartbeats 8000000 in\ntheorem correctness',1)
-open((ROOT+f'/lean/Fv256/Arm64/SetBytes{n}.lean'), 'w').write(s)
+open((ROOT+f'/lean/Fv256/Proofs/Arm64/SetBytes{n}.lean'), 'w').write(s)

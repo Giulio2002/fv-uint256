@@ -1,7 +1,7 @@
 import re
 BL='18446744073709551616'
 def eqs_of(f,P,L):
-    t=open('/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4G/%s.lean'%f).read()
+    t=open('/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4G/%s.lean'%f).read()
     i=t.index('def '+P); j=t.index('set_option maxHeartbeats',i)
     body=t[i:j].split("%s S' "%L,1)[1]
     parts=body.split(' ∧ ')
@@ -12,8 +12,8 @@ def eqs_of(f,P,L):
     return eqs
 e1=eqs_of('G_284_2b4','P_284_2b4','L2b4')
 e2=eqs_of('G_2b4_2f4','P_2b4_2f4','L2f4')
-out='''import Fv256.Arm64.R4Nat
-import Fv256.MulModMath
+out='''import Fv256.Proofs.Arm64.R4Nat
+import Fv256.Proofs.Common.MulModMath
 set_option linter.unusedVariables false
 set_option maxHeartbeats 64000000
 set_option maxRecDepth 200000
@@ -54,5 +54,5 @@ theorem r4_fix1 (x2b4r1 x2b4r2 x2b4r3 x2b4r4 x2b4r5 x2b4r6 x2b4r7 x2b4r8 x2b4r12
   janus_carry
 end Fv256.Arm64.R4Nat
 '''%(' '.join(n for n,_ in e2),hy2,C,D,' '.join('h_'+n for n,_ in e2),' '.join(n for n,_ in e2),hy2,C,D,M,' '.join('h_'+n for n,_ in e2))
-out=out.replace('import Fv256.Arm64.R4Nat\n','import Fv256.Arm64.R4Nat\nimport Fv256.Arm64.R4Loop\n',1).replace('namespace Fv256.Arm64.R4Nat\n','namespace Fv256.Arm64.R4Nat\n',1)
-open('/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4Qr.lean','w').write(out)
+out=out.replace('import Fv256.Proofs.Arm64.R4Nat\n','import Fv256.Proofs.Arm64.R4Nat\nimport Fv256.Arm64.R4Loop\n',1).replace('namespace Fv256.Arm64.R4Nat\n','namespace Fv256.Arm64.R4Nat\n',1)
+open('/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4Qr.lean','w').write(out)

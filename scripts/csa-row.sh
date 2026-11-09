@@ -11,16 +11,16 @@ cd $A
 . $W/scripts/contract-flags.sh
 case $isa in arm64) dir=Arm64;; amd64) dir=Amd64;; esac
 if grep -q "^| \`(\*uint256.Int).$fn\`" $W/COVERAGE.md; then full="github.com/holiman/uint256.(*Int).$fn"; else full="github.com/holiman/uint256.$fn"; fi
-pf=$fn; if [ -f lean/Fv256/$dir/${fn}Main.lean ] && grep -q "theorem correctness" lean/Fv256/$dir/${fn}Main.lean; then pf=${fn}Main; fi
-[ -n "${STUB:-}" ] && python3 $W/scripts/stub-correctness.py lean/Fv256/$dir/$pf.lean
+pf=$fn; if [ -f lean/Fv256/Proofs/$dir/${fn}Main.lean ] && grep -q "theorem correctness" lean/Fv256/Proofs/$dir/${fn}Main.lean; then pf=${fn}Main; fi
+[ -n "${STUB:-}" ] && python3 $W/scripts/stub-correctness.py lean/Fv256/Proofs/$dir/$pf.lean
 mkdir -p build; out=build/ex-$isa-$fn
 if [ ! -d $out ]; then
 $JANUS extract /srv/fv-uint256-wrun/build/harness-$isa "$full" $out $(contract_flags $fn) >build/log-$isa-$fn 2>&1 || { echo "EXTRACT-FAIL $isa $fn"; exit 1; }
 fi
-wt=(); while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 $W/scripts/witness-theorems.py lean/Fv256/$dir/$pf.lean)
+wt=(); while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 $W/scripts/witness-theorems.py lean/Fv256/Proofs/$dir/$pf.lean)
 [ $mode = audit ] && export JANUS_STOP_AFTER_AUDIT=1
 kw=""; [ -n "${KEEP:-}" ] && kw="--keep-workspace"
 t0=$(date +%s)
-memcap -m ${MEMCAP:-24G} $JANUS verify $out --proof lean/Fv256/$dir/$pf.lean --proof-root lean --janus-root /srv/janus-csa $kw --theorem Fv256.$dir.$pf.correctness "${wt[@]}" >>build/log-$isa-$fn 2>&1
+memcap -m ${MEMCAP:-24G} $JANUS verify $out --proof lean/Fv256/Proofs/$dir/$pf.lean --proof-root lean --janus-root /srv/janus-csa $kw --theorem Fv256.$dir.$pf.correctness "${wt[@]}" >>build/log-$isa-$fn 2>&1
 rc=$?
 echo "ENDMARK $isa $fn $mode rc=$rc $(( $(date +%s)-t0 ))s"

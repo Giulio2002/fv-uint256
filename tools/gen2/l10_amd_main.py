@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# l10_amd_main.py : writes lean/Fv256/Amd64/L10Cases/Zero.lean and lean/Fv256/Amd64/Log10.lean (dispatcher over the 256 case modules)
+# l10_amd_main.py : writes lean/Fv256/Proofs/Amd64/L10Cases/Zero.lean and lean/Fv256/Proofs/Amd64/Log10.lean (dispatcher over the 256 case modules)
 import os
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OPEN = "\nopen Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic\n\n"
@@ -19,12 +19,12 @@ z += "      (fun s s' => (s'.regs 0).toNat = 0) := by\n  intro ret hret s hs " +
 z += "".join(f"  have hw{j} : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE {xa(j)} 8) = s.mem.readLE {xa(j)} 8 := fun v => by\n    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]\n" for j in range(4))
 z += "  have hwr : ∀ v, ((s.mem.writeLE ((s.regs 4).toNat - 8) 8 v).readLE (s.regs 4).toNat 8) = s.mem.readLE (s.regs 4).toNat 8 := fun v => by\n    simp (disch := omega) only [Janus.Arm64.Memory.readLE_writeLE_of_disjoint]\n"
 z += "  janus64_run [hwr, hz0, hz1, hz2, hz3, hw0, hw1, hw2, hw3]\n  all_goals omega\n\nend Fv256.Amd64.Log10\n"
-os.makedirs(ROOT + '/lean/Fv256/Amd64/L10Cases', exist_ok=True)
-open(ROOT + '/lean/Fv256/Amd64/L10Cases/Zero.lean', 'w').write(z)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Amd64/L10Cases', exist_ok=True)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/L10Cases/Zero.lean', 'w').write(z)
 # main
-M = HDR + "import Fv256.Amd64.L10Cases.Zero\n"
+M = HDR + "import Fv256.Proofs.Amd64.L10Cases.Zero\n"
 for k in range(4):
-    for m in range(1, 65): M += f"import Fv256.Amd64.L10Cases.C{k}_{m}\n"
+    for m in range(1, 65): M += f"import Fv256.Proofs.Amd64.L10Cases.C{k}_{m}\n"
 M += '''
 /-!
 # `(*uint256.Int).Log10() uint` (amd64, default GOAMD64=v1 build)
@@ -80,4 +80,4 @@ M += f"      refine this.mono fun s' ⟨hab, hr⟩ => ⟨hab, fun hz => by omega
 M += f"  · have := disp3 x ret hret s hs {INTRO}, h3⟩\n"
 M += f"    refine this.mono fun s' ⟨hab, hr⟩ => ⟨hab, fun hz => by omega, fun _ => hr⟩\n\n"
 M += open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'l10_amd_witness.lean')).read()
-open(ROOT + '/lean/Fv256/Amd64/Log10.lean', 'w').write(M)
+open(ROOT + '/lean/Fv256/Proofs/Amd64/Log10.lean', 'w').write(M)

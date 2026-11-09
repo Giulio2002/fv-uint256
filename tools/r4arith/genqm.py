@@ -1,7 +1,7 @@
 import re,sys
 sys.path.insert(0,'/srv/fv-uint256-wB3/scratch')
 BL='18446744073709551616'
-t=open('/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4G/G_1d8_284.lean').read()
+t=open('/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4G/G_1d8_284.lean').read()
 i=t.index('def P_1d8_284'); j=t.index('set_option maxHeartbeats',i)
 d=t[i:j]
 body=d.split("L284 S' ",1)[1]
@@ -12,7 +12,7 @@ for p in parts[1:]:
     if m: eqs.append((m.group(1),m.group(2)))
 vs=' '.join(n for n,_ in eqs)
 hy=' '.join('(h_%s : %s = %s)'%(n,n,e) for n,e in eqs)
-out='''import Fv256.Arm64.R4Nat
+out='''import Fv256.Proofs.Arm64.R4Nat
 set_option linter.unusedVariables false
 set_option maxHeartbeats 64000000
 set_option maxRecDepth 200000
@@ -27,4 +27,4 @@ theorem qm_low (x1d8r1 x1d8r2 x1d8r3 x1d8r4 x1d8r5 x1d8r6 x1d8r7 x1d8r9 x1d8m64 
   janus_carry
 end Fv256.Arm64.R4Nat
 '''%(vs,hy,' '.join('h_'+n for n,_ in eqs))
-open('/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4Qm.lean','w').write(out)
+open('/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4Qm.lean','w').write(out)

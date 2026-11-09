@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """gchain.py NAME  c0 c1 ... ck : compose consecutive generated segments/chains (cut addresses hex) into one chain unit.
-Units are files lean/Fv256/Amd64/R4G/<kind>_A_B.lean (g = segment, c = chain) defining P*_A_B and theorem g_/c_A_B."""
+Units are files lean/Fv256/Proofs/Amd64/R4G/<kind>_A_B.lean (g = segment, c = chain) defining P*_A_B and theorem g_/c_A_B."""
 import re, sys, os, subprocess
 sys.path.insert(0, os.path.dirname(__file__))
 import g4seg as gseg
 ROOT = gseg.ROOT
-D = ROOT + '/lean/Fv256/Amd64/R4G/'
+D = ROOT + '/lean/Fv256/Proofs/Amd64/R4G/'
 def load(A, B):
     for kind in ('g', 'c'):
         f = D + '%s_%x_%x.lean' % (kind.upper(), A, B)
@@ -41,8 +41,8 @@ def emit(name, cuts):
         u['outargs'] = [mp.get(a, a) for a in u['outargs']]
         u['invars_actual'] = actual
     A, Z = cuts[0], cuts[-1]
-    imports = ''.join('import Fv256.Amd64.R4G.%s_%x_%x\n' % (u['kind'].upper() if False else (u['kind'] if True else ''), u['A'], u['B']) for u in units)
-    imports = ''.join('import Fv256.Amd64.R4G.%s\n' % (('G_%x_%x' if u['kind'] == 'g' else 'C_%x_%x') % (u['A'], u['B'])) for u in units)
+    imports = ''.join('import Fv256.Proofs.Amd64.R4G.%s_%x_%x\n' % (u['kind'].upper() if False else (u['kind'] if True else ''), u['A'], u['B']) for u in units)
+    imports = ''.join('import Fv256.Proofs.Amd64.R4G.%s\n' % (('G_%x_%x' if u['kind'] == 'g' else 'C_%x_%x') % (u['A'], u['B'])) for u in units)
     invars = units[0]['invars']
     allnew = []; alleqs = []
     for u in units: allnew += u['newvars']; alleqs += u['eqs']

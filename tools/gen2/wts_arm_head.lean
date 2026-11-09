@@ -1,6 +1,6 @@
 import Extracted
-import Fv256.Spec
-import Fv256.Util
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 

@@ -60,9 +60,9 @@ CFG = {
 }
 def conj(addr, pre): return f'∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 {addr} ∧ {pre} s_c'
 for fn in sys.argv[1:]:
-    f = f'lean/Fv256/Amd64/{fn}.lean'
+    f = f'lean/Fv256/Proofs/Amd64/{fn}.lean'
     s = open(f).read()
-    if 'import Fv256.Amd64.CallSites.Live' not in s:
+    if 'import Fv256.Proofs.Amd64.CallSites.Live' not in s:
         s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Amd64.CallSites.Live\n', 1)
     open(f, 'w').write(s)
     for (thm, sfx, base, H, rt, acc, N, kss, sec, k2) in CFG[fn]:

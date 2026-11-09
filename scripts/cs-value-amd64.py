@@ -34,9 +34,9 @@ B = blk('Sb', [(0, '0'), (3, 'arg'), (1, '16')], 416, 'ssAddr', SS, 'slicebyteto
 B += '\n' + blk('Cv', [(0, 'arg'), (3, '16')], 32, 'cvAddr', 'convTstringSpec', 'convTstringLive', 2,
         ('[zp, 16]', 'exact Or.inr ⟨rfl, zp, by decide⟩'), 'trivial', 'intro r hr; simp [convTstringSpec] at hr')
 fn = 'Value'
-f = f'lean/Fv256/Amd64/{fn}.lean'
+f = f'lean/Fv256/Proofs/Amd64/{fn}.lean'
 s = open(f).read()
-if 'import Fv256.Amd64.CallSites.Live' not in s:
+if 'import Fv256.Proofs.Amd64.CallSites.Live' not in s:
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Amd64.CallSites.Live\n', 1)
 open(f, 'w').write(s)
 bf = '/tmp/cs-Value.lean'

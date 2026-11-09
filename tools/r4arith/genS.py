@@ -1,6 +1,6 @@
 import re,json
 BL='18446744073709551616'
-D='/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4G/'
+D='/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4G/'
 def pdef(f,P):
     t=open(D+f+'.lean').read()
     i=t.index('def '+P); j=t.index('set_option maxHeartbeats',i)
@@ -27,16 +27,16 @@ qn=[n for n,_ in sel]
 lines=[]
 A=lambda k:'s.mem.readLE (BitVec.toNat (s.regs 1) + %d) 8'%(24+8*k)
 U=lambda j:'s.mem.readLE (BitVec.toNat (s.regs 3)) 8' if j==0 else 's.mem.readLE (BitVec.toNat (s.regs 3) + %d) 8'%(8*j)
-out='''import Fv256.Arm64.R4Pro
-import Fv256.Arm64.R4G.C_20_1d8
-import Fv256.Arm64.R4G.G_1d8_284
-import Fv256.Arm64.R4G.G_284_2b4
-import Fv256.Arm64.R4G.G_2b4_2f4
-import Fv256.Arm64.R4LoopRun
-import Fv256.Arm64.R4Q
-import Fv256.Arm64.R4Qm
-import Fv256.Arm64.R4Qr
-import Fv256.Arm64.R4Glue
+out='''import Fv256.Proofs.Arm64.R4Pro
+import Fv256.Proofs.Arm64.R4G.C_20_1d8
+import Fv256.Proofs.Arm64.R4G.G_1d8_284
+import Fv256.Proofs.Arm64.R4G.G_284_2b4
+import Fv256.Proofs.Arm64.R4G.G_2b4_2f4
+import Fv256.Proofs.Arm64.R4LoopRun
+import Fv256.Proofs.Arm64.R4Q
+import Fv256.Proofs.Arm64.R4Qm
+import Fv256.Proofs.Arm64.R4Qr
+import Fv256.Proofs.Arm64.R4Glue
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 open Fv256.Arm64.ReduceSpec Fv256.Arm64.R4Nat
@@ -168,5 +168,5 @@ out+="""
 
 end Fv256.Arm64.R4Seg
 """
-open('/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4Sum.lean','w').write(out)
+open('/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4Sum.lean','w').write(out)
 print(len(out))

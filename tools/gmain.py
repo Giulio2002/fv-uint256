@@ -3,17 +3,17 @@ import sys; sys.path.insert(0,'/srv/fv-uint256-wBm/tools')
 from gb3 import *
 b=bnd
 A='(s.regs 0).toNat'
-out='''import Fv256.Amd64.RecipSeg1
-import Fv256.Amd64.RecipStart
-import Fv256.Amd64.RecipStage23
-import Fv256.Amd64.RecipStage4
-import Fv256.Amd64.RecipStage5
-import Fv256.Amd64.RecipTail
-import Fv256.Amd64.RecipEpi
-import Fv256.Amd64.RecipPaths
-import Fv256.Amd64.RecipBridge
-import Fv256.RecipChain
-import Fv256.Amd64.RecipMainLem
+out='''import Fv256.Proofs.Amd64.RecipSeg1
+import Fv256.Proofs.Amd64.RecipStart
+import Fv256.Proofs.Amd64.RecipStage23
+import Fv256.Proofs.Amd64.RecipStage4
+import Fv256.Proofs.Amd64.RecipStage5
+import Fv256.Proofs.Amd64.RecipTail
+import Fv256.Proofs.Amd64.RecipEpi
+import Fv256.Proofs.Amd64.RecipPaths
+import Fv256.Proofs.Amd64.RecipBridge
+import Fv256.Proofs.Common.RecipChain
+import Fv256.Proofs.Amd64.RecipMainLem
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 open Fv256.F
@@ -105,4 +105,4 @@ theorem main_path (s : State) (hpc : s.rip = BitVec.ofNat 64 recEntry) (hpre : R
 
 end Fv256.Amd64.RecipSeg
 ''' % dict(b0=b('L14c','x14cm208','hL'),b1=b('L14c','x14cm210','hL'),b2=b('L14c','x14cm218','hL'))
-open('/srv/fv-uint256-wBm/lean/Fv256/Amd64/RecipMain.lean','w').write(out)
+open('/srv/fv-uint256-wBm/lean/Fv256/Proofs/Amd64/RecipMain.lean','w').write(out)

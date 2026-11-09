@@ -2,9 +2,9 @@
 # re-apply the ToBig arm64 call-site block from CallSites/ToBig.lean onto a pristine witness file
 set -e
 cd /srv/fv-uint256-csa
-f=lean/Fv256/Arm64/ToBig.lean
+f=lean/Fv256/Proofs/Arm64/ToBig.lean
 git checkout fv/wrun -- $f
-sed -i '1i import Fv256.Arm64.CallSites.Base' $f
+sed -i '1i import Fv256.Proofs.Arm64.CallSites.Base' $f
 sed -i 's/^namespace Fv256.Arm64.ToBig$/open Fv256.Arm64.CallSites\n\nnamespace Fv256.Arm64.ToBig/' $f
 python3 - <<'PY'
 import subprocess
@@ -15,7 +15,7 @@ new='∃ (s_c : State), s_c.pc = BitVec.ofNat 64 %s ∧ NewobjectLiveSite R %s 4
 def wb(n):
     a=A%('runtime.gcWriteBarrier%d'%n)
     return '∃ (s_c : State), s_c.pc = BitVec.ofNat 64 %s ∧ WbLiveSite R %s 4096 %d [] 0x400 s_c'%(a,a,n)
-args=['python3','scripts/callsite-splice.py','lean/Fv256/Arm64/ToBig.lean','nonvacuous','--block','lean/Fv256/Arm64/CallSites/ToBig.lean']
+args=['python3','scripts/callsite-splice.py','lean/Fv256/Proofs/Arm64/ToBig.lean','nonvacuous','--block','lean/Fv256/Proofs/Arm64/CallSites/ToBig.lean']
 for c,p in ((new,'⟨csNew, rfl, csNew_pre⟩'),(wb(1),'⟨csW1, rfl, csW1_pre⟩'),(wb(2),'⟨csW2, rfl, csW2_pre⟩')):
     args+=['--conj',c,'--proof',p]
 print(subprocess.run(args,capture_output=True,text=True).stdout)

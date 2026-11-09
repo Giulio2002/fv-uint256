@@ -1,5 +1,5 @@
 import re,sys
-src=open('/srv/fv-uint256-wf/lean/Fv256/Amd64/ExpLoop1.lean').read()
+src=open('/srv/fv-uint256-wf/lean/Fv256/Proofs/Amd64/ExpLoop1.lean').read()
 def gen(v,H,U,keep_ep=True):
     t=src
     t=t.replace('ExpLoop1',f'ExpLoop{v}').replace('head1',f'head{v}').replace('Inv1',f'Inv{v}').replace('loop1',f'loop{v}').replace('0x149',H)
@@ -29,4 +29,4 @@ def gen(v,H,U,keep_ep=True):
     t=t.replace(q,'⟨'+', '.join(['?_']*nq)+'⟩')
     return t
 for v,H,U,ep in [(2,'0x1f4',128,True),(3,'0x262',192,True),(4,'0x2cc',256,False)]:
-    open(f'/srv/fv-uint256-wf/lean/Fv256/Amd64/ExpLoop{v}.lean','w').write(gen(v,H,U,ep))
+    open(f'/srv/fv-uint256-wf/lean/Fv256/Proofs/Amd64/ExpLoop{v}.lean','w').write(gen(v,H,U,ep))

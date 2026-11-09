@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """gen_exp_loops.py : derive arm64 ExpLoop2..4 from the hand-written ExpLoop1.lean (loop head offsets, bit limits, register of the word)."""
 import re, sys
-d = '/srv/fv-uint256-wh/lean/Fv256/Arm64/'
+d = '/srv/fv-uint256-wh/lean/Fv256/Proofs/Arm64/'
 src = open(d + 'ExpLoop1.lean').read()
 for j, head, lim in ((2, 0x194, 128), (3, 0x1f0, 192), (4, 0x248, 256)):
     s = src

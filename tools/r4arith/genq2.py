@@ -1,7 +1,7 @@
 exec(open('/srv/fv-uint256-wB3/scratch/genq.py').read().split("json.dump(dict(stage_info")[0])
 # ---- reconstruct binder name lists as in generator
 out=[]
-HDR='''import Fv256.Arm64.R4Nat
+HDR='''import Fv256.Proofs.Arm64.R4Nat
 set_option linter.unusedVariables false
 set_option maxHeartbeats 64000000
 set_option maxRecDepth 200000

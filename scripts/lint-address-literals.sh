@@ -6,9 +6,9 @@
 # Flags a numeric literal (decimal or 0x hex) that falls inside the address range where the harness binary's text/data
 # live: arm64 [0x80000, 0x200000), amd64 [0x400000, 0x600000) -- in files under */Arm64/ or */Amd64/ respectively.
 # A line carrying `-- addr-ok` is exempt (deliberate witness-model addresses, checked disjoint from the data).
-# usage: scripts/lint-address-literals.sh [FILE ...]   (default: all lean/Fv256/{Arm64,Amd64}/*.lean); exit 1 if flagged
+# usage: scripts/lint-address-literals.sh [FILE ...]   (default: all lean/Fv256/Proofs/{Arm64,Amd64}/*.lean); exit 1 if flagged
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-files=("$@"); [ ${#files[@]} -gt 0 ] || files=(lean/Fv256/Arm64/*.lean lean/Fv256/Amd64/*.lean)
+files=("$@"); [ ${#files[@]} -gt 0 ] || files=(lean/Fv256/Proofs/Arm64/*.lean lean/Fv256/Proofs/Amd64/*.lean)
 bad=0
 for f in "${files[@]}"; do
   [ -f "$f" ] || continue

@@ -1,6 +1,6 @@
 import Extracted
-import Fv256.Spec
-import Fv256.Util
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
 
 /-!
 # `(*uint256.Int).SRsh(x *Int, n uint) *Int` (amd64): arithmetic shift right, `z = x >> n` (sign-propagating)

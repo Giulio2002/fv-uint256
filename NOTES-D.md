@@ -41,7 +41,7 @@ State: spec/math only, no machine-code proof started.
   copy buf backwards into out inserting `sep` every 3 digits (comma counter persists across the 19-digit chunks), final `string(out[pos-len...])` via slicebytetostring.
 - Extractions `build/ex-{amd64,arm64}-PrettyDec` on fv/we are on the OLD pin: re-extract with
   `janus extract build/harness-<isa> '...(*Int).PrettyDec' DIR --contract runtime.slicebytetostring --contract runtime.growslice --contract runtime.gopanic`.
-- Reusable: `Fv256/DecProg.lean`, `Fv256/Arm64/DecProg.lean` (library programs for Dec/FormatUint/AppendUint/formatBase10/formatBits + udivrem ChainProg). PrettyDec's data
+- Reusable: `Fv256/DecProg.lean`, `Fv256/Proofs/Arm64/DecProg.lean` (library programs for Dec/FormatUint/AppendUint/formatBase10/formatBits + udivrem ChainProg). PrettyDec's data
   layout differs (.rodata + 0x2aa5a/0x31909/0x34c81/0x363b0, NOT 0x34b4a/0x34d06), so DecProg's data does not fit: use `tools/gen_libprog.py --base ChainProg` with its own `--fn`/`--data` list.
   `Fv256/LinkEq.lean` (ProgEq/LibIn) transfers a library summary + runtime contract to the extraction. `Fv256/GrabTac.lean` has content-based lookup.
   amd64 `fb10_summary` / `append_summary` (DecL / StrconvAppend) summarize formatBase10 / AppendUint if the program contains those segments (same addresses as in Dec's lib).

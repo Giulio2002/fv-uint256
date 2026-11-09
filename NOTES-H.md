@@ -2,7 +2,7 @@
 
 ## Done and verified (fv/wh, f3d166a and earlier; each correctness + Witness.nonvacuous in one janus verify run)
 arm64: DivMod, SDiv, SMod, Exp, IExp, Sqrt (50m49 busy host), ISqrt (33m45). amd64: IExp.
-Sqrt files: lean/Fv256/Arm64/{SqrtProg,SqrtSum,SqrtSmall,SqrtLimbA,SqrtBig,SqrtEntry,Sqrt,ISqrt}.lean;
+Sqrt files: lean/Fv256/Proofs/Arm64/{SqrtProg,SqrtSum,SqrtSmall,SqrtLimbA,SqrtBig,SqrtEntry,Sqrt,ISqrt}.lean;
 tools/gen_sqrt_big_entry.py generates the 3 big-entry cases. Scripts: build/{vsq,visq}.sh (verify), build/li.sh/lp.sh/lisq.sh/lscr.sh (workspace checks).
 
 ## Speed debt (parked by main)
@@ -15,7 +15,7 @@ Do experiments only on scratch copies (build/lscr.sh, 300 s cap); never edit the
 
 ## Hex amd64 (IN PROGRESS, not proved)
 - lean/Fv256/HexSpec.lean (ISA-independent: dig, HexOut, HexQ(arm64), fin_strout, hex_strbytes) compiled and committed. FV-D2 will import it for arm64 Hex.
-- lean/Fv256/Amd64/Hex.lean: statement + prefix `janus64_run until [Extracted.entry + 0xec]` + `all_goals sorry`. Check with build/lih.sh (~10 s; workspace fec18988...), real verify build/vhexa.sh (ENDMARK).
+- lean/Fv256/Proofs/Amd64/Hex.lean: statement + prefix `janus64_run until [Extracted.entry + 0xec]` + `all_goals sorry`. Check with build/lih.sh (~10 s; workspace fec18988...), real verify build/vhexa.sh (ENDMARK).
 - Extraction build/ex-amd64-Hex (--contract runtime.slicebytetostring, hextable at 0x4e7888 (5142664), staticuint64s 0x4f6de0). Code 1199 bytes at 0x4b3600.
 - Layout: 66-byte buffer at rsp+0x1e (= sp-74 in arm64 terms), call-site rsp = entry rsp-112; loop head 0x4b36ec; loop body 16 stores per limb with bounds checks `cmp r8,0x42; jae panic`; exit to 0x4b3962 (writes '0','x', computes ptr/len, calls slicebytetostring at 0x4b39a3 with RAX=0,RBX=ptr,RCX=len).
 - The prefix has 8 paths (BitLen-style BSR chain on 4 limbs, each guarded by `test rdx,rdx`). Branch conditions have the form `(sshiftRight (if z=0 then -1 else ... BitVec.ofNat 64 (63 - clzNat 64 z)) +1 + ...) .toNat = 0`; infeasible ones need `Fv256.SqrtHead`/`Util.clz_bl`-style facts (see amd64 BitLen.lean and SqrtHead.cl_ne_zero for the pattern).

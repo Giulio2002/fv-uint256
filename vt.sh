@@ -12,6 +12,6 @@ J=/srv/janus-fvA-pin77f/bin/janus
 cd $R
 echo $$ > out/vt-$fn-$isa-$tag.pid
 S=$(date +%s)
-HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- timeout 7200 memcap -m 40G $J verify build/ex-$isa-$fn --proof $snap/lean/Fv256/$D/$fn.lean --proof-root $snap/lean --full-errors $EXTRA "$@" > out/vt-$fn-$isa-$tag.log 2>&1
+HEAVY_PRIORITY=1 /srv/janus-ops/bin/heavy-run -- timeout 7200 memcap -m 40G $J verify build/ex-$isa-$fn --proof $snap/lean/Fv256/Proofs/$D/$fn.lean --proof-root $snap/lean --full-errors $EXTRA "$@" > out/vt-$fn-$isa-$tag.log 2>&1
 echo "rc=$? time=$(( $(date +%s)-S ))s" >> out/vt-$fn-$isa-$tag.log
 echo ENDMARK >> out/vt-$fn-$isa-$tag.log

@@ -23,6 +23,8 @@ if [ -n "$(ls -A "$JANUS_CACHE_DIR" 2>/dev/null)" ] && [ -z "${ALLOW_WARM_CACHE:
 export JANUS_CACHE_DIR
 echo "verify-all: JANUS=$JANUS ($(sha256sum "$(command -v "$JANUS")" | cut -c1-16)) cache=$JANUS_CACHE_DIR rows-parallel=$NPAR memcap=$MEMCAP witness=$WITNESS"
 mkdir -p build
+# layout preflight: lean/Fv256 holds only Spec/ and Proofs/, and Spec/ never imports Proofs/ (the full closure check is `RELEASE=1 scripts/no-sorry.sh`)
+python3 "$root/scripts/check-spec-closure" --structure-only || { echo "check-spec-closure --structure-only failed" >&2; exit 2; }
 # Go toolchain: $GO, else `go` on PATH, else /usr/local/go/bin/go (the harness is built with GOTOOLCHAIN=go1.26.0)
 GO="${GO:-$(command -v go || true)}"
 [ -n "$GO" ] || { [ -x /usr/local/go/bin/go ] && GO=/usr/local/go/bin/go; }
@@ -81,7 +83,7 @@ for row in "${rows[@]}"; do
   done
 done
 # extra proofs about the GOAMD64=v3 build (functions whose default v1 code the Janus model cannot run)
-for f in lean/Fv256/Amd64v3/*.lean; do
+for f in lean/Fv256/Proofs/Amd64v3/*.lean; do
   [ -e "$f" ] || continue
   fn="$(basename "$f" .lean)"
   [ $# -gt 0 ] && { case " $* " in *" $fn "*) ;; *) continue;; esac; }
@@ -94,9 +96,9 @@ run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never 
   out="build/ex-$isa-$fn"
   if [ "$kind" = v3 ]; then
     # the witness theorems (Witness.nonvacuous ...) of the module are verified with correctness: mandatory under the Janus witness rule
-    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/Amd64v3/$fn.lean"); fi
+    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/Proofs/Amd64v3/$fn.lean"); fi
     if $JANUS extract build/harness-amd64v3 "github.com/holiman/uint256.(*Int).$fn" "$out" >"build/log-$isa-$fn" 2>&1 &&
-       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/Amd64v3/$fn.lean" --proof-root lean --theorem "Fv256.Amd64v3.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
+       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/Proofs/Amd64v3/$fn.lean" --proof-root lean --theorem "Fv256.Amd64v3.$fn.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
   else
     case "$isa" in arm64) dir=Arm64;; amd64) dir=Amd64;; esac
     case "$sym" in "(*uint256.Int)."*) full="github.com/holiman/uint256.(*Int).$fn";; *) full="github.com/holiman/uint256.$fn";; esac
@@ -104,11 +106,11 @@ run_job() {   # run_job isa fn kind sym   (runs in a background subshell; never 
     # a verified row with neither a flags case (contract-flags.sh) nor an entry in noflags.txt is a configuration gap: FAIL, never guess
     if ! contract_known "$fn"; then echo "no contract-flags case for $fn: add the flags of its verified extraction to scripts/contract-flags.sh (or scripts/noflags.txt)" >"build/log-$isa-$fn"; echo "FAIL(no-flags-case) 0 0" >"build/res/$isa-$fn"; return; fi
     # proof module: FnMain.lean, when it exists and holds `theorem correctness`, is the full-spec proof and wins over Fn.lean
-    pf="$fn"; if [ -f "lean/Fv256/$dir/${fn}Main.lean" ] && grep -q "theorem correctness" "lean/Fv256/$dir/${fn}Main.lean"; then pf="${fn}Main"; fi
+    pf="$fn"; if [ -f "lean/Fv256/Proofs/$dir/${fn}Main.lean" ] && grep -q "theorem correctness" "lean/Fv256/Proofs/$dir/${fn}Main.lean"; then pf="${fn}Main"; fi
     # every existential witness theorem declared in the module (Witness.nonvacuous, Grow.Witness.nonvacuous, Witness.big, ...): scripts/witness-theorems.py
-    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/$dir/$pf.lean"); fi
+    wt=(); if [ "$WITNESS" != 0 ]; then while IFS= read -r w; do [ -n "$w" ] && wt+=(--theorem "$w"); done < <(python3 "$root/scripts/witness-theorems.py" "lean/Fv256/Proofs/$dir/$pf.lean"); fi
     if $JANUS extract "build/harness-$isa" "$full" "$out" $cflags >"build/log-$isa-$fn" 2>&1 &&
-       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/$dir/$pf.lean" --proof-root lean \
+       $HR timeout "$TMO" /usr/bin/time -f '%M' -o "$tf" $MC -m "$cap" $JANUS verify "$out" --proof "lean/Fv256/Proofs/$dir/$pf.lean" --proof-root lean \
          --theorem "Fv256.$dir.$pf.correctness" "${wt[@]}" >>"build/log-$isa-$fn" 2>&1; then r=PASS; else r=FAIL; fi
   fi
     # UP3c: every fv-uint256 row must audit with runFree=false AND refutation=false (a row that claims no run is not a verified function spec): FAIL a row whose reports carry either flag

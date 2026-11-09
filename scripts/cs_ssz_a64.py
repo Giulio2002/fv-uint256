@@ -76,7 +76,7 @@ theorem csEr_pre : ErrorfLiveSite R0e cAddrE 4096 tErr iErr tInt iWrap 26 fmtNum
 '''
 for fn, c in CFG.items():
     if len(sys.argv) > 1 and fn not in sys.argv[1:]: continue
-    f = f'lean/Fv256/Arm64/{fn}.lean'
+    f = f'lean/Fv256/Proofs/Arm64/{fn}.lean'
     subprocess.run(['git', 'checkout', 'fv/wrun', '--', f], check=True)
     s = open(f).read()
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
@@ -85,7 +85,7 @@ for fn, c in CFG.items():
     s = s.replace(ns, 'open Fv256.Arm64.CallSites\n\n' + ns, 1)
     open(f, 'w').write(s)
     TL = 21 if fn.startswith('Marshal') else 22
-    bf = f'lean/Fv256/Arm64/CallSites/{fn}.lean'
+    bf = f'lean/Fv256/Proofs/Arm64/CallSites/{fn}.lean'
     open(bf, 'w').write(BLOCK.replace('{LEN}', str(c['LEN'])).replace('{BUD}', str(c['BUD'])).replace('{TL}', str(TL)))
     pc = lambda a: f'∃ s_c : State, s_c.pc = BitVec.ofNat 64 {a} ∧ '
     CV = '(Extracted.program.contractAddr "runtime.convT64")'; ER = '(Extracted.program.contractAddr "fmt.errorf")'

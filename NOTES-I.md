@@ -3,13 +3,13 @@
 Branch fv/wi (worktree /srv/fv-uint256-wi). Janus pin 655a23fa (`/srv/janus-wi-pin3/bin/janus`, lean/lakefile.toml, lake-manifest.json,
 build/vfy.sh uses it + /srv/janus-ops/jcache-shared). Dev workspace: build/ws (package override -> build/kept/janus, a COPY of a kept
 janus-verify workspace so cache GC cannot delete it; if "package directory not found" re-run `build/vfy.sh rpN build/ex-amd64-SetFromDecimal
-Fv256/Amd64/SfdDecode.lean Fv256.Amd64.SfdDecode.decoderune_sum`, copy the printed "Kept workspace" janus/ dir to build/kept/janus).
+Fv256/Proofs/Amd64/SfdDecode.lean Fv256.Amd64.SfdDecode.decoderune_sum`, copy the printed "Kept workspace" janus/ dir to build/kept/janus).
 Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64.SfdEnv Fv256.Amd64.SfdTePre Fv256.Amd64.SfdTeLem" HEAVY=1 MEM=30G build/devbg.sh REL.lean OUT.out`
 (copy a changed SfdTePre/SfdTeLem into build/ws and `lake build` them first). Scratch variants of the te_sum0/te_sum1 file with timing marks: build/scratch/ScrTe{0,1}.lean
-(copy into lean/Fv256/Amd64/ to use; delete again). Marks/debug output: build/out/marks.txt (file build/out/debug_flags enables FLAG/FRAME dumps in te_flags).
+(copy into lean/Fv256/Proofs/Amd64/ to use; delete again). Marks/debug output: build/out/marks.txt (file build/out/debug_flags enables FLAG/FRAME dumps in te_flags).
 
 ## Verified (janus verify): decoderune_sum, pu_sum, mul_sum. Compiles: pw_sum (hte still a hypothesis).
-## strconv.toError, ErrSyntax case (lean/Fv256/Amd64/SfdToErrorX.lean, SfdTePre.lean, SfdTeLem.lean)
+## strconv.toError, ErrSyntax case (lean/Fv256/Proofs/Amd64/SfdToErrorX.lean, SfdTePre.lean, SfdTeLem.lean)
 * te_sum = summary_split (te_sum0 [wbFlag read = 0]) (te_sum1 [wbFlag read /= 0]); both use the macro `te_body` (hygiene off).
 * te_sum0 COMPILES (lake env lean, 655a23fa): 281 s total, ~4.6 GB; per stage: prefix ~4 min, flags 5-25 s, F (te_base) <1 s, c5-c8 ~55 s, c9-c10 ~25 s, c11/c12 ~15 s.
 * What made it fast: (1) te_base (SfdTeLem) proves the base MemFrame as an extraction-free lemma (was 10.6 min / +11 GB inside te_frame);
@@ -36,8 +36,8 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
 * LESSON: te_sum1 needs set_option maxHeartbeats 64000000 (16M was exhausted by the prefix alone; the symptom is a `whnf` timeout
   at the last case).
 * Dev loop for te_sum1 alone: the generator in this log: take SfdToErrorX.lean, keep te_body macro + te_sum1, add `te_mark` elab
-  (appends to build/out/marks.txt) -> lean/Fv256/Amd64/ScrTe1.lean (delete it before any janus verify!). Run via
-  `DEPS="Fv256.SpecI" HEAVY=1 MEM=30G TMO=3000 build/devbg.sh Fv256/Amd64/ScrTe1.lean qN.out` after copying SfdTePre/SfdTeLem into build/ws and
+  (appends to build/out/marks.txt) -> lean/Fv256/Proofs/Amd64/ScrTe1.lean (delete it before any janus verify!). Run via
+  `DEPS="Fv256.SpecI" HEAVY=1 MEM=30G TMO=3000 build/devbg.sh Fv256/Proofs/Amd64/ScrTe1.lean qN.out` after copying SfdTePre/SfdTeLem into build/ws and
   `lake build Fv256.Amd64.SfdTePre` there. Under load: prefix ~10 min, whole run 16-30 min.
 * SfdPw.lean: hte replaced by the six contract hypotheses (hif hnew hmg hmv hwb1 hwb2); `have hte := te_sum ...` inside. NOT yet compiled.
 * Next: fd loop (SfdFd): head = fromDecimal+0xa0 (0x4b4840), regs DX=i CX=remaining SI=len(bs) BX=ptr, stack: z @0x98(SP), bs.ptr @0xa0(SP),
@@ -89,7 +89,7 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
 * sfd addresses: fromDecimal call at sfd+0xcd (0x4b46cd) from the ==78 path and sfd+0xcc ... ; call sites: <78: sfd+0xcc (0x4b46ec `CALL fromDecimal` -> ret sfd+0xd1 =0x4b46f1: ADDQ $0x38,SP; POPQ BP; RET);
   ==78: sfd+0x5f spills, cmpstring call sfd+0x80 (0x4b46a0), JLE sfd+0x88->sfd+0x9e reload AX/BX/CX from 0x48/0x30/0x28(SP) then CALL fd (0x4b46cd), epilogue 0x4b46d2; >78 / cmpstring>0: ErrBig256Range loaded from errBig (+8), ADDQ 0x38,SP; POPQ BP; RET.
   Spill slots (SP1 = sp0-64): 0x28(SP1)=sp0-24 (len1), 0x30(SP1)=sp0-16 (base1), 0x20(SP1)=sp0-32 (zero-loop DX spill), 0x48(SP1)=sp0+8 (z), 0x50(SP1)=sp0+16 (pS).
-* REMAINING (back half), port arm64 /srv/fv-uint256-wB7/lean/Fv256/Arm64/SfdTopC.lean+D.lean (fdpre_of, call_post, top_c1/c2/c3a/c3_gt/c3_le, top_fin, top_err, sfd_sum):
+* REMAINING (back half), port arm64 /srv/fv-uint256-wB7/lean/Fv256/Proofs/Arm64/SfdTopC.lean+D.lean (fdpre_of, call_post, top_c1/c2/c3a/c3_gt/c3_le, top_fin, top_err, sfd_sum):
   fd window for the call: [lo, sp0-40) (rsp_fd = sp0-72; fd needs lo+4432 <= rsp_fd, rsp_fd+32 <= hi'); FdPre from TopMid via Env.shrink/Env.frame0; ChunkAll via chunkAll_hi/chunkAll_frame (copy);
   results map FdPost -> TopPost with dec_of_fd + TeObj.congr_src; cmpstring: CmpstringContract64 (Janus.Contracts.CmpstringAmd64) on maxStr; hfin from lexGt_iff (SpecI) for n'=78.
   Then: SfdSummary theorem (extCfg) = sfd_sum taking the six runtime contracts + CmpstringContract64; then Extracted-level correctness + Witness (nonvacuous) + janus verify on 77fb30cc.
@@ -98,12 +98,12 @@ Dev run: `DEPS="Fv256.SpecI Fv256.UtilI Fv256.HexLemmas Fv256.SumC64 Fv256.Amd64
 * DONE (sorry-free, building): SfdTopE (fdpre_of, CallSt, callSt_of, FdCtx, c1_post, top_c1 = <78 digits to the fd call), SfdTopF (top_epi, top_fin: fd result -> TopPost, all 3 cases eof/ok/syntax), SfdTopG (top_range [ErrBig exit at sfd+0xb8 or sfd+0x8a], top_c2 [>78], CmpCtx, c3a_post, top_c3a [==78: spills + cmpstring call, RA 4933285 = sfd+0x85]).
 * Specs changed meanwhile (all committed, last 281a0b4 + later): SfdCfg plain tuple def, Res abbrev (SpecI from fv/master), accessible guard (nS=0 ∨ accessible), Mod fix.
 * REMAINING for sfd_sum: (1) cmp_after (S'' after CmpstringContract64 return: TopSt via a topSt_of_callSt lemma [CallSt has regs 4 = sp0-72; S'' has sp0-64], AX = BitVec.ofInt 64 (strCmp Sc.mem (pS+sp) maxStr 78 78) [cmpResult64]) , (2) cmp_val (strCmp = 1 <-> lexGt: UtilI.strCmp_eq_one_iff + TopMath.lexGt_congr2; Janus strCmp_cases for ∈{-1,0,1}), (3) top_c3_gt (AX=1: JLE not taken -> pc sfd+0x8a -> top_range with TopMath.decParse_gt78), (4) top_c3_le (reload AX/BX/CX from sp0+8/sp0-16/sp0-24 [0x48/0x30/0x28(SP1)], CALL fd with ret 4933330 [sfd+0xd2]; use fdpre_of with hfin from lexGt_iff + decSum_maxDigit (copy arm64 SfdTopC top_c3_le), FdCtx ret=4933330, then top_fin with decParse_eq), (5) sfd_sum: seg_trans top_front, by_cases lt/gt/eq 78 as arm64 SfdTopD.sfd_sum; call fd via ReachesRet.call (fd_sum impl R R2 T b L lo (sp0-40) z (Sc.regs 3) (Sc.regs 1) hif hnew hmg hmv hwb1 hwb2) hpc hpreFd, and cmpstring via ReachesRet.call hcmp (CmpstringContract64 (link impl) cmpAddr 16).
-* THEN: Amd64/SetFromDecimal.lean (Extracted-level `correctness` + `Witness.nonvacuous`, see arm64 /srv/fv-uint256-wB7/lean/Fv256/Arm64/SetFromDecimal.lean + SfdWitA/B/C for the witness recipe; amd64 contracts are over `Extracted.program.link impl`, not ofImpl), then `janus verify` on 77fb30cc: lakefile rev, `lake update janus`, binary /srv/janus-fvA-pin77f/bin/janus, JANUS_CACHE_DIR=/srv/janus-ops/jcache-shared, no --keep-workspace.
+* THEN: Amd64/SetFromDecimal.lean (Extracted-level `correctness` + `Witness.nonvacuous`, see arm64 /srv/fv-uint256-wB7/lean/Fv256/Proofs/Arm64/SetFromDecimal.lean + SfdWitA/B/C for the witness recipe; amd64 contracts are over `Extracted.program.link impl`, not ofImpl), then `janus verify` on 77fb30cc: lakefile rev, `lake update janus`, binary /srv/janus-fvA-pin77f/bin/janus, JANUS_CACHE_DIR=/srv/janus-ops/jcache-shared, no --keep-workspace.
 
 ## FV-I5 update 3 (witness complete, verify V2 launched)
 - correctness is over `Extracted.program.link impl` (ImplApart Extracted.program impl is unsatisfiable: extraction segments contain stub addresses), with `hcmp` (CmpstringContract64).
 - Witness: SfdWitA (stub runtime: newobject/mallocgc/memmove/wb1/wb2 via janus64_live_*, after `rw [linked_eq]`), SfdWitB (ifaceeq model + cmpstring byte loop, literal 4204160), SfdWitC (concrete "7" state, Mod/Env/MultOK/ChunkAll/pre0, hret, setup), `Witness.nonvacuous` in SetFromDecimal.lean. All compile (lake build, Janus 655a23fa, rc=0), no sorry.
-- Real verify: `build/vfy2.sh V2 Fv256/Amd64/SetFromDecimal.lean <correctness> <Witness.nonvacuous>` on pin 77fb30cc, log build/logs/V2.log.
+- Real verify: `build/vfy2.sh V2 Fv256/Proofs/Amd64/SetFromDecimal.lean <correctness> <Witness.nonvacuous>` on pin 77fb30cc, log build/logs/V2.log.
 
 ## HSfd-amd64: client-facing statement of the SetFromDecimal library lemma (PLANNED, proof pending; FV-I5 2026-11-07)
 Module `Fv256.Amd64.SfdLib` (Extracted-free; library program `Fv256.Amd64.SfdProg.program`, entry `SfdProg.sfd`), clients import it plus `Fv256.Amd64.SfdTopSpec`.
@@ -123,7 +123,7 @@ i.e. exactly the `hsfd` hypothesis shape J2's UnmarshalText already uses (`SfdSu
 - Target moved to n10 51d592da: lean/lakefile.toml + lake-manifest.json pin /srv/janus-fvA-pin51d @ 51d592da (`lake update janus` done); build/ex-amd64-SetFromDecimal regenerated with n10 `janus extract` (old one kept as build/ex-amd64-SetFromDecimal.77f; command: extract harness-amd64 <sym> --max-functions 64 --contract {cmpstring,ifaceeq,mallocgc,memmove,newobject,gcWriteBarrier1,2,3,memclrNoHeapPointers}).
 - Top-level Ensures pre is `TopPre0` (no RetOK; `retok_of` derives it from RetAddr+CallSetup+window) for the n10 RetLow audit; SfdSummary keeps TopPre. NOT yet checked with the n10 auditor on the statement itself (the verify never reaches the audit stage).
 - `janus verify` (77f V2-V7, n10 N4/N5/N6; shared cache, fresh cache, JANUS_LAKE_JOB_MEM=16G) all END with only "SfdTopI.olean does not exist" after 4000-5000 s; own/lib has oleans only up to SfdTeBody/SfdTePre (nothing from SfdTeSum0 on). Hand compile of the whole chain with plain `lean` against the kept n10 workspace (build/m51/run.py, log build/m51/log) is ALL rc=0 incl. Fv256.Amd64.SetFromDecimal (both theorems elaborate). Peak RSS: SfdTeSum0 5.2 GB/241 s, SfdTeSum1 16.0 GB/596 s, everything else <=3 GB. Evidence sent to main for U-SILENT-DEP.
-- NEXT: (1) split SfdTeSum1 (te_body's final `all_goals` obj/F block, SfdTeBody.lean) and SfdTeSum0 below ~8 GB (Hid wrappers/ continuation lemmas), rerun `JC=/srv/janus-ops/jcache-n10 JB=/srv/janus-fvA-pin51d/bin/janus KW=--keep-workspace JJ=1 build/vfy2.sh N7 Fv256/Amd64/SetFromDecimal.lean <correctness> <Witness.nonvacuous>` (NO --keep-workspace for the final); (2) then SfdProg/SfdLib/SfdLink library (planned statement above), then Scan disch_sfd on fv/wsc.
+- NEXT: (1) split SfdTeSum1 (te_body's final `all_goals` obj/F block, SfdTeBody.lean) and SfdTeSum0 below ~8 GB (Hid wrappers/ continuation lemmas), rerun `JC=/srv/janus-ops/jcache-n10 JB=/srv/janus-fvA-pin51d/bin/janus KW=--keep-workspace JJ=1 build/vfy2.sh N7 Fv256/Proofs/Amd64/SetFromDecimal.lean <correctness> <Witness.nonvacuous>` (NO --keep-workspace for the final); (2) then SfdProg/SfdLib/SfdLink library (planned statement above), then Scan disch_sfd on fv/wsc.
 
 ## FV-I7 update 5 (2026-11-07 evening) -- LIBRARY DELIVERED
 - Chain ported off `Extracted`: all Amd64/Sfd* (except SfdWit*) import `Fv256.Amd64.SfdProg` (generated by tools/gen_sfdprog_amd64.py: 8 segments, 5 stubs, 11 contracts, dataAddr consts; cross-checked on 4 extractions). Extraction REDONE with the canonical SFD contract flags (cmpstring ifaceeq mallocgc memmove newobject gcWB1/2/3 growslice slicebytetostring concatstring2): 5 stubs, so `LinkEq.LibIn` (needs E.stubs == lib stubs) holds for Scan ex3 and J6 n10 extractions. Old extractions: build/ex-amd64-SetFromDecimal.n10a/.77f. identity.json binary must be "../harness-amd64".

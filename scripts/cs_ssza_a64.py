@@ -22,7 +22,7 @@ theorem csG_pre : RtLivePre 4096 R growsliceSpec growsliceLive (Extracted.progra
     simp only [calleeStack, List.mem_cons, List.not_mem_nil, or_false] at hr
     rcases hr with rfl | rfl <;> (simp only [outside_append, outside_cons, outside_nil]; decide)
 '''
-f = 'lean/Fv256/Arm64/MarshalSSZAppendMain.lean'
+f = 'lean/Fv256/Proofs/Arm64/MarshalSSZAppendMain.lean'
 subprocess.run(['git', 'checkout', 'fv/wrun', '--', f], check=True)
 s = open(f).read()
 s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
@@ -43,7 +43,7 @@ assert a in s; s = s.replace(a, b, 1)
 s = s.replace('so no `growslice` request is made\n(the runtime serves none: `ok` is false) and the contract holds vacuously at the generic stub runtime.',
               'so no `growslice` request is made by the code;\nthe stub runtime serves the request `growslice(p, 40, 32, 8, uint8)` (as in `Grow.Witness`) so that the call-site state exists.', 1)
 open(f, 'w').write(s)
-bf = 'lean/Fv256/Arm64/CallSites/MarshalSSZAppendMain.lean'
+bf = 'lean/Fv256/Proofs/Arm64/CallSites/MarshalSSZAppendMain.lean'
 open(bf, 'w').write(BLOCK)
 A = '(Extracted.program.contractAddr "runtime.growslice")'
 conj = f'∃ s_c : State, s_c.pc = BitVec.ofNat 64 {A} ∧ RtLivePre 4096 R growsliceSpec growsliceLive {A} [] 0x1000 s_c'

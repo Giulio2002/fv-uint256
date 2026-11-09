@@ -1,5 +1,5 @@
 import re
-t=open('/srv/fv-uint256-wB3/lean/Fv256/Arm64/R4G/C_20_1d8.lean').read()
+t=open('/srv/fv-uint256-wB3/lean/Fv256/Proofs/Arm64/R4G/C_20_1d8.lean').read()
 i=t.index('def PC_20_1d8'); j=t.index('set_option maxHeartbeats')
 d=t[i:j]
 body=d.split(', L1d8 S\'',1)[1]

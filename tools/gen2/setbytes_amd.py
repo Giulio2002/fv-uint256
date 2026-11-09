@@ -6,7 +6,7 @@ import sys
 n = int(sys.argv[1]); mode = sys.argv[2] if len(sys.argv) > 2 else 'probe'
 below = int(sys.argv[3]) if len(sys.argv) > 3 else 8
 above = int(sys.argv[4]) if len(sys.argv) > 4 else 24
-s = open(ROOT+'/lean/Fv256/Amd64/SetBytes32.lean').read()
+s = open(ROOT+'/lean/Fv256/Proofs/Amd64/SetBytes32.lean').read()
 s = s.replace('SetBytes32', f'SetBytes{n}').replace('32 ≤ len.toNat', f'{n} ≤ len.toNat').replace('len.toNat < 32', f'len.toNat < {n}')
 s = s.replace('Buffer s ptr 32 false', f'Buffer s ptr {n} false').replace('Buffer s0 ptr 32 false', f'Buffer s0 ptr {n} false')
 s = s.replace('(z.toNat + 32 ≤ ptr.toNat ∨ ptr.toNat + 32 ≤ z.toNat)', f'(z.toNat + 32 ≤ ptr.toNat ∨ ptr.toNat + {n} ≤ z.toNat)')
@@ -44,4 +44,4 @@ if mode == 'probe':
     s = s[:i] + "  trace_state\n  all_goals sorry\n" + s[j:]
 s = s.replace('theorem correctness','set_option maxHeartbeats 8000000 in\ntheorem correctness',1) if 'maxHeartbeats' not in s else s
 s = s.replace('theorem correctness','set_option maxHeartbeats 8000000 in\ntheorem correctness',1) if 'maxHeartbeats' not in s else s
-open((ROOT+f'/lean/Fv256/Amd64/SetBytes{n}.lean'), 'w').write(s)
+open((ROOT+f'/lean/Fv256/Proofs/Amd64/SetBytes{n}.lean'), 'w').write(s)

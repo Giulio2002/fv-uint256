@@ -2,7 +2,7 @@
 """geq.py A B [var...]: print equations (name = expr) of segment P_A_B as Lean hypotheses `(h_name : name = expr)`"""
 import re, sys
 def eqs(A, B):
-    t = open('/srv/fv-uint256-wBm/lean/Fv256/Amd64/RecipG/G_%x_%x.lean' % (A, B)).read()
+    t = open('/srv/fv-uint256-wBm/lean/Fv256/Proofs/Amd64/RecipG/G_%x_%x.lean' % (A, B)).read()
     i = t.index('def P_'); j = t.index('\n\nset_option', i)
     d = t[i:j]
     pat = re.compile(r' ∧ (x[0-9a-f]+[a-z0-9]+) = | ∧ RecRegs')

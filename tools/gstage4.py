@@ -12,15 +12,15 @@ b=bnd
 fn=['f%d'%i for i in range(len(facts))]
 L=[]
 w=L.append
-w('''import Fv256.Amd64.RecipArith4
-import Fv256.Amd64.RecipArith4p
-import Fv256.Amd64.RecipArith4q
-import Fv256.Amd64.RecipArith4s
-import Fv256.Amd64.RecipStage5Lem
-import Fv256.Amd64.RecipG.C_43c_502
-import Fv256.Amd64.RecipG.C_502_660
-import Fv256.Amd64.RecipG.C_660_7ae
-import Fv256.Amd64.RecipG.G_7ae_801
+w('''import Fv256.Proofs.Amd64.RecipArith4
+import Fv256.Proofs.Amd64.RecipArith4p
+import Fv256.Proofs.Amd64.RecipArith4q
+import Fv256.Proofs.Amd64.RecipArith4s
+import Fv256.Proofs.Amd64.RecipStage5Lem
+import Fv256.Proofs.Amd64.RecipG.C_43c_502
+import Fv256.Proofs.Amd64.RecipG.C_502_660
+import Fv256.Proofs.Amd64.RecipG.C_660_7ae
+import Fv256.Proofs.Amd64.RecipG.G_7ae_801
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -99,4 +99,4 @@ w('  rw [hsb, hT]')
 w('  subst e1 e2 e3 e4 e5')
 w('  rfl')
 w('\nend Fv256.Amd64.RecipSeg')
-open('/srv/fv-uint256-wBm/lean/Fv256/Amd64/RecipStage4.lean','w').write('\n'.join(L)+'\n')
+open('/srv/fv-uint256-wBm/lean/Fv256/Proofs/Amd64/RecipStage4.lean','w').write('\n'.join(L)+'\n')

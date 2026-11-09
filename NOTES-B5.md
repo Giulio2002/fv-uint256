@@ -1,7 +1,7 @@
 # NOTES-B5 (FV-B5, arm64 Reciprocal) -- worktree /srv/fv-uint256-wB5, branch fv/wb5
 
 ## Done (all compile, no sorry)
-- lean/Fv256/Arm64/: RecipDefs (RecPre, RecRegs, RecMem + RecMem.write, r0f, bv_eq_ofNat), RecipNat (clz facts, word_or/word_lt/top_ge),
+- lean/Fv256/Proofs/Arm64/: RecipDefs (RecPre, RecRegs, RecMem + RecMem.write, r0f, bv_eq_ofNat), RecipNat (clz facts, word_or/word_lt/top_ge),
   RecipLive (GENERATED L<off> defs), RecipSeg0 (entry..+0x88 incl. inline Lsh; Q0 = y words + lsh eq + sidx),
   RecipG/G_A_B (GENERATED segments, offsets from entry 0xb8d80; 21 cuts), RecipG/C_*.lean (chains from tools/a64chain.py),
   RecipBridge (ISA-independent copy of B3's bridge lemmas), RecipBv (rot32_shl/rot32_hi/toNat_ite), RecipArith1 (sum1: stage 1 x108r0 = recipR1 Y).

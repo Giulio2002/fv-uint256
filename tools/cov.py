@@ -15,6 +15,6 @@ for fn in sys.argv[1:]:
     if not m: print('no row',fn); continue
     a='verified' if st['arm64'] else m.group(2).strip()
     b='verified' if st['amd64'] else m.group(3).strip()
-    note=m.group(4) if (m.group(4).strip() not in ('','|')) else ' lean/Fv256/{Arm64,Amd64}/%s.lean |'%fn
+    note=m.group(4) if (m.group(4).strip() not in ('','|')) else ' lean/Fv256/Proofs/{Arm64,Amd64}/%s.lean |'%fn
     s=s[:m.start()]+m.group(1)+a+' | '+b+' |'+note+s[m.end():]
 open(p,'w').write(s)

@@ -1,7 +1,7 @@
 # NOTES-CSA-B (fork B of FV-CSA2): arm64 Format call-sites
 
 Generator: scripts/cs_format_a64.py (idempotent; checks out fv/wrun versions of FormatWitA/B/G/N + Format.lean first, rewrites them,
-regenerates the aggregate lemmas csAll16/csAll0 at the end of lean/Fv256/Arm64/FormatCS.lean -- everything above `-- AGGREGATE-BEGIN` in FormatCS is hand-written and kept).
+regenerates the aggregate lemmas csAll16/csAll0 at the end of lean/Fv256/Proofs/Arm64/FormatCS.lean -- everything above `-- AGGREGATE-BEGIN` in FormatCS is hand-written and kept).
 Design: one universal env memU/sU (R0 metadata, toy heap, hA/hB blocks, data) for the stubs; flat memory (Inhab.callSt) for ICall.
 FINDING: `Hw` (FormatWitA) made the TypeAssert hypothesis's pre unsatisfiable (Ready Hw [x0,x1] false: Hw only admits 3-word args) -> Hw now also admits `∃ x y, a = [x,y]`;
 models model1/2 (A, G) get `replace hpp := hpp.resolve_right ...`.

@@ -2,7 +2,7 @@
 """gsum.py NAME A Z 'bounds' 'facts' 'tail' -> prints a summary-lemma skeleton for chain c_A_Z.
 Statement: sig of the chain, (bounds) , conclusion ∃ <new outargs of L_Z>, L_Z s S <outargs> ∧ facts. Proof: obtain; have key : facts := by subst <all eqs>; <tail>; exact ⟨_,..,hLz,key⟩"""
 import re, sys, ast
-D = '/srv/fv-uint256-wBm/lean/Fv256/Amd64/RecipG/'
+D = '/srv/fv-uint256-wBm/lean/Fv256/Proofs/Amd64/RecipG/'
 def make(name, A, Z, bounds, facts, tail, pre='', unfold=''):
     sig = open(D + 'c_%s_%s.sig' % (A, Z)).read().strip()
     ob = open(D + 'c_%s_%s.obtain' % (A, Z)).read().split('\n')[1].strip()

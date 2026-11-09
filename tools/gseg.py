@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """gseg.py: generator of Reciprocal amd64 segment lemmas with named-variable live states.
-usage: gseg.py live CUTS...            -> writes lean/Fv256/Amd64/RecipLive.lean (defs L<hex>)
+usage: gseg.py live CUTS...            -> writes lean/Fv256/Proofs/Amd64/RecipLive.lean (defs L<hex>)
        gseg.py skel A B               -> writes build/skel_A_B.lean and runs it, prints parsed trace summary
-       gseg.py seg A B                -> writes lean/Fv256/Amd64/RecipG_A_B.lean (final segment lemma)
+       gseg.py seg A B                -> writes lean/Fv256/Proofs/Amd64/RecipG_A_B.lean (final segment lemma)
 Addresses are hex offsets from the function entry. State: regs by name, stack slots by [rsp+d] with rsp = entry sp - 568."""
 import re, sys, os, subprocess, json
 sys.path.insert(0, os.path.dirname(__file__))
@@ -38,7 +38,7 @@ def Ldef(cut):
     body = ' ∧\n  '.join(facts) if facts else 'True'
     return 'def L%x (s S : State) %s: Prop :=\n  %s\n' % (cut, ('(%s : Nat) ' % ps) if ps else '', body), names
 def emit_live(cuts):
-    out = ['import Fv256.Amd64.RecipSeg1', '', 'open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic', '',
+    out = ['import Fv256.Proofs.Amd64.RecipSeg1', '', 'open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic', '',
            'namespace Fv256.Amd64.RecipSeg', '',
            'theorem ofNat_mod64 (e : Nat) : BitVec.ofNat 64 (e % 18446744073709551616) = BitVec.ofNat 64 e := by',
            '  apply BitVec.eq_of_toNat_eq; simp only [BitVec.toNat_ofNat, Nat.mod_mod]', '',
@@ -52,7 +52,7 @@ def emit_live(cuts):
         d, _ = Ldef(c)
         out.append(d)
     out.append('end Fv256.Amd64.RecipSeg\n')
-    open(ROOT + '/lean/Fv256/Amd64/RecipLive.lean', 'w').write('\n'.join(out))
+    open(ROOT + '/lean/Fv256/Proofs/Amd64/RecipLive.lean', 'w').write('\n'.join(out))
 
 # ---- trace parsing --------------------------------------------------------------------------------
 def grp(e, start=0):
@@ -125,7 +125,7 @@ def parse_trace(t):
     return regs, mem
 
 # ---- segment emission ---------------------------------------------------------------------------------
-HDR = """import Fv256.Amd64.RecipLive
+HDR = """import Fv256.Proofs.Amd64.RecipLive
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -278,9 +278,9 @@ def do_seg(A, B, skel=True):
     if skel: do_skel(A, B)
     t = open('%s/build/skel/RecipSkel_%x_%x.out' % (ROOT, A, B)).read()
     o, a, n = emit_seg(A, B, t)
-    p = '%s/lean/Fv256/Amd64/RecipG/G_%x_%x.lean' % (ROOT, A, B)
+    p = '%s/lean/Fv256/Proofs/Amd64/RecipG/G_%x_%x.lean' % (ROOT, A, B)
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    o = o.replace('import Fv256.Amd64.RecipLive', 'import Fv256.Amd64.RecipLive')
+    o = o.replace('import Fv256.Proofs.Amd64.RecipLive', 'import Fv256.Proofs.Amd64.RecipLive')
     open(p, 'w').write(o)
     return p
 if __name__ == '__main__' and sys.argv[1] == 'seg':

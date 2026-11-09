@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """cs_unm_a64.py (FV-CSA2 fork C2): call-site conjuncts (U-WITNESS-CALLSITE) for arm64 UnmarshalJSON / UnmarshalText.
-   Edits lean/Fv256/Arm64/{NS}WitC.lean (block + core statements/proofs) and {NS}Main.lean (thin witnesses). Idempotent (checks out fv/wrun? no: from HEAD~ copy)."""
+   Edits lean/Fv256/Proofs/Arm64/{NS}WitC.lean (block + core statements/proofs) and {NS}Main.lean (thin witnesses). Idempotent (checks out fv/wrun? no: from HEAD~ copy)."""
 import re, subprocess, sys
 
 def okpos(i, n, x):
@@ -104,7 +104,7 @@ def conj(NS):
     return L
 
 def apply(NS):
-    wf = f'lean/Fv256/Arm64/{NS}WitC.lean'; mf = f'lean/Fv256/Arm64/{NS}Main.lean'
+    wf = f'lean/Fv256/Proofs/Arm64/{NS}WitC.lean'; mf = f'lean/Fv256/Proofs/Arm64/{NS}Main.lean'
     s = open(wf).read()
     if 'CALLSITE-BLOCK' in s: print(NS, 'WitC already done'); return
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)

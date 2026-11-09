@@ -1,7 +1,7 @@
 # Format arm64 assembly -- FV-FM (branch fv/wfm, worktree /srv/fv-uint256-wfm) -- STATE 2026-11-07
 
 Pin: n10 51d592da (lakefile + private binary /srv/janus-wfm-n10/bin/janus). Extraction: build/ex3-arm64-Format (n10 extractor, 26 data objects, harness build/harness-arm64).
-Kept workspace: build/ws-Arm64.txt; fast loop: `PRE="mods" build/lrm.sh Fv256/Arm64/File.lean` (syncs lean/Fv256 into the workspace, lake-builds PRE modules, then lean's the file).
+Kept workspace: build/ws-Arm64.txt; fast loop: `PRE="mods" build/lrm.sh Fv256/Proofs/Arm64/File.lean` (syncs lean/Fv256 into the workspace, lake-builds PRE modules, then lean's the file).
 Verify: build/vwm.sh File Theorem [extra]  (log build/vwm.log).  Do not use --keep-workspace for the final run.
 
 ## Done (lake/lean-checked in the kept workspace)

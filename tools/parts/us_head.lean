@@ -1,9 +1,9 @@
-import Fv256.Spec
-import Fv256.Util
-import Fv256.SpecI
-import Fv256.UtilI
-import Fv256.Arm64.SfdTopSpec
-import Fv256.Arm64.SfdEnvC
+import Fv256.Proofs.Common.Spec
+import Fv256.Proofs.Common.Util
+import Fv256.Proofs.Common.SpecI
+import Fv256.Proofs.Common.UtilI
+import Fv256.Proofs.Arm64.SfdTopSpec
+import Fv256.Proofs.Arm64.SfdEnvC
 
 /-!
 # `UnmarshalText` / `UnmarshalJSON` (arm64): precondition and the `SetFromDecimal` call-site lemma (Extracted-free)

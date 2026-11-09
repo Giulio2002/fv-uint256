@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# mo_arm.py : writes lean/Fv256/Arm64/MoCases/{A,B,C,D,E}.lean (one module per aliasing pattern of (z, x, y)) and lean/Fv256/Arm64/MulOverflow.lean
+# mo_arm.py : writes lean/Fv256/Proofs/Arm64/MoCases/{A,B,C,D,E}.lean (one module per aliasing pattern of (z, x, y)) and lean/Fv256/Proofs/Arm64/MulOverflow.lean
 import os
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OPEN = "\nopen Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec\n\n"
@@ -32,12 +32,12 @@ def stmt(name):
     L += "  · simp only [Spec.mul, Spec.W, Nat.reducePow]; janus_arith\n"
     L += "  · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]\n"
     return L
-os.makedirs(ROOT + '/lean/Fv256/Arm64/MoCases', exist_ok=True)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Arm64/MoCases', exist_ok=True)
 for n in PATS:
-    open(ROOT + f'/lean/Fv256/Arm64/MoCases/{n}.lean', 'w').write(
+    open(ROOT + f'/lean/Fv256/Proofs/Arm64/MoCases/{n}.lean', 'w').write(
         HDR + OPEN + "namespace Fv256.Arm64.MulOverflow\n\nset_option maxHeartbeats 64000000 in\n" + stmt(n) + "\nend Fv256.Arm64.MulOverflow\n")
 
-MAIN = HDR + "".join(f"import Fv256.Arm64.MoCases.{n}\n" for n in PATS) + '''
+MAIN = HDR + "".join(f"import Fv256.Proofs.Arm64.MoCases.{n}\n" for n in PATS) + '''
 /-!
 # `(*uint256.Int).MulOverflow(x, y *Int) (*Int, bool)` (arm64): `z = x * y mod 2^256` and the overflow flag
 
@@ -126,4 +126,4 @@ end Witness
 
 end Fv256.Arm64.MulOverflow
 '''
-open(ROOT + '/lean/Fv256/Arm64/MulOverflow.lean', 'w').write(MAIN)
+open(ROOT + '/lean/Fv256/Proofs/Arm64/MulOverflow.lean', 'w').write(MAIN)

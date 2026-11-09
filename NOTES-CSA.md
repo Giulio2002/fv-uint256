@@ -6,7 +6,7 @@ cache /srv/janus-ops/jcache-csa — DELETE at end). From now on export JANUS_FRA
 
 ## Status
 - Pilot: IntoBig arm64 audit-only (STUB=1 KEEP=1) running; log /srv/fv-uint256-csa-aud/run-IntoBig-1.log (ENDMARK line at end). Cold framework build.
-- Draft: lean/Fv256/Arm64/CallSites/NewInt.lean (wsNew / wsNew_pre), untested. Tools: scripts/csa-row.sh, scripts/callsite-splice.py (untested).
+- Draft: lean/Fv256/Proofs/Arm64/CallSites/NewInt.lean (wsNew / wsNew_pre), untested. Tools: scripts/csa-row.sh, scripts/callsite-splice.py (untested).
 - Nothing spliced into witness files yet; nothing reported to main / FV-A2 yet.
 
 ## Findings
@@ -39,7 +39,7 @@ cache /srv/janus-ops/jcache-csa — DELETE at end). From now on export JANUS_FRA
 ## KEY FINDING (auditor @ 8615b09c)
 The auditor flattens the witness conjuncts (withConjs) but matches the contract's WHOLE `pre s_c` against ONE conjunct (findConj, reducible-first isDefEq).
 So a multi-part pre `A ∧ B ∧ C` written inline is REJECTED (even with the exact printed text). Fix that WORKS (verified on IntoBig + NewInt, audit passes):
-write the pre through a single-conjunct `@[reducible] def ...Site` (lean/Fv256/Arm64/CallSites/Base.lean: NewobjectSite, NewobjectLiveSite, MallocgcLiveSite,
+write the pre through a single-conjunct `@[reducible] def ...Site` (lean/Fv256/Proofs/Arm64/CallSites/Base.lean: NewobjectSite, NewobjectLiveSite, MallocgcLiveSite,
 MemmoveLiveSite, WbLiveSite, IfaceeqSite). Pres that are already one def application (ICallPre, RtPre, CmpstringPre n, RtLivePre) need no wrapper.
 Live families: closed `L := []`, `b := 0x400` inside the pre works (no `∃ L b`; with `∃ L b` and a clashing name `b` untested/not needed).
 Two-field struct update `{ s0 with a := .., b := ..}` split over lines => parse error in these files; use two-step defs (csX0, then `{ csX0 with sp := .., pc := .. }`).
@@ -67,7 +67,7 @@ started (log /srv/fv-uint256-csa-aud/run-IntoBig-full.log, ENDMARK line at end; 
   the log is APPENDED, read the tail). rc=1 with only `sorryAx` for correctness/nonvacuous in the STUB run == audit stage passed.
 - scripts/callsite-splice.py FILE THEOREM --block F --conj T --proof P (inserts block before the theorem, conjunct before `Returns (`, proof term before the last `correctness `).
 - Fast compile loop: kept workspace /srv/janus-ops/jcache-csa/v1/consumer/66e17e2b7775209259a6f554/5888395ee5a76d2ccb9d7c6d/root (IntoBig extraction): copy a stubbed witness to Scratch.lean, `lake env lean Scratch.lean` (~25 s).
-  Base.lean compiled there to .lake/build/lib/lean/Fv256/Arm64/CallSites/Base.olean (recompile after edits: `lake env lean -o <olean> Fv256/Arm64/CallSites/Base.lean`).
+  Base.lean compiled there to .lake/build/lib/lean/Fv256/Proofs/Arm64/CallSites/Base.olean (recompile after edits: `lake env lean -o <olean> Fv256/Proofs/Arm64/CallSites/Base.lean`).
 - cs-apply-*.sh check out the pristine witness from `fv/wrun` (git checkout fv/wrun -- file) before splicing (idempotent). Do NOT run them on a file after committing without that checkout.
 - IntoBig timings: audit cold pin framework build 1251 s; audit warm ~25 s. Full verify timings: pending.
 - Open items: FV-WRUN compile fixes (rebase onto fv/wrun when told); report to main + FV-A2 (a66f673964e9e7ef5) with rows/timings; delete /srv/janus-ops/jcache-csa at the end; never push.

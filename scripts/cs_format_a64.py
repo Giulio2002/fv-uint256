@@ -3,7 +3,7 @@
 Edits: FormatWitA (Hw accepts the type-assertion call [x0,x1]; models), FormatWitB (hw_of, nonvacuous_core), FormatWitG (models, big_core),
 FormatWitN (nil_core), Format.lean (3 witnesses); appends the aggregate lemmas csAll16 / csAll0 to FormatCS.lean."""
 import subprocess, re
-D = 'lean/Fv256/Arm64/'
+D = 'lean/Fv256/Proofs/Arm64/'
 for f in ['FormatWitA', 'FormatWitB', 'FormatWitG', 'FormatWitN', 'Format']:
     subprocess.run(['git', 'checkout', 'fv/wrun', '--', D + f + '.lean'], check=True)
 
@@ -66,7 +66,7 @@ def rw(fn, fun):
     p = D + fn + '.lean'
     t = open(p).read(); t2 = fun(t); assert t2 != t, fn; open(p, 'w').write(t2)
 
-IMP = 'import Fv256.Arm64.FormatCS\n'
+IMP = 'import Fv256.Proofs.Arm64.FormatCS\n'
 # --- A: Hw + model proofs
 def fa_(t):
     t = t.replace('''def Hw : RtReady := fun a _ _ view =>

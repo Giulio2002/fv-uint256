@@ -33,7 +33,7 @@ def side(v, kinds):
         out+="    · refine ⟨?_, ?_⟩\n      · "+lim+pre+body[0]+"\n"+"".join("        "+l+"\n" for l in body[1:])
         out+="      · simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self]\n"
     return out
-t=open(ROOT+'/lean/Fv256/Amd64/Neg.lean').read()
+t=open(ROOT+'/lean/Fv256/Proofs/Amd64/Neg.lean').read()
 t=t.replace('Neg','Byte')
 t=t.replace('Spec.neg (valueAt s x 32)','Spec.byte (valueAt s x 32) (valueAt s z 32)')
 k=t.index("  rcases hzx with rfl | hzx")
@@ -42,4 +42,4 @@ t=t[:k]+"  rcases hzx with rfl | hzx\n  · "+side('z',['A0','Adiv','C','C']).lst
 t=t.replace("set_option maxHeartbeats 8000000 in\n","")
 t=t.replace("theorem correctness","set_option maxHeartbeats 8000000 in\ntheorem correctness",1)
 t=t.replace('(*uint256.Int).Byte(x *Int) *Int` (amd64): `z = Fv256.Spec.neg x`','(*uint256.Int).Byte(n *Int) *Int` (amd64): `z = the n-th byte (from the most significant end) of z`').replace('is `Fv256.Spec.neg` of the number at `x` before the call','is `Fv256.Spec.byte` of the number at `x` (the index) and the number at `z` before the call')
-open(ROOT+'/lean/Fv256/Amd64/Byte.lean','w').write(t)
+open(ROOT+'/lean/Fv256/Proofs/Amd64/Byte.lean','w').write(t)

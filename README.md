@@ -12,7 +12,7 @@ Two kinds of assumption go beyond the machine code itself, and each is stated in
 * **Runtime contracts** (`runtime.newobject`, `makeslice`, ...): hypotheses of the pinned Janus allocation contracts.
 * **`Log10` reads two writable Go globals**, `uint256.pows64` and `uint256.pows` (`.noptrdata`). The binary's *initial* contents are the
   powers of ten, but because the section is writable the extractor does not take it as code-time constant, so the theorem *assumes*
-  (`Tabs64`, `TabsBig` in `lean/Fv256/Arm64/L10Defs.lean`) that, when `Log10` runs, they still hold `10^i` (and are readable and
+  (`Tabs64`, `TabsBig` in `lean/Fv256/Proofs/Arm64/L10Defs.lean`) that, when `Log10` runs, they still hold `10^i` (and are readable and
   disjoint from the callee's stack window). Nothing in uint256 writes them, but a program that mutates them voids the result.
 
 ## Status

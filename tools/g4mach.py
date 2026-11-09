@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""g4mach.py: lean/Fv256/Amd64/R4Reduce.lean : theorem reduce4_machine (entry -> return, R4Post)."""
+"""g4mach.py: lean/Fv256/Proofs/Amd64/R4Reduce.lean : theorem reduce4_machine (entry -> return, R4Post)."""
 import sys, re, os
 sys.path.insert(0, os.path.dirname(__file__))
 import g4red as R, g4seg as g
 ROOT = R.ROOT
 # defs order in linkA = order of "v = expr" facts in PostA
-t = open(ROOT + '/lean/Fv256/Amd64/ReduceSegA.lean').read()
+t = open(ROOT + '/lean/Fv256/Proofs/Amd64/ReduceSegA.lean').read()
 i = t.index('def PostA'); j = t.index('theorem segA ', i); d = t[i:j]
 body = d[d.index('∃ '):]
 rest = body[2:].split(', ', 1)[1]
@@ -24,7 +24,7 @@ X = [rd(3, i) for i in range(8)]; U = [rd(7, i) for i in range(5)]; M = [rd(1, i
 Z = 'BitVec.toNat (s.regs 0)'
 lim = ['(%s)' % e for e in X + U + M + [Z]]
 vs = R.vs; invars = R.invars; newall = R.newall
-out = ('import Fv256.Amd64.R4Arith\nimport Fv256.Amd64.R4Branch\nimport Fv256.Amd64.R4LinkA\nimport Fv256.Amd64.R4G.C_1cd_4ac\n\n'
+out = ('import Fv256.Proofs.Amd64.R4Arith\nimport Fv256.Amd64.R4Branch\nimport Fv256.Amd64.R4LinkA\nimport Fv256.Amd64.R4G.C_1cd_4ac\n\n'
        'open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic\nopen Fv256.Amd64.ReduceSpec Fv256.Amd64.ReduceSegA\n\nset_option exponentiation.threshold 700\nnamespace Fv256.Amd64.R4Seg\n\n')
 out += '''theorem readLE_40' (m : Janus.Arm64.Memory) (a : Nat) :
     m.readLE a 40 = m.readLE a 8 + 2 ^ 64 * m.readLE (a + 8) 8 + 2 ^ 128 * m.readLE (a + 16) 8 + 2 ^ 192 * m.readLE (a + 24) 8 + 2 ^ 256 * m.readLE (a + 32) 8 := by
@@ -61,5 +61,5 @@ act4 = R.act4 if hasattr(R, 'act4') else [R.at4[i] for i in range(12)]
 L.append('  refine Fv256.SegCompose.seg_trans (branch s hpre S2 hpc2 hRz hMz %s hLz hz) ?_' % ' '.join(R.at4))
 L.append('  intro S3 hpc3 hb')
 L.append('  obtain ⟨d0, d1, d2, d3, d4, hTI, hdsum⟩ := hb')
-open(ROOT + '/lean/Fv256/Amd64/R4Reduce.lean', 'w').write(out + '\n'.join(L) + '\n  sorry\n\nend Fv256.Amd64.R4Seg\n')
+open(ROOT + '/lean/Fv256/Proofs/Amd64/R4Reduce.lean', 'w').write(out + '\n'.join(L) + '\n  sorry\n\nend Fv256.Amd64.R4Seg\n')
 print(len(out))

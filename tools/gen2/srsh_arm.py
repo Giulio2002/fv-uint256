@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# srsh_arm.py : writes lean/Fv256/Arm64/SRsh.lean (positive branch reuses the Rsh handlers; negative branch uses x>>n + (2^256 - 2^(256-n)))
+# srsh_arm.py : writes lean/Fv256/Proofs/Arm64/SRsh.lean (positive branch reuses the Rsh handlers; negative branch uses x>>n + (2^256 - 2^(256-n)))
 import os, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 M = '18446744073709551616'
@@ -83,4 +83,4 @@ def block(v):
     return out
 t = open(ROOT + '/tools/gen2/srsh_head.lean').read()
 t = t.replace('@@Z@@', block('z').lstrip()).replace('@@X@@', block('x').lstrip())
-open(ROOT + '/lean/Fv256/Arm64/SRsh.lean', 'w').write(t)
+open(ROOT + '/lean/Fv256/Proofs/Arm64/SRsh.lean', 'w').write(t)

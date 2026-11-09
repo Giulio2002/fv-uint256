@@ -13,7 +13,7 @@ PENDING:
    (adds namespace Witness2 / theorem nonvacuous_grow: len=cap=32, one request growslice(p,40,32,8,u8), implAt growsliceSeg grA 32 64 64,
    tactic args `40 32 8 64 64`), compile in the workspace, then one janus verify with `--theorem ...Witness2.nonvacuous_grow` added.
 2. MarshalSSZInto / UnmarshalSSZ (both ISAs) FULL spec incl. error path. NOT STARTED beyond prep. Existing partial proofs:
-   lean/Fv256/Arm64/{MarshalSSZInto,UnmarshalSSZ}.lean (success path only). Extractions with contracts fmt.errorf, runtime.convT64,
+   lean/Fv256/Proofs/Arm64/{MarshalSSZInto,UnmarshalSSZ}.lean (success path only). Extractions with contracts fmt.errorf, runtime.convT64,
    runtime.newobject already exist: build/ex-{arm64,amd64}-{MarshalSSZInto,UnmarshalSSZ} (identity.json lists the contracts).
    Private Janus pinned at d58575d2 (agent/u-errorf, on U-LIVESAT 45fe2132): /srv/janus-wc-errorf (built, bin/janus). Repin to n7 or
    its successor when it lands as integ. amd64 waits for the U-ERRORF agent's amd64 ErrWrap.
@@ -47,8 +47,8 @@ PENDING:
 - Never TaskStop Bash tasks; kill by PID. One heavy job at a time (heavy-run); queue waits are 20-40 min.
 - BitVec.ofNat/toNat and `Ready` ambiguity: amd64 uses Fv256.Amd64.Msa.Ready, arm64 Fv256.Msa.Ready.
 - Generators: wipC/genblk.py (amd64 blocks), genblk3f.py (amd64 final block, branch texts in wipC/b3fa/), genblk_a64.py, genblk3f_a64.py
-  (branch texts wipC/b3f/), assemble_a64.py / assemble_amd64.py write lean/Fv256/<Isa>/MsaBlk*.lean. Base files: lean/Fv256/Arm64/
-  MarshalSSZAppendG.lean and wipC/MsaBlk0.amd64.lean (amd64 block 0; `assemble_amd64.py` copies it to lean/Fv256/Amd64/MsaBlk0.lean).
+  (branch texts wipC/b3f/), assemble_a64.py / assemble_amd64.py write lean/Fv256/<Isa>/MsaBlk*.lean. Base files: lean/Fv256/Proofs/Arm64/
+  MarshalSSZAppendG.lean and wipC/MsaBlk0.amd64.lean (amd64 block 0; `assemble_amd64.py` copies it to lean/Fv256/Proofs/Amd64/MsaBlk0.lean).
 
 ## Coverage rows already sent to FV-A
 MarshalSSZAppend arm64 verified 857 s, amd64 verified 1825 s (no-growth witness; growth-path witness pending); DescOK assumption note.

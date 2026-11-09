@@ -62,7 +62,7 @@ CFG = {
 }
 def conj(addr, pre): return f'∃ s_c : State, s_c.pc = BitVec.ofNat 64 {addr} ∧ {pre} s_c'
 for fn in sys.argv[1:]:
-    f = f'lean/Fv256/Arm64/{fn}.lean'
+    f = f'lean/Fv256/Proofs/Arm64/{fn}.lean'
     subprocess.run(['git', 'checkout', 'fv/wrun', '--', f], check=True)
     s = open(f).read()
     s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
@@ -71,7 +71,7 @@ for fn in sys.argv[1:]:
     s = re.sub(r'(correctness [^\n]*?) ⟨(pre8?), \?w5⟩⟩', r'\1 \2⟩', s)  # fv/wrun bug: `100 ≤ val` is not part of correctness' pre
     open(f, 'w').write(s)
     for (thm, sfx, st, H, rt, acc, N, kss, sec, k2) in CFG[fn]:
-        bf = f'lean/Fv256/Arm64/CallSites/{fn}.{thm}.lean'
+        bf = f'lean/Fv256/Proofs/Arm64/CallSites/{fn}.{thm}.lean'
         open(bf, 'w').write(one(sfx, st, H, rt, acc, N, kss, sec, k2))
         cname = 'csSt' if sec == 'stb' else 'csCb'
         c2 = f'(slicebytetostringSpec' if False else None

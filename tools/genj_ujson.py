@@ -1,5 +1,5 @@
-ut=open('lean/Fv256/Amd64/UnmarshalText.lean').read()
-j=open('lean/Fv256/Amd64/UnmarshalJSON.lean').read()
+ut=open('lean/Fv256/Proofs/Amd64/UnmarshalText.lean').read()
+j=open('lean/Fv256/Proofs/Amd64/UnmarshalJSON.lean').read()
 head=j[:j.index("set_option maxRecDepth")]
 a=ut.index("theorem br_a"); b=ut.index("theorem br_x")
 bra=ut[a:b]
@@ -54,4 +54,4 @@ for cn in ['a','c','d']:
             "  · exact absurd (by janus_assumption) hc3\n"+"\n".join(ind)+"\n")
     out+=opts+"theorem ju_"+cn+s2+newpost+" := by\n"+pl+bd.rstrip()+"\n\n"
 out+="end Fv256.Amd64.UnmarshalJSON\n"
-open('lean/Fv256/Amd64/UnmarshalJSON.lean','w').write(out)
+open('lean/Fv256/Proofs/Amd64/UnmarshalJSON.lean','w').write(out)

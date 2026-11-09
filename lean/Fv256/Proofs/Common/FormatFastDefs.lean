@@ -1,0 +1,478 @@
+import Janus
+import Fv256.Proofs.Common.SpecC
+import Fv256.Proofs.Common.SpecFormat
+import Fv256.Spec.FormatFastDefs
+
+/-!
+# `(*uint256.Int).Format`, fast path (ii): shared definitions (amd64 and arm64, Extracted-free)
+
+* `RT`: several-exit reachability (`ReachesRet` with a list of target addresses, each with its own state predicate).
+* `FL`: the memory frame the fast path may touch.
+-/
+
+open Janus
+
+namespace Fv256.FormatFast
+
+/-- ordinary steps from `S` reach one of the listed addresses with the paired predicate (amd64) -/
+def RT (p : Janus.Amd64.Program) (S : Janus.Amd64.State) (T : List (Nat × (Janus.Amd64.State → Prop))) : Prop :=
+  ∃ k S', Janus.Amd64.Program.Steps p S k S' ∧ ∃ t ∈ T, S'.rip = BitVec.ofNat 64 t.1 ∧ t.2 S'
+
+theorem RT.of_reachesRet {p : Janus.Amd64.Program} {S : Janus.Amd64.State} {pc : Nat} {Q : Janus.Amd64.State → Prop}
+    (h : Janus.Amd64.Tactic.ReachesRet p (BitVec.ofNat 64 pc) S Q) : RT p S [(pc, Q)] := by
+  obtain ⟨k, S', hs, hr, hq⟩ := h
+  exact ⟨k, S', hs, (pc, Q), List.mem_singleton_self _, hr, hq⟩
+
+theorem RT.trans {p : Janus.Amd64.Program} {S : Janus.Amd64.State} {T T' : List (Nat × (Janus.Amd64.State → Prop))}
+    (h : RT p S T)
+    (hk : ∀ t ∈ T, ∀ S', S'.rip = BitVec.ofNat 64 t.1 → t.2 S' → RT p S' T') : RT p S T' := by
+  obtain ⟨k, S', hs, t, ht, hr, hq⟩ := h
+  obtain ⟨j, S'', hs2, r⟩ := hk t ht S' hr hq
+  exact ⟨k + j, S'', hs.trans hs2, r⟩
+
+theorem RT.widen {p : Janus.Amd64.Program} {S : Janus.Amd64.State} {T T' : List (Nat × (Janus.Amd64.State → Prop))}
+    (h : RT p S T)
+    (hT : ∀ t ∈ T, ∃ t' ∈ T', t'.1 = t.1 ∧ ∀ s, t.2 s → t'.2 s) : RT p S T' := by
+  obtain ⟨k, S', hs, t, ht, hr, hq⟩ := h
+  obtain ⟨t', ht', h1, h2⟩ := hT t ht
+  exact ⟨k, S', hs, t', ht', by rw [h1]; exact hr, h2 _ hq⟩
+
+theorem setWidth8_eq_zero (x : BitVec 64) : (BitVec.setWidth 8 x = 0#8) ↔ x.toNat % 256 = 0 := by
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    simpa [BitVec.toNat_setWidth] using this
+  · intro h
+    apply BitVec.eq_of_toNat_eq
+    simpa [BitVec.toNat_setWidth] using h
+
+open Janus.Amd64 Janus.Contracts.ICall in
+/-- the standing precondition of the fast path, at the state `S0` just after the `z != 0` split (`Format+0x45`, amd64):
+`r = RSP` is the local frame (entry RSP - 72); `[RSP+0x58] = tab`, `[RSP+0x60] = data` are the spilled interface words -/
+def FPre (rt : List (Nat × Nat)) (stack : Nat) (z tab data : BitVec 64) (fW fP fF fWr : Nat) (S0 : State) : Prop :=
+  S0.regs 0 = z ∧ S0.regs 3 = tab ∧ S0.regs 1 = data ∧ S0.regs 5 = S0.regs 4 + 64#64 ∧
+  (S0.regs 4).toNat % 8 = 0 ∧ 8 + stack ≤ (S0.regs 4).toNat ∧ (S0.regs 4).toNat + 0x78 ≤ 2 ^ 48 ∧
+  S0.mem.accessible ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) true = true ∧
+  Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt ∧
+  S0.mem.readLE ((S0.regs 4).toNat + 0x58) 8 = tab.toNat ∧ S0.mem.readLE ((S0.regs 4).toNat + 0x60) 8 = data.toNat ∧
+  CodePtrOK64 fW ∧ CodePtrOK64 fP ∧ CodePtrOK64 fF ∧ CodePtrOK64 fWr ∧
+  tab.toNat + 0x38 ≤ 2 ^ 48 ∧ S0.mem.accessible (tab.toNat + 0x18) 32 false = true ∧
+  S0.mem.readLE (tab.toNat + 0x18) 8 = fF ∧ S0.mem.readLE (tab.toNat + 0x20) 8 = fP ∧
+  S0.mem.readLE (tab.toNat + 0x28) 8 = fW ∧ S0.mem.readLE (tab.toNat + 0x30) 8 = fWr ∧
+  Outside (tab.toNat + 0x18) 32 rt ∧
+  (tab.toNat + 0x38 ≤ (S0.regs 4).toNat - 8 - stack ∨ (S0.regs 4).toNat + 0x78 ≤ tab.toNat + 0x18) ∧
+  z.toNat + 32 ≤ 2 ^ 48 ∧ S0.mem.accessible z.toNat 32 false = true ∧ Outside z.toNat 32 rt ∧
+  (z.toNat + 32 ≤ (S0.regs 4).toNat - 8 - stack ∨ (S0.regs 4).toNat + 0x78 ≤ z.toNat)
+
+/-- the invariant between the sites: registers `RSP/RBP/R14/X15` kept, memory changed only in `FL`, the spills hold `z, tab, data, ch` -/
+def FInv (rt : List (Nat × Nat)) (stack : Nat) (z tab data : BitVec 64) (ch32 : Nat) (S0 S : Janus.Amd64.State) : Prop :=
+  S.regs 4 = S0.regs 4 ∧ S.regs 5 = S0.regs 5 ∧ S.regs 14 = S0.regs 14 ∧ S.xmm 15 = S0.xmm 15 ∧ S.df = S0.df ∧
+  S.fsBase = S0.fsBase ∧ MemFrame S0.mem S.mem (FL rt (S0.regs 4).toNat stack) ∧
+  S.mem.readLE ((S0.regs 4).toNat + 0x50) 8 = z.toNat ∧ S.mem.readLE ((S0.regs 4).toNat + 0x58) 8 = tab.toNat ∧
+  S.mem.readLE ((S0.regs 4).toNat + 0x60) 8 = data.toNat ∧ S.mem.readLE ((S0.regs 4).toNat + 0x68) 4 = ch32
+
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the runtime invariant of `R2` survives from `S` to `S'` (for every budget and live set), the goroutine register being `S.regs 14` -/
+def RPres (R2 : Janus.Contracts.RtInv) (S S' : Janus.Amd64.State) : Prop :=
+  ∀ b L, R2.inv b L (S.regs 14).toNat (Janus.Contracts.view R2.rt L S.mem) →
+    R2.inv b L (S.regs 14).toNat (Janus.Contracts.view R2.rt L S'.mem)
+
+theorem RPres.refl (R2 : Janus.Contracts.RtInv) (S : Janus.Amd64.State) : RPres R2 S S := fun _ _ h => h
+
+theorem RPres.trans {R2 : Janus.Contracts.RtInv} {S1 S2 S3 : Janus.Amd64.State} (h12 : RPres R2 S1 S2) (h23 : RPres R2 S2 S3)
+    (e : S2.regs 14 = S1.regs 14) : RPres R2 S1 S3 := by
+  intro b L h
+  have := h12 b L h
+  rw [← e] at this ⊢
+  exact h23 b L this
+
+theorem RPres.of_mem {R2 : Janus.Contracts.RtInv} {S S' : Janus.Amd64.State} (hm : S'.mem = S.mem) : RPres R2 S S' := by
+  intro b L h; rw [hm]; exact h
+
+/-- one stage of the query chain: `S0 → S` preserved, the call `S → S'` preserved, a register-only step `S' → S''` -/
+theorem rpres_step {R2 : Janus.Contracts.RtInv} {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat}
+    {S0 S S' S'' : Janus.Amd64.State} (hk : RPres R2 S0 S) (hq : RPres R2 S S') (hm : S''.mem = S'.mem)
+    (hi : FInv rt stack z tab data ch S0 S) (hi2 : FInv rt stack z tab data ch S0 S') : RPres R2 S0 S'' :=
+  ((hk.trans hq hi.2.2.1).trans (RPres.of_mem hm) hi2.2.2.1)
+
+/-- the `preserves` fact of an icall (call state `sc`, same goroutine and same view as `S`), as `RPres` -/
+theorem rpres_call {R2 : Janus.Contracts.RtInv} {S S' sc : Janus.Amd64.State} {m : Janus.Arm64.Memory}
+    (hpr : Janus.Contracts.ICall.RtPreserves64 R2 sc m) (hsc14 : sc.regs 14 = S.regs 14)
+    (hv : ∀ L, Janus.Contracts.view R2.rt L sc.mem = Janus.Contracts.view R2.rt L S.mem)
+    (h14 : S'.regs 14 = S.regs 14) (hm : S'.mem = m) : RPres R2 S S' := by
+  intro b L h
+  rw [hm]
+  have := hpr b L (by rw [hsc14, hv]; exact h)
+  rw [hsc14] at this
+  exact this
+
+theorem sub8_toNat (x : BitVec 64) (h : 8 ≤ x.toNat) : (x - 8#64).toNat = x.toNat - 8 := by
+  rw [BitVec.toNat_sub]; simp; omega
+
+theorem add8_toNat (x : BitVec 64) (h : x.toNat + 8 < 2 ^ 64) : (x + 8#64).toNat = x.toNat + 8 := by
+  rw [BitVec.toNat_add]; simp; omega
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem mod8 (v : BitVec 64) : v.toNat % 256 ^ 8 = v.toNat := Nat.mod_eq_of_lt (by have := v.isLt; simpa using this)
+theorem mod4 (x : Nat) : x % 4294967296 % 256 ^ 4 = x % 4294967296 := by
+  have h1 := Nat.mod_lt x (show 0 < 4294967296 by decide)
+  have h2 : (256 : Nat) ^ 4 = 4294967296 := by decide
+  exact Nat.mod_eq_of_lt (by omega)
+theorem sub_add8 (x : BitVec 64) : x - 8#64 + 8#64 = x := BitVec.sub_add_cancel x 8#64
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+/-- a range inside the spill area `[r+0x50, r+0x6c)` is outside the ranges a 1-argument callee may write -/
+theorem out_cs1 {rt : List (Nat × Nat)} {r stack a n : Nat} (hout : Outside (r - 8 - stack) (stack + 0x80) rt)
+    (h8 : 8 + stack ≤ r) (h1 : r + 0x50 ≤ a) (h2 : a + n ≤ r + 0x6c) :
+    Outside a n (rt ++ [(r - 8 - stack, r - 8), (r - 8 + 8, r - 8 + 8 + 8)]) := by
+  simp only [outside_append, outside_cons, outside_nil]
+  refine ⟨hout.of_sub (by omega) (by omega), ?_, ?_, trivial⟩ <;> omega
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+theorem finv_of {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State}
+    (hi : FInv rt stack z tab data ch S0 S) (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5)
+    (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15) (hdf : S'.df = S.df) (hfs : S'.fsBase = S.fsBase)
+    (hm : S'.mem = S.mem) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, adf, afs, afr, r50, r58, r60, r68⟩ := hi
+  exact ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, hdf.trans adf, hfs.trans afs, hm ▸ afr, hm ▸ r50, hm ▸ r58,
+    hm ▸ r60, hm ▸ r68⟩
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the invariant survives an icall: the callee returned in memory `m` (a frame of the call-state memory), registers as `retState64` leaves them -/
+theorem finv_call {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {rv e : Nat} (hi : FInv rt stack z tab data ch S0 S) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (hout : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt) (he : e ≤ (S0.regs 4).toNat + 32)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m
+      (rt ++ [((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat - 8), ((S0.regs 4).toNat - 8 + 8, e)]))
+    (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
+    (hdf : S'.df = S.df) (hfs : S'.fsBase = S.fsBase) (hm : S'.mem = m) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, adf, afs, afr, r50, r58, r60, r68⟩ := hi
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a n, (S0.regs 4).toNat + 0x50 ≤ a → a + n ≤ (S0.regs 4).toNat + 0x6c →
+      m.readLE a n = S.mem.readLE a n := by
+    intro a n h1 h2
+    rw [hfr.readLE a n (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, by omega, trivial⟩)]
+    exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)
+  refine ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, hdf.trans adf, hfs.trans afs, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r50
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r58
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem nx (b : Nat) : (b ^^^ 1 = 0 ↔ b = 1) := by
+  constructor
+  · intro h
+    have : b = (b ^^^ 1) ^^^ 1 := by rw [Nat.xor_assoc]; simp
+    rw [h] at this; simpa using this
+  · intro h; subst h; rfl
+
+theorem xor1_zero (x : BitVec 64) :
+    (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 x ^^^ 1#32)) = 0#8) ↔ x.toNat % 256 = 1 := by
+  have h3 : (BitVec.setWidth 8 (BitVec.setWidth 64 (BitVec.setWidth 32 x ^^^ 1#32))).toNat = (x.toNat % 256) ^^^ 1 := by
+    simp only [BitVec.toNat_setWidth, BitVec.toNat_xor]
+    have e1 : (1#32).toNat = 1 := rfl
+    rw [e1]
+    rw [Nat.mod_mod_of_dvd _ (Nat.pow_dvd_pow 2 (by decide : 8 ≤ 64)), Nat.xor_mod_two_pow,
+      Nat.mod_mod_of_dvd _ (Nat.pow_dvd_pow 2 (by decide : 8 ≤ 32))]
+  constructor
+  · intro h
+    have := congrArg BitVec.toNat h
+    rw [h3] at this
+    exact (nx _).1 (by simpa using this)
+  · intro h
+    apply BitVec.eq_of_toNat_eq
+    rw [h3]
+    simpa using (nx _).2 h
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem sub32_eq_zero (n k : Nat) (hn : n < 2 ^ 32) (hk : k < 2 ^ 32) :
+    (BitVec.setWidth 32 (BitVec.setWidth 64 (BitVec.ofNat 32 n)) - BitVec.ofNat 32 k = 0#32) ↔ n = k := by
+  constructor
+  · intro h
+    have h1 := congrArg BitVec.toNat h
+    simp only [BitVec.toNat_sub, BitVec.toNat_setWidth, BitVec.toNat_ofNat] at h1
+    have e1 : n % 2 ^ 32 % 2 ^ 64 = n % 2 ^ 32 := Nat.mod_eq_of_lt (by omega)
+    have e2 : n % 2 ^ 32 = n := Nat.mod_eq_of_lt hn
+    have e3 : k % 2 ^ 32 = k := Nat.mod_eq_of_lt hk
+    rw [e2, e3] at h1
+    have e4 : n % 2 ^ 64 = n := Nat.mod_eq_of_lt (by omega)
+    simp only [e4, e2, e1] at h1
+    omega
+  · intro h; subst h; simp
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the invariant survives a summary call whose frame is the single window `[r - 8 - k, r)` (`k ≤ stack`) -/
+theorem finv_call1 {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {rv k : Nat} (hi : FInv rt stack z tab data ch S0 S) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (hout : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt) (hk : k ≤ stack)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (rt ++ [((S0.regs 4).toNat - 8 - k, (S0.regs 4).toNat - 8 + 8)]))
+    (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
+    (hdf : S'.df = S.df) (hfs : S'.fsBase = S.fsBase) (hm : S'.mem = m) : FInv rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, adf, afs, afr, r50, r58, r60, r68⟩ := hi
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a n, (S0.regs 4).toNat + 0x50 ≤ a → a + n ≤ (S0.regs 4).toNat + 0x6c →
+      m.readLE a n = S.mem.readLE a n := by
+    intro a n h1 h2
+    rw [hfr.readLE a n (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, trivial⟩)]
+    exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)
+  refine ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, hdf.trans adf, hfs.trans afs, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r50
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r58
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+theorem out_fl2 {rt : List (Nat × Nat)} {r stack a n : Nat} (ho : Outside a n rt)
+    (h1 : a + n ≤ r - 8 - stack ∨ r + 32 ≤ a) (h2 : a + n ≤ r + 0x50 ∨ r + 0x6c ≤ a) : Outside a n (FL rt r stack) := by
+  simp only [FL, outside_append, outside_cons, outside_nil]
+  refine ⟨ho, ?_, ?_, trivial⟩ <;> omega
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+theorem frame_call {rt : List (Nat × Nat)} {stack : Nat} {S0 S : State} {m : Memory} {rv e : Nat}
+    (afr : MemFrame S0.mem S.mem (FL rt (S0.regs 4).toNat stack)) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (he : e ≤ (S0.regs 4).toNat + 32)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m
+      (rt ++ [((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat - 8), ((S0.regs 4).toNat - 8 + 8, e)])) :
+    MemFrame S0.mem m (FL rt (S0.regs 4).toNat stack) := by
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
+  exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- the read-only data stays loaded across a memory frame that leaves the data ranges alone and keeps the regions -/
+theorem dataLoaded_frame {p : Janus.Amd64.Program} {m m' : Janus.Arm64.Memory} {rs : List (Nat × Nat)} (h : p.DataLoaded m)
+    (hr : m'.regions = m.regions) (hfr : MemFrame m m' rs) (ho : ∀ d ∈ p.data, Outside d.base d.bytes.length rs) :
+    p.DataLoaded m' := by
+  intro d hd
+  obtain ⟨h1, h2⟩ := h d hd
+  refine ⟨by rw [hr]; exact h1, fun i hi => ?_⟩
+  have e := hfr.readLE (d.base + i) 1 ((ho d hd).of_sub (by omega) (by omega))
+  rw [Janus.Arm64.Memory.readLE_one, Janus.Arm64.Memory.readLE_one] at e
+  rw [e]; exact h2 i hi
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+theorem RT.here {p : Janus.Amd64.Program} {S : Janus.Amd64.State} {T : List (Nat × (Janus.Amd64.State → Prop))}
+    (t : Nat × (Janus.Amd64.State → Prop)) (ht : t ∈ T) (hr : S.rip = BitVec.ofNat 64 t.1) (hq : t.2 S) : RT p S T :=
+  ⟨0, S, .refl S, t, ht, hr, hq⟩
+
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- `FInv` without the direction flag and `FS` base (a `Summary` callee does not expose them) -/
+def FInvD (rt : List (Nat × Nat)) (stack : Nat) (z tab data : BitVec 64) (ch32 : Nat) (S0 S : Janus.Amd64.State) : Prop :=
+  S.regs 4 = S0.regs 4 ∧ S.regs 5 = S0.regs 5 ∧ S.regs 14 = S0.regs 14 ∧ S.xmm 15 = S0.xmm 15 ∧
+  MemFrame S0.mem S.mem (FL rt (S0.regs 4).toNat stack) ∧
+  S.mem.readLE ((S0.regs 4).toNat + 0x50) 8 = z.toNat ∧ S.mem.readLE ((S0.regs 4).toNat + 0x58) 8 = tab.toNat ∧
+  S.mem.readLE ((S0.regs 4).toNat + 0x60) 8 = data.toNat ∧ S.mem.readLE ((S0.regs 4).toNat + 0x68) 4 = ch32
+
+theorem FInv.toD {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S : State}
+    (h : FInv rt stack z tab data ch S0 S) : FInvD rt stack z tab data ch S0 S :=
+  ⟨h.1, h.2.1, h.2.2.1, h.2.2.2.1, h.2.2.2.2.2.2.1, h.2.2.2.2.2.2.2.1, h.2.2.2.2.2.2.2.2.1, h.2.2.2.2.2.2.2.2.2.1,
+    h.2.2.2.2.2.2.2.2.2.2⟩
+
+theorem finvD_call {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {rv e : Nat} (hi : FInvD rt stack z tab data ch S0 S) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (hout : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt) (he : e ≤ (S0.regs 4).toNat + 32)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m
+      (rt ++ [((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat - 8), ((S0.regs 4).toNat - 8 + 8, e)]))
+    (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
+    (hm : S'.mem = m) : FInvD rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, afr, r50, r58, r60, r68⟩ := hi
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a n, (S0.regs 4).toNat + 0x50 ≤ a → a + n ≤ (S0.regs 4).toNat + 0x6c →
+      m.readLE a n = S.mem.readLE a n := by
+    intro a n h1 h2
+    rw [hfr.readLE a n (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, by omega, trivial⟩)]
+    exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)
+  refine ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r50
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r58
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
+theorem finvD_call1 {rt : List (Nat × Nat)} {stack : Nat} {z tab data : BitVec 64} {ch : Nat} {S0 S S' : State} {m : Memory}
+    {rv k : Nat} (hi : FInvD rt stack z tab data ch S0 S) (hwb : 8 + stack ≤ (S0.regs 4).toNat)
+    (hout : Outside ((S0.regs 4).toNat - 8 - stack) (stack + 0x80) rt) (hk : k ≤ stack)
+    (hfr : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (rt ++ [((S0.regs 4).toNat - 8 - k, (S0.regs 4).toNat - 8 + 8)]))
+    (h4 : S'.regs 4 = S.regs 4) (h5 : S'.regs 5 = S.regs 5) (h14 : S'.regs 14 = S.regs 14) (hx : S'.xmm 15 = S.xmm 15)
+    (hm : S'.mem = m) : FInvD rt stack z tab data ch S0 S' := by
+  obtain ⟨a4, a5, a14, ax, afr, r50, r58, r60, r68⟩ := hi
+  have h1 : MemFrame S.mem (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.of_writeLE S.mem _ (r := ((S0.regs 4).toNat - 8 - stack, (S0.regs 4).toNat + 32))
+      (List.mem_append_right _ (by simp)) (by omega) (by omega)
+  have h2 : MemFrame (S.mem.writeLE ((S0.regs 4).toNat - 8) 8 rv) m (FL rt (S0.regs 4).toNat stack) :=
+    MemFrame.mono hfr (fun a n h => by
+      simp only [FL, outside_append, outside_cons, outside_nil] at h ⊢
+      obtain ⟨h1, h2, h3, -⟩ := h
+      refine ⟨h1, ?_, trivial⟩ <;> omega)
+  have hr : ∀ a n, (S0.regs 4).toNat + 0x50 ≤ a → a + n ≤ (S0.regs 4).toNat + 0x6c →
+      m.readLE a n = S.mem.readLE a n := by
+    intro a n h1 h2
+    rw [hfr.readLE a n (by
+      simp only [outside_append, outside_cons, outside_nil]
+      exact ⟨hout.of_sub (by omega) (by omega), by omega, trivial⟩)]
+    exact Janus.Arm64.Memory.readLE_writeLE_of_disjoint _ _ (by omega)
+  refine ⟨h4.trans a4, h5.trans a5, h14.trans a14, hx.trans ax, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [hm]; exact afr.trans (h1.trans h2 fun a n h => ⟨h, h⟩) fun a n h => ⟨h, h⟩
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r50
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r58
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r60
+  · rw [hm, hr _ _ (by omega) (by omega)]; exact r68
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+/-- the `[2:]` offset arithmetic of the `x` path: for `3 ≤ len ≤ 66` the added offset is `2` -/
+theorem hexoff (n : Nat) (h1 : 3 ≤ n) (h2 : n ≤ 66) :
+    (((0#64 - (BitVec.ofNat 64 n - 2#64)).sshiftRight 63).toNat % 4294967296 &&& 2) = 2 := by
+  have key : ∀ k : Fin 64, (((0#64 - (BitVec.ofNat 64 (k.val + 3) - 2#64)).sshiftRight 63).toNat % 4294967296 &&& 2) = 2 := by
+    decide +kernel
+  obtain ⟨k, hk⟩ : ∃ k : Fin 64, k.val + 3 = n := ⟨⟨n - 3, by omega⟩, by simp; omega⟩
+  subst hk
+  exact key k
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+theorem strBytes_drop2 (m : Janus.Arm64.Memory) (p n : Nat) :
+    Janus.Spec.strBytes m (p + 2) n = (Janus.Spec.strBytes m p (n + 2)).drop 2 := by
+  apply List.ext_getElem
+  · simp [Janus.Spec.strBytes]
+  · intro i h1 h2
+    simp only [Janus.Spec.strBytes, List.getElem_drop, List.getElem_map, List.getElem_range]
+    congr 2
+    omega
+
+theorem hexDigits_le64 (v n : Nat) (hv : v < 2 ^ 256) (h : Fv256.C.hexDigits v n) : n ≤ 64 := by
+  obtain ⟨h1, h2, h3⟩ := h
+  refine Decidable.byContradiction fun hn => ?_
+  have : 16 ^ 64 ≤ 16 ^ (n - 1) := Nat.pow_le_pow_right (by omega) (by omega)
+  have e : (16 : Nat) ^ 64 = 2 ^ 256 := by decide
+  rcases h3 with h3 | h3
+  · omega
+  · omega
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Fv256.FormatSpec
+theorem hexBytes_digits : ∀ (n z : Nat), Fv256.C.hexDigits z n →
+    hexBytes z = (List.range n).map (fun k => Fv256.C.hexChar (z / 16 ^ (n - 1 - k) % 16)) := by
+  intro n
+  induction n with
+  | zero => intro z h; exact absurd h.1 (by omega)
+  | succ n ih =>
+    intro z h
+    obtain ⟨h1, h2, h3⟩ := h
+    by_cases hn : n = 0
+    · subst hn
+      have hz : z < 16 := by simpa using h2
+      rw [hexBytes]; simp [hz, Fv256.C.hexChar, Nat.mod_eq_of_lt hz]
+    · have hpow : 16 ^ n = 16 * 16 ^ (n - 1) := by
+        obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
+        simp only [Nat.add_sub_cancel, Nat.pow_succ]; omega
+      have hp1 : 1 ≤ 16 ^ (n - 1) := Nat.one_le_pow _ _ (by omega)
+      have h3' : 16 ^ n ≤ z := by
+        rcases h3 with h3 | h3
+        · omega
+        · simpa using h3
+      have hz : 16 ≤ z := by omega
+      have hd : Fv256.C.hexDigits (z / 16) n := by
+        refine ⟨by omega, ?_, Or.inr ?_⟩
+        · rw [Nat.pow_succ] at h2; omega
+        · omega
+      rw [hexBytes, dif_neg (by omega), ih (z / 16) hd, List.range_succ, List.map_append]
+      congr 1
+      · apply List.map_congr_left
+        intro k hk
+        have hk' := List.mem_range.mp hk
+        rw [Nat.div_div_eq_div_mul]
+        have e : 16 * 16 ^ (n - 1 - k) = 16 ^ (n + 1 - 1 - k) := by
+          obtain ⟨j, hj⟩ : ∃ j, n - k = j + 1 := ⟨n - k - 1, by omega⟩
+          have e1 : n - 1 - k = j := by omega
+          have e2 : n + 1 - 1 - k = j + 1 := by omega
+          rw [e1, e2, Nat.pow_succ]; omega
+        rw [e]
+      · simp [Fv256.C.hexChar]
+
+
+end Fv256.FormatFast
+
+namespace Fv256.FormatFast
+open Janus.Amd64
+
+/-- a run keeps the memory regions: attach it to every exit -/
+theorem RT.regions {p : Janus.Amd64.Program} {S : Janus.Amd64.State} {T : List (Nat × (Janus.Amd64.State → Prop))}
+    (h : RT p S T) :
+    RT p S (T.map fun t => (t.1, fun s => t.2 s ∧ s.mem.regions = S.mem.regions)) := by
+  obtain ⟨k, S', hs, t, ht, hr, hq⟩ := h
+  exact ⟨k, S', hs, (t.1, fun s => t.2 s ∧ s.mem.regions = S.mem.regions), List.mem_map_of_mem ht, hr,
+    hq, Janus.Amd64.Program.Steps.regions hs⟩
+end Fv256.FormatFast

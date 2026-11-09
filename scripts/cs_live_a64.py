@@ -14,7 +14,7 @@ Idempotent per file (marker CALLSITE-LIVE-BLOCK). ALWAYS `git checkout fv/wrun -
 Conjunct shapes (closed L := [], b := 0x400, via inv0):
   newobject : ∃ s_c, s_c.pc = ofNat A ∧ NewobjectLiveSite R A 4096 [] 0x400 s_c
   mallocgc  : MallocgcLiveSite ; memmove : MemmoveLiveSite R A 4096 ; wb n : WbLiveSite R A 4096 n
-  cmpstring : CmpstringPre 16 s_c ; ifaceeq : IfaceeqSite R2 s_c        (Site wrappers: lean/Fv256/Arm64/CallSites/Base.lean)
+  cmpstring : CmpstringPre 16 s_c ; ifaceeq : IfaceeqSite R2 s_c        (Site wrappers: lean/Fv256/Proofs/Arm64/CallSites/Base.lean)
 CFG keys: s0 (state name), R2 (term), priv (simp lemma name of R2.priv), pos (position of each stub in `ok`: new w1 w2 mg mv),
   nok (number of disjuncts of `ok`), new_ok / mg_ok / mv_ok (proof of the inner conj after `Or` position), regs (dict: mv/mg/new args),
   rt_eq, inv0, env0 (env0 : Env .. s0), extra (list of (defs, conj, term): hook for RtLive etc.).
@@ -130,7 +130,7 @@ theorem csIf_pre : IfaceeqSite {R2} csIf := by
     return ''.join(d), conj, terms
 
 def add_header(s, nsname):
-    if 'import Fv256.Arm64.CallSites.Base' not in s:
+    if 'import Fv256.Proofs.Arm64.CallSites.Base' not in s:
         s = s.replace('import Extracted\n', 'import Extracted\nimport Fv256.Arm64.CallSites.Base\n', 1)
     if 'open Fv256.Arm64.CallSites' not in s:
         i = s.index('namespace ' + nsname)

@@ -1,14 +1,14 @@
 # Format path (ii) -- FV-F2 (branch fv/wf2, worktree /srv/fv-uint256-wf2) -- STATE 2026-11-07
 
 amd64: DONE, sorry-free (axioms propext/choice/Quot.sound), checked in the kept janus workspace of build/ex2-amd64-Format
-(`build/lre.sh`, lake build of every module, `lean/Fv256/Amd64/FormatFastAxioms.lean` prints the axioms of the top lemma).
+(`build/lre.sh`, lake build of every module, `lean/Fv256/Proofs/Amd64/FormatFastAxioms.lean` prints the axioms of the top lemma).
 NOT yet run through `janus verify` (these are lemmas, not an Ensures theorem; FV-G's assembly does the audit run).
 
-Entry point for the assembly: `Fv256.Amd64.FormatFast.fast_amd64` (lean/Fv256/Amd64/FormatFastAll.lean):
+Entry point for the assembly: `Fv256.Amd64.FormatFast.fast_amd64` (lean/Fv256/Proofs/Amd64/FormatFastAll.lean):
   RT (Extracted.program.link impl) S0 [(retv, QFast), (Extracted.entry + 0x1cc, QBig)]
   S0 = state at Format+0x45 (just after the z != 0 split), `FPre` + FInv/Hist defs in lean/Fv256/FormatFastDefs.lean.
   `RT` = ordinary steps reach one of several addresses with a state predicate each (several-exit ReachesRet).
-Modules (all under lean/Fv256/Amd64/): FormatFastW (Width site), P, F (5 Flag sites), B (branch segments), Sites, Sw (verb switch),
+Modules (all under lean/Fv256/Proofs/Amd64/): FormatFastW (Width site), P, F (5 Flag sites), B (branch segments), Sites, Sw (verb switch),
   Pre (pre_fast: Width..Flag chain + switch, 3 exits), Dec (Dec library summary), DecStr, Stb (stringtoslicebyte, Dec path),
   StbX (Hex path, [2:] slice), Wr (Write call + epilogue + ret; dec and hex variants), DecPath, HexSum/Hex/HexPath, All.
   FM/Hex.lean is GENERATED (scripts/gen-fm-hex-amd64.sh from Amd64/Hex.lean; retargeted at Format's extraction, plus an exported
@@ -44,8 +44,8 @@ arm64 plan (template = the amd64 files, same names with an A64 suffix): see "arm
    stringtoslicebyte via RtContract, Write (ICallContract nargs 4: x0 = data, x1 = ptr, x2 = len, x3 = cap), epilogue `ldur x29; ldr x30,[sp],#80; ret`.
 
 ## Hex change audit (asked by the coordinator)
-Files touched for the Hex work: scripts/gen-fm-hex-amd64.sh (new) and lean/Fv256/Amd64/FM/Hex.lean (new, GENERATED from Amd64/Hex.lean).
-No existing file changed: lean/Fv256/Amd64/Hex.lean, Arm64/Hex.lean, HexSpec.lean, HexLemmas.lean are byte-identical to fv/wgf 15da442 (git diff empty).
+Files touched for the Hex work: scripts/gen-fm-hex-amd64.sh (new) and lean/Fv256/Proofs/Amd64/FM/Hex.lean (new, GENERATED from Amd64/Hex.lean).
+No existing file changed: lean/Fv256/Proofs/Amd64/Hex.lean, Arm64/Hex.lean, HexSpec.lean, HexLemmas.lean are byte-identical to fv/wgf 15da442 (git diff empty).
 The change is ADDITIVE and local to the generated copy: it is a different theorem (namespace Fv256.Amd64.FM.Hex, over
 (Extracted.program.onlySegments [Hex]).link impl, entry + 0x1640) whose post is the verified Hex post plus one extra conjunct
 `InRanges (s'.regs 0).toNat (s'.regs 3).toNat rt` (derived from the StrAt fact of the slicebytetostring contract already inside the proof).

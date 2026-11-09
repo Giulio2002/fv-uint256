@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-# wts_amd.py [k ...] : writes lean/Fv256/Amd64/WriteToSlice.lean and lean/Fv256/Amd64/WtsCases/Case<k>.lean
+# wts_amd.py [k ...] : writes lean/Fv256/Proofs/Amd64/WriteToSlice.lean and lean/Fv256/Proofs/Amd64/WtsCases/Case<k>.lean
 import os, sys
 ROOT = os.environ.get('FV_ROOT') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ks = [int(a) for a in sys.argv[1:]] or list(range(33))
@@ -46,12 +46,12 @@ def lemma(k):
     return "\n".join(L)
 HDR = "import Extracted\nimport Fv256.Spec\nimport Fv256.Util\n"
 OPEN = "\nopen Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic\n\n"
-os.makedirs(ROOT + '/lean/Fv256/Amd64/WtsCases', exist_ok=True)
+os.makedirs(ROOT + '/lean/Fv256/Proofs/Amd64/WtsCases', exist_ok=True)
 for k in ks:
-    open(ROOT + f'/lean/Fv256/Amd64/WtsCases/{mname(k)}.lean', 'w').write(
+    open(ROOT + f'/lean/Fv256/Proofs/Amd64/WtsCases/{mname(k)}.lean', 'w').write(
         HDR + OPEN + "namespace Fv256.Amd64.WriteToSlice\n\n" + lemma(k) + "\n\nend Fv256.Amd64.WriteToSlice\n")
 if len(ks) == 33:
-    imports = "".join(f"import Fv256.Amd64.WtsCases.{mname(k)}\n" for k in ks)
+    imports = "".join(f"import Fv256.Proofs.Amd64.WtsCases.{mname(k)}\n" for k in ks)
     main = HDR + imports + OPEN + "namespace Fv256.Amd64.WriteToSlice\n" + """
 /-!
 # `(*uint256.Int).WriteToSlice(dest []byte)` (amd64)
@@ -143,4 +143,4 @@ end Witness
 
 end Fv256.Amd64.WriteToSlice
 """
-    open(ROOT + '/lean/Fv256/Amd64/WriteToSlice.lean', 'w').write(main)
+    open(ROOT + '/lean/Fv256/Proofs/Amd64/WriteToSlice.lean', 'w').write(main)
