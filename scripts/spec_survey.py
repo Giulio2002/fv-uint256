@@ -11,7 +11,7 @@ usage: scripts/spec_survey.py --out result.json [--isa arm64|amd64|amd64v3] [FN 
 env:   SPEC_WS (workspace, default build/spec-ws), JANUS (janus binary for `janus extract`, default build/janus or PATH),
        SPEC_JANUS_PKG (the janus lake package, default lean/.lake/packages/janus), HEAVY=1 (wrap each lean in heavy-run), MEMCAP (12G)
 """
-import argparse, json, os, re, shutil, subprocess, sys, time
+import argparse, hashlib, json, os, re, shutil, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -157,6 +157,11 @@ def main():
             elif l.startswith('@@C '):
                 p = l[4:].split(' ')
                 consts.append({'name': p[0], 'module': p[1] if p[1] != '<cur>' else f'Fv256.{d}.{pf}', 'kind': p[2], 'parent': p[3], 'range': p[4]})
+        stm = {}
+        for l in txt.splitlines():
+            if l.startswith('@@T '):
+                nm, _, body = l[4:].partition(' ')
+                stm[nm] = hashlib.sha256(body.encode()).hexdigest()
         iol = sorted({l[5:].strip() for l in txt.splitlines() if l.startswith('@@IO ')})
         iocount = [l for l in txt.splitlines() if l.startswith('@@IOCOUNT ')]
         if not iocount:
@@ -164,7 +169,7 @@ def main():
         if set(rr) != set(roots):
             res[key] = {'error': 'closure query failed: ' + txt[-800:] + o.stderr[-300:]}; print(key, 'QUERY FAIL', flush=True); continue
         errs = [l for l in txt.splitlines() if ': error:' in l]
-        res[key] = {'file': f, 'roots': roots, 'consts': consts, 'errors': errs[:5], 'iolint': iol}
+        res[key] = {'file': f, 'roots': roots, 'consts': consts, 'errors': errs[:5], 'iolint': iol, 'stmt': stm}
         print(f'{key}: {len(consts)} consts, {len(wit)} witnesses, {time.time()-t0:.0f}s' + (f' ERRORS {errs[:1]}' if errs else ''), flush=True)
         os.remove(qf)
     json.dump(res, open(a.out, 'w'), indent=1)

@@ -45,6 +45,7 @@ elab "#spec_closure " ids:ident+ : command => do
     let n ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo id
     out.modify (·.push s!"@@S {n}")
     let some ci := env.find? n | throwError "unknown {n}"
+    out.modify (·.push s!"@@T {n} {(toString ci.type).replace "\n" " "}")
     for c in ci.type.getUsedConstants do queue.modify (·.push (c, n))
   repeat
     let q ← queue.get
