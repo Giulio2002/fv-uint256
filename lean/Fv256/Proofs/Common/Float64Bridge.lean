@@ -85,3 +85,13 @@ theorem float64Bits_eq (x : Nat) (hx : x < 2 ^ 256) : Fv256.Spec.float64Bits x =
       have hnov : ¬ (((x.log2 : Int) - 52 + ((52 : Nat) : Int) + ((1023 : Nat) : Int)) ≥ ((2048 - 1 : Nat) : Int)) := by omega
       have hnl : ¬ (R < 4503599627370496) := by omega
       simp only [hR3, ite_false, hb, hnov, hnl, Bool.false_eq_true, Nat.zero_add]
+
+/-- The same for the 256-bit number stored at `a` in memory. -/
+theorem float64Bits_eq_mem (m : Janus.Arm64.Memory) (a : Nat) :
+    Fv256.Spec.float64Bits (m.readLE a 32) = Fv256.B.float64BitsNearest (m.readLE a 32) := by
+  apply float64Bits_eq
+  have := Janus.Arm64.Memory.readLE_lt m a 32
+  have h : (256 : Nat) ^ 32 = 2 ^ 256 := by decide
+  omega
+
+end Fv256.Float64Bridge
