@@ -17,7 +17,7 @@ open Fv256.Arm64.CallSites
 namespace Fv256.Arm64.MarshalSSZInto.Bridge
 
 /-- The postcondition as the proof states it (number-reading form) is equivalent to the claim's readable form (`Post`). -/
-theorem post_iff (R : RtInv) (Ri : IfaceModel) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z dp len cap : BitVec 64) (s s' : State) :
+theorem post_iff (R : Janus.Contracts.RtInv) (Ri : Janus.Spec.Type.IfaceModel) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z dp len cap : BitVec 64) (s s' : State) :
     (Fv256.Arm64.MarshalSSZIntoMain.Post R Ri L bud e tp tl z dp len cap s s') ↔
     ((32 ≤ len.toNat →
       s'.regs 0 = dp + (if 32 < cap.toNat then 32#64 else 0#64) ∧ s'.regs 1 = len - 32#64 ∧

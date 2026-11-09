@@ -23,8 +23,10 @@ open Janus Janus.Tactic Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.S
 
 namespace Fv256.Amd64.MarshalSSZInto
 
+open Fv256.Amd64.MarshalSSZIntoMain (tErr iErr tInt iWrap)
+
 /-- PRECONDITION: the stack-growth check falls through; the return-address slot and the 96-byte frame are writable; `len ≤ cap < 2^48` (well-formed slice header); when `32 ≤ len`: `z` addresses 32 readable and `dp` 32 writable bytes, equal-or-disjoint from each other (here disjoint) and from the frame; when `len < 32`: `ErrPre`, the runtime-contract state the error construction needs (live `fmt.Errorf`, `convT64`, the `ErrBadBufferLength` variable, heap invariants). -/
-def Pre (R : RtInv) (Ri : IfaceModel) (H : RtReady) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z dp len cap : BitVec 64) (s : State) : Prop :=
+def Pre (R : Janus.Contracts.RtInv) (Ri : Janus.Spec.Type.IfaceModel) (H : RtReady) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z dp len cap : BitVec 64) (s : State) : Prop :=
   StackGuardOK s 0 ∧ StackWritable s 96 24 ∧ len.toNat ≤ cap.toNat ∧ cap.toNat < 2 ^ 48 ∧
   (32 ≤ len.toNat → Buffer s z 32 false ∧ Buffer s dp 32 true ∧
     (z.toNat + 32 ≤ dp.toNat ∨ dp.toNat + 32 ≤ z.toNat) ∧
@@ -33,7 +35,7 @@ def Pre (R : RtInv) (Ri : IfaceModel) (H : RtReady) (L : List (Nat × Nat)) (bud
   (len.toNat < 32 → Fv256.Amd64.MarshalSSZIntoMain.ErrPre R Ri H L bud e tp tl z dp len cap s)
 
 /-- POSTCONDITION: with `32 ≤ len` the result is `dst[32:]` (pointer advanced by 32 unless the capacity is exhausted, length `len - 32`, capacity `cap - 32`) with a nil error; the bytes `dst[0, 32)` are `Spec.marshalSSZInto` of the number at `z` BEFORE the call; memory changed only there and in the callee frame. With `len < 32`: `ErrPost` (the wrapped `ErrBadBufferLength` error and its message, `z` and `dst` unchanged). -/
-def Post (R : RtInv) (Ri : IfaceModel) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z dp len cap : BitVec 64) (s s' : State) : Prop :=
+def Post (R : Janus.Contracts.RtInv) (Ri : Janus.Spec.Type.IfaceModel) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z dp len cap : BitVec 64) (s s' : State) : Prop :=
   (32 ≤ len.toNat →
     s'.regs 0 = dp + (if 32 < cap.toNat then 32#64 else 0#64) ∧ s'.regs 3 = len - 32#64 ∧
     s'.regs 1 = cap - 32#64 ∧ s'.regs 7 = 0 ∧ s'.regs 6 = 0 ∧
@@ -45,8 +47,8 @@ def Post (R : RtInv) (Ri : IfaceModel) (L : List (Nat × Nat)) (bud e tp tl : Na
 /-- THE CLAIM: every call meeting `Pre` returns (ABI obeyed) in a state meeting `Post`. -/
 theorem correctness 
     (impl : List Amd64.Segment)
-    (R : RtInv)
-    (Ri : IfaceModel)
+    (R : Janus.Contracts.RtInv)
+    (Ri : Janus.Spec.Type.IfaceModel)
     (hl : Ri.Laws)
     (H : RtReady)
     (hf : ErrorfLive (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.errorf") 4096 R
@@ -68,7 +70,7 @@ open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 open Janus.Contracts.Toy Janus.Contracts.ErrorfRealRt Janus.Contracts.IfaceModel Janus.Contracts.IfaceSatAmd64
 
 /-- NON-VACUITY: a concrete machine state satisfies `Pre` and its call returns with `Post`, so `Pre` is not unsatisfiable and `correctness` is not empty. -/
-theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (H : RtReady) (L : List (Nat × Nat)) (bud e tp tl : Nat) (ret : Nat) (s : State) (z dp len cap : BitVec 64), Ri.Laws ∧ ErrorfLive (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.errorf") 4096 R tErr iErr tInt iWrap 26 fmtNum 4294967296 ∧ ConvT64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.convT64") Ri H ∧ RetAddr (Extracted.program.link impl) ret ∧ CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, dp, len, cap] s ∧ Pre R Ri H L bud e tp tl z dp len cap s ∧ len.toNat < 32 ∧ (∃ s_c : State, s_c.rip = BitVec.ofNat 64 cAddrC ∧ Fv256.CallSites.ConvT64Site Ri H s_c) ∧ (∃ s_c : State, s_c.rip = BitVec.ofNat 64 cAddrE ∧ Fv256.CallSites.ErrorfLiveSite R cAddrE 4096 tErr iErr tInt iWrap 26 fmtNum 4294967296 [] 138 s_c) ∧ Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Post R Ri L bud e tp tl z dp len cap s s' := by
+theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : Janus.Contracts.RtInv) (Ri : Janus.Spec.Type.IfaceModel) (H : RtReady) (L : List (Nat × Nat)) (bud e tp tl : Nat) (ret : Nat) (s : State) (z dp len cap : BitVec 64), Ri.Laws ∧ ErrorfLive (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.errorf") 4096 R tErr iErr tInt iWrap 26 fmtNum 4294967296 ∧ ConvT64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.convT64") Ri H ∧ RetAddr (Extracted.program.link impl) ret ∧ CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z, dp, len, cap] s ∧ Pre R Ri H L bud e tp tl z dp len cap s ∧ len.toNat < 32 ∧ (∃ s_c : State, s_c.rip = BitVec.ofNat 64 cAddrC ∧ Fv256.CallSites.ConvT64Site Ri H s_c) ∧ (∃ s_c : State, s_c.rip = BitVec.ofNat 64 cAddrE ∧ Fv256.CallSites.ErrorfLiveSite R cAddrE 4096 tErr iErr tInt iWrap 26 fmtNum 4294967296 [] 138 s_c) ∧ Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ Post R Ri L bud e tp tl z dp len cap s s' := by
   obtain ⟨impl, R, Ri, H, L, bud, e, tp, tl, ret, s, z, dp, len, cap, h0, h1, h2, h3, h4, h5, h6, h7, h8, hr⟩ := Fv256.Amd64.MarshalSSZIntoMain.Wit.nonvacuous
   exact ⟨impl, R, Ri, H, L, bud, e, tp, tl, ret, s, z, dp, len, cap, h0, h1, h2, h3, h4, h5, h6, h7, h8, hr.mono fun s' hq => ⟨hq.1, (Bridge.post_iff R Ri L bud e tp tl z dp len cap s s').1 hq.2⟩⟩
 
