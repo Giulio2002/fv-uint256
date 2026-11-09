@@ -9,3 +9,7 @@ Pure specs: Spec/{BigEndian,BigInt,Bytes32,Bytes20,Bytes,PaddedBytes,PutUint256,
 Core.lean edit: removed sizeSSZ (now Spec/SizeSSZ.lean), added import.
 DON'T edit a module imported by a running verify (log-<tag>.txt) -- source hashes are checked.
 Status: see git log + /srv/janus-ops/spec-b7/log-*.txt
+
+## FINAL (SPEC-B7b)
+All 22 fns x 2 ISAs converted; verify PASS (t2/t3/t4/t5 logs in /srv/janus-ops/spec-b7); 44/44 equivalence checks PASS (equiv-ea/eb.marks);
+check-spec-closure OK (44 rows); make build OK; lint_source OK (whitelist hash WARNs only). IntoBig converted via generator edits (no TB/FM output change).
