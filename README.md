@@ -3,7 +3,7 @@
 Machine-checked proofs, with [Janus](https://github.com/Giulio2002/Janus) (Lean 4), that the **compiled arm64 and amd64 machine code** of
 [holiman/uint256](https://github.com/holiman/uint256) computes what an independent mathematical specification says.
 
-RESULTS: <filled at release>
+**Result (2026-11-09):** all 293 rows verified (146 functions on arm64 and amd64, plus 1 amd64v3 row) with Janus [`722bf8ae`](https://github.com/Giulio2002/Janus/commit/722bf8ae933098c6244f3f3e514c17b840bfde38), every main theorem paired with a kernel-checked returning-run witness (no run-free or refutation rows). Fresh-cache full run: 3.9 h wall (6 rows in parallel), 17.8 h summed; slowest row amd64 Scan 3443 s. Release lint (`make lint`) clean. Janus binary built reproducibly (`go build -trimpath -buildvcs=false`, Go 1.26.10), sha256 `44d314819d6f9925c90e9f6e4db8866f92dbc152010691e93877f9ad6aadad54`.
 
 ## What is verified
 
