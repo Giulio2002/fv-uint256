@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Spec.Reciprocal
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
 import Fv256.Proofs.Common.RecipSpec
@@ -29,7 +30,7 @@ set_option maxRecDepth 100000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn64 Fv256.RecipProg.program Extracted.program :=
   Fv256.CodeIn.codeIn64_of_sub _ _ (by decide) (by decide) (by decide)
 
-theorem correctness (m : BitVec 64) :
+theorem correctness_proof (m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [m]
       (fun s => StackGuardOK s 0x1b8 ∧ 0x248 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x240 0x30 ∧ Buffer s m 32 false ∧
         Apart m.toNat 32 ((s.regs regSP).toNat - 0x240) 0x270 ∧
@@ -40,7 +41,39 @@ theorem correctness (m : BitVec 64) :
         MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)]) :=
   Fv256.Amd64.RecipEnsures.ensures_recip (Fv256.CodeIn.lib_summary hcLib Fv256.Amd64.RecipSeg.recip_summary) m
 
-namespace Witness
+/-! ## Bridge to the readable claim (`Fv256/Amd64/Reciprocal.lean`)
+
+The claim states the three window conditions as the single predicate `Fv256.Spec.IsReciprocal` followed by the frame
+condition, i.e. the conjunction `(A ∧ B ∧ C) ∧ D` instead of the proof's `A ∧ B ∧ C ∧ D`. These two lemmas re-associate. -/
+
+/-- `Ensures` is monotone in its postcondition. -/
+theorem ensures_mono_post {p : Janus.Amd64.Program} {entry : Nat} {args : List (BitVec 64)} {pre : State → Prop} {Q Q' : State → State → Prop}
+    (h : Ensures p entry args pre Q) (hQ : ∀ s s', Q s s' → Q' s s') : Ensures p entry args pre Q' :=
+  fun ret hret s hs hp => (h ret hret s hs hp).mono fun s' h' => ⟨h'.1, hQ s s' h'.2⟩
+
+/-- The proof's postcondition implies the claim's postcondition (`Spec.IsReciprocal` plus the frame). -/
+theorem post_bridge (m : BitVec 64) (s s' : State)
+    (h : (valueAt s m 32 < 2 ^ 192 → s'.mem.readLE ((s.regs regSP).toNat + 8) 40 = 0) ∧
+        (2 ^ 192 ≤ valueAt s m 32 → Fv256.F.RecipWeak (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
+        (2 ^ 193 ≤ valueAt s m 32 → Fv256.F.RecipOK (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
+        MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)]) :
+    Fv256.Spec.IsReciprocal (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40) ∧
+      MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)] := by
+  obtain ⟨a, b, c, d⟩ := h
+  exact ⟨⟨a, b, c⟩, d⟩
+
+/-- The converse (used by the old/new equivalence check). -/
+theorem post_unbridge (m : BitVec 64) (s s' : State)
+    (h : Fv256.Spec.IsReciprocal (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40) ∧
+      MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)]) :
+    (valueAt s m 32 < 2 ^ 192 → s'.mem.readLE ((s.regs regSP).toNat + 8) 40 = 0) ∧
+        (2 ^ 192 ≤ valueAt s m 32 → Fv256.F.RecipWeak (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
+        (2 ^ 193 ≤ valueAt s m 32 → Fv256.F.RecipOK (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
+        MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)] := by
+  obtain ⟨⟨a, b, c⟩, d⟩ := h
+  exact ⟨a, b, c, d⟩
+
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -76,16 +109,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (m : BitVec 64), RetAddr Extrac
         (2 ^ 193 ≤ valueAt s m 32 → Fv256.F.RecipOK (valueAt s m 32) (s'.mem.readLE ((s.regs regSP).toNat + 8) 40)) ∧
         MemFrame s.mem s'.mem [((s.regs regSP).toNat - 0x240, (s.regs regSP).toNat + 0x30)] :=
   ⟨ret, s0, m, hret, setup, hpre,
-    correctness m ret hret s0 setup hpre⟩
+    correctness_proof m ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.mem.readLE ((s0.regs regSP).toNat + 8) 40 = 0 := by
-  refine (correctness m ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof m ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1 ?_⟩
   simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Reciprocal

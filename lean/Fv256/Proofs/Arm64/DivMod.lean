@@ -32,7 +32,7 @@ theorem hstubsDM : ∀ st ∈ Fv256.Arm64.DivModProg.program.stubs, ∃ st' ∈ 
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
     (hnew : NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, x, y, m]
@@ -161,7 +161,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       case hr30b => rw [h_lr, BitVec.toNat_ofNat]; have := hret.user; omega
 
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -315,7 +315,7 @@ theorem wsNew_pre : NewobjectSite HW rtW 4096 wsNew := by
   rw [e0, e1, e2]
   exact hHW
 
-/-- Non-vacuity of `correctness`: every hypothesis (the runtime contract included) holds together for a toy allocator and a concrete call. -/
+/-- Non-vacuity of `correctness_proof`: every hypothesis (the runtime contract included) holds together for a toy allocator and a concrete call. -/
 theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64) (ret : Nat) (s : State),
     NewobjectContract (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") rt 4096 H ∧
     RetAddr (Extracted.program.link impl) ret ∧
@@ -340,7 +340,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
             (s.sp.toNat - 4256, s.sp.toNat + 40)]) :=
   ⟨implW, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, hretW, setupW, preW,
     ⟨wsNew, rfl, wsNew_pre⟩,
-    correctness implW rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
-end Witness
+    correctness_proof implW rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
+end Wit
 
 end Fv256.Arm64.DivMod

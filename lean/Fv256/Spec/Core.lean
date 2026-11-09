@@ -1,6 +1,7 @@
 import Janus
 import Fv256.Spec.Basic
 import Fv256.Spec.Add   -- `Fv256.Spec.add` lives in its own pure file
+import Fv256.Spec.Mul   -- `Fv256.Spec.mul` likewise
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
@@ -39,9 +40,6 @@ def neg (x : Nat) : Nat := (W - x) % W
 
 /-- `z.Sub(x, y)`. -/
 def sub (x y : Nat) : Nat := (x + W - y) % W
-
-/-- `z.Mul(x, y)`. -/
-def mul (x y : Nat) : Nat := (x * y) % W
 
 /-- `x.Uint64()`: the low 64 bits. -/
 def uint64 (x : Nat) : Nat := x % 2 ^ 64

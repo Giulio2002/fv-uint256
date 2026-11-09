@@ -53,7 +53,7 @@ set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 set_option profiler true in
 set_option profiler.threshold 5000 in
-theorem correctness (z x y : BitVec 64) :
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => StackGuardOK s 0x1f8 ∧ 0x250 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x248 0x10 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 0x248 ∨ (s.regs regSP).toNat + 0x10 ≤ z.toNat) ∧
@@ -94,7 +94,7 @@ theorem correctness (z x y : BitVec 64) :
     simp (disch := omega) only [if_pos, if_neg, Fv256.B.modSpec_zero_left, Fv256.B.modSpec_zero_right]
     omega)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -137,17 +137,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = Fv256.B.smodSpec (valueAt s x 32) (valueAt s y 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x248, (s.regs regSP).toNat + 0x10)] :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   simp only [valueAt, Fv256.B.smodSpec, Fv256.B.modSpec, Fv256.Spec.abs, Fv256.Spec.neg]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SMod

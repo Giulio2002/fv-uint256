@@ -50,7 +50,7 @@ theorem mod_summary_ex : Summary Extracted.program Extracted.entry
           (s.sp.toNat + 8, s.sp.toNat + 16)]) :=
   Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain Fv256.Arm64.ModSum.mod_summary
 
-theorem correctness (z x y : BitVec 64) :
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => GuardOK s 448 ∧ StackOK s 488 16 ∧
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 488 ∨ s.sp.toNat + 16 ≤ (s.regs 28).toNat + 16) ∧
@@ -87,7 +87,7 @@ theorem correctness (z x y : BitVec 64) :
     · exact h0
     · exact hv
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -132,8 +132,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 488, s.sp.toNat - 8),
           (s.sp.toNat + 8, s.sp.toNat + 16)] :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Mod

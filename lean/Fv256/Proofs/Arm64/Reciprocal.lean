@@ -1,4 +1,5 @@
 import Extracted
+import Fv256.Spec.Reciprocal
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
 import Fv256.Proofs.Common.SpecB
@@ -35,7 +36,7 @@ theorem hcChain : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.RecipProg.progr
 theorem recip_summary_ex : Summary Extracted.program Extracted.entry Fv256.Arm64.RecipSeg.RecPre Fv256.Arm64.RecipSeg.RecSpec :=
   Janus.Contracts.EqHashModel.Summary.of_codeIn hcChain Fv256.Arm64.RecipSeg.recip_summary
 
-theorem correctness (m : BitVec 64) :
+theorem correctness_proof (m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [m]
       (fun s => GuardOK s 0x90 ∧ StackOK s 0x118 0x30 ∧
         ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 0x118 ∨ s.sp.toNat + 0x30 ≤ (s.regs 28).toNat + 16) ∧
@@ -63,7 +64,39 @@ theorem correctness (m : BitVec 64) :
     rw [h0] at hz hw hok
     exact ⟨⟨hsp, h28, h29, h18⟩, hz, hw, hok, hf⟩
 
-namespace Witness
+/-! ## Bridge to the readable claim (`Fv256/Arm64/Reciprocal.lean`)
+
+The claim states the three window conditions as the single predicate `Fv256.Spec.IsReciprocal` followed by the frame
+condition, i.e. the conjunction `(A ∧ B ∧ C) ∧ D` instead of the proof's `A ∧ B ∧ C ∧ D`. These two lemmas re-associate. -/
+
+/-- `Ensures` is monotone in its postcondition. -/
+theorem ensures_mono_post {p : Janus.Program} {entry : Nat} {args : List (BitVec 64)} {pre : State → Prop} {Q Q' : State → State → Prop}
+    (h : Ensures p entry args pre Q) (hQ : ∀ s s', Q s s' → Q' s s') : Ensures p entry args pre Q' :=
+  fun ret hret s hs hp => (h ret hret s hs hp).mono fun s' h' => ⟨h'.1, hQ s s' h'.2⟩
+
+/-- The proof's postcondition implies the claim's postcondition (`Spec.IsReciprocal` plus the frame). -/
+theorem post_bridge (m : BitVec 64) (s s' : State)
+    (h : (val256 s.mem m.toNat < 2 ^ 192 → s'.mem.readLE (s.sp.toNat + 8) 40 = 0) ∧
+        (2 ^ 192 ≤ val256 s.mem m.toNat → Fv256.F.RecipWeak (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
+        (2 ^ 193 ≤ val256 s.mem m.toNat → Fv256.F.RecipOK (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
+        MemFrame s.mem s'.mem [(s.sp.toNat - 0x118, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 0x30)]) :
+    Fv256.Spec.IsReciprocal (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40) ∧
+      MemFrame s.mem s'.mem [(s.sp.toNat - 0x118, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 0x30)] := by
+  obtain ⟨a, b, c, d⟩ := h
+  exact ⟨⟨a, b, c⟩, d⟩
+
+/-- The converse (used by the old/new equivalence check). -/
+theorem post_unbridge (m : BitVec 64) (s s' : State)
+    (h : Fv256.Spec.IsReciprocal (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40) ∧
+      MemFrame s.mem s'.mem [(s.sp.toNat - 0x118, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 0x30)]) :
+    (val256 s.mem m.toNat < 2 ^ 192 → s'.mem.readLE (s.sp.toNat + 8) 40 = 0) ∧
+        (2 ^ 192 ≤ val256 s.mem m.toNat → Fv256.F.RecipWeak (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
+        (2 ^ 193 ≤ val256 s.mem m.toNat → Fv256.F.RecipOK (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
+        MemFrame s.mem s'.mem [(s.sp.toNat - 0x118, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 0x30)] := by
+  obtain ⟨⟨a, b, c⟩, d⟩ := h
+  exact ⟨a, b, c, d⟩
+
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -101,8 +134,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (m : BitVec 64), RetAddr Extrac
         (2 ^ 193 ≤ val256 s.mem m.toNat → Fv256.F.RecipOK (val256 s.mem m.toNat) (s'.mem.readLE (s.sp.toNat + 8) 40)) ∧
         MemFrame s.mem s'.mem [(s.sp.toNat - 0x118, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 0x30)] :=
   ⟨ret, s0, m, hret, setup, hpre,
-    correctness m ret hret s0 setup hpre⟩
+    correctness_proof m ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Reciprocal

@@ -24,7 +24,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.MulOverflow
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (z x y : BitVec 64) :
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 152 16 ∧ (s.regs regSP).toNat % 8 = 0 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Alias z x ∧ Alias z y ∧ Alias x y ∧
@@ -50,7 +50,7 @@ theorem correctness (z x y : BitVec 64) :
         exact caseD _ _ ret hret s hs ⟨hg, hst, hal, hz, hx, hy, hzx, hd1, hd2⟩
       · exact caseA _ _ _ ret hret s hs ⟨hg, hst, hal, hz, hx, hy, hzx, hzy, hxy, hd1, hd2, hd3⟩
 
-namespace Witness
+namespace Wit
 
 def ret : Nat := 0x200000
 def sp0 : Nat := 0x100000
@@ -96,17 +96,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
         valueAt s' z 32 = Spec.mul (valueAt s x 32) (valueAt s y 32) ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 152) 168 :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ (s'.regs 3).toNat % 256 = 0 ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_, ?_⟩
   · rw [h.2.2.1]; unfold valueAt; decide
   · rw [h.2.2.2.1]; unfold valueAt Spec.mul; decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.MulOverflow
