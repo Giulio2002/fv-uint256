@@ -21,3 +21,5 @@ Spec/CmpBig.lean
 Spec/FromBig.lean
 Spec/MustFromBig.lean
 Spec/MarshalSSZ.lean
+Spec/Value.lean
+Spec/EncodeRLP.lean
