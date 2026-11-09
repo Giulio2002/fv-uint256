@@ -162,7 +162,8 @@ def split_back(view, out, M):
         text = texts[g]
         cmds = LS.split(text)
         qn = qualified_names(text, cmds)
-        spec_idx = {i for i, c in enumerate(cmds) if qn[i] in names and c.kind in LS.DECL_KINDS}
+        own = set(M['names_by_module'].get(g, []))
+        spec_idx = {i for i, c in enumerate(cmds) if qn[i] in own and c.kind in LS.DECL_KINDS}
         head_end = min((c.start for c in cmds if c.kind != 'import'), default=len(text))
         pimps, simps = map_imports(imports_of(text[:head_end]), M, gen_proof, gen_spec)
         sname = 'Fv256.Spec.%s.%s.%s' % (isa, kind, base)

@@ -298,7 +298,14 @@ def main():
         if os.path.exists(g): git('rm', '-q', '-f', g)
     layout_map = {'old2proof': {m: proof_name(m) for m in plan}, 'old2spec': spec_of,
                   'specdeps': {m: sorted(spec_deps(m)) for m in plan},
-                  'names': sorted({n for (n, _) in allc})}
+                  'names': sorted({n for (n, _) in allc}),
+                  # per OLD module: the qualified names of its spec-closure declarations (generated TB/FM modules are split by their own set,
+                  # NOT by the union: the same name `Pre` is statement-side in one copy and proof-side in another)
+                  'names_by_module': {}}
+    for (n_, mod_) in allc:
+        layout_map['names_by_module'].setdefault(mod_, []).append(n_)
+    for mod_ in layout_map['names_by_module']:
+        layout_map['names_by_module'][mod_].sort()
     for m_ in list(spec_of):
         layout_map['old2proof'].setdefault(m_, proof_name(m_))
     json.dump(layout_map, open('scripts/layout-map.json', 'w'), indent=0, sort_keys=True)
