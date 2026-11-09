@@ -13,7 +13,7 @@ afterwards is `Fv256.Spec.srsh` of the number at `z` before the call (the two's-
 fill; counts of 256 or more give 0 or all ones), and no byte changes outside `z[0..32)` and the stack window
 (`Fv256.Util.OnlyWrites2`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the preconditions; `Witness.returns`: it returns `z`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the preconditions; `Wit.returns`: it returns `z`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
@@ -22,7 +22,7 @@ namespace Fv256.Arm64.ISRsh
 
 set_option maxHeartbeats 8000000 in
 set_option maxRecDepth 100000 in
-theorem correctness (z n : BitVec 64) :
+theorem correctness_proof (z n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, n]
       (fun s => GuardOK s 56 ∧ StackOK s 112 0 ∧ Ptr32 s.mem z true ∧
         Disjoint z.toNat 32 (s.sp.toNat - 112) 112 ∧
@@ -218,7 +218,7 @@ theorem correctness (z n : BitVec 64) :
     generalize 2 ^ (64 - t) = P at *
     omega
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -254,16 +254,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extr
         val256 s'.mem z.toNat = Spec.srsh (val256 s.mem z.toNat) n.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 112) 112 :=
   ⟨ret, s0, z, n, hret, setup, hpre,
-    correctness z n ret hret s0 setup hpre⟩
+    correctness_proof z n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.ISRsh

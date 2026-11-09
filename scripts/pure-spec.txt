@@ -4,3 +4,13 @@ Spec/Add.lean
 Spec/AddMod.lean
 Spec/Div.lean
 Spec/SetFromDecimal.lean
+Spec/Lsh.lean
+Spec/Rsh.lean
+Spec/SRsh.lean
+Spec/ILsh.lean
+Spec/IRsh.lean
+Spec/ISRsh.lean
+Spec/ExtendSign.lean
+Spec/ReverseBytes.lean
+Spec/Sqrt.lean
+Spec/ISqrt.lean

@@ -1,7 +1,6 @@
 import Extracted
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Amd64.SRsh
 
 /-!
 # `(*uint256.Int).SRsh(x *Int, n uint) *Int` (amd64): arithmetic shift right, `z = x >> n` (sign-propagating)
@@ -13,15 +12,18 @@ stack window, then the call returns (no fault, no panic), obeys the ABI, returns
 `Fv256.Spec.srsh` of the number at `x` before the call (the two's-complement reading of `x` shifted right by `n` with sign fill, i.e.
 `~(~x >> n)` for negative `x`; counts of 256 or more give 0 or all ones), and no byte outside `z[0..32)` and the stack window changes (`Fv256.Util.OnlyWrites2`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding the result.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `z` holding the result.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.SRsh
 
+/-- equal or disjoint 32-byte objects -/
+def Alias (p q : BitVec 64) : Prop := p = q ∨ Disjoint p 32 q 32
+
 set_option maxHeartbeats 16000000 in
-theorem correctness (z x n : BitVec 64) :
+theorem correctness_proof (z x n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, n]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 40 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 40 ∨ (s.regs regSP).toNat + 8 ≤ z.toNat) ∧
@@ -8648,7 +8650,7 @@ theorem correctness (z x n : BitVec 64) :
       · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -8685,17 +8687,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x n : BitVec 64), RetAddr Ex
         valueAt s' z 32 = Spec.srsh (valueAt s x 32) n.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 40) 48 :=
   ⟨ret, s0, z, x, n, hret, setup, hpre,
-    correctness z x n ret hret s0 setup hpre⟩
+    correctness_proof z x n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SRsh

@@ -12,7 +12,7 @@ slot) is writable, the 32 bytes at `z` are writable and do not overlap the frame
 obeys the ABI, returns `z` in `RAX`, the number at `z` afterwards is `Fv256.Spec.lsh` of the number at `z` before the call, shifted
 by `n`, and no byte outside `z[0..32)` and the frame window `[SP-40, SP)` changes (`Fv256.Util.OnlyWrites2`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `z`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
@@ -20,7 +20,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.ILsh
 
 set_option maxHeartbeats 16000000 in
-theorem correctness (z n : BitVec 64) :
+theorem correctness_proof (z n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, n]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 40 8 ∧ Buffer s z 32 true ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 40 ∨ (s.regs regSP).toNat + 8 ≤ z.toNat))
@@ -806,7 +806,7 @@ theorem correctness (z n : BitVec 64) :
             )
     · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -840,17 +840,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extr
         valueAt s' z 32 = Spec.lsh (valueAt s z 32) n.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 40) 40 :=
   ⟨ret, s0, z, n, hret, setup, hpre,
-    correctness z n ret hret s0 setup hpre⟩
+    correctness_proof z n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   simp only [valueAt, Spec.lsh]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.ILsh

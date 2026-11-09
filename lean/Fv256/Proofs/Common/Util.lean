@@ -1538,7 +1538,7 @@ theorem srsh_neg_big (X n : Nat) (hX : X < 2 ^ 256) (hn : 256 ≤ n) (h : 2 ^ 25
     calc 2 ^ 256 - 1 - X < 2 ^ 256 := by omega
       _ ≤ 2 ^ n := Nat.pow_le_pow_right (by decide) hn
   simp only [Spec.srsh, this, show ¬ (X < 2 ^ 255) from by omega, if_false]
-  simp only [Spec.W]
+  try simp only [Spec.W]
   rw [hlt]
 
 theorem srsh_neg (X n : Nat) (hX : X < 2 ^ 256) (hn : n ≤ 256) (h : 2 ^ 255 ≤ X) :

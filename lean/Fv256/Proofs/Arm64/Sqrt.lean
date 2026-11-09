@@ -5,7 +5,6 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Arm64.SummaryEnsures
 import Fv256.Proofs.Arm64.SqrtEntry
 import Fv256.Proofs.Arm64.CodeIn
-import Fv256.Spec.Arm64.Sqrt
 
 /-!
 # `(*uint256.Int).Sqrt(x *Int) *Int` (arm64): `z = ⌊√x⌋`
@@ -19,12 +18,19 @@ returns (no fault, no panic, no division by zero), obeys the ABI, returns `z` in
 square root of the number at `x` before the call (`Fv256.F.IsSqrt`), and nothing changes outside `z[0..32)` and the window.
 The proof is the library summary `Fv256.Arm64.SqrtSum.sqrt_summary` over `Fv256.Arm64.SqrtProg.program` (shared with `ISqrt`).
 
-**Non-vacuity.** `Witness.nonvacuous`.
+**Non-vacuity.** `Wit.nonvacuous`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Sqrt
+
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Arm64/Sqrt.lean` -/
+abbrev PreRaw (z x : BitVec 64) : State → Prop :=
+  fun s => GuardOK s 448 ∧ StackOK s 488 24 ∧ 488 ≤ s.sp.toNat ∧
+    ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 488 ∨ s.sp.toNat + 24 ≤ (s.regs 28).toNat + 16) ∧
+    Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧
+    Disjoint z.toNat 32 (s.sp.toNat - 488) 512 ∧ Disjoint x.toNat 32 (s.sp.toNat - 488) 512
 
 set_option maxRecDepth 200000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.SqrtProg.program Extracted.program :=
@@ -37,8 +43,8 @@ theorem sqrt_summary_ex : Summary Extracted.program Extracted.entry Fv256.Arm64.
   rw [hentry] at h1
   exact h1
 
-theorem correctness (z x : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x] (Pre z x)
+theorem correctness_proof (z x : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x] (PreRaw z x)
       (fun s s' => s'.regs 0 = z ∧ Fv256.F.IsSqrt (val256 s.mem x.toNat) (val256 s'.mem z.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 488, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24)]) := by
   refine Fv256.Arm64.SummaryEnsures.ensures_of_summary _ _ sqrt_summary_ex ?_ ?_
@@ -64,7 +70,7 @@ theorem correctness (z x : BitVec 64) :
     rw [e0] at hf h0
     exact ⟨⟨hsp2, h28, h29, h18⟩, h0, hv, hf⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel
 
@@ -96,18 +102,18 @@ theorem setupW : CallSetup (Extracted.program.withExit retW) Extracted.entry [zW
     | 1, _ => rfl⟩
 
 set_option maxRecDepth 100000 in
-theorem hpreW : Pre zW xW s0 := by
+theorem hpreW : PreRaw zW xW s0 := by
   refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, by decide, by decide,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_⟩ <;>
     (unfold Disjoint; decide)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧ Pre z x s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x] s ∧ PreRaw z x s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ Fv256.F.IsSqrt (val256 s.mem x.toNat) (val256 s'.mem z.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 488, s.sp.toNat - 8), (s.sp.toNat + 8, s.sp.toNat + 24)] :=
   ⟨retW, s0, zW, xW, hretW, setupW, hpreW,
-    correctness zW xW retW hretW s0 setupW hpreW⟩
+    correctness_proof zW xW retW hretW s0 setupW hpreW⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Sqrt

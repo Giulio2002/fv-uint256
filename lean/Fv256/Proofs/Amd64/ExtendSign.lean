@@ -1,7 +1,6 @@
 import Extracted
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Amd64.ExtendSign
 
 /-!
 # `(*uint256.Int).ExtendSign(x, byteNum *Int) *Int` (amd64): sign extension from byte `byteNum`
@@ -12,15 +11,18 @@ slot, and every pair of the three pointers is equal or disjoint, the call return
 the number at `z` afterwards is `Fv256.Spec.extendSign` of the numbers at `x` (the value) and `y` (the byte index, a full 256-bit number:
 indices of 31 or more leave `x` unchanged) before the call, and no byte outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` with value `0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `z` with value `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.ExtendSign
 
+/-- equal or disjoint 32-byte objects -/
+def Alias (p q : BitVec 64) : Prop := p = q ∨ Disjoint p 32 q 32
+
 set_option maxHeartbeats 64000000 in
-theorem correctness (z x y : BitVec 64) :
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
         Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x ∧ Alias z y ∧ Alias x y)
@@ -16496,7 +16498,7 @@ theorem correctness (z x y : BitVec 64) :
                   )
           · simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self]
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -16530,17 +16532,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
         valueAt s' z 32 = Spec.extendSign (valueAt s x 32) (valueAt s y 32) ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.ExtendSign
