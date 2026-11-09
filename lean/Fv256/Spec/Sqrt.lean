@@ -12,6 +12,9 @@ namespace Fv256.Spec
 Exactly one `z` satisfies this for each `x`. -/
 def IsSqrt (x z : Nat) : Prop := z * z ≤ x ∧ x < (z + 1) * (z + 1)
 
+/-- `IsSqrt` is decidable (two comparisons), so the examples below can be checked by `decide`. -/
+instance (x z : Nat) : Decidable (IsSqrt x z) := inferInstanceAs (Decidable (_ ∧ _))
+
 /-- The square root of a perfect square is its root. -/
 example : IsSqrt 49 7 := by decide
 
