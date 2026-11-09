@@ -23,3 +23,5 @@ Prior art: /srv/fv-uint256-spec2 (fv/spec2) = same tooling on an older master; /
 
 ## Log
 - 02:49 survey started (pid 1847463).
+- 03:5x survey done (293 rows, no errors); restructure applied+committed: fv/spec3 66e66385 (156 spec modules + 4 generated Spec TB/FM parts; 8 whitelisted files CONTENT-CHANGED(split) = they lost spec defs, hashes updated; others import-lines only). lint_source (RELEASE) / structure-only / check-generated OK.
+- NEXT: full `python3 scripts/check-spec-closure --index build/spec-index.md` (post survey, writes build/spec-closure-check.json), compare 'stmt' hashes vs build/spec-closure-pre.json; then gates in step 4.
