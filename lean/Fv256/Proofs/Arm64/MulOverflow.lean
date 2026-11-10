@@ -25,7 +25,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 namespace Fv256.Arm64.MulOverflow
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (z x y : BitVec 64) :
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => GuardOK s 0 ∧ StackOK s 240 16 ∧ Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
         Aliasing z x ∧ Aliasing z y ∧ Aliasing x y ∧
@@ -50,7 +50,7 @@ theorem correctness (z x y : BitVec 64) :
         exact caseD _ _ ret hret s hs ⟨hg, hst, hz, hx, hy, hzx, hd1, hd2⟩
       · exact caseA _ _ _ ret hret s hs ⟨hg, hst, hz, hx, hy, hzx, hzy, hxy, hd1, hd2, hd3⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -91,16 +91,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
         val256 s'.mem z.toNat = Spec.mul (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 240) 256 :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ (s'.regs 1).toNat = 0 ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_, ?_⟩
   · rw [h.2.2.1]; decide
   · rw [h.2.2.2.1]; decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.MulOverflow

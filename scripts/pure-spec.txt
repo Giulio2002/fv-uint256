@@ -69,3 +69,15 @@ Spec/MarshalSSZInto.lean
 Spec/UnmarshalSSZ.lean
 Spec/ToBig.lean
 Spec/IntoBig.lean
+Spec/Mul.lean
+Spec/MulOverflow.lean
+Spec/Mod.lean
+Spec/DivMod.lean
+Spec/SDiv.lean
+Spec/SMod.lean
+Spec/IMul.lean
+Spec/IDiv.lean
+Spec/IMod.lean
+Spec/ISDiv.lean
+Spec/ISMod.lean
+Spec/Reciprocal.lean

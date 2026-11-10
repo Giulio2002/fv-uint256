@@ -20,7 +20,7 @@ namespace Fv256.Amd64.DivMod
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
     (hnew : NewobjectContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, x, y, m]
@@ -149,11 +149,11 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     case n_hbp => exact hspm8
 
 
-namespace Witness
+namespace Wit
 
 open Fv256.Amd64.DivModW Fv256.CallSites
 
-/-- Non-vacuity of `correctness`: every hypothesis holds together for a concrete runtime (a toy allocator at
+/-- Non-vacuity of `correctness_proof`: every hypothesis holds together for a concrete runtime (a toy allocator at
 `runtime.newobject`'s address), a concrete call of `DivMod` (distinct `z`, `x`, `y`, `m`), and the call returns. -/
 theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z x y m : BitVec 64)
     (ret : Nat) (s : Amd64.State),
@@ -182,8 +182,8 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
           MemFrame s.mem s'.mem (rt ++ [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32),
             ((s.regs 4).toNat - 4256, (s.regs 4).toNat + 0x28)]))) :=
   ⟨impl, rtW, HW, zW, xW, yW, mW, retW, s0, hnewW, ⟨csNewW, csNewW_rip, csNewW_pre⟩, hretW, setupW, preW,
-    correctness impl rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
+    correctness_proof impl rtW HW zW xW yW mW hnewW retW hretW s0 setupW preW⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.DivMod

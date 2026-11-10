@@ -22,6 +22,7 @@ import Fv256.Spec.Rsh
 import Fv256.Spec.SRsh
 import Fv256.Spec.ExtendSign
 import Fv256.Spec.SizeSSZ   -- `Fv256.Spec.sizeSSZ` lives in its own pure file
+import Fv256.Spec.Mul   -- `Fv256.Spec.mul` likewise
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
@@ -43,8 +44,6 @@ def gt (x y : Nat) : Bool := decide (y < x)
 /-- `z.Cmp(x)`: -1, 0 or 1. -/
 def cmp (x y : Nat) : Int := if x < y then -1 else if x = y then 0 else 1
 
-/-- `z.Mul(x, y)`. -/
-def mul (x y : Nat) : Nat := (x * y) % W
 
 /-- `x.Uint64()`: the low 64 bits. -/
 def uint64 (x : Nat) : Nat := x % 2 ^ 64

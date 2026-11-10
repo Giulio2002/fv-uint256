@@ -69,7 +69,7 @@ theorem isdiv_summary : Summary Extracted.program Extracted.entry
         (by dsimp only; omega)
     exact hM0.trans hfr (fun x n hx => by simp only [Outside, and_true] at hx ⊢; omega)
 
-theorem correctness (z x : BitVec 64) :
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => GuardOK s 640 ∧ s.sp.toNat % 16 = 0 ∧ 680 ≤ s.sp.toNat ∧ s.sp.toNat ≤ 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 680) 648 true = true ∧
@@ -102,7 +102,7 @@ theorem correctness (z x : BitVec 64) :
     · exact h0
     · exact hv
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -146,8 +146,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
         val256 s'.mem z.toNat = Fv256.B.sdivSpec (val256 s.mem z.toNat) (val256 s.mem x.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 680, s.sp.toNat - 32)] :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.ISDiv

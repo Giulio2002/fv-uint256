@@ -20,7 +20,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.IMul
 
-theorem correctness (z x : BitVec 64) :
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 56 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧
         (z.toNat + 32 ≤ (s.regs regSP).toNat - 56 ∨ (s.regs regSP).toNat + 8 ≤ z.toNat) ∧
@@ -39,7 +39,7 @@ theorem correctness (z x : BitVec 64) :
   janus64_run [Util.readLE_32]
   all_goals ((try have := Util.readLE8_lt s.mem (z.toNat)); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat)); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24));  refine ⟨?_, ?_⟩; (· simp only [Spec.mul, Spec.W, Nat.reducePow, BitVec.toNat_mul, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reduceMod]; janus64_arith); (· simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -76,13 +76,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
         valueAt s' z 32 = Spec.mul (valueAt s z 32) (valueAt s x 32) ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 56) 56 :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = Spec.mul (valueAt s0 z 32) (valueAt s0 x 32) ∧
       Util.OnlyWrites2 s0.mem s'.mem z.toNat 32 ((s0.regs regSP).toNat - 56) 56 :=
-  correctness z x ret hret s0 setup hpre
+  correctness_proof z x ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.IMul
