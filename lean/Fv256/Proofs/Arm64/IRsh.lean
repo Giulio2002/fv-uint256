@@ -11,14 +11,14 @@ frame) is writable and aligned (`StackOK s 56 0`), the 32 bytes at `z` are writa
 returns (no fault, no panic), obeys the ABI, returns `z` in `X0`, the number at `z` afterwards is `Fv256.Spec.rsh` of the number at
 `z` before the call, shifted by `n`, and no byte outside `z[0..32)` and the frame window changes (`Fv256.Util.OnlyWrites2`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `z`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.IRsh
 
-theorem correctness (z n : BitVec 64) :
+theorem correctness_proof (z n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, n]
       (fun s => GuardOK s 0 ∧ StackOK s 56 0 ∧ Ptr32 s.mem z true ∧ Disjoint z.toNat 32 (s.sp.toNat - 56) 56)
       (fun s s' => s'.regs 0 = z ∧
@@ -71,7 +71,7 @@ theorem correctness (z n : BitVec 64) :
     simp only [Spec.rsh]
     exact Util.rsh1_t _ _ _ _ t ht (Util.readLE8_lt s.mem z.toNat) (Util.readLE8_lt s.mem (z.toNat + 8)) (Util.readLE8_lt s.mem (z.toNat + 16)) (Util.readLE8_lt s.mem (z.toNat + 24))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -103,16 +103,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z n : BitVec 64), RetAddr Extr
         val256 s'.mem z.toNat = Spec.rsh (val256 s.mem z.toNat) n.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 56) 56 :=
   ⟨ret, s0, z, n, hret, setup, hpre,
-    correctness z n ret hret s0 setup hpre⟩
+    correctness_proof z n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.IRsh

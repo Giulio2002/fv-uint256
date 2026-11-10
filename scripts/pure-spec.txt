@@ -26,3 +26,13 @@ Spec/IAdd.lean
 Spec/ISub.lean
 Spec/IAddUint64.lean
 Spec/ISubUint64.lean
+Spec/Lsh.lean
+Spec/Rsh.lean
+Spec/SRsh.lean
+Spec/ILsh.lean
+Spec/IRsh.lean
+Spec/ISRsh.lean
+Spec/ExtendSign.lean
+Spec/ReverseBytes.lean
+Spec/Sqrt.lean
+Spec/ISqrt.lean

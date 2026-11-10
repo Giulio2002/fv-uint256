@@ -17,6 +17,10 @@ import Fv256.Spec.Set
 import Fv256.Spec.SetOne
 import Fv256.Spec.SetAllOne
 import Fv256.Spec.SetUint64
+import Fv256.Spec.Lsh
+import Fv256.Spec.Rsh
+import Fv256.Spec.SRsh
+import Fv256.Spec.ExtendSign
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
@@ -69,14 +73,6 @@ def byteLen (x : Nat) : Nat := (bitLen x + 7) / 8
 (`n = 0` is the top byte); `0` when `n ≥ 32`. -/
 def byte (n x : Nat) : Nat := if n < 32 then x / 2 ^ (8 * (31 - n)) % 256 else 0
 
-/-- `z.Lsh(x, n)`: shift left by `n` bits, modulo `2^256` (zero once `n ≥ 256`). -/
-def lsh (x n : Nat) : Nat := (x * 2 ^ n) % W
-
-/-- `z.Rsh(x, n)`: logical shift right by `n` bits (zero once `n ≥ 256`). -/
-def rsh (x n : Nat) : Nat := x / 2 ^ n
-
-/-- `z.SRsh(x, n)`: arithmetic shift right of the two's-complement reading of `x` by `n` bits (floor division), as `~(~x >> n)` for negative `x`. -/
-def srsh (x n : Nat) : Nat := if x < W / 2 then x / 2 ^ n else W - 1 - (W - 1 - x) / 2 ^ n
 
 /-- `x.Uint64WithOverflow()` overflow flag: the number does not fit in 64 bits. -/
 def uint64Ov (x : Nat) : Bool := decide (2 ^ 64 ≤ x)
@@ -85,12 +81,6 @@ def uint64Ov (x : Nat) : Bool := decide (2 ^ 64 ≤ x)
 def fromBE (f : Nat → Nat) : Nat → Nat
   | 0 => 0
   | n + 1 => f 0 * 256 ^ n + fromBE (fun i => f (i + 1)) n
-
-/-- `z.ExtendSign(x, b)`: sign-extend `x` from byte `b` (byte 0 is the least significant). Unchanged when `b ≥ 31`. -/
-def extendSign (x b : Nat) : Nat :=
-  if b < 31 then
-    (if x / 2 ^ (8 * b + 7) % 2 = 1 then x % 2 ^ (8 * b + 8) + (W - 2 ^ (8 * b + 8)) else x % 2 ^ (8 * b + 8))
-  else x
 
 /-- `z.SizeSSZ()`: the SSZ encoding of a `uint256` has 32 bytes. -/
 def sizeSSZ : Nat := 32

@@ -11,7 +11,7 @@ writable and those at `x`, `y` readable (below `2^48`), where every pair of the 
 (the value) and `y` (the byte index, a full 256-bit number: indices of 31 or more leave `x` unchanged) before the call, and no byte
 outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` with value `0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `z` with value `0`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
@@ -19,7 +19,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 namespace Fv256.Arm64.ExtendSign
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (z x y : BitVec 64) :
+theorem correctness_proof (z x y : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y]
       (fun s => Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
         Aliasing z x ∧ Aliasing z y ∧ Aliasing x y)
@@ -1353,7 +1353,7 @@ theorem correctness (z x y : BitVec 64) :
           rw [if_neg]
           rcases Util.or3_ne _ _ _ ‹¬ _ ||| (_ ||| _) = 0› with h | h | h <;> omega
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -1388,16 +1388,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y : BitVec 64), RetAddr Ex
         val256 s'.mem z.toNat = Spec.extendSign (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
         OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, x, x, hret, setup, hpre,
-    correctness z x x ret hret s0 setup hpre⟩
+    correctness_proof z x x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z x x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.ExtendSign

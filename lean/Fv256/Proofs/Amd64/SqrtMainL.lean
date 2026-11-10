@@ -67,7 +67,8 @@ theorem sqrt_big1 :
   simp only [Nat.zero_div, Nat.zero_mod, Nat.mul_zero, Nat.add_zero, show (256 : Nat) ^ 8 = 2 ^ 64 by decide,
     Nat.mod_eq_of_lt (show 1 < 2 ^ 64 by decide)] at hLv
   have hlsh : Spec.lsh 1 ((63 - k + 66) / 2) = 2 ^ ((63 - k + 66) / 2) := by
-    unfold Spec.lsh Spec.W
+    unfold Spec.lsh
+    try unfold Spec.W
     rw [Nat.one_mul]
     exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) hc128) (by decide))
   rw [hlsh] at hLv
@@ -194,7 +195,8 @@ theorem sqrt_big2 :
   simp only [Nat.zero_div, Nat.zero_mod, Nat.mul_zero, Nat.add_zero, show (256 : Nat) ^ 8 = 2 ^ 64 by decide,
     Nat.mod_eq_of_lt (show 1 < 2 ^ 64 by decide)] at hLv
   have hlsh : Spec.lsh 1 ((63 - k + 130) / 2) = 2 ^ ((63 - k + 130) / 2) := by
-    unfold Spec.lsh Spec.W
+    unfold Spec.lsh
+    try unfold Spec.W
     rw [Nat.one_mul]
     exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) hc128) (by decide))
   rw [hlsh] at hLv
@@ -321,7 +323,8 @@ theorem sqrt_big3 :
   simp only [Nat.zero_div, Nat.zero_mod, Nat.mul_zero, Nat.add_zero, show (256 : Nat) ^ 8 = 2 ^ 64 by decide,
     Nat.mod_eq_of_lt (show 1 < 2 ^ 64 by decide)] at hLv
   have hlsh : Spec.lsh 1 ((63 - k + 194) / 2) = 2 ^ ((63 - k + 194) / 2) := by
-    unfold Spec.lsh Spec.W
+    unfold Spec.lsh
+    try unfold Spec.W
     rw [Nat.one_mul]
     exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) hc128) (by decide))
   rw [hlsh] at hLv

@@ -130,7 +130,8 @@ theorem sqrt_big :
         rw [hXb]; exact Fv256.B.f64_bl1 (s.mem.readLE (s.regs 1).toNat 8) (s.mem.readLE ((s.regs 1).toNat + 8) 8) k hl0 hl1 hx1 hk
       obtain ⟨hc1, hc128', hXinv, hX64, hX256⟩ := SqrtHead.head_arith _ (128 - k) ((64 - k + 65) / 2) hbl (by omega) (by omega) (by omega)
       have hlsh : Spec.lsh 1 ((64 - k + 65) / 2) = 2 ^ ((64 - k + 65) / 2) := by
-        unfold Spec.lsh Spec.W
+        unfold Spec.lsh
+        try unfold Spec.W
         rw [Nat.one_mul]
         exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) hc128) (by decide))
       rw [hlsh] at hLv
@@ -193,7 +194,8 @@ theorem sqrt_big :
         rw [hXb]; exact Fv256.B.f64_bl2 (s.mem.readLE (s.regs 1).toNat 8) (s.mem.readLE ((s.regs 1).toNat + 8) 8) (s.mem.readLE ((s.regs 1).toNat + 16) 8) k hl0 hl1 hl2 hx2 hk
       obtain ⟨hc1, hc128', hXinv, hX64, hX256⟩ := SqrtHead.head_arith _ (192 - k) ((64 - k + 129) / 2) hbl (by omega) (by omega) (by omega)
       have hlsh : Spec.lsh 1 ((64 - k + 129) / 2) = 2 ^ ((64 - k + 129) / 2) := by
-        unfold Spec.lsh Spec.W
+        unfold Spec.lsh
+        try unfold Spec.W
         rw [Nat.one_mul]
         exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) hc128) (by decide))
       rw [hlsh] at hLv
@@ -256,7 +258,8 @@ theorem sqrt_big :
       rw [hXb]; exact Fv256.B.f64_bl3 (s.mem.readLE (s.regs 1).toNat 8) (s.mem.readLE ((s.regs 1).toNat + 8) 8) (s.mem.readLE ((s.regs 1).toNat + 16) 8) (s.mem.readLE ((s.regs 1).toNat + 24) 8) k hl0 hl1 hl2 hl3 hx3 hk
     obtain ⟨hc1, hc128', hXinv, hX64, hX256⟩ := SqrtHead.head_arith _ (256 - k) ((64 - k + 193) / 2) hbl (by omega) (by omega) (by omega)
     have hlsh : Spec.lsh 1 ((64 - k + 193) / 2) = 2 ^ ((64 - k + 193) / 2) := by
-      unfold Spec.lsh Spec.W
+      unfold Spec.lsh
+      try unfold Spec.W
       rw [Nat.one_mul]
       exact Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.pow_le_pow_right (by omega) hc128) (by decide))
     rw [hlsh] at hLv

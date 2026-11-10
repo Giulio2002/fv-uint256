@@ -10,14 +10,14 @@ writable, those at `x` readable (below `2^48`) and `z`, `x` are equal or disjoin
 obeys the ABI, returns `z` in `X0`, the number at `z` afterwards is `Fv256.Spec.lsh` of the number at `x`, shifted by `n`, before the call,
 and no byte outside `z[0..32)` changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `z` holding the shifted value of `x`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `z` holding the shifted value of `x`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Lsh
 
-theorem correctness (z x n : BitVec 64) :
+theorem correctness_proof (z x n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, n]
       (fun s => Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Aliasing z x)
       (fun s s' => s'.regs 0 = z ∧
@@ -61,7 +61,7 @@ theorem correctness (z x n : BitVec 64) :
     · have := Util.readLE8_lt s.mem (z.toNat); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); generalize hm : n.toNat = m at *; obtain ⟨t, ht, rfl⟩ : ∃ t, t < 64 ∧ m = 64 + t := ⟨m - 64, by omega, by omega⟩; have hc : 18446744073709551616 - (64 + t) - 18446744073709551488 = 64 - t := (by omega); have hp : (64 + t - 64) % 64 = t := (by omega); simp only [hc, hp]; rw [Util.shl_or_bv _ _ t ht (Util.readLE8_lt s.mem (x.toNat + 16)) (Util.readLE8_lt s.mem (x.toNat + 8)), Util.shl_or_bv _ _ t ht (Util.readLE8_lt s.mem (x.toNat + 8)) (Util.readLE8_lt s.mem x.toNat)]; simp only [Spec.lsh, Spec.W, Nat.reducePow]; exact Util.lsh1_t _ _ _ _ t ht (Util.readLE8_lt s.mem x.toNat) (Util.readLE8_lt s.mem (x.toNat + 8)) (Util.readLE8_lt s.mem (x.toNat + 16)) (Util.readLE8_lt s.mem (x.toNat + 24))
 
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -94,16 +94,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x n : BitVec 64), RetAddr Ex
         val256 s'.mem z.toNat = Spec.lsh (val256 s.mem x.toNat) n.toNat ∧
         OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, x, n, hret, setup, hpre,
-    correctness z x n ret hret s0 setup hpre⟩
+    correctness_proof z x n ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = 0 := by
-  refine (correctness z x n ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x n ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Lsh

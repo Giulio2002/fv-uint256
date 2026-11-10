@@ -1,7 +1,6 @@
 import Extracted
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.Amd64.ReverseBytes
 
 /-!
 # `(*uint256.Int).ReverseBytes(x *Int) *Int` (amd64)
@@ -20,7 +19,10 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.ReverseBytes
 
-theorem correctness (z x : BitVec 64) :
+/-- equal or disjoint 32-byte objects -/
+def Alias (p q : BitVec 64) : Prop := p = q ∨ Disjoint p 32 q 32
+
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧
         Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x)
@@ -34,7 +36,7 @@ theorem correctness (z x : BitVec 64) :
   rcases hzx with rfl | hzx
   all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; first | (have a0 := Util.revBytes_lt 8 (s.mem.readLE (z.toNat) 8); have a1 := Util.revBytes_lt 8 (s.mem.readLE (z.toNat + 8) 8); have a2 := Util.revBytes_lt 8 (s.mem.readLE (z.toNat + 16) 8); have a3 := Util.revBytes_lt 8 (s.mem.readLE (z.toNat + 24) 8); refine ⟨?_, ?_⟩; (· rw [Util.be32_rev]; simp only [Nat.reducePow] at a0 a1 a2 a3; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])) | (have a0 := Util.revBytes_lt 8 (s.mem.readLE (x.toNat) 8); have a1 := Util.revBytes_lt 8 (s.mem.readLE (x.toNat + 8) 8); have a2 := Util.revBytes_lt 8 (s.mem.readLE (x.toNat + 16) 8); have a3 := Util.revBytes_lt 8 (s.mem.readLE (x.toNat + 24) 8); refine ⟨?_, ?_⟩; (· rw [Util.be32_rev]; simp only [Nat.reducePow] at a0 a1 a2 a3; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -69,17 +71,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
         valueAt s' z 32 = Spec.fromBE (fun i => s.mem.readLE (x.toNat + i) 1) 32 ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ valueAt s' z 32 = 0 := by
-  refine (correctness z x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, h.2.1, ?_⟩
   rw [h.2.2.1]
   try simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.ReverseBytes

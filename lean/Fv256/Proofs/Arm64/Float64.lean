@@ -20,14 +20,14 @@ the ABI, `D0` (as 64 bits) is `Fv256.B.float64BitsNearest` of the 256-bit number
 
 The proof splits on the highest non-zero limb (`lem0` .. `lem3`, one module each, so each compiles on its own).
 
-**Non-vacuity.** `Witness.nonvacuous`; `Witness.returns`.
+**Non-vacuity.** `Wit.nonvacuous`; `Wit.returns`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Float64
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => Ptr32 s.mem x false ∧ GuardOK s 0 ∧ StackOK s 88 0 ∧ Disjoint x.toNat 32 (s.sp.toNat - 88) 88 ∧ s.fpcr = 0)
       (fun s s' => s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s.mem x.toNat) ∧
@@ -41,7 +41,7 @@ theorem correctness (x : BitVec 64) :
     · exact lem2 x ret hret s hs ⟨hpre, h3, h2⟩
   · exact lem3 x ret hret s hs ⟨hpre, h3⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -68,13 +68,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s.mem x.toNat) ∧
         MemFrame s.mem s'.mem [(s.sp.toNat - 88, s.sp.toNat)] :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.getV 0 64 = Fv256.B.float64BitsNearest (val256 s0.mem x.toNat) ∧
       MemFrame s0.mem s'.mem [(s0.sp.toNat - 88, s0.sp.toNat)] :=
-  correctness x ret hret s0 setup hpre
+  correctness_proof x ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Float64

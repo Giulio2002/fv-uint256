@@ -19,14 +19,14 @@ word has the Go ABI's control bits (`GoMXCSR`): the call returns (no fault, no p
 `Fv256.B.float64BitsNearest` of the number at `x` (IEEE 754 binary64 bits: round-to-nearest-even `convertFromInt` below `2^64`, truncation
 of the 52 bits after the leading one from `2^64` on, as the library does), and no byte outside the window changes.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns with the stated result.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns with the stated result.
 -/
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Float Janus.Amd64.FP
 
 namespace Fv256.Amd64.Float64
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 80 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 80 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧ GoMXCSR s)
@@ -41,7 +41,7 @@ theorem correctness (x : BitVec 64) :
     · exact lem2 x ret hret s hs ⟨hpre, h3, h2⟩
   · exact lem3 x ret hret s hs ⟨hpre, h3⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -71,13 +71,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsNearest (valueAt s x 32) ∧
         MemFrame s.mem s'.mem [((s.regs regSP).toNat - 80, (s.regs regSP).toNat + 8)] :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.xmm 0).toNat % 2 ^ 64 = Fv256.B.float64BitsNearest (valueAt s0 x 32) ∧
       MemFrame s0.mem s'.mem [((s0.regs regSP).toNat - 80, (s0.regs regSP).toNat + 8)] :=
-  correctness x ret hret s0 setup hpre
+  correctness_proof x ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Float64

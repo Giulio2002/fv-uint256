@@ -13,7 +13,7 @@ neither overlaps the stack window, then the call returns (no fault, no panic), o
 with sign fill, i.e. `~(~x >> n)` for negative `x`; counts of 256 or more give 0 or all ones), and no byte changes outside
 `z[0..32)` and the stack window (`Fv256.Util.OnlyWrites2`).
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the preconditions; `Witness.returns`: it returns `z` holding the result.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the preconditions; `Wit.returns`: it returns `z` holding the result.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
@@ -408,7 +408,7 @@ theorem core (z x n : BitVec 64) (ret : Nat)
       omega
 
 
-theorem correctness (z x n : BitVec 64) :
+theorem correctness_proof (z x n : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, n]
       (fun s => GuardOK s 0 ∧ StackOK s 56 0 ∧ Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Aliasing z x ∧
         Disjoint z.toNat 32 (s.sp.toNat - 56) 56 ∧ Disjoint x.toNat 32 (s.sp.toNat - 56) 56)
@@ -417,7 +417,7 @@ theorem correctness (z x n : BitVec 64) :
   intro ret hret s hs ⟨hg, hst, h1, h2, h3, h4, h5⟩
   exact core z x n ret hret s hs hg hst h1 h2 h3 h4 h5
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -455,7 +455,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x n : BitVec 64), RetAddr Ex
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧ val256 s'.mem z.toNat = Spec.srsh (val256 s.mem x.toNat) n.toNat ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 (s.sp.toNat - 56) 56 := by
   refine ⟨ret, s0, z, x, n, hret, setup, ?w2,
-    correctness z x n ret hret s0 setup ?w2⟩
+    correctness_proof z x n ret hret s0 setup ?w2⟩
   case w2 => exact ⟨hg, hst, hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
@@ -466,6 +466,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   rw [h.2.2.1]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.SRsh
