@@ -15,3 +15,5 @@ a10 queued arm64 DivMod after a8
 21:20 PASS amd64 Mod, arm64 Mod. Pending: SDiv SMod ISDiv (both), then DivMod (a9 amd64, a10 arm64 with heartbeat fix)
 21:50 PASS SDiv both, arm64 SMod. Pending amd64 SMod, ISDiv both, DivMod both
 22:10 a8 done: arm64 Mod SDiv SMod IDiv IMod ISDiv ISMod ALL PASS. a10 arm64 DivMod running; a7 amd64 still going (SMod, ISDiv left), then a9 amd64 DivMod
+22:55 commit: 22/24 PASS (all except DivMod). DivMod redone with Spec.div/mod (divMod pair .1/.2 projection caused whnf timeout, bisected in /srv/janus-ops/spec-b4/t). Running b1 arm64 DivMod, b2 amd64 DivMod.
+Final: c1 arm64 + c2 amd64 clean verify of committed claims, 24/24 PASS; closure OK (43 modules); lake build + lint OK. jcache removed.
