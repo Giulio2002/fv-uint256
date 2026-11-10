@@ -69,7 +69,7 @@ Other variables (`MEMCAP`, `PER_FN_TIMEOUT`) and the toolchain versions are in [
 * **The claim statements.** The `Pre`/`Post` in `lean/Fv256/{Arm64,Amd64}/*.lean` (and the runtime contracts for calls into the Go runtime, such as memory allocation).
 * **Janus.** Its models of the arm64 and amd64 instruction sets, its byte extractor, and the Lean kernel. The Go compiler is not trusted.
 * **The exact build.** The result is about the pinned harness binary in `go/` (checked by hash), not about any other compiler version or flags.
-* Known limitations (single-threaded model, no timing or side channels, and more) are listed in [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md).
+* Known limitations (single-threaded execution model, non-moving heap, and more) are listed in [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md).
 
 ## Repository map
 
