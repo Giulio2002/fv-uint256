@@ -9,8 +9,8 @@ import Fv256.Spec.Arm64.SfdTopSpec
 import Fv256.Spec.Arm64.UnmarshalTextHead
 import Fv256.Spec.Arm64.UnmarshalSpec
 import Fv256.Spec.Arm64.UnmarshalHex
-import Fv256.Proofs.Legacy.Arm64.UnmarshalPost
-import Fv256.Proofs.Legacy.Arm64.UnmarshalJPost
+import Fv256.Spec.Arm64.UnmarshalPost
+import Fv256.Spec.Arm64.UnmarshalJPost
 import Fv256.Spec.Arm64.UnmarshalSpecJ
 import Fv256.Spec.Arm64.UnmarshalJSONHead
 import Fv256.Spec.Arm64.FromHexLib

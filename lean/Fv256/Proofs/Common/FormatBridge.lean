@@ -1,5 +1,5 @@
 import Fv256.Spec.Format
-import Fv256.Proofs.Legacy.FormatBytes
+import Fv256.Spec.FormatBytes
 import Fv256.Proofs.Common.TextBridge
 
 /-!

@@ -1,6 +1,7 @@
 import Janus
 import Fv256.Spec.C
 import Fv256.Spec.E
+import Fv256.Spec.FormatBytes
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 

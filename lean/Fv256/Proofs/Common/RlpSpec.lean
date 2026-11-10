@@ -1,6 +1,6 @@
 import Janus
 import Fv256.Proofs.Common.Spec
-import Fv256.Proofs.Legacy.RlpSpec
+import Fv256.Spec.RlpSpec
 
 /-!
 # `(*uint256.Int).EncodeRLP(w io.Writer) error`: the specification (ISA independent)

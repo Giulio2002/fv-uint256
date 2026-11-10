@@ -336,9 +336,14 @@
 "Fv256.Arm64.SfdTopSpec.TopPre",
 "Fv256.Arm64.SfdTopSpec.staticRanges",
 "Fv256.Arm64.UnmarshalHex.HexEnv",
+"Fv256.Arm64.UnmarshalJPost.JPost",
 "Fv256.Arm64.UnmarshalJSON.cfg",
 "Fv256.Arm64.UnmarshalJSON.sbAddr",
 "Fv256.Arm64.UnmarshalJSON.stAddr",
+"Fv256.Arm64.UnmarshalPost.DecPart",
+"Fv256.Arm64.UnmarshalPost.HexPart",
+"Fv256.Arm64.UnmarshalPost.IsHex",
+"Fv256.Arm64.UnmarshalPost.UTPost",
 "Fv256.Arm64.UnmarshalSSZMain.ErrHolds",
 "Fv256.Arm64.UnmarshalSSZMain.ErrPost",
 "Fv256.Arm64.UnmarshalSSZMain.ErrPre",
@@ -418,6 +423,7 @@
 "Fv256.FormatSpec.hexBytes",
 "Fv256.FormatSpec.hexBytes._proof_1",
 "Fv256.FormatSpec.nilText",
+"Fv256.Hex.HexOut",
 "Fv256.I.Res",
 "Fv256.I.Res.eof",
 "Fv256.I.Res.ok",
@@ -449,6 +455,8 @@
 "Fv256.Msa.Ready",
 "Fv256.Msa.Ready._f",
 "Fv256.Msa.Ready.match_1",
+"Fv256.Rlp.rlpBytes",
+"Fv256.Rlp.rlpVal",
 "Fv256.ScanSpec.idxE",
 "Fv256.ScanSpec.sciParse",
 "Fv256.ScanSpec.sciParse.match_1",
@@ -1032,10 +1040,19 @@
 "Fv256.Arm64.UnmarshalHex": [
 "Fv256.Arm64.UnmarshalHex.HexEnv"
 ],
+"Fv256.Arm64.UnmarshalJPost": [
+"Fv256.Arm64.UnmarshalJPost.JPost"
+],
 "Fv256.Arm64.UnmarshalJSONHead": [
 "Fv256.Arm64.UnmarshalJSON.cfg",
 "Fv256.Arm64.UnmarshalJSON.sbAddr",
 "Fv256.Arm64.UnmarshalJSON.stAddr"
+],
+"Fv256.Arm64.UnmarshalPost": [
+"Fv256.Arm64.UnmarshalPost.DecPart",
+"Fv256.Arm64.UnmarshalPost.HexPart",
+"Fv256.Arm64.UnmarshalPost.IsHex",
+"Fv256.Arm64.UnmarshalPost.UTPost"
 ],
 "Fv256.Arm64.UnmarshalSSZMain": [
 "Fv256.Arm64.UnmarshalSSZMain.ErrHolds",
@@ -1097,6 +1114,9 @@
 "Fv256.HexLemmas": [
 "Fv256.C.bytesAt"
 ],
+"Fv256.HexSpec": [
+"Fv256.Hex.HexOut"
+],
 "Fv256.IndexByteSpec": [
 "Fv256.IndexByte.PageReadable"
 ],
@@ -1116,6 +1136,10 @@
 "Fv256.E.plen",
 "Fv256.E.prettyBytes",
 "Fv256.E.prettyBytes._proof_1"
+],
+"Fv256.RlpSpec": [
+"Fv256.Rlp.rlpBytes",
+"Fv256.Rlp.rlpVal"
 ],
 "Fv256.Spec": [
 "Fv256.Spec.W",
@@ -2885,7 +2909,9 @@
 "Fv256.Arm64.SfdTopSpec": "Fv256.Spec.Arm64.SfdTopSpec",
 "Fv256.Arm64.TB.IntoBigDefs": "Fv256.Spec.Arm64.TB.IntoBigDefs",
 "Fv256.Arm64.UnmarshalHex": "Fv256.Spec.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost": "Fv256.Spec.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead": "Fv256.Spec.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost": "Fv256.Spec.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSSZMain": "Fv256.Spec.Arm64.UnmarshalSSZMain",
 "Fv256.Arm64.UnmarshalSpec": "Fv256.Spec.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ": "Fv256.Spec.Arm64.UnmarshalSpecJ",
@@ -2895,10 +2921,12 @@
 "Fv256.FormatFastDefs": "Fv256.Spec.FormatFastDefs",
 "Fv256.FormatFastDefsA64": "Fv256.Spec.FormatFastDefsA64",
 "Fv256.HexLemmas": "Fv256.Spec.HexLemmas",
+"Fv256.HexSpec": "Fv256.Spec.HexSpec",
 "Fv256.IndexByteSpec": "Fv256.Spec.IndexByteSpec",
 "Fv256.IntoBigCommon": "Fv256.Spec.IntoBigCommon",
 "Fv256.MsaCommon": "Fv256.Spec.MsaCommon",
 "Fv256.PrettyMath": "Fv256.Spec.PrettyMath",
+"Fv256.RlpSpec": "Fv256.Spec.RlpSpec",
 "Fv256.Spec": "Fv256.Spec.Core",
 "Fv256.SpecC": "Fv256.Spec.C",
 "Fv256.SpecE": "Fv256.Spec.E",
@@ -3198,6 +3226,7 @@
 "Fv256.Amd64.EncodeRLP": [
 "Fv256.Amd64.CallSites.Live",
 "Fv256.Amd64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec",
 "Fv256.Util"
 ],
@@ -3213,6 +3242,7 @@
 ],
 "Fv256.Amd64.ErlpCases": [
 "Fv256.Amd64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.Amd64.ErlpDefs": [
@@ -3221,7 +3251,9 @@
 "Fv256.Amd64.ErlpEJ": [
 "Fv256.Amd64.ErlpDefs"
 ],
-"Fv256.Amd64.ErlpInhabit": [],
+"Fv256.Amd64.ErlpInhabit": [
+"Fv256.RlpSpec"
+],
 "Fv256.Amd64.ErlpP0": [
 "Fv256.Amd64.ErlpDefs"
 ],
@@ -3233,10 +3265,12 @@
 ],
 "Fv256.Amd64.ErlpPM": [
 "Fv256.Amd64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.Amd64.ErlpPMb": [
 "Fv256.Amd64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.Amd64.ErlpS1m": [
@@ -3339,6 +3373,7 @@
 "Fv256.Amd64.FormatFastPre",
 "Fv256.FormatFastDefs",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.SpecE",
@@ -3350,6 +3385,7 @@
 "Fv256.Amd64.FormatFastPre",
 "Fv256.FormatFastDefs",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.SpecE",
@@ -3379,6 +3415,7 @@
 "Fv256.Amd64.CallSites.Live",
 "Fv256.FormatFastDefs",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.Util"
@@ -3388,6 +3425,7 @@
 "Fv256.Amd64.DecExt",
 "Fv256.FormatFastDefs",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.Util"
@@ -3396,6 +3434,7 @@
 "Fv256.Amd64.CallSites.Live",
 "Fv256.FormatFastDefs",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.Util"
@@ -6456,6 +6495,7 @@
 "Fv256.Arm64.EncodeRLP": [
 "Fv256.Arm64.CallSites.Base",
 "Fv256.Arm64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec",
 "Fv256.Util"
 ],
@@ -6468,6 +6508,7 @@
 ],
 "Fv256.Arm64.ErlpCases": [
 "Fv256.Arm64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.Arm64.ErlpDefs": [
@@ -6476,7 +6517,9 @@
 "Fv256.Arm64.ErlpEJ": [
 "Fv256.Arm64.ErlpDefs"
 ],
-"Fv256.Arm64.ErlpInhabit": [],
+"Fv256.Arm64.ErlpInhabit": [
+"Fv256.RlpSpec"
+],
 "Fv256.Arm64.ErlpP0": [
 "Fv256.Arm64.ErlpDefs"
 ],
@@ -6488,10 +6531,12 @@
 ],
 "Fv256.Arm64.ErlpPM": [
 "Fv256.Arm64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.Arm64.ErlpPMb": [
 "Fv256.Arm64.ErlpDefs",
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.Arm64.ErlpS1m": [
@@ -6579,6 +6624,7 @@
 "Fv256.Arm64.DecExt",
 "Fv256.FormatFastDefsA64",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.SpecE",
@@ -6589,6 +6635,7 @@
 "Fv256.Arm64.DecExt",
 "Fv256.FormatFastDefsA64",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.SpecE",
@@ -6636,6 +6683,7 @@
 "Fv256.Arm64.CallSites.Base",
 "Fv256.FormatFastDefsA64",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.Util"
@@ -6645,6 +6693,7 @@
 "Fv256.Arm64.DecExt",
 "Fv256.FormatFastDefsA64",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.Util"
@@ -6653,6 +6702,7 @@
 "Fv256.Arm64.CallSites.Base",
 "Fv256.FormatFastDefsA64",
 "Fv256.HexLemmas",
+"Fv256.HexSpec",
 "Fv256.Spec",
 "Fv256.SpecC",
 "Fv256.Util"
@@ -8689,12 +8739,16 @@
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.SpecI"
 ],
-"Fv256.Arm64.UnmarshalJPost": [],
+"Fv256.Arm64.UnmarshalJPost": [
+"Fv256.Arm64.UnmarshalJPost"
+],
 "Fv256.Arm64.UnmarshalJSON": [
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8708,7 +8762,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8719,7 +8775,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8730,7 +8788,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8741,7 +8801,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8752,7 +8814,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8763,7 +8827,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8774,7 +8840,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8785,7 +8853,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.Spec",
@@ -8797,7 +8867,9 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalJPost",
 "Fv256.Arm64.UnmarshalJSONHead",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.HexLemmas",
@@ -8828,7 +8900,9 @@
 "Fv256.Arm64.UnmarshalSpecJ",
 "Fv256.SpecI"
 ],
-"Fv256.Arm64.UnmarshalPost": [],
+"Fv256.Arm64.UnmarshalPost": [
+"Fv256.Arm64.UnmarshalPost"
+],
 "Fv256.Arm64.UnmarshalSSZMain": [
 "Fv256.Arm64.UnmarshalSSZMain"
 ],
@@ -8842,6 +8916,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.Spec",
@@ -8852,6 +8927,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.Spec",
@@ -8862,6 +8938,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.Spec",
@@ -8872,6 +8949,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.Spec",
@@ -8882,6 +8960,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.Spec",
@@ -8892,6 +8971,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.Spec",
@@ -8906,6 +8986,7 @@
 "Fv256.Arm64.FromHexLib",
 "Fv256.Arm64.SfdTopSpec",
 "Fv256.Arm64.UnmarshalHex",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalSpec",
 "Fv256.Arm64.UnmarshalTextHead",
 "Fv256.HexLemmas",
@@ -8918,6 +8999,7 @@
 "Fv256.Arm64.UnmarshalTextWitB": [],
 "Fv256.Arm64.UnmarshalTextWitC": [
 "Fv256.Arm64.CallSites.Base",
+"Fv256.Arm64.UnmarshalPost",
 "Fv256.Arm64.UnmarshalTextHead"
 ],
 "Fv256.Arm64.Value": [
@@ -9124,7 +9206,9 @@
 "Fv256.HexLemmas": [
 "Fv256.HexLemmas"
 ],
-"Fv256.HexSpec": [],
+"Fv256.HexSpec": [
+"Fv256.HexSpec"
+],
 "Fv256.IbsA": [
 "Fv256.IndexByteSpec"
 ],
@@ -9193,13 +9277,19 @@
 "Fv256.RecipStages": [],
 "Fv256.ReduceProg": [],
 "Fv256.RlpArm": [
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
 "Fv256.RlpBytes": [
+"Fv256.RlpSpec",
 "Fv256.Spec"
 ],
-"Fv256.RlpLemmas": [],
-"Fv256.RlpSpec": [],
+"Fv256.RlpLemmas": [
+"Fv256.RlpSpec"
+],
+"Fv256.RlpSpec": [
+"Fv256.RlpSpec"
+],
 "Fv256.RshProg": [],
 "Fv256.SDivProg": [],
 "Fv256.SModProg": [],

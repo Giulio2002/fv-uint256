@@ -5,7 +5,7 @@ import Fv256.Spec.E
 import Fv256.Spec.C
 import Fv256.Proofs.Common.TextBridge
 import Fv256.Spec.Arm64.DecExt
-import Fv256.Proofs.Legacy.HexSpec
+import Fv256.Spec.HexSpec
 import Fv256.Spec.Arm64.PrettyDec
 import Fv256.Spec.Arm64.CallSites.Base
 import Fv256.Proofs.Arm64.PrettyDec
