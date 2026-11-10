@@ -14,7 +14,7 @@ set_option exponentiation.threshold 600
 
 namespace Fv256.Arm64.IMulMod
 
-theorem correctness (z x m : BitVec 64) :
+theorem correctness_proof (z x m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, m]
       (fun s => GuardOK s 816 ∧ s.sp.toNat % 16 = 0 ∧ 856 ≤ s.sp.toNat ∧ s.sp.toNat ≤ 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 856) 856 true = true ∧
@@ -28,7 +28,7 @@ theorem correctness (z x m : BitVec 64) :
   Fv256.Arm64.IMulModCore.correctness_param (Fv256.Arm64.MulModDefs.recipU_of Fv256.Arm64.RecipSeg.recip_summary)
     Fv256.Arm64.R4Seg.r4_summary z x m
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -81,8 +81,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m : BitVec 64), RetAddr Ex
         val256 s'.mem z.toNat = Fv256.F.mulmodSpec (val256 s.mem z.toNat) (val256 s.mem x.toNat) (val256 s.mem m.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 856, s.sp.toNat - 8)] :=
   ⟨ret, s0, z, x, m, hret, setup, hpre,
-    correctness z x m ret hret s0 setup hpre⟩
+    correctness_proof z x m ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.IMulMod

@@ -5,7 +5,6 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Amd64.IMulModCore
 import Fv256.Proofs.Amd64.ReduceSpec
 import Fv256.Proofs.Amd64.Reduce4
-import Fv256.Spec.Amd64.IMulMod
 
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
@@ -13,14 +12,17 @@ set_option exponentiation.threshold 600
 
 namespace Fv256.Amd64.IMulMod
 
-theorem correctness (z x m : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x, m] (Pre z x m)
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Amd64/IMulMod.lean` -/
+abbrev PreRaw := Fv256.Amd64.IMulModCore.Pre
+
+theorem correctness_proof (z x m : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, m] (PreRaw z x m)
       (fun s s' => s'.regs 0 = z ∧
         valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x3a8, (s.regs regSP).toNat)])  :=
   Fv256.Amd64.IMulModCore.correctness_param Fv256.Amd64.Reduce4.reduce4_summary z x m
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -51,21 +53,21 @@ theorem setup : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x
     rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2) with rfl | rfl | rfl <;> rfl, rfl⟩
 
 set_option maxRecDepth 100000 in
-theorem hpre : Pre z x m s0 := by
-  unfold Pre Fv256.Amd64.IMulModCore.Pre
+theorem hpre : PreRaw z x m s0 := by
+  unfold PreRaw Fv256.Amd64.IMulModCore.Pre
   refine ⟨⟨by decide, by decide, by decide⟩, by unfold regSP; decide, ⟨by decide, by decide, by decide⟩, ⟨by decide, by decide⟩,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, ?_⟩ <;>
     (first | ((try unfold Apart); (try unfold regSP); (try unfold regG); decide) | skip)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m] s ∧ Pre z x m s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m] s ∧ PreRaw z x m s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         valueAt s' z 32 = Fv256.F.mulmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x3a8, (s.regs regSP).toNat)] :=
   ⟨ret, s0, z, x, m, hret, setup, hpre,
-    correctness z x m ret hret s0 setup hpre⟩
+    correctness_proof z x m ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 
 end Fv256.Amd64.IMulMod

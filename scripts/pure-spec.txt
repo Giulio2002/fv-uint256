@@ -36,3 +36,12 @@ Spec/ExtendSign.lean
 Spec/ReverseBytes.lean
 Spec/Sqrt.lean
 Spec/ISqrt.lean
+Spec/IAddMod.lean
+Spec/MulMod.lean
+Spec/IMulMod.lean
+Spec/MulModWithReciprocal.lean
+Spec/IMulModWithReciprocal.lean
+Spec/MulDivOverflow.lean
+Spec/MulDivOverflowRem.lean
+Spec/Exp.lean
+Spec/IExp.lean

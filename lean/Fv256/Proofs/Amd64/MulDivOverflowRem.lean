@@ -27,7 +27,7 @@ theorem hcUmul : Janus.Contracts.EqHashModel.CodeIn64 Fv256.UmulProg.program Ext
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (z x y d m : BitVec 64) :
+theorem correctness_proof (z x y d m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, d, m]
       (fun s => StackGuardOK s 0x2a8 ∧ 0x300 ≤ (s.regs regSP).toNat ∧ StackWritable s 0x218 0x30 ∧
         Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧ Buffer s d 32 false ∧ Buffer s m 32 true ∧
@@ -95,7 +95,7 @@ theorem correctness (z x y d m : BitVec 64) :
     · rw [hq, hmulv]
   · janus_frame
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -151,11 +151,11 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d m : BitVec 64), RetAdd
         valueAt s' z 32 = Fv256.F.muldivSpec (valueAt s x 32) (valueAt s y 32) (valueAt s d 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32), ((s.regs regSP).toNat - 0x218, (s.regs regSP).toNat + 0x30)] :=
   ⟨ret, s0, z, x, x, x, m, hret, setup, hpre,
-    correctness z x x x m ret hret s0 setup hpre⟩
+    correctness_proof z x x x m ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧ s'.regs 3 = m ∧ (s'.regs 1).toNat % 256 = 0 ∧ valueAt s' z 32 = 0 ∧ valueAt s' m 32 = 0 := by
-  refine (correctness z x x x m ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x x x m ret hret s0 setup hpre).mono ?_
   intro s' h
   obtain ⟨h1, h2, h3, h4, h5, h6, -⟩ := h
   refine ⟨h1, h2, h3, ?_, ?_, ?_⟩
@@ -169,6 +169,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     simp only [valueAt, Fv256.F.mulmodSpec]
     decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.MulDivOverflowRem

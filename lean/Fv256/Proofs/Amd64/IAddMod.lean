@@ -4,7 +4,6 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Common.AddModProg
 import Fv256.Proofs.Amd64.AddModSum
 import Fv256.Proofs.Amd64.IAddModCore
-import Fv256.Spec.Amd64.IAddMod
 
 /-!
 # `(*uint256.Int).IAddMod(x, m *Int) *Int` (amd64): in place, `z = (z + x) mod m`
@@ -24,14 +23,17 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 
 namespace Fv256.Amd64.IAddMod
 
-theorem correctness (z x m : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, x, m] (Pre z x m)
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Amd64/IAddMod.lean` -/
+abbrev PreRaw := Fv256.Amd64.IAddModCore.Pre
+
+theorem correctness_proof (z x m : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, m] (PreRaw z x m)
       (fun s s' => s'.regs 0 = z ∧
         valueAt s' z 32 = Fv256.F.addmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x378, (s.regs regSP).toNat + 0x10)]) :=
   Fv256.Amd64.IAddModCore.correctness Fv256.Amd64.AddModSum.addmod_summary z x m
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -71,19 +73,19 @@ theorem dataLoaded : Extracted.program.DataLoaded s0.mem := by
   decide
 
 set_option maxRecDepth 100000 in
-theorem hpre : Pre z x m s0 := by
+theorem hpre : PreRaw z x m s0 := by
   refine ⟨⟨by decide, by decide, by decide⟩, by unfold regSP; decide, ⟨by decide, by decide, by decide⟩,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, ?_, ?_, ?_, ?_, ?_, dataLoaded⟩ <;>
     first | (unfold regSP regG; decide) | (unfold regSP; decide) | (unfold regG; decide) | decide
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x m : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m] s ∧ Pre z x m s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, x, m] s ∧ PreRaw z x m s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         valueAt s' z 32 = Fv256.F.addmodSpec (valueAt s z 32) (valueAt s x 32) (valueAt s m 32) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs regSP).toNat - 0x378, (s.regs regSP).toNat + 0x10)] :=
   ⟨ret, s0, z, x, m, hret, setup, hpre,
-    correctness z x m ret hret s0 setup hpre⟩
+    correctness_proof z x m ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.IAddMod

@@ -102,7 +102,7 @@ theorem mdor_summary : Summary Extracted.program Extracted.entry
   · exact Fv256.Arm64.MdorLemmas.tail_m _ s.sp.toNat _ _ _ _ (by omega) (by janus_assumption) (by janus_assumption)
   · janus_frame
 
-theorem correctness (z x y d m : BitVec 64) :
+theorem correctness_proof (z x y d m : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, d, m]
       (fun s => GuardOK s 512 ∧ s.sp.toNat % 16 = 0 ∧ 552 ≤ s.sp.toNat ∧ s.sp.toNat + 48 ≤ 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 552) (552 + 48) true = true ∧
@@ -151,7 +151,7 @@ theorem correctness (z x y d m : BitVec 64) :
     · simpa only [val256] using hv
     · simpa only [val256] using hmv
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -209,8 +209,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d m : BitVec 64), RetAdd
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (m.toNat, m.toNat + 32), (s.sp.toNat - 552, s.sp.toNat - 8),
           (s.sp.toNat + 8, s.sp.toNat + 48)] :=
   ⟨ret, s0, z, x, x, x, m, hret, setup, hpre,
-    correctness z x x x m ret hret s0 setup hpre⟩
+    correctness_proof z x x x m ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.MulDivOverflowRem

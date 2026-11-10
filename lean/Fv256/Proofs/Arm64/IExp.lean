@@ -5,7 +5,6 @@ import Fv256.Proofs.Common.SpecF
 import Fv256.Proofs.Arm64.SummaryEnsures
 import Fv256.Proofs.Arm64.ExpMain
 import Fv256.Proofs.Arm64.CodeIn
-import Fv256.Spec.Arm64.IExp
 
 /-!
 # `(*uint256.Int).IExp(exponent *Int) *Int` (arm64): in place, `z = z ** exponent mod 2^256`
@@ -24,6 +23,13 @@ The callee is used through the verified summary `Fv256.Arm64.ExpMain.exp_summary
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.IExp
+
+/-- (proof-internal) the precondition in raw form; the readable statement is `Fv256/Arm64/IExp.lean` -/
+abbrev PreRaw (z e : BitVec 64) : State → Prop :=
+  fun s => GuardOK s 80 ∧ StackOK s 216 8 ∧ 384 ≤ s.sp.toNat ∧
+    ((s.regs 28).toNat + 24 ≤ s.sp.toNat - 216 ∨ s.sp.toNat + 8 ≤ (s.regs 28).toNat + 16) ∧
+    Ptr32 s.mem z true ∧ Ptr32 s.mem e false ∧
+    Disjoint z.toNat 32 (s.sp.toNat - 216) 208 ∧ Disjoint e.toNat 32 (s.sp.toNat - 216) 208 ∧ Extracted.program.DataLoaded s.mem
 
 set_option maxRecDepth 200000 in
 theorem hcLib : Janus.Contracts.EqHashModel.CodeIn Fv256.Arm64.ExpProg.program Extracted.program :=
@@ -71,8 +77,8 @@ theorem iexp_summary_ex : Summary Extracted.program Extracted.entry
   refine ⟨by janus_assumption, ?_⟩
   janus_frame
 
-theorem correctness (z e : BitVec 64) :
-    Ensures Extracted.program Extracted.entry [z, e] (Pre z e)
+theorem correctness_proof (z e : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, e] (PreRaw z e)
       (fun s s' => s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.expSpec (val256 s.mem z.toNat) (val256 s.mem e.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 216, s.sp.toNat - 8)]) := by
@@ -98,7 +104,7 @@ theorem correctness (z e : BitVec 64) :
     rw [e0] at hf h0
     exact ⟨⟨hsp2, h28, h29, h18⟩, h0, hv, hf⟩
 
-namespace Witness
+namespace Wit
 
 def retW : Nat := 0x1000
 def sp0 : Nat := 0x100000
@@ -139,19 +145,19 @@ theorem dataLoadedW : Extracted.program.DataLoaded s0.mem := by
   decide
 
 set_option maxRecDepth 100000 in
-theorem hpreW : Pre zW xW s0 := by
+theorem hpreW : PreRaw zW xW s0 := by
   refine ⟨by unfold GuardOK; decide, by unfold StackOK; decide, by decide, by decide,
     ⟨by decide, by decide⟩, ⟨by decide, by decide⟩, ?_, ?_, dataLoadedW⟩ <;>
     (unfold Disjoint; decide)
 
 theorem nonvacuous : ∃ (ret : Nat) (s : State) (z e : BitVec 64), RetAddr Extracted.program ret ∧
-    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, e] s ∧ Pre z e s ∧
+    CallSetup (Extracted.program.withExit ret) Extracted.entry [z, e] s ∧ PreRaw z e s ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ s'.regs 0 = z ∧
         val256 s'.mem z.toNat = Fv256.F.expSpec (val256 s.mem z.toNat) (val256 s.mem e.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 216, s.sp.toNat - 8)] :=
   ⟨retW, s0, zW, xW, hretW, setupW, hpreW,
-    correctness zW xW retW hretW s0 setupW hpreW⟩
+    correctness_proof zW xW retW hretW s0 setupW hpreW⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.IExp

@@ -108,7 +108,7 @@ theorem mdo_summary : Summary Extracted.program Extracted.entry
     refine ⟨Fv256.F.flag64 _ _ ⟨fun ⟨⟨⟨a, b⟩, c⟩, d⟩ => ⟨d, c, a, b⟩, fun ⟨d, c, a, b⟩ => ⟨⟨⟨a, b⟩, c⟩, d⟩⟩ _ key.1, key.2, ?_⟩
     janus_frame
 
-theorem correctness (z x y d : BitVec 64) :
+theorem correctness_proof (z x y d : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x, y, d]
       (fun s => GuardOK s 512 ∧ s.sp.toNat % 16 = 0 ∧ 552 ≤ s.sp.toNat ∧ s.sp.toNat + 40 ≤ 2 ^ 48 ∧
         s.mem.accessible (s.sp.toNat - 552) 592 true = true ∧
@@ -151,7 +151,7 @@ theorem correctness (z x y d : BitVec 64) :
     · exact hflag
     · exact hv
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -198,8 +198,8 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x y d : BitVec 64), RetAddr 
         val256 s'.mem z.toNat = Fv256.F.muldivSpec (val256 s.mem x.toNat) (val256 s.mem y.toNat) (val256 s.mem d.toNat) ∧
         MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), (s.sp.toNat - 552, s.sp.toNat + 40)] :=
   ⟨ret, s0, z, x, x, x, hret, setup, hpre,
-    correctness z x x x ret hret s0 setup hpre⟩
+    correctness_proof z x x x ret hret s0 setup hpre⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.MulDivOverflow
