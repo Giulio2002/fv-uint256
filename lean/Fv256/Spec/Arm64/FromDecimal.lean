@@ -34,7 +34,7 @@ def cfg : SfdCfg :=
     Extracted.program.contractAddr "runtime.gcWriteBarrier2")
 
 open Fv256.C in
-def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
+def PreFd (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
   Fv256.Arm64.FromDecimalSpec.PreC cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
   Extracted.program.DataLoaded s.mem
 

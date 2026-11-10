@@ -70,7 +70,7 @@ theorem frame_comp (m c w m' : Memory) (rt : List (Nat × Nat)) (sp wa v : Nat) 
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (P : PanicRuntime) (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64)
+theorem correctness_proof (P : PanicRuntime) (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64)
     (hnew : NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     EnsuresGo (Extracted.program.link impl) Extracted.entry [hp, len]
@@ -262,7 +262,8 @@ theorem correctness (P : PanicRuntime) (impl : List Segment) (rt : List (Nat × 
 Same pattern as `FromBig`: a two-instruction allocator placed at `runtime.newobject` (`MOVZ X0, #1, LSL #16; RET`) returns the
 start of a 64 KiB zeroed heap; `H` says the argument is a type descriptor of at most 32 KiB inside `rt`; `hnew` is proved by
 running that code; `s0` is a concrete call of `MustFromHex` on the string `"0x1f"` satisfying the whole precondition. -/
-namespace Witness
+namespace Wit
+open Witness
 
 open Janus.Contracts.IfaceModel
 
@@ -488,8 +489,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
       | .goexited _ => False := by
   refine ⟨impl, rt, H, hpp, 4, (Janus.Contracts.PanicModel.P0 [] 0), ret, s0, hnew, hret, setup, ?w3,
     ⟨wsNew, rfl, wsNew_pre⟩,
-    correctness (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup (?w3).2⟩
+    correctness_proof (Janus.Contracts.PanicModel.P0 [] 0) impl rt H hpp 4 hnew ret hret s0 setup (?w3).2⟩
   case w3 => exact ⟨trivial, pre⟩
-end Witness
+end Wit
 
 end Fv256.Arm64.MustFromHex

@@ -49,7 +49,7 @@ theorem fromHex_summary (z hp len : BitVec 64) :
 
 set_option maxHeartbeats 16000000 in
 set_option maxRecDepth 100000 in
-theorem correctness (z hp len : BitVec 64) :
+theorem correctness_proof (z hp len : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, hp, len]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 48 24 ∧ Buffer s z 32 true ∧ Buffer s hp len.toNat false ∧
         Extracted.program.DataLoaded s.mem ∧ s.mem.accessible errBase 96 false = true ∧
@@ -145,7 +145,7 @@ theorem correctness (z hp len : BitVec 64) :
       exact ⟨a, b⟩
 
 
-namespace Witness
+namespace Wit
 
 /-- the string `"0x1f"` at `0x30800`, and non-nil package error variables at `5995344 + 16 k` -/
 def wEntries : List (Nat × Nat) :=
@@ -222,13 +222,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z hp len : BitVec 64), RetAddr
         Janus.MemFrame s.mem s'.mem [(z.toNat, z.toNat + 32), ((s.regs 4).toNat + 16, (s.regs 4).toNat + 24),
           ((s.regs 4).toNat - 48, (s.regs 4).toNat)] :=
   ⟨ret, s0, zp, hpp, 4, hret, setup, hpre,
-    correctness zp hpp 4 ret hret s0 setup hpre⟩
+    correctness_proof zp hpp 4 ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 /-- `"0x1f"` parses to `31`: the call returns no error and stores `31`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = 0 ∧ s'.regs 3 = 0 ∧ Janus.Spec.val256 s'.mem zp.toNat = 31 := by
-  refine (correctness zp hpp 4 ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof zp hpp 4 ret hret s0 setup hpre).mono ?_
   intro s' h
   have hb : ∀ k, bytesAt s0.mem hpp.toNat k = s0.mem.readLE (hpp.toNat + k) 1 := fun k => rfl
   have hp : parseHex (bytesAt s0.mem hpp.toNat) (4 : BitVec 64).toNat = Except.ok 31 := by
@@ -244,6 +244,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   obtain ⟨a, b, c⟩ := h.2.1 31 hp
   exact ⟨h.1, a, b, c⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SetFromHex

@@ -13,7 +13,7 @@ addresses, with synthetic contents), the four multiplier objects `10^(19 k)`, `z
 open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spec.Type Janus.Contracts Fv256.I
   Fv256.Amd64.SfdTopSpec Fv256.Amd64.SfdTopCfg
 
-namespace Fv256.Amd64.SetFromDecimal.Witness
+namespace Fv256.Amd64.SetFromDecimal.Wit
 
 set_option maxRecDepth 100000
 
@@ -213,4 +213,4 @@ theorem hret : RetAddr (Extracted.program.link implA) retW := RetAddr.of_check (
 theorem setup : CallSetup ((Extracted.program.link implA).withExit retW) Extracted.entry [zV, pSV, nSV] s0 :=
   ⟨rfl, by decide, rfl, by decide, by intro i h; match i, h with | 0, _ => rfl | 1, _ => rfl | 2, _ => rfl, rfl⟩
 
-end Fv256.Amd64.SetFromDecimal.Witness
+end Fv256.Amd64.SetFromDecimal.Wit

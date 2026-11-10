@@ -12,7 +12,7 @@ The model implementations of `Janus.Contracts.IfaceSat` (`ifaceeq`, for the inte
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Map Janus.Spec.Type Janus.Contracts
   Janus.Contracts.Iface Janus.Contracts.IfaceModel Janus.Contracts.Cmpstring Janus.Contracts.IfaceSat
 
-namespace Fv256.Arm64.SetFromDecimal.Witness
+namespace Fv256.Arm64.SetFromDecimal.Wit
 
 set_option maxRecDepth 100000
 
@@ -134,4 +134,4 @@ theorem hcmp : CmpstringContract (Extracted.program.ofImpl implA) cmA 16 := hcmp
 theorem implOK : ImplApart Extracted.program implA := by
   unfold ImplApart; constructor <;> decide
 
-end Fv256.Arm64.SetFromDecimal.Witness
+end Fv256.Arm64.SetFromDecimal.Wit

@@ -15,17 +15,22 @@ Strings are modelled as lists of byte values (`List Nat`).
 
 namespace Fv256.Spec
 
-/-- The outcome of `SetFromDecimal`: the parsed number, or one of the three documented errors. -/
-inductive DecResult where
-  /-- success: `z` becomes this number (and `err = nil`) -/
-  | ok (value : Nat)
-  /-- `err = io.EOF`: no digits at all after the optional `+` -/
-  | eof
-  /-- `err = ErrBig256Range`: the number does not fit in 256 bits -/
-  | range
-  /-- `err = *strconv.NumError{Err: ErrSyntax}` whose `Num` is the chunk `s[start, start + len)` of the original string -/
-  | badSyntax (start len : Nat)
-  deriving DecidableEq, Repr
+/-- The outcome of `SetFromDecimal`: the parsed number, or one of the three documented errors. It is a sum of core types (`Nat ⊕ Unit ⊕
+Unit ⊕ Nat × Nat`) so that statements about it use only plain definitions; the four named constructors below are what to read
+and write (they are also usable as patterns). -/
+abbrev DecResult : Type := Nat ⊕ Unit ⊕ Unit ⊕ (Nat × Nat)
+
+/-- success: `z` becomes this number (and `err = nil`) -/
+@[match_pattern] def DecResult.ok (value : Nat) : DecResult := .inl value
+
+/-- `err = io.EOF`: no digits at all after the optional `+` -/
+@[match_pattern] def DecResult.eof : DecResult := .inr (.inl ())
+
+/-- `err = ErrBig256Range`: the number does not fit in 256 bits -/
+@[match_pattern] def DecResult.range : DecResult := .inr (.inr (.inl ()))
+
+/-- `err = *strconv.NumError{Err: ErrSyntax}` whose `Num` is the chunk `s[start, start + len)` of the original string -/
+@[match_pattern] def DecResult.badSyntax (start len : Nat) : DecResult := .inr (.inr (.inr (start, len)))
 
 /-- ASCII decimal digit `'0'..'9'`. -/
 def isDigit (c : Nat) : Bool := 48 ≤ c && c ≤ 57

@@ -323,7 +323,7 @@ theorem hexloop (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtRead
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => StackGuardOK s 0 ∧ StackWritable s 4208 8 ∧ Extracted.program.DataLoaded s.mem ∧ s.xmm 15 = 0 ∧
@@ -527,7 +527,7 @@ theorem csSb_pre : RtPre64 rtW 4096 H1 (slicebytetostringSpec Extracted.dataAddr
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
-theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
+theorem nonvacuous_proof : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : Amd64.State) (z : BitVec 64),
     RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
     (∃ s_c : Amd64.State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.slicebytetostring") ∧
       RtPre64 rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») s_c) ∧
@@ -543,7 +543,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ HexOut (valueAt s z 32) s'.mem (s'.regs 0).toNat (s'.regs 3).toNat ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4208, (s.regs 4).toNat + 8)]) := by
   refine ⟨implAt, rtW, H1, ret, s0, arg, model, ⟨csSb, csSb_rip, csSb_pre⟩, ?w1, ?w2, pre,
-    correctness implAt rtW H1 arg model ret ?w1 s0 ?w2 pre⟩
+    correctness_proof implAt rtW H1 arg model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
 

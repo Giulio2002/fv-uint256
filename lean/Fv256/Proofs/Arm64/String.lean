@@ -18,7 +18,7 @@ namespace Fv256.Arm64.String
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => GuardOK s (688 + 32) ∧ StackOK s 4640 8 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -60,7 +60,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
       intro a n h; exact ⟨h, h⟩
     exact h1.trans hfr1 fun a n h => ⟨h, h⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.Sat
 
@@ -167,9 +167,9 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4640, s.sp.toNat + 8)]) := by
   refine ⟨implAt, rtW, H0, ret, s0, arg, model, ?w1, ?w2, pre,
     ⟨csSb, rfl, csSb_pre⟩,
-    correctness implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
+    correctness_proof implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
-end Witness
+end Wit
 
 end Fv256.Arm64.String

@@ -33,7 +33,7 @@ set_option linter.unusedSimpArgs false
 
 namespace Fv256.Arm64.Format
 
-theorem correctness (impl : List Janus.Segment) (hI : ImplApart Extracted.program impl)
+theorem correctness_proof (impl : List Janus.Segment) (hI : ImplApart Extracted.program impl)
     (R : IfaceModel) (hl : R.Laws) (H : Janus.Contracts.RtReady)
     (hta : Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H)
@@ -219,7 +219,7 @@ namespace Witness
 
 /-- The fast path (`z = 16`, verb `d`, every query answered plain): all hypotheses of `correctness`, the toy runtime and callees, and the
 precondition hold together. -/
-theorem nonvacuous : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fa : Nat) (Rc Rd : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
     (ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
@@ -262,11 +262,11 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R
           BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, ⟨h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩, hcs⟩ := Fv256.Arm64.FormatWitB.nonvacuous_core
   exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, ⟨h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩, hcs,
-    correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
+    correctness_proof impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 
 /-- The nil receiver (`z = 0`). -/
-theorem nil : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+theorem nil_proof : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fa : Nat) (Rc Rd : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
     (ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
@@ -309,11 +309,11 @@ theorem nil : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtI
           BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, ⟨h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩, hcs⟩ := Fv256.Arm64.FormatWitN.nil_core
   exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9⟩, ⟨h10, h11, h12, h13, h14, h15, hret, hsetup, hp16⟩, hcs,
-    correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (0) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
+    correctness_proof impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (0) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 
 /-- The big path (`z = 16`, the callees answer "has width"): the toy allocator `R2` is satisfiable and serves `IntoBig`'s requests. -/
-theorem big : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+theorem big_proof : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (fa : Nat) (Rc Rd : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
     (ImplApart Extracted.program impl ∧ R.Laws ∧
     Janus.Contracts.Iface.TypeAssert (Extracted.program.link impl)
@@ -359,7 +359,7 @@ theorem big : ∃ (impl : List Segment) (R : IfaceModel) (H : RtReady) (R2 : RtI
           BigPost R2 rt 4608 fa fa fa Rc Rc Rc Rd tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, ⟨h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18⟩, hcs⟩ := Fv256.Arm64.FormatWitG.big_core
   exact ⟨impl, R, H, R2, rt, fa, Rc, Rd, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩, ⟨h11, h12, h13, h14, h15, hret, hsetup, hp16, hp17, hp18⟩, hcs,
-    correctness impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
+    correctness_proof impl h1 R h2 H h3 R2 h4 h5 h6 rt h7 h8 (fa) (fa) (fa) (fa) (4608) (0x400) (16) (Rc) (Rc) (Rc) (Rc) (Rd) (Rd) h9 z tab data ch h10 h11 h12 h13 h14 h15 ret hret s hsetup hp16⟩
 
 end Witness
 

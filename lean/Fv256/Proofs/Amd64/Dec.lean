@@ -16,7 +16,7 @@ set_option maxRecDepth 100000 in
 theorem decE_entry : decE = Extracted.entry := by unfold decE; decide
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => StackGuardOK s 0x378 ∧ StackWritable s 4568 8 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -41,7 +41,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
               exact Nat.lt_of_lt_of_le hret.user (by decide)⟩)
           (fun ret s s' hret hs hp hq => ⟨⟨hq.2.1, hq.2.2.1, hq.2.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2.1⟩)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.SatAmd64
 open Janus.Contracts.Sat (rtW H0)
@@ -162,10 +162,10 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (decBytes (valueAt s z 32)) ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4568, (s.regs 4).toNat + 8)]) := by
   refine ⟨implAt, rtW, H0, ret, s0, arg, model, ⟨csSs, csSs_rip, csSs_pre⟩, ?w1, ?w2, pre,
-    correctness implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
+    correctness_proof implAt rtW H0 arg model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Dec

@@ -303,7 +303,7 @@ theorem hexloop (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z 
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract ((Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).Hex"]).link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures ((Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).Hex"]).link impl) (Extracted.entry + 0x1c60) [z]
       (fun s => GuardOK s 0 ∧ StackOK s 4208 8 ∧ Extracted.program.DataLoaded s.mem ∧

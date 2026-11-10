@@ -44,7 +44,7 @@ theorem retok_of {p : Janus.Amd64.Program} {ret entry : Nat} {args : List Janus.
 
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64)
     (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
     (hnew : NewobjectLiveContract64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.newobject") 4096 R)
@@ -63,7 +63,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T
     (fun ret s hret hs hp => ⟨retok_of hret hs hp.2.2.2.2.1.1 hp.2.2.2.2.1.2.1 hp.2.2.2.2.1.2.2.2.2.1, hp⟩)
     (fun ret s s' hret hs hp hq => ⟨⟨hq.1.2.1, hq.1.2.2.1, hq.1.2.2.2.1, hq.1.2.2.2.2.1⟩, hq⟩)
 
-namespace Witness
+namespace Wit
 
 open Fv256.CallSites
 
@@ -141,7 +141,7 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceMode
     TopPre0 extCfg R R2 T b L lo hi z pS nS s ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ TopPost extCfg R R2 T b L lo hi z pS nS s s' := by
   refine ⟨implA, R, R0, TD, 0x400, [], loW, hiW, zV, pSV, nSV, retW, s0, ?w0, ?w1, ?w2, ?w3, ?w4, ?w5, ?w6, ⟨[], 0x400, csNew, csNew_rip, csNew_pre⟩, ⟨[], 0x400, csMg, csMg_rip, csMg_pre⟩, ⟨[], 0x400, csMv, csMv_rip, csMv_pre⟩, ⟨[], 0x400, csW1, csW1_rip, csW1_pre⟩, ⟨[], 0x400, csW2, csW2_rip, csW2_pre⟩, ⟨csCm, csCm_rip, csCm_pre⟩, ⟨csIf, csIf_rip, csIf_pre⟩, hret, setup, pre0.2,
-    correctness implA R R0 TD 0x400 ([]) loW hiW zV pSV nSV ?w0 ?w1 ?w2 ?w3 ?w4 ?w5 ?w6 retW hret s0 setup pre0.2⟩
+    correctness_proof implA R R0 TD 0x400 ([]) loW hiW zV pSV nSV ?w0 ?w1 ?w2 ?w3 ?w4 ?w5 ?w6 retW hret s0 setup pre0.2⟩
   case w0 => exact by rw [addr_if]; exact model_if
   case w1 => exact by rw [addr_new]; exact model_new
   case w2 => exact by rw [addr_mg]; exact model_mg
@@ -150,6 +150,6 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (R2 : IfaceMode
   case w5 => exact by rw [addr_w2]; exact model_wb2
   case w6 => exact by rw [addr_cm]; exact hcmp
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SetFromDecimal

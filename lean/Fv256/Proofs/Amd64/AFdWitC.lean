@@ -217,11 +217,11 @@ theorem initDone0 : InitDone cfg (R3 TW) s0.mem := by
   rw [cfg_lit]
   exact ⟨by decide, by decide, by decide, by decide, fun r hr => by simp only [R3_priv, List.mem_singleton] at hr; subst hr; simp⟩
 
-theorem pre0 : Fv256.Amd64.FromDecimal.Pre R (R3 TW) TW 0x400 [] loW hiW pSV nSV s0 := by
+theorem pre0 : Fv256.Amd64.FromDecimal.PreFd R (R3 TW) TW 0x400 [] loW hiW pSV nSV s0 := by
   have hm := maxdig0
   have hc := chunk0
   have hi := initDone0
-  unfold Fv256.Amd64.FromDecimal.Pre PreC0
+  unfold Fv256.Amd64.FromDecimal.PreFd PreC0
   refine ⟨⟨rfl, rfl, mod0, env0, ?_, ?_, ?_, ?_, mult0, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hi, ?_, ?_, ?_, hm, ?_,
     ?_, ?_, hc⟩, dataLoaded0⟩
   all_goals first
@@ -312,7 +312,7 @@ theorem nonvacuous_core : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 
     (∃ s_c : State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ Fv256.CallSites.IfaceeqSite R2 s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    Fv256.Amd64.FromDecimal.Pre R R2 T b L lo hi pS nS s :=
+    Fv256.Amd64.FromDecimal.PreFd R R2 T b L lo hi pS nS s :=
   ⟨implA, R, R3 TW, TW, 0x400, [], loW, hiW, pSV, nSV, retW, s0,
     by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,

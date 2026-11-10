@@ -41,7 +41,7 @@ theorem caddr (n : String) (h : n = "runtime.cmpstring" ∨ n = "runtime.ifaceeq
 
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pS nS : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hif : Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
@@ -99,7 +99,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
   · intro ret hret s hsu hP s' hq
     exact ⟨⟨hq.1, hq.2.2.1, hq.2.1, hq.2.2.2.1⟩, hq⟩
 
-namespace Witness
+namespace Wit
 
 /-- Non-vacuity: a concrete runtime (stub code at the contract addresses, toy allocator `R`, interface model `R0`), a stack
 window and a call `SetFromDecimal(z, "7")` satisfy EVERY hypothesis of `correctness` (the `ImplApart` premise, the seven runtime
@@ -129,8 +129,8 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ TopPost cfgE R R2 T b L lo hi z pS nS s s' := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7⟩ := nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7,
-    correctness impl R R2 T b L lo hi z pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
+    correctness_proof impl R R2 T b L lo hi z pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.SetFromDecimal

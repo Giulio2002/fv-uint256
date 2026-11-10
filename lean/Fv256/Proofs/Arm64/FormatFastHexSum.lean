@@ -36,6 +36,6 @@ theorem hx_Hex (impl : List Segment) (hI : ImplApart Extracted.program impl) :
 def hex_summary (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64) (hI : ImplApart Extracted.program impl)
     (hc : RtContract (P0H impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
       (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :=
-  Ensures.toSummaryIn (Fv256.Arm64.FM.Hex.correctness impl rt H z hc) (hx_Hex impl hI) (hc_Hex impl hI)
+  Ensures.toSummaryIn (Fv256.Arm64.FM.Hex.correctness_proof impl rt H z hc) (hx_Hex impl hI) (hc_Hex impl hI)
 
 end Fv256.Arm64.FormatFast

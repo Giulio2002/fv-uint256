@@ -237,12 +237,12 @@ theorem panicInit0 : PanicInit cfg R (R3 TW) loW hiW s0.mem := by
   · rw [cfg_lit]; simp only [R3_priv]; apply outside_of_decide; decide
   · rw [cfg_lit]; decide
 
-theorem pre0 : Fv256.Amd64.MustFromDecimal.Pre R (R3 TW) TW 0x400 [] loW hiW pSV nSV s0 := by
+theorem pre0 : Fv256.Amd64.MustFromDecimal.PreFd R (R3 TW) TW 0x400 [] loW hiW pSV nSV s0 := by
   have hm := maxdig0
   have hc := chunk0
   have hi := initDone0
   have hp := panicInit0
-  unfold Fv256.Amd64.MustFromDecimal.Pre PreC0
+  unfold Fv256.Amd64.MustFromDecimal.PreFd PreC0
   refine ⟨⟨rfl, rfl, mod0, env0, ?_, ?_, ?_, ?_, mult0, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hi, ?_, ?_, ?_, hm, ?_,
     ?_, ?_, hc⟩, dataLoaded0, hp⟩
   all_goals first
@@ -333,7 +333,7 @@ theorem nonvacuous_core : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 
     (∃ s_c : State, s_c.rip = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.ifaceeq") ∧ Fv256.CallSites.IfaceeqSite R2 s_c) ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    (pinPanicRuntime P ∧ Fv256.Amd64.MustFromDecimal.Pre R R2 T b L lo hi pS nS s) :=
+    (pinPanicRuntime P ∧ Fv256.Amd64.MustFromDecimal.PreFd R R2 T b L lo hi pS nS s) :=
   ⟨implA, R, R3 TW, TW, 0x400, [], loW, hiW, pSV, nSV, Janus.Contracts.PanicModel.P0 [] 0, retW, s0,
     by rw [addr_if]; exact model_if, by rw [addr_new]; exact model_new, by rw [addr_mg]; exact model_mg,
     by rw [addr_mv]; exact model_mv, by rw [addr_w1]; exact model_wb1, by rw [addr_w2]; exact model_wb2,

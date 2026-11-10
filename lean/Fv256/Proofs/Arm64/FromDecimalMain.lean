@@ -39,7 +39,7 @@ theorem sfdEntry_eq : Fv256.Arm64.FromDecimal.sfdEntry = 0xb89b0 := by decide
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
 open Fv256.C in
-theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (pS nS : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hif : Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
@@ -50,7 +50,7 @@ theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T
     (hwb2 : WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hcmp : Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.cmpstring") 16) :
-    Ensures (Extracted.program.link impl) Extracted.entry [pS, nS] (Pre R R2 T b L lo hi pS nS)
+    Ensures (Extracted.program.link impl) Extracted.entry [pS, nS] (PreFd R R2 T b L lo hi pS nS)
       (fun s s' =>
         (∀ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v →
           ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 R.rt ∧ val256 s'.mem ptr = v ∧ s'.regs 1 = 0 ∧ s'.regs 2 = 0) ∧
@@ -110,9 +110,9 @@ theorem correctness (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T
       (Extracted.program.contractAddr "runtime.newobject") 4096 R := NewobjectLiveContract.of_codeIn hc4 hnew
   exact Fv256.Arm64.FromDecimal.correctness_cond impl R R2 T b L lo hi pS nS hnew'' hsfd
 
-namespace Witness
+namespace Wit
 set_option maxRecDepth 100000 in
-/-- non-vacuity: a concrete runtime (stub contracts), a 48-digit decimal string, and a call state with `Pre`, `DataLoaded` of the real data -/
+/-- non-vacuity: a concrete runtime (stub contracts), a 48-digit decimal string, and a call state with `PreFd`, `DataLoaded` of the real data -/
 theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (pS nS : BitVec 64) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
@@ -126,7 +126,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    Fv256.Arm64.FromDecimal.Pre R R2 T b L lo hi pS nS s ∧
+    Fv256.Arm64.FromDecimal.PreFd R R2 T b L lo hi pS nS s ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 s_c) ∧
@@ -145,8 +145,8 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi)]) := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7⟩ := Fv256.Arm64.FdWit.nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7,
-    correctness impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
+    correctness_proof impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup hp9⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.FromDecimalMain

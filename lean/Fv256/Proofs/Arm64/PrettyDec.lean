@@ -27,7 +27,7 @@ set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 /-- `PrettyDec(separator)` returns the decimal digits of `*z` with `separator` between every three digits counted from
 the right (`1234567` becomes `1,234,567` for `','`), and `"0"` for zero.  The result is the string at `(X0, X1)`. -/
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z sep : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z sep : BitVec 64)
     (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, sep]
       (fun s => GuardOK s 704 ∧ StackOK s 4608 24 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -50,7 +50,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
   · intro ret s s' hret hs hp hq
     exact ⟨⟨hq.2.1, hq.2.2.2.1, hq.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.Sat
 
@@ -181,9 +181,9 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4608, s.sp.toNat - 8), (s.sp.toNat + 16, s.sp.toNat + 17)]) := by
   refine ⟨implAt, rtW, H1, ret, s0, argz, 44, model, ?w1, ?w2, pre,
     ⟨csSb, rfl, csSb_pre⟩,
-    correctness implAt rtW H1 argz 44 model ret ?w1 s0 ?w2 pre⟩
+    correctness_proof implAt rtW H1 argz 44 model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
-end Witness
+end Wit
 
 end Fv256.Arm64.PrettyDec
