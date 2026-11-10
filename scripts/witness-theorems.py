@@ -13,6 +13,14 @@ out = []
 pos = 0
 tok = re.compile(r'^[ \t]*(namespace\s+(\S+)|end\s+(\S+)|(?:private\s+)?theorem\s+(\S+))', re.M)
 ms = list(tok.finditer(src))
+# fully qualified names of the theorems declared outside any Witness namespace (candidate mains)
+mains = set(); _ns = []
+for m in ms:
+    if m.group(2): _ns.append(m.group(2)); continue
+    if m.group(3):
+        if _ns and _ns[-1] == m.group(3): _ns.pop()
+        continue
+    if not any('Witness' in n for n in _ns): mains.add('.'.join(_ns + [m.group(4)]))
 for k, m in enumerate(ms):
     if m.group(2): ns.append(m.group(2)); continue
     if m.group(3):
@@ -34,4 +42,10 @@ for k, m in enumerate(ms):
     # (the other witness theorems stay in the module and are kernel-checked with it, but are not audited as witnesses)
     if name == 'nonvacuous' and re.match(r'\s*:\s*∃', flat):
         out.append('.'.join(ns + [name]) if not name.startswith('_root_') else name)
+    # instruction-count bounds (Janus v0.3.0): the extra mains `within` / `atLeast` and their tied `Witness.within` / `Witness.atLeast`
+    # (strict by-name pairing) are passed together, so a row that states them verifies both; rows without them are unchanged
+    elif name in ('within', 'atLeast') and ns and ns[-1] == 'Witness' and re.match(r'\s*:\s*∃', flat):
+        main = '.'.join(ns[:-1] + [name])
+        if main in mains:
+            out.append(main); out.append('.'.join(ns + [name]))
 print('\n'.join(out))
