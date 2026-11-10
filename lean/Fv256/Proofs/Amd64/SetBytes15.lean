@@ -22,7 +22,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.SetBytes15
 
 set_option maxHeartbeats 8000000 in
-theorem correctness (z ptr len cap : BitVec 64) :
+theorem correctness_proof (z ptr len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, ptr, len, cap]
       (fun s => 15 ≤ len.toNat ∧ StackWritable s 8 24 ∧ Buffer s z 32 true ∧ Buffer s ptr 15 false ∧
         (z.toNat + 32 ≤ ptr.toNat ∨ ptr.toNat + 15 ≤ z.toNat) ∧
@@ -41,7 +41,7 @@ theorem correctness (z ptr len cap : BitVec 64) :
   · simp (disch := omega) only [Util.ow2_wl_iff, Util.ow2_wr_iff, Util.ow2_self_iff]
 
 /-- Out of bounds (`len < 15`): `runtime.panicBounds`. -/
-theorem panics (z ptr len cap : BitVec 64) (hl : len.toNat < 15) (ret : Nat)
+theorem panics_proof (z ptr len cap : BitVec 64) (hl : len.toNat < 15) (ret : Nat)
     (hret : RetAddr Extracted.program ret) (s : State)
     (hs : CallSetup (Extracted.program.withExit ret) Extracted.entry [z, ptr, len, cap] s)
     (hpre : StackWritable s 16 24) : Panics (Extracted.program.withExit ret) s := by
@@ -50,7 +50,7 @@ theorem panics (z ptr len cap : BitVec 64) (hl : len.toNat < 15) (ret : Nat)
   simp only [regSP] at hacc hle hnw
   janus64_run
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -89,14 +89,14 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
         valueAt s' z 32 = Spec.fromBE (fun i => s.mem.readLE (ptr.toNat + i) 1) 15 ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 8) 32 :=
   ⟨ret, s0, z, ptr, 15, 15, hret, setup, hpre,
-    correctness z ptr 15 15 ret hret s0 setup hpre⟩
+    correctness_proof z ptr 15 15 ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧
       valueAt s' z 32 = Fv256.Spec.fromBE (fun i => s0.mem.readLE (ptr.toNat + i) 1) 15 ∧
       Fv256.Util.OnlyWrites2 s0.mem s'.mem z.toNat 32 ((s0.regs regSP).toNat - 8) 32 :=
-  (correctness z ptr 15 15 ret hret s0 setup hpre)
+  (correctness_proof z ptr 15 15 ret hret s0 setup hpre)
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SetBytes15

@@ -43,6 +43,7 @@ import Fv256.Spec.PrettyMath
 import Fv256.Spec.RecipSpec
 import Fv256.Spec.RlpSpec
 import Fv256.Spec.Scan
+import Fv256.Spec.SetBytes
 import Fv256.Spec.SumC64
 import Fv256.Spec.Txt
 import Fv256.Spec.Util

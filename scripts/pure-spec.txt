@@ -100,3 +100,4 @@ Spec/BitLen.lean
 Spec/ByteLen.lean
 Spec/Byte.lean
 Spec/Log10.lean
+Spec/SetBytes.lean

@@ -57,7 +57,7 @@ namespace Fv256.Amd64.SetBytes
 
 set_option maxHeartbeats 64000000 in
 set_option maxRecDepth 100000 in
-theorem correctness (z ptr len cap : BitVec 64) :
+theorem correctness_proof (z ptr len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, ptr, len, cap]
       (fun s => StackGuardOK s 48 ∧ StackWritable s 88 24 ∧ Extracted.program.DataLoaded s.mem ∧ len.toNat ≤ cap.toNat ∧
         cap.toNat < 2 ^ 48 ∧ Buffer s z 32 true ∧ Buffer s ptr len.toNat false ∧
@@ -169,7 +169,7 @@ theorem correctness (z ptr len cap : BitVec 64) :
     exact case31 z ptr cap ret hret s hs hpre
   · exact caseBig z ptr len cap hbig ret hret s hs hpre
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -229,7 +229,7 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z ptr len cap : BitVec 64), Re
           Spec.fromBE (fun i => s.mem.readLE (ptr.toNat + len.toNat - used len.toNat + i) 1) (used len.toNat) ∧
         Util.OnlyWrites2 s.mem s'.mem z.toNat 32 ((s.regs regSP).toNat - 88) 112 :=
   ⟨ret, s0, z, ptr, 10, 10, hret, setup, hpre,
-    correctness z ptr 10 10 ret hret s0 setup hpre⟩
+    correctness_proof z ptr 10 10 ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ s'.regs 0 = z ∧
@@ -237,8 +237,8 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
         Spec.fromBE (fun i => s0.mem.readLE (ptr.toNat + (10 : BitVec 64).toNat - used (10 : BitVec 64).toNat + i) 1)
           (used (10 : BitVec 64).toNat) ∧
       Util.OnlyWrites2 s0.mem s'.mem z.toNat 32 ((s0.regs regSP).toNat - 88) 112 :=
-  correctness z ptr 10 10 ret hret s0 setup hpre
+  correctness_proof z ptr 10 10 ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SetBytes
