@@ -10,8 +10,8 @@ import Fv256.Proofs.Common.Spec
 result (`AL`, the low byte of `RAX`) is `1` iff the 256-bit little-endian value at `x` is `0`
 (`Fv256.Spec.isZero`).
 
-**Non-vacuity.** `Witness.nonvacuous`: the precondition holds for a concrete call state;
-`Witness.returns`: that call returns `true` (the zero array).
+**Non-vacuity.** `Wit.nonvacuous`: the precondition holds for a concrete call state;
+`Wit.returns`: that call returns `true` (the zero array).
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec
@@ -26,7 +26,7 @@ theorem readLE_32 (m : Memory) (a : Nat) :
   simp only [Nat.add_assoc]
   omega
 
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => StackWritable s 0 8 ∧ Buffer s x 32 false)
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.isZero (valueAt s x 32)).toNat) := by
@@ -55,7 +55,7 @@ theorem correctness (x : BitVec 64) :
         6277101735386680763835789423207666416102355444464034512896 * d = 0) := by omega
     rw [if_neg h, beq_eq_false_iff_ne.2 h2]; decide
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -81,16 +81,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     (StackWritable s 0 8 ∧ Buffer s x 32 false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (Spec.isZero (valueAt s x 32)).toNat :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 1 := by
-  refine (correctness x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   rw [h.2]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.IsZero

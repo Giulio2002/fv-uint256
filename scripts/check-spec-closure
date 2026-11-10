@@ -48,7 +48,7 @@ for p, mods in sorted(lint_source.parse_imports(sorted(spec_files + ['lean/Fv256
             print('FAIL: %s imports %s (outside Fv256.Spec/Extracted/Janus/Lean/Std/Init)' % (p, m)); fail = 1
 # and nothing but Spec/Proofs/ root file lives under lean/Fv256
 for e in os.listdir('lean/Fv256'):
-    if e not in ('Spec', 'Proofs', 'Spec.lean', 'Amd64', 'Arm64'):
+    if e not in ('Spec', 'Proofs', 'Spec.lean', 'Amd64', 'Amd64v3', 'Arm64'):
         print('FAIL: unexpected lean/Fv256/%s (only Spec/, Amd64/, Arm64/, Proofs/ and the umbrella Spec.lean allowed)' % e); fail = 1
 # PURE specs (scripts/pure-spec.txt, one Spec/ module path per line, grows as functions are converted): ISA-independent math, so they
 # may import nothing but other Fv256.Spec modules (no Janus, no Extracted, no Proofs): `Spec/Add.lean` reads as plain mathematics.
@@ -60,12 +60,12 @@ for p, mods in sorted(lint_source.parse_imports(['lean/Fv256/' + q for q in pure
             print('FAIL: %s is a pure Spec file but imports %s (Spec/<Fn>.lean may import only Fv256.Spec.*)' % (p, m)); fail = 1
 # CLAIM files (lean/Fv256/{Amd64,Arm64}/*.lean): short commented claims; they may import Fv256.Spec.*, their own Machine file and the proof
 # module they delegate to (Fv256.Proofs.<Isa>.*), nothing else under Fv256.
-for isa in ('Amd64', 'Arm64'):
+for isa in ('Amd64', 'Amd64v3', 'Arm64'):
     d = 'lean/Fv256/' + isa
     cfs = [os.path.join(d, f) for f in sorted(os.listdir(d)) if f.endswith('.lean')] if os.path.isdir(d) else []
     for p, mods in sorted(lint_source.parse_imports(cfs).items()) if cfs else []:
         for m, fl in mods:
-            if m.split('.')[0] == 'Fv256' and not (m.startswith(('Fv256.Spec.', 'Fv256.Proofs.')) or m == 'Fv256.%s.Machine' % isa):
+            if m.split('.')[0] == 'Fv256' and not (m.startswith(('Fv256.Spec.', 'Fv256.Proofs.')) or m == 'Fv256.%s.Machine' % isa.replace('v3', '')):
                 print('FAIL: %s imports %s (claim files may import Fv256.Spec.*, Fv256.%s.Machine and Fv256.Proofs.* only)' % (p, m, isa)); fail = 1
 if structure_only:
     print('check-spec-closure --structure-only: %s (%d Spec files)' % ('FAILED' if fail else 'OK', nspec))
@@ -86,7 +86,7 @@ for key, v in sorted(sv.items()):
     for c in v['consts']:
         if any(c['name'].startswith(r + '.') for r in v['roots']):
             continue      # auxiliary constant of the final theorem's own statement (e.g. Witness.nonvacuous.match_1): part of the theorem
-        claim_mod = re.match(r'Fv256\.(Amd64|Arm64)\.\w+$', c['module']) is not None   # a claim module / Machine file (never Fv256.Proofs.*)
+        claim_mod = re.match(r'Fv256\.(Amd64v3|Amd64|Arm64)\.\w+$', c['module']) is not None   # a claim module / Machine file (never Fv256.Proofs.*)
         if c['module'].startswith('Fv256.Spec.') or c['module'] == 'Fv256.Spec' or claim_mod:
             mods.add(c['module'])
             if c['kind'] != 'thm':

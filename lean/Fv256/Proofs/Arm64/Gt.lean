@@ -9,14 +9,14 @@ import Fv256.Proofs.Common.Util
 (below `2^48`; they may be equal or overlap arbitrarily) the call returns (no fault, no panic), obeys the ABI, and
 the `bool` result is `Fv256.Spec.gt` of the number at the receiver and the number at `x` (low byte of `X0`), the numbers being read before the call.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `0`.
 -/
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.Gt
 
-theorem correctness (z x : BitVec 64) :
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => Ptr32 s.mem z false ∧ Ptr32 s.mem x false)
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.gt (val256 s.mem z.toNat) (val256 s.mem x.toNat)).toNat) := by
@@ -25,7 +25,7 @@ theorem correctness (z x : BitVec 64) :
   janus_run
   have := Util.readLE8_lt s.mem (z.toNat ); have := Util.readLE8_lt s.mem (z.toNat + 8); have := Util.readLE8_lt s.mem (z.toNat + 16); have := Util.readLE8_lt s.mem (z.toNat + 24); have := Util.readLE8_lt s.mem (x.toNat ); have := Util.readLE8_lt s.mem (x.toNat + 8); have := Util.readLE8_lt s.mem (x.toNat + 16); have := Util.readLE8_lt s.mem (x.toNat + 24); simp only [Spec.gt, Janus.Tactic.sub_flags_c, BitVec.toNat_not, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Util.readLE8_mod]; split <;> (simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod]; janus_arith)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -55,16 +55,16 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
     (Ptr32 s.mem z false ∧ Ptr32 s.mem x false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (Spec.gt (val256 s.mem z.toNat) (val256 s.mem x.toNat)).toNat :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 0 := by
-  refine (correctness z x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   rw [h.2]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.Gt

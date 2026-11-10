@@ -9,7 +9,7 @@ import Fv256.Proofs.Common.Util
 the 32 bytes at each are readable (below `2^48`; they may be equal or overlap arbitrarily) the call returns (no fault,
 no panic), obeys the ABI, and the `bool` result is `Fv256.Spec.sgt` of the number at the receiver and the number at `x` (`AL`, low byte of `RAX`), the numbers being read before the call.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call satisfies the precondition; `Witness.returns`: it returns `0`.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call satisfies the precondition; `Wit.returns`: it returns `0`.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
@@ -17,7 +17,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.Sgt
 
 set_option maxHeartbeats 8000000 in
-theorem correctness (z x : BitVec 64) :
+theorem correctness_proof (z x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, x]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false)
       (fun s s' => (s'.regs 0).toNat % 256 = (Spec.sgt (valueAt s z 32) (valueAt s x 32)).toNat) := by
@@ -30,7 +30,7 @@ theorem correctness (z x : BitVec 64) :
   all_goals (have hxt := Util.xor_top (s.mem.readLE (z.toNat + 24) 8) (s.mem.readLE (x.toNat + 24) 8) (by have := Util.readLE8_lt s.mem (z.toNat + 24); omega) (by have := Util.readLE8_lt s.mem (x.toNat + 24); omega); (try simp (disch := omega) only [Util.bvxor_toNat] at *))
   all_goals ((try simp only [Nat.or_eq_zero_iff, BitVec.toNat_or, BitVec.toNat_ofNat, Util.readLE8_mod, Nat.reducePow, Nat.reduceMod] at *); (try simp (disch := omega) only [Util.sgt_toNat]); (try simp only [BitVec.toNat_or, BitVec.toNat_setWidth, BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Nat.zero_or]); (repeat' split) <;> (try janus_decide_split) <;> (try simp only [BitVec.toNat_ofNat, Nat.reducePow, Nat.reduceMod, Util.msb_m1, Util.msb_0, Util.msb_1, Bool.false_eq_true, Bool.true_eq_false, Nat.reduceOr, Nat.reduceMod] at *) <;> first | (dec_facts; omega) | (simp only [not_true_eq_false] at *; done) | (try simp only [Util.dec_ite] at *) <;> omega)
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -59,17 +59,17 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z x : BitVec 64), RetAddr Extr
     (StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s x 32 false) ∧
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (s'.regs 0).toNat % 256 = (Spec.sgt (valueAt s z 32) (valueAt s x 32)).toNat :=
   ⟨ret, s0, z, x, hret, setup, hpre,
-    correctness z x ret hret s0 setup hpre⟩
+    correctness_proof z x ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 0 := by
-  refine (correctness z x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   rw [h.2]
   simp only [valueAt]
   decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Sgt

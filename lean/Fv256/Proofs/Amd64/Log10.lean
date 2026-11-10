@@ -34,7 +34,7 @@ callee's stack window and hold the powers of ten (only `10^20..10^77` of `pows` 
 **Note.** The default build uses `BSR` on the lowest limb, which may be zero (destination undefined by the ISA); the zero case holds for every value of
 that undefined result (it is replaced by `CMOVE`). Verified against the Janus BSF/BSR-of-zero model (`bsrbsf` branch); see `COVERAGE.md`.
 
-**Non-vacuity.** `Witness.nonvacuous`: a concrete call state (tables in memory) satisfies the preconditions; `Witness.returns`: for 12345 the call returns 4.
+**Non-vacuity.** `Wit.nonvacuous`: a concrete call state (tables in memory) satisfies the preconditions; `Wit.returns`: for 12345 the call returns 4.
 -/
 
 open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
@@ -386,7 +386,7 @@ theorem disp3 (x : BitVec 64) :
   · exact c3_64 x ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, lo, hi⟩
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (x : BitVec 64) :
+theorem correctness_proof (x : BitVec 64) :
     Ensures Extracted.program Extracted.entry [x]
       (fun s => StackWritable s 8 8 ∧ Buffer s x 32 false ∧
         (x.toNat + 32 ≤ (s.regs regSP).toNat - 8 ∨ (s.regs regSP).toNat + 8 ≤ x.toNat) ∧
@@ -417,7 +417,7 @@ theorem correctness (x : BitVec 64) :
   · have := disp3 x ret hret s hs ⟨⟨hge, hnw, hacc⟩, ⟨hx, hx'⟩, hdis, hT64, hTB, hd64, hdB, h3⟩
     refine this.mono fun s' ⟨hab, hr⟩ => ⟨hab, fun hz => by omega, fun _ => hr⟩
 
-namespace Witness
+namespace Wit
 
 def ret : Nat := 0x200000
 def sp0 : Nat := 0x100000
@@ -463,12 +463,12 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (x : BitVec 64), RetAddr Extrac
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ (valueAt s x 32 = 0 → (s'.regs 0).toNat = 0) ∧
         (valueAt s x 32 ≠ 0 → 10 ^ (s'.regs 0).toNat ≤ valueAt s x 32 ∧ valueAt s x 32 < 10 ^ ((s'.regs 0).toNat + 1)) :=
   ⟨ret, s0, x, hret, setup, hpre,
-    correctness x ret hret s0 setup hpre⟩
+    correctness_proof x ret hret s0 setup hpre⟩
 
 set_option maxRecDepth 100000 in
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 4 := by
-  refine (correctness x ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof x ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_⟩
   have hv : valueAt s0 x 32 = 12345 := by unfold valueAt; decide
@@ -484,6 +484,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
   · have : 10 ^ 5 ≤ 10 ^ r := Nat.pow_le_pow_right (by decide) hr
     omega
 
-end Witness
+end Wit
 
 end Fv256.Amd64.Log10
