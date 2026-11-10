@@ -1,6 +1,6 @@
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.RecipSpec
-import Fv256.Spec.F
+import Fv256.Proofs.Legacy.F
 
 /-!
 # Specifications of the modular-arithmetic and power family (FV-F)

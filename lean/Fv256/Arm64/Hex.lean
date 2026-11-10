@@ -3,7 +3,7 @@ import Fv256.Spec.Hex
 import Fv256.Spec.C
 import Fv256.Proofs.Common.TextBridge
 import Fv256.Spec.Arm64.DecExt
-import Fv256.Spec.HexSpec
+import Fv256.Proofs.Legacy.HexSpec
 import Fv256.Spec.Arm64.Hex
 import Fv256.Spec.Arm64.CallSites.Base
 import Fv256.Proofs.Arm64.Hex

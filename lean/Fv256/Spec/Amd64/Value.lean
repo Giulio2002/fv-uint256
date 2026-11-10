@@ -5,11 +5,8 @@ import Fv256.Spec.Amd64.DecExt
 import Fv256.Spec.Amd64.SbtsG
 import Fv256.Spec.DecAt
 import Fv256.Spec.Core
-import Fv256.Spec.B
-import Fv256.Spec.B2
 import Fv256.Spec.E
-import Fv256.Spec.F
-import Fv256.Spec.Txt
+import Fv256.Spec.PrettyMath
 import Fv256.Spec.Util
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/

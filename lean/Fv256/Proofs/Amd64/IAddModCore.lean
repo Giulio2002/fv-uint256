@@ -5,7 +5,7 @@ import Fv256.Proofs.Common.CodeIn
 import Fv256.Proofs.Common.AddModProg
 import Fv256.Proofs.Amd64.AddModSpecS
 import Fv256.Proofs.Common.GrabTac
-import Fv256.Spec.Amd64.IAddModCore
+import Fv256.Proofs.Legacy.Amd64.IAddModCore
 
 /-!
 # `(*uint256.Int).IAddMod(x, m *Int) *Int` (amd64): in place, `z = (z + x) mod m`   (core: conditional on the callee summary)

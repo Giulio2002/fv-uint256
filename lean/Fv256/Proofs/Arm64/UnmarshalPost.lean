@@ -1,5 +1,5 @@
 import Fv256.Proofs.Arm64.UnmarshalHex
-import Fv256.Spec.Arm64.UnmarshalPost
+import Fv256.Proofs.Legacy.Arm64.UnmarshalPost
 
 /-!
 # Postconditions of `UnmarshalText` / `UnmarshalJSON` (arm64), Extracted-free

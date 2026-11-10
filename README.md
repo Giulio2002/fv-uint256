@@ -12,9 +12,14 @@ Machine-checked proofs, with [Janus](https://github.com/Giulio2002/Janus) (Lean 
   `GOAMD64=v3` build of `BitLen`. The table with the per-row status and runtime contracts is [`docs/COVERAGE.md`](docs/COVERAGE.md).
 * For every row, `correctness` says: for every admissible call (any caller, any other register or memory content, aliasing as stated in
   the precondition) the code returns without faulting or panicking, obeys the Go ABI, and leaves results and memory exactly as the
-  specification (`lean/Fv256/Spec/`, plain mathematics on `Nat`) says. Each main theorem is paired with a kernel-checked `Witness.nonvacuous`: a returning run from a state satisfying the precondition (and a call-site state for every runtime contract), so the statement is not empty; Janus refuses a theorem without it.
+  specification (`lean/Fv256/Spec/<Fn>.lean`, plain mathematics on `Nat`) says. Each main theorem is paired with a kernel-checked `Witness.nonvacuous`: a returning run from a state satisfying the precondition (and a call-site state for every runtime contract), so the statement is not empty; Janus refuses a theorem without it.
 * The instruction bytes are copied by `janus extract` out of the linked executable; Lean decodes and runs them in its ISA model.
   Janus's kernel replay and audit check every theorem.
+
+**To see what a function is proven to do, open `lean/Fv256/Spec/<Fn>.lean` (the math: a short pure definition with the Go signature and the
+gist in words) and `lean/Fv256/<Isa>/<Fn>.lean` (the claim: `Pre`, `Post` and `theorem correctness`, with `<Isa>` = `Arm64` or `Amd64`).** The claim says
+that the compiled code, started from a state meeting `Pre`, returns in a state meeting `Post`, and `Post` is stated through the `Spec` definition.
+Everything else (tactics, generated modules, program lemmas) lives in `lean/Fv256/Proofs/` and need not be read to understand the result.
 
 What a reader must trust, and the known limitations, are listed in [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md).
 
@@ -57,11 +62,13 @@ Makefile           entry points
 docs/              COVERAGE.md (status table), HUMAN-REVIEW.md (what to review), DEVELOPMENT.md (tooling and proof techniques)
 go/                the harness: a program linking every exported uint256 function (its binary is pinned by hash)
 lean/              Lake package `fv256`
-  Fv256/Spec/        the specification and every definition a theorem STATEMENT depends on (reviewed by a human)
-  Fv256/Proofs/      proofs and proof-only definitions: Arm64/, Amd64/, Amd64v3/, Common/
+  Fv256/Spec/        <Fn>.lean = the pure math of each function (reviewed by a human), plus the few shared definitions a statement needs
+  Fv256/Arm64/       <Fn>.lean = the claim for arm64 (Pre, Post, correctness, witnesses); Machine.lean = shared machine-level predicates
+  Fv256/Amd64/       likewise for amd64 (Amd64v3/ holds the one GOAMD64=v3 claim)
+  Fv256/Proofs/      proofs and proof-only definitions (tactics, generated modules): Arm64/, Amd64/, Amd64v3/, Common/
 scripts/           verify-all.sh, lints (no-sorry.sh, lint_source.py, check-spec-closure, check-lean-lint), generators, pinned data files
 WIP-SORRY.txt      allowlist of unfinished modules for `no-sorry.sh`; empty at release
 ```
 
 `Spec/` never imports `Proofs/`; `scripts/check-spec-closure` proves, with Lean itself, that every final theorem statement depends only on
-`Spec/`, Janus and the extraction.
+`Spec/`, the claim files, Janus and the extraction.

@@ -1,6 +1,6 @@
 import Janus
 import Fv256.Spec.E
-import Fv256.Spec.RlpSpec
+import Fv256.Proofs.Legacy.RlpSpec
 import Fv256.Spec.Core
 import Fv256.Spec.Value
 import Fv256.Spec.EncodeRLP

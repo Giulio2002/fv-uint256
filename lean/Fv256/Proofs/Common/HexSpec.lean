@@ -2,7 +2,7 @@ import Janus
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.SpecC
 import Fv256.Proofs.Common.Util
-import Fv256.Spec.HexSpec
+import Fv256.Proofs.Legacy.HexSpec
 
 /-!
 # `(*uint256.Int).Hex`: ISA-independent specification pieces (shared by the arm64 and amd64 proofs)

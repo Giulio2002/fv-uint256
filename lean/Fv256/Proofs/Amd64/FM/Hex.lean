@@ -6,6 +6,7 @@ import Fv256.Proofs.Common.Util
 import Fv256.Proofs.Common.UtilC
 import Fv256.Proofs.Common.HexLemmas
 import Fv256.Proofs.Common.HexSpec
+import Janus
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 

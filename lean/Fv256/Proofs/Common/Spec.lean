@@ -1,5 +1,6 @@
 import Janus
 import Fv256.Spec.Core
+import Fv256.Proofs.Legacy.FromBE
 
 /-!
 # Independent specification of holiman/uint256

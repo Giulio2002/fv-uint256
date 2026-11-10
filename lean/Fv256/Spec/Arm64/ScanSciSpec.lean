@@ -1,7 +1,6 @@
 import Fv256.Spec.Arm64.SfdTopSpec
 import Fv256.Spec.IndexByteSpec
 import Fv256.Spec.Core
-import Fv256.Spec.F
 import Fv256.Spec.I
 import Fv256.Spec.Scan
 import Fv256.Spec.Util

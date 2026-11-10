@@ -1,7 +1,7 @@
 import Extracted
 import Fv256.Spec.Amd64.CallSites.Live
 import Fv256.Spec.HexLemmas
-import Fv256.Spec.HexSpec
+import Janus
 import Fv256.Spec.Core
 import Fv256.Spec.C
 import Fv256.Spec.Util

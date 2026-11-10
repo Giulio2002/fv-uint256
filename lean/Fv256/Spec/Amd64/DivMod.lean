@@ -1,9 +1,6 @@
 import Extracted
 import Fv256.Spec.Amd64.CallSites.Live
 import Fv256.Spec.Core
-import Fv256.Spec.B
-import Fv256.Spec.B2
-import Fv256.Spec.F
 import Fv256.Spec.Util
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/

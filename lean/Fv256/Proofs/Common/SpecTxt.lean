@@ -1,5 +1,5 @@
 import Fv256.Proofs.Common.PrettyMath
-import Fv256.Spec.Txt
+import Fv256.Proofs.Legacy.Txt
 
 /-!
 # Specifications of `MarshalText`, `MarshalJSON`, `Value` (family E)

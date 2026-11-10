@@ -2,19 +2,26 @@
 
 The kernel checks the proofs. What it cannot check is that the *statements* say what you mean. Review these, in this order.
 
-## 1. The specification: `lean/Fv256/Spec/`
+## 1. The specification and the claims
 
-Every definition a final theorem statement depends on lives here (`scripts/check-spec-closure` enforces it by elaborating each statement with
-proofs replaced by `sorry` and failing if any reachable `Fv256` constant is defined outside `Spec/`; `Spec/` may not import `Proofs/`).
-`Spec/Util.lean`, `Spec/Core.lean` and the family modules (`B`, `C`, `E`, `F`, `I`, `Format`, ...) define the integer model (a `uint256.Int` is a number
-below `2^256`; operations modulo `2^256`, signed variants through two's complement) without reference to Go or an ISA. `Spec/Arm64/`, `Spec/Amd64/`
-hold the per-row preconditions, postconditions and memory-layout definitions used in the statements.
-`Proofs/Common/SpecChecks.lean` has small kernel-decided sanity examples of the specification.
+**To see what a function is proven to do, open `lean/Fv256/Spec/<Fn>.lean` (the math) and `lean/Fv256/<Isa>/<Fn>.lean` (the claim).**
+
+* `lean/Fv256/Spec/<Fn>.lean` is pure mathematics on `Nat`/`List` (no Janus, no machine; listed in `scripts/pure-spec.txt` and checked by
+  `scripts/check-spec-closure`): the Go signature, the gist in plain words including error and panic cases, and one definition per property, each with a
+  comment saying what it captures. A `uint256.Int` is a number below `2^256`; signed variants use two's complement. Shared basics are in `Spec/Basic.lean`.
+* `lean/Fv256/{Arm64,Amd64}/<Fn>.lean` is the claim: `Pre` (machine facts only: readable/writable buffers, aliasing, stack, runtime contracts), `Post`
+  (results and memory frame, with the results stated through `Fv256.Spec.<fn>`), `theorem correctness : Ensures Extracted.program Extracted.entry ... (Pre ..) (Post ..)`
+  and its non-vacuity witnesses. Machine-level helpers shared by claims are in `{Arm64,Amd64}/Machine.lean`.
+* A few functions (parsing, formatting, scanning, SSZ) additionally need helper definitions in `Spec/` or in their claim file (for example `Spec/Format*.lean`,
+  `Spec/Amd64/`, `Spec/Arm64/`); they are in the statement's closure, so `check-spec-closure` lists them. Implementation-shaped definitions that only the proofs use (for example `fromBE`, `addmodSpec`) live in `lean/Fv256/Proofs/Legacy/`, outside every statement.
+* The proofs (`lean/Fv256/Proofs/`) are never part of a statement: `scripts/check-spec-closure` elaborates each statement with proofs replaced by `sorry` and fails
+  if a reachable `Fv256` constant is defined outside `Spec/` or a claim file; `Spec/` may not import `Proofs/`.
+  `Proofs/Common/SpecChecks.lean` has small kernel-decided sanity examples of the specification.
 
 ## 2. The main theorem statements
 
-For each row, the theorem named `Fv256.<Arm64|Amd64|Amd64v3>.<Fn>.correctness` in the row's proof module (`lean/Fv256/Proofs/<ISA>/<Fn>.lean`, or
-`<Fn>Main.lean` when that module holds the final theorem; see `docs/COVERAGE.md`). `janus verify` prints the statement it checked in a clean
+For each row, the theorem named `Fv256.<Arm64|Amd64|Amd64v3>.<Fn>.correctness` in the row's claim file (`lean/Fv256/<ISA>/<Fn>.lean`); its proof term is
+`correctness_proof` from `lean/Fv256/Proofs/<ISA>/<Fn>.lean` (or `<Fn>Main.lean`; see `docs/COVERAGE.md`). `janus verify` prints the statement it checked in a clean
 environment (only Janus and the extraction) and re-elaborates it there. Read the printed statement: preconditions (what the caller promises) and the
 postcondition (results, frame, panics).
 
@@ -42,7 +49,7 @@ These are hypotheses or pinned trusted objects, stated in the theorem or printed
 A theorem with an unsatisfiable precondition, or with contract hypotheses no code can meet, proves nothing. Janus therefore refuses to verify a main theorem
 without a paired, kernel-checked witness, and the witness rules are frozen in Janus `docs/SOUNDNESS.md` (U-WITNESS-RUN, U-WITNESS-CALLSITE, U-WITNESS-PAIR).
 
-* **What `Witness.nonvacuous` states.** Not merely that some state satisfies the precondition. It is, with the main theorem's binders turned into `∃`:
+* **What `Witness.nonvacuous` (in the claim file) states.** Not merely that some state satisfies the precondition. It is, with the main theorem's binders turned into `∃`:
 
   `∃ binders, hyps ∧ RetAddr ∧ CallSetup ∧ pre ∧ Returns (program.link impl).withExit ret ... (ABIReturn ∧ post)`
 
@@ -88,4 +95,4 @@ Axioms allowed in the proofs: `propext`, `Classical.choice`, `Quot.sound`; no `s
 * **Architectures and modes.** Single-threaded code only; amd64 is checked for the default `GOAMD64=v1` build, plus the `BitLen` row for `v3`.
   Self-modifying code is not modelled.
 * **Resource limits are not proof verdicts.** `arm64 Format` needs a 32G memory cap (`scripts/memcap-overrides.txt`); a cap overrun is a failed run, never a weaker proof.
-* The `Spec/Arm64`, `Spec/Amd64` modules and the generated `TB`/`FM` parts are machine-generated; `scripts/check-generated.sh` checks them against their generators.
+* The generated `TB`/`FM` parts are machine-generated and live in `Proofs/`; `scripts/check-generated.sh` checks them against their generators.

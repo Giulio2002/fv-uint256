@@ -6,13 +6,20 @@ This is a short guide for people extending or re-checking the proofs. The status
 
 1. Build the harness (`scripts/verify-all.sh` does it; the three binaries must hash to `scripts/harness.sha256`).
 2. Extract: `janus extract build/harness-arm64 'github.com/holiman/uint256.(*Int).IsZero' build/ex-arm64-IsZero` with the row's flags (`scripts/contract-flags.sh`).
-3. Write `lean/Fv256/Proofs/<ISA>/<Fn>.lean` with `theorem correctness : Ensures Extracted.program Extracted.entry [args] pre post`, stated with `Fv256.Spec.*`
-   and the memory bridge `Janus.Spec.val256` / `valueAt`, plus `namespace Witness` with `nonvacuous` and `returns`. Proof: `janus_intro hs; janus_run` (arm64) or
-   `janus64_intro hs; janus64_run [readLE_32]` (amd64), then arithmetic (`omega`, `janus_carry` / `janus64_arith`).
-4. `janus verify build/ex-arm64-IsZero --proof lean/Fv256/Proofs/Arm64/IsZero.lean --proof-root lean --theorem Fv256.Arm64.IsZero.correctness`, or `make verify FN=IsZero`.
-5. Never edit `Spec/` or `Proofs/Common/Util*.lean` while a `janus verify` runs: the input goes stale and the run fails.
+3. Write the three layers:
+   * `lean/Fv256/Spec/<Fn>.lean`: the pure math (`Fv256.Spec.<fn>`), with the Go signature and the gist in a header comment, a doc comment on every def, cheap
+     `example ... := by decide` checks; add it to `scripts/pure-spec.txt` (imports only other `Fv256.Spec.*` files).
+   * `lean/Fv256/<Isa>/<Fn>.lean`: the claim: `Pre` (machine facts), `Post` (results via `Fv256.Spec.<fn>`, memory frame via `Janus.Spec.val256` / `valueAt`),
+     `theorem correctness : Ensures Extracted.program Extracted.entry [args] (Pre ..) (Post ..) := correctness_proof ..` (the outer shape must stay literally
+     `Ensures Extracted.program ...`), and `namespace Witness` with `nonvacuous` (and one per extra main) delegating to `Wit`. Shared machine predicates go (hand-written,
+     append-only) in `<Isa>/Machine.lean`.
+   * `lean/Fv256/Proofs/<ISA>/<Fn>.lean`: `theorem correctness_proof` (same statement) and `namespace Wit`. Proof: `janus_intro hs; janus_run` (arm64) or
+     `janus64_intro hs; janus64_run [readLE_32]` (amd64), then arithmetic (`omega`, `janus_carry` / `janus64_arith`). Tactics, generated modules and program
+     lemmas stay here; a nicer-shaped Spec than the implementation-shaped one is connected by a bridge lemma proved here.
+4. `janus verify build/ex-arm64-IsZero --proof lean/Fv256/Arm64/IsZero.lean --proof-root lean --theorem Fv256.Arm64.IsZero.correctness`, or `make verify FN=IsZero`.
+5. Never edit `Spec/`, the claim files or `Proofs/Common/Util*.lean` while a `janus verify` runs: the input goes stale and the run fails.
 
-A proof module named `<Fn>Main.lean` that holds `theorem correctness` is the final statement and wins over `<Fn>.lean` (`verify-all.sh`).
+A claim file `lean/Fv256/<Isa>/<Fn>.lean` holds the final `theorem correctness`; `verify-all.sh` verifies it (the proof it delegates to is in `Proofs/`, possibly `<Fn>Main.lean`).
 
 ## Proof techniques worth keeping
 

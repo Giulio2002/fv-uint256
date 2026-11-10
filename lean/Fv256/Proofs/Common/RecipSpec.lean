@@ -1,4 +1,4 @@
-import Fv256.Spec.RecipSpec
+import Fv256.Proofs.Legacy.RecipSpec
 
 
 /-!

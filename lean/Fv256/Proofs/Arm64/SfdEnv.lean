@@ -1,8 +1,6 @@
 import Fv256.Proofs.Common.Spec
 import Fv256.Proofs.Common.Util
 import Fv256.Proofs.Arm64.SfdProg
-import Fv256.Proofs.Common.Spec
-import Fv256.Proofs.Common.Util
 
 /-!
 # Static runtime-model facts for `SetFromDecimal`'s error paths (amd64)

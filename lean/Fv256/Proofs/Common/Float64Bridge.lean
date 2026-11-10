@@ -1,5 +1,5 @@
 import Janus
-import Fv256.Spec.B
+import Fv256.Proofs.Legacy.B
 import Fv256.Spec.Float64
 
 namespace Fv256.Float64Bridge

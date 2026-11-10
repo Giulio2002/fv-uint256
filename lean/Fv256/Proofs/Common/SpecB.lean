@@ -1,6 +1,6 @@
 import Janus
 import Fv256.Proofs.Common.Spec
-import Fv256.Spec.B
+import Fv256.Proofs.Legacy.B
 
 /-!
 # Specification, family B: division, modular arithmetic and iterative numerics

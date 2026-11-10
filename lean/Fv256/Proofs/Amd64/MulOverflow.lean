@@ -6,7 +6,7 @@ import Fv256.Proofs.Amd64.MoCases.B
 import Fv256.Proofs.Amd64.MoCases.C
 import Fv256.Proofs.Amd64.MoCases.D
 import Fv256.Proofs.Amd64.MoCases.E
-import Fv256.Spec.Amd64.MulOverflow
+import Fv256.Proofs.Legacy.Amd64.MulOverflow
 
 /-!
 # `(*uint256.Int).MulOverflow(x, y *Int) (*Int, bool)` (amd64): `z = x * y mod 2^256` and the overflow flag

@@ -1,5 +1,5 @@
 import Fv256.Proofs.Common.Spec
-import Fv256.Spec.B2
+import Fv256.Proofs.Legacy.B2
 
 /-!
 # Specifications of the division family (family B, part 2)

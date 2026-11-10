@@ -1,5 +1,6 @@
 import Janus
 import Fv256.Spec.Core
+import Fv256.Proofs.Legacy.FromBE
 import Fv256.Spec.BigEndian
 import Fv256.Spec.Bytes
 

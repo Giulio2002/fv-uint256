@@ -39,16 +39,9 @@ import Fv256.Spec.BitLen
 import Fv256.Spec.ByteLen
 import Fv256.Spec.Byte
 
-/-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
+/-!
+# Umbrella of the per-function specifications
 
-
-namespace Fv256.Spec
-
-
-/-- The big-endian value of the first `n` bytes of the byte sequence `f` (`f 0` is the most significant). -/
-def fromBE (f : Nat → Nat) : Nat → Nat
-  | 0 => 0
-  | n + 1 => f 0 * 256 ^ n + fromBE (fun i => f (i + 1)) n
-
-
-end Fv256.Spec
+Imports the per-function specifications (`Spec/<Fn>.lean`, the pure math) that the helper modules in `Spec/` and `Proofs/` build on, so they need one import.
+It defines nothing itself.
+-/

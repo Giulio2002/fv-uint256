@@ -13,6 +13,7 @@ The binary under verification is built from the pinned sources in `go/` with Go 
 the three harness binaries is in `scripts/harness.sha256`. The library programs hold absolute addresses of that exact binary, so
 `verify-all.sh` refuses (exit 3, `HARNESS MISMATCH`) to run on any other build.
 
+To see what a row is proven to do, open `lean/Fv256/Spec/<Fn>.lean` (the math) and `lean/Fv256/<Isa>/<Fn>.lean` (the claim); the proofs are in `lean/Fv256/Proofs/`.
 The Notes column names the proof module and the runtime contracts passed to `janus extract` for the row (`scripts/contract-flags.sh`).
 Timings of the release run are recorded with the release results, not here.
 

@@ -6,7 +6,7 @@ import Fv256.Proofs.Common.MulModRecProg
 import Fv256.Proofs.Amd64.ReduceSpec
 import Fv256.Proofs.Amd64.MulModRecSum
 import Fv256.Proofs.Arm64.MulModLem
-import Fv256.Spec.Amd64.IMulModWithReciprocalCore
+import Fv256.Proofs.Legacy.Amd64.IMulModWithReciprocalCore
 
 /-!
 # `(*uint256.Int).IMulModWithReciprocal` (amd64): in place, `z = (z * x) mod m` (core: conditional on the `reduce4` summary)

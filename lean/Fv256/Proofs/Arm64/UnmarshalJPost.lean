@@ -1,6 +1,6 @@
 import Fv256.Proofs.Arm64.UnmarshalPost
 import Fv256.Proofs.Arm64.UnmarshalSpecJ
-import Fv256.Spec.Arm64.UnmarshalJPost
+import Fv256.Proofs.Legacy.Arm64.UnmarshalJPost
 
 /-!
 # Postcondition of `UnmarshalJSON` (arm64), Extracted-free

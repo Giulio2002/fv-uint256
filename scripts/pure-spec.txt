@@ -116,3 +116,7 @@ Spec/UnmarshalText.lean
 Spec/UnmarshalJSON.lean
 Spec/Scan.lean
 Spec/Format.lean
+Spec/E.lean
+Spec/I.lean
+Spec/Float64.lean
+Spec/PrettyMath.lean

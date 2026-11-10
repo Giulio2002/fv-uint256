@@ -2,8 +2,6 @@ import Extracted
 import Fv256.Spec.Arm64.CallSites.Base
 import Fv256.Spec.PrettyMath
 import Fv256.Spec.Core
-import Fv256.Spec.B
-import Fv256.Spec.B2
 import Fv256.Spec.E
 import Fv256.Spec.Util
 
