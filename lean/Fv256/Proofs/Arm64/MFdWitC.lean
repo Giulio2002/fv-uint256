@@ -238,12 +238,12 @@ theorem panicInit0 : PanicInit cfg R (R3 TW) loW hiW s0.mem := by
   · rw [cfg_lit]; simp only [R3_priv]; apply outside_of_decide; decide
   · rw [cfg_lit]; decide
 
-theorem pre0 : Fv256.Arm64.MustFromDecimal.Pre R (R3 TW) TW 0x400 [] loW hiW pSV nSV s0 := by
+theorem pre0 : Fv256.Arm64.MustFromDecimal.PreFd R (R3 TW) TW 0x400 [] loW hiW pSV nSV s0 := by
   have hm := maxdig0
   have hc := chunk0
   have hi := initDone0
   have hp := panicInit0
-  unfold Fv256.Arm64.MustFromDecimal.Pre PreC
+  unfold Fv256.Arm64.MustFromDecimal.PreFd PreC
   refine ⟨⟨?_, ?_, rfl, rfl, mod0, env0, ?_, ?_, ?_, ?_, mult0, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, hi, ?_, ?_, ?_, hm, ?_,
     ?_, ?_, ?_, hc⟩, dataLoaded0, hp⟩
   all_goals first | decide | (apply outside_of_decide; decide) | skip
@@ -346,7 +346,7 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    (pinPanicRuntime P ∧ Fv256.Arm64.MustFromDecimal.Pre R R2 T b L lo hi pS nS s) ∧
+    (pinPanicRuntime P ∧ Fv256.Arm64.MustFromDecimal.PreFd R R2 T b L lo hi pS nS s) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 s_c) ∧

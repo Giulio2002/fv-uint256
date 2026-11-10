@@ -41,7 +41,7 @@ theorem correctness_cond (P : Janus.Spec.PanicRuntime) (impl : List Janus.Amd64.
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
-    EnsuresGo (Extracted.program.link impl) Extracted.entry [pS, nS] (Pre R R2 T b L lo hi pS nS)
+    EnsuresGo (Extracted.program.link impl) Extracted.entry [pS, nS] (PreFd R R2 T b L lo hi pS nS)
       (fun _ => goClass P)
       (fun s s' =>
         (∃ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v) ∧

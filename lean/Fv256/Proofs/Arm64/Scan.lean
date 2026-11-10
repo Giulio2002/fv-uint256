@@ -36,7 +36,7 @@ open Fv256.Arm64.SfdTopSpec Fv256.Arm64.ScanSpec Fv256.Arm64.ScanSci
 
 namespace Fv256.Arm64.Scan
 
-theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst tw dw : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hif : Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
@@ -121,7 +121,7 @@ namespace Witness
 /-- Non-vacuity (string "123456789012e5": both SfdCalls, the Exp and MulOverflow path): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
 binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
 `correctness` and its whole precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
     Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
@@ -156,7 +156,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     ⟨Fv256.Arm64.Scan.Witness.csCm, rfl, Fv256.Arm64.Scan.Witness.csCm_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csIf, rfl, Fv256.Arm64.Scan.Witness.csIf_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csSb, rfl, Fv256.Arm64.Scan.Witness.csSb_pre⟩,
-    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS) ?w10 ⟨Fv256.Arm64.Scan.Witness.preS, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+    correctness_proof Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS) ?w10 ⟨Fv256.Arm64.Scan.Witness.preS, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
   case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS
 end Witness
 
@@ -165,7 +165,7 @@ namespace NoE.Witness
 /-- Non-vacuity (string without an exponent "1234567890123"): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
 binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
 `correctness` and its whole precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
     Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
@@ -200,7 +200,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     ⟨Fv256.Arm64.Scan.Witness.csCm, rfl, Fv256.Arm64.Scan.Witness.csCm_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csIf, rfl, Fv256.Arm64.Scan.Witness.csIf_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csSb, rfl, Fv256.Arm64.Scan.Witness.csSb_pre⟩,
-    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2 Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2) ?w10 ⟨Fv256.Arm64.Scan.Witness.preN, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+    correctness_proof Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2 Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2) ?w10 ⟨Fv256.Arm64.Scan.Witness.preN, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
   case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twS Fv256.Arm64.Scan.Witness.dwS2
 end NoE.Witness
 
@@ -209,7 +209,7 @@ namespace Nil.Witness
 /-- Non-vacuity (nil): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
 binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
 `correctness` and its whole precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
     Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
@@ -244,7 +244,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     ⟨Fv256.Arm64.Scan.Witness.csCm, rfl, Fv256.Arm64.Scan.Witness.csCm_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csIf, rfl, Fv256.Arm64.Scan.Witness.csIf_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csSb, rfl, Fv256.Arm64.Scan.Witness.csSb_pre⟩,
-    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV (0#64) (0#64) Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st 0#64 0#64) ?w10 ⟨Fv256.Arm64.Scan.Witness.preNil, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+    correctness_proof Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV (0#64) (0#64) Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st 0#64 0#64) ?w10 ⟨Fv256.Arm64.Scan.Witness.preNil, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
   case w10 => exact Fv256.Arm64.Scan.Witness.setup 0#64 0#64
 end Nil.Witness
 
@@ -253,7 +253,7 @@ namespace Byt.Witness
 /-- Non-vacuity ([]byte of 48 bytes, 46 digits and e5, through the live slicebytetostring): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
 binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
 `correctness` and its whole precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
     Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
@@ -288,7 +288,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     ⟨Fv256.Arm64.Scan.Witness.csCm, rfl, Fv256.Arm64.Scan.Witness.csCm_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csIf, rfl, Fv256.Arm64.Scan.Witness.csIf_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csSb, rfl, Fv256.Arm64.Scan.Witness.csSb_pre⟩,
-    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl) ?w10 ⟨Fv256.Arm64.Scan.Witness.preByt, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+    correctness_proof Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl) ?w10 ⟨Fv256.Arm64.Scan.Witness.preByt, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
   case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twB Fv256.Arm64.Scan.Witness.dwSl
 end Byt.Witness
 
@@ -297,7 +297,7 @@ namespace Other.Witness
 /-- Non-vacuity (unsupported type (the type descriptor of uint8)): a concrete runtime (stub code at the contract addresses, toy allocator `R`, the toy interface model at the
 binary's own type word, the binary's real read-only data), a stack window and a call `Scan(dst, src)` satisfy EVERY hypothesis of
 `correctness` and its whole precondition. -/
-theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (dst tw dw : BitVec 64) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
     Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2 ∧
@@ -332,7 +332,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     ⟨Fv256.Arm64.Scan.Witness.csCm, rfl, Fv256.Arm64.Scan.Witness.csCm_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csIf, rfl, Fv256.Arm64.Scan.Witness.csIf_pre⟩,
     ⟨Fv256.Arm64.Scan.Witness.csSb, rfl, Fv256.Arm64.Scan.Witness.csSb_pre⟩,
-    correctness Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twU (0#64) Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twU 0#64) ?w10 ⟨Fv256.Arm64.Scan.Witness.preOther, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
+    correctness_proof Fv256.Arm64.Scan.Witness.implA Fv256.Arm64.Scan.Witness.R (Fv256.Arm64.WitModel.R3 Fv256.Arm64.Scan.Witness.TW) Fv256.Arm64.Scan.Witness.TW 0x400 ([]) Fv256.Arm64.Scan.Witness.loW Fv256.Arm64.Scan.Witness.hiW Fv256.Arm64.Scan.Witness.zV Fv256.Arm64.Scan.Witness.twU (0#64) Fv256.Arm64.Scan.Witness.implOK Fv256.Arm64.Scan.Witness.contracts_ok.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.1 Fv256.Arm64.Scan.Witness.contracts_ok.2.2.2.2.2.2.2 Fv256.Arm64.Scan.Witness.retW Fv256.Arm64.Scan.Witness.retAddr (Fv256.Arm64.Scan.Witness.st Fv256.Arm64.Scan.Witness.twU 0#64) ?w10 ⟨Fv256.Arm64.Scan.Witness.preOther, Fv256.Arm64.Scan.Witness.dataLoaded0⟩⟩
   case w10 => exact Fv256.Arm64.Scan.Witness.setup Fv256.Arm64.Scan.Witness.twU 0#64
 end Other.Witness
 

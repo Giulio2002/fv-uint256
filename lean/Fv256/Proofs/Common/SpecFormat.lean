@@ -1,6 +1,6 @@
 import Fv256.Proofs.Common.SpecE
 import Fv256.Proofs.Common.SpecC
-import Fv256.Spec.Format
+import Fv256.Spec.FormatBytes
 
 /-!
 # Specification of `(*uint256.Int).Format(s fmt.State, ch rune)` (family E), master 48f3f44

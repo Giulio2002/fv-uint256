@@ -14,7 +14,7 @@ open Janus Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic Janus.Spec Janus.Spe
   Janus.Contracts.CmpstringSatAmd64
   Janus.Contracts.Iface
 
-namespace Fv256.Amd64.SetFromDecimal.Witness
+namespace Fv256.Amd64.SetFromDecimal.Wit
 
 set_option maxRecDepth 100000
 set_option linter.unusedSimpArgs false
@@ -171,4 +171,4 @@ theorem hcmp : CmpstringContract64 (Extracted.program.link implA) cmA 16 := by
   exact key
 
 
-end Fv256.Amd64.SetFromDecimal.Witness
+end Fv256.Amd64.SetFromDecimal.Wit

@@ -24,7 +24,7 @@ set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
 /-- `PrettyDec(separator)` returns the decimal digits of `*z` with `separator` between every three digits counted from
 the right (`1234567` becomes `1,234,567` for `','`), and `"0"` for zero.  The result is the string at `(RAX, RBX)`. -/
-theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z sep : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z sep : BitVec 64)
     (hc : RtContract64 (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, sep]
       (fun s => StackGuardOK s 0x378 ∧ StackWritable s 4576 0x18 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -47,7 +47,7 @@ theorem correctness (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : Rt
     (fun ret s s' hret hs hp hq => ⟨⟨hq.2.1, hq.2.2.1, hq.2.2.2.1, hq.2.2.2.2.1⟩, hq.1, hq.2.2.2.2.2⟩)
 
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.SatAmd64
 open Janus.Contracts.Sat (rtW HEAP)
@@ -194,10 +194,10 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ StrOut s'.mem (s'.regs 0).toNat (s'.regs 3).toNat (prettyBytes (sep.toNat % 256) (valueAt s z 32)) ∧
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4576, (s.regs 4).toNat + 0x18)]) := by
   refine ⟨implAt, rtW, H1, ret, s0, arg, 44, model, ⟨csSb, csSb_rip, csSb_pre⟩, ?w1, ?w2, pre,
-    correctness implAt rtW H1 arg 44 model ret ?w1 s0 ?w2 pre⟩
+    correctness_proof implAt rtW H1 arg 44 model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
 
-end Witness
+end Wit
 
 end Fv256.Amd64.PrettyDec

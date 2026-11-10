@@ -9,7 +9,7 @@ gcWriteBarrier1/2) in the toy bump-allocator runtime `R`; every contract is prov
 
 open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Contracts
 
-namespace Fv256.Arm64.SetFromDecimal.Witness
+namespace Fv256.Arm64.SetFromDecimal.Wit
 
 set_option maxRecDepth 100000
 
@@ -59,4 +59,4 @@ theorem model_mv : MemmoveLive (Extracted.program.ofImpl implA) mvA 4096 R := by
 theorem model_wb1 : WbLiveContract (Extracted.program.ofImpl implA) w1A 4096 R 1 := by janus_live_wb 1
 theorem model_wb2 : WbLiveContract (Extracted.program.ofImpl implA) w2A 4096 R 2 := by janus_live_wb 2
 
-end Fv256.Arm64.SetFromDecimal.Witness
+end Fv256.Arm64.SetFromDecimal.Wit

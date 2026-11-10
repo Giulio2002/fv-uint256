@@ -25,7 +25,7 @@ theorem hx_Hex (impl : List Amd64.Segment) (hI : ImplApart Extracted.program imp
 def hex_summary (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64) (hI : ImplApart Extracted.program impl)
     (hc : RtContract64 (P0H impl) (Extracted.program.contractAddr "runtime.slicebytetostring") rt 4096 H
       (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :=
-  Ensures.toSummaryIn (Fv256.Amd64.FM.Hex.correctness impl rt H z hc) (hx_Hex impl hI) (by show 1 ≤ 9; decide)
+  Ensures.toSummaryIn (Fv256.Amd64.FM.Hex.correctness_proof impl rt H z hc) (hx_Hex impl hI) (by show 1 ≤ 9; decide)
     (codeIn_restrict_of_apart64 hI [nmHex])
 
 end Fv256.Amd64.FormatFast

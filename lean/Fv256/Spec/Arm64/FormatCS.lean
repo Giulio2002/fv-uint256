@@ -4,7 +4,7 @@ import Fv256.Spec.Arm64.FM.IntoBigDefs
 import Fv256.Spec.Arm64.FormatNil
 import Fv256.Spec.FormatFastDefsA64
 import Fv256.Spec.IntoBigCommon
-import Fv256.Spec.Format
+import Fv256.Spec.FormatBytes
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 

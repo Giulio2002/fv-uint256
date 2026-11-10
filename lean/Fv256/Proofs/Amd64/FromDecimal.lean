@@ -41,7 +41,7 @@ theorem correctness_cond (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
       (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hsfd : ∀ (b' : Nat) (L' : List (Nat × Nat)) (lo' hi' : Nat) (z pS' nS' : BitVec 64),
       SfdSummary cfg (Extracted.program.link impl) sfdEntry R R2 T b' L' lo' hi' z pS' nS') :
-    Ensures (Extracted.program.link impl) Extracted.entry [pS, nS] (Pre R R2 T b L lo hi pS nS)
+    Ensures (Extracted.program.link impl) Extracted.entry [pS, nS] (PreFd R R2 T b L lo hi pS nS)
       (fun s s' =>
         (∀ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v →
           ∃ ptr : Nat, (s'.regs 0).toNat = ptr ∧ InRanges ptr 32 R.rt ∧ val256 s'.mem ptr = v ∧ s'.regs 3 = 0 ∧ s'.regs 1 = 0) ∧

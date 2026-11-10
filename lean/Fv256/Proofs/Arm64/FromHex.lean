@@ -23,7 +23,7 @@ namespace Fv256.Arm64.FromHex
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (hp len : BitVec 64)
     (hnew : NewobjectContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [hp, len]
@@ -168,7 +168,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
 Same pattern as `FromBig`: a two-instruction allocator placed at `runtime.newobject` (`MOVZ X0, #1, LSL #16; RET`) returns the
 start of a 64 KiB zeroed heap; `H` says the argument is a type descriptor of at most 32 KiB inside `rt`; `hnew` is proved by
 running that code; `s0` is a concrete call of `FromHex` on the string `"0x1f"` satisfying the whole precondition. -/
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -367,7 +367,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4144, s.sp.toNat + 24)]) :=
   ⟨impl, rt, H, hpp, 4, ret, s0, hnew, hret, setup, pre,
     ⟨wsNew, rfl, wsNew_pre⟩,
-    correctness impl rt H hpp 4 hnew ret hret s0 setup pre⟩
-end Witness
+    correctness_proof impl rt H hpp 4 hnew ret hret s0 setup pre⟩
+end Wit
 
 end Fv256.Arm64.FromHex

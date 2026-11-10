@@ -51,7 +51,7 @@ theorem fhEntry_eq : Fv256.Arm64.UnmarshalText.fhEntry = Fv256.Arm64.FromHexLib.
 
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pI nI cI : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hif : Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
@@ -122,9 +122,9 @@ theorem correctness (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : N
   have hsb' : RtLiveContract (Extracted.program.link impl) Fv256.Arm64.UnmarshalText.sbAddr 4096 R
       (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive :=
     RtLiveContract.of_codeIn hc4 hsb
-  exact Fv256.Arm64.UnmarshalText.correctness impl R R2 T b L lo hi z pI nI cI hsb' hhex hsfd
+  exact Fv256.Arm64.UnmarshalText.correctness_cond impl R R2 T b L lo hi z pI nI cI hsb' hhex hsfd
 
-namespace Witness
+namespace Wit
 open Fv256.Arm64.UnmarshalTextWit
 
 /-- Non-vacuity: a concrete runtime (stub code at the contract addresses: allocation, copy, write barriers, interface equality,
@@ -158,7 +158,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T 
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalText.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalText.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ UTPost Fv256.Arm64.UnmarshalText.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
   refine ⟨implA, R, Janus.Contracts.IfaceModel.R0, Janus.Contracts.IfaceModel.TD, bW, ([]), loW, hiW, zV, pV, nV, nV, retW, s0, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup, pre0, hexEnv0, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
-    correctness implA R Janus.Contracts.IfaceModel.R0 Janus.Contracts.IfaceModel.TD bW ([]) loW hiW zV pV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s0 setup ⟨pre0, hexEnv0⟩⟩
+    correctness_proof implA R Janus.Contracts.IfaceModel.R0 Janus.Contracts.IfaceModel.TD bW ([]) loW hiW zV pV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s0 setup ⟨pre0, hexEnv0⟩⟩
   case h2 => exact (by rw [addr_if]; exact model_if)
   case h3 => exact (by rw [addr_new]; exact model_new)
   case h4 => exact (by rw [addr_mg]; exact model_mg)
@@ -204,7 +204,7 @@ theorem hex : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat
     (∃ s_c : State, s_c.pc = BitVec.ofNat 64 Fv256.Arm64.UnmarshalText.sbAddr ∧ RtLivePre 4096 R (slicebytetostringSpec Fv256.Arm64.UnmarshalText.stAddr) slicebytetostringLive Fv256.Arm64.UnmarshalText.sbAddr L b s_c) ∧
     Returns ((Extracted.program.link impl).withExit ret) s fun s' => ABIReturn s s' ∧ UTPost Fv256.Arm64.UnmarshalText.cfg R R2 lo hi z pI.toNat nI.toNat s s' := by
   refine ⟨implA, R, Janus.Contracts.IfaceModel.R0, Janus.Contracts.IfaceModel.TD, bW, ([]), loW, hiW, zV, pHV, nV, nV, retW, s1, implOK, ?h2, ?h3, ?h4, ?h5, ?h6, ?h7, ?h8, ?h9, hret, setup1, pre1, hexEnv0, ishex1, ?hc1, ?hc2, ?hc3, ?hc4, ?hc5, ?hc6, ?hc7, ?hc8,
-    correctness implA R Janus.Contracts.IfaceModel.R0 Janus.Contracts.IfaceModel.TD bW ([]) loW hiW zV pHV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s1 setup1 ⟨pre1, hexEnv0⟩⟩
+    correctness_proof implA R Janus.Contracts.IfaceModel.R0 Janus.Contracts.IfaceModel.TD bW ([]) loW hiW zV pHV nV nV implOK ?h2 ?h3 ?h4 ?h5 ?h6 ?h7 ?h8 ?h9 retW hret s1 setup1 ⟨pre1, hexEnv0⟩⟩
   case h2 => exact (by rw [addr_if]; exact model_if)
   case h3 => exact (by rw [addr_new]; exact model_new)
   case h4 => exact (by rw [addr_mg]; exact model_mg)
@@ -222,6 +222,6 @@ theorem hex : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat
   case hc7 => exact (⟨csIf, rfl, csIf_pre⟩)
   case hc8 => exact (⟨csSb, rfl, csSb_pre⟩)
 
-end Witness
+end Wit
 
 end Fv256.Arm64.UnmarshalTextMain

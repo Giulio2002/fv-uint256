@@ -36,7 +36,7 @@ theorem roundupsize_pos_small : ∀ n, n < 82 → 1 ≤ n → 0 < roundupsize n 
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»))
     (hc2 : RtContract (Extracted.program.link impl) cbAddr rt 4096 H (concatbyteSpec 3)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -159,7 +159,7 @@ theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady)
     exact ⟨h1, by omega, by omega, trivial⟩)
   exact ⟨hBH', hMF.trans h2 fun a n h => ⟨h, h⟩⟩
 
-namespace Witness
+namespace Wit
 
 open Fv256.ToyRuntimeArm64
 
@@ -451,7 +451,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
   refine ⟨implAt, rtT, Hw, ret, s0, arg, model1, model2, ?w2, ?w3, pre,
     ⟨csSb, rfl, csSb_pre⟩,
     ⟨csCb, rfl, csCb_pre⟩,
-    correctness implAt rtT Hw arg model1 model2 ret ?w2 s0 ?w3 pre⟩
+    correctness_proof implAt rtT Hw arg model1 model2 ret ?w2 s0 ?w3 pre⟩
   case w2 => exact by rw [linked_eq]; exact hret
   case w3 => exact by rw [linked_eq]; exact setup
 
@@ -717,10 +717,10 @@ theorem big : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (
   refine ⟨implAt8, rtT16, Hw8, ret, s08, arg, model1_8, model2_8, ?w2, ?w3, pre8, ?w5,
     ⟨csSb8, rfl, csSb8_pre⟩,
     ⟨csCb8, rfl, csCb8_pre⟩,
-    correctness implAt8 rtT16 Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 pre8⟩
+    correctness_proof implAt8 rtT16 Hw8 arg model1_8 model2_8 ret ?w2 s08 ?w3 pre8⟩
   case w2 => exact by rw [linked_eq8]; exact hret8
   case w3 => exact by rw [linked_eq8]; exact setup8
   case w5 => exact by rw [hz8]; decide
-end Witness
+end Wit
 
 end Fv256.Arm64.MarshalJSON

@@ -16,7 +16,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec Janus.Spec.Type Janus
 
 open Fv256.Arm64.CallSites
 
-namespace Fv256.Arm64.SetFromDecimal.Witness
+namespace Fv256.Arm64.SetFromDecimal.Wit
 
 set_option maxRecDepth 100000
 
@@ -301,4 +301,4 @@ theorem nonvacuous_core : ∃ (impl : List Segment) (R : RtInv) (R2 : IfaceModel
     by rw [addr_cm]; exact hcmp, hret, setup, pre0,
     ⟨csNew, rfl, csNew_pre⟩, ⟨csMg, rfl, csMg_pre⟩, ⟨csMv, rfl, csMv_pre⟩, ⟨csW1, rfl, csW1_pre⟩, ⟨csW2, rfl, csW2_pre⟩, ⟨csCm, rfl, csCm_pre⟩, ⟨csIf, rfl, csIf_pre⟩⟩
 
-end Fv256.Arm64.SetFromDecimal.Witness
+end Fv256.Arm64.SetFromDecimal.Wit

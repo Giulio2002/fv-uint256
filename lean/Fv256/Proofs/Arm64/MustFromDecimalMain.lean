@@ -39,7 +39,7 @@ theorem sfdEntry_eq : Fv256.Arm64.MustFromDecimal.sfdEntry = 0xb89b0 := by decid
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
 open Fv256.C in
-theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (P : Janus.Spec.PanicRuntime) (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (pS nS : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hif : Contracts.Iface.Ifaceeq (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
@@ -50,7 +50,7 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Segment) (R
     (hwb2 : WbLiveContract (Extracted.program.ofImpl impl) (Extracted.program.contractAddr "runtime.gcWriteBarrier2") 4096 R 2)
     (hcmp : Contracts.Cmpstring.CmpstringContract (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.cmpstring") 16) :
-    EnsuresGo (Extracted.program.link impl) Extracted.entry [pS, nS] (Pre R R2 T b L lo hi pS nS)
+    EnsuresGo (Extracted.program.link impl) Extracted.entry [pS, nS] (PreFd R R2 T b L lo hi pS nS)
       (fun _ => goClass P)
       (fun s s' =>
         (∃ v, decParse (bytesAt s.mem pS.toNat) nS.toNat = .ok v) ∧
@@ -113,9 +113,9 @@ theorem correctness (P : Janus.Spec.PanicRuntime) (impl : List Janus.Segment) (R
       (Extracted.program.contractAddr "runtime.newobject") 4096 R := NewobjectLiveContract.of_codeIn hc4 hnew
   exact Fv256.Arm64.MustFromDecimal.correctness_cond P impl R R2 T b L lo hi pS nS hnew'' hsfd
 
-namespace Witness
+namespace Wit
 set_option maxRecDepth 100000 in
-/-- non-vacuity: stub runtime contracts, a 48-digit decimal string, a call state with `Pre` (incl. `DataLoaded` of the real data and `PanicInit`) -/
+/-- non-vacuity: stub runtime contracts, a 48-digit decimal string, a call state with `PreFd` (incl. `DataLoaded` of the real data and `PanicInit`) -/
 theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
       (lo hi : Nat) (pS nS : BitVec 64) (P : Janus.Spec.PanicRuntime) (ret : Nat) (s : State),
     ImplApart Extracted.program impl ∧
@@ -129,7 +129,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
       (Extracted.program.contractAddr "runtime.cmpstring") 16 ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [pS, nS] s ∧
-    (Fv256.Arm64.MFdWit.pinPanicRuntime P ∧ Fv256.Arm64.MustFromDecimal.Pre R R2 T b L lo hi pS nS s) ∧
+    (Fv256.Arm64.MFdWit.pinPanicRuntime P ∧ Fv256.Arm64.MustFromDecimal.PreFd R R2 T b L lo hi pS nS s) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.newobject") ∧ NewobjectLiveSite R (Extracted.program.contractAddr "runtime.newobject") 4096 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.mallocgc") ∧ MallocgcLiveSite R (Extracted.program.contractAddr "runtime.mallocgc") 4096 [] 0x400 s_c) ∧
     (∃ (s_c : State), s_c.pc = BitVec.ofNat 64 (Extracted.program.contractAddr "runtime.memmove") ∧ MemmoveLiveSite R (Extracted.program.contractAddr "runtime.memmove") 4096 [] 0x400 s_c) ∧
@@ -152,8 +152,8 @@ theorem nonvacuous : ∃ (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceMode
       | .goexited _ => False := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7⟩ := Fv256.Arm64.MFdWit.nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, pS, nS, P, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, hret, hsetup, hp9, cs1, cs2, cs3, cs4, cs5, cs6, cs7,
-    correctness P impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup (hp9).2⟩
+    correctness_proof P impl R R2 T b L lo hi pS nS h1 h2 h3 h4 h5 h6 h7 h8 ret hret s hsetup (hp9).2⟩
 
-end Witness
+end Wit
 
 end Fv256.Arm64.MustFromDecimalMain

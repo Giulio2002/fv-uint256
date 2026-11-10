@@ -284,7 +284,7 @@ theorem hexloop (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z 
 
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (z : BitVec 64)
     (hc : RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s»)) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
       (fun s => GuardOK s 0 ∧ StackOK s 4208 8 ∧ Extracted.program.DataLoaded s.mem ∧
@@ -480,7 +480,7 @@ theorem csSb_pre : RtPre rtW 4096 H1 (slicebytetostringSpec Extracted.dataAddr.�
 
 /-- The precondition and the `slicebytetostring` contract are jointly satisfiable: a concrete call state (with a toy
 `slicebytetostring` linked at its address) meets every hypothesis of `correctness`. -/
-theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
+theorem nonvacuous_proof : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtReady) (ret : Nat) (s : State) (z : BitVec 64),
     RtContract (Extracted.program.link impl) ssAddr rt 4096 H (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») ∧
     RetAddr (Extracted.program.link impl) ret ∧
     CallSetup ((Extracted.program.link impl).withExit ret) Extracted.entry [z] s ∧
@@ -495,7 +495,7 @@ theorem nonvacuous : ∃ (impl : List Segment) (rt : List (Nat × Nat)) (H : RtR
         MemFrame s.mem s'.mem (rt ++ [(s.sp.toNat - 4208, s.sp.toNat + 8)]) := by
   refine ⟨implAt, rtW, H1, ret, s0, arg0, model, ?w1, ?w2, pre,
     ⟨csSb, rfl, csSb_pre⟩,
-    correctness implAt rtW H1 arg0 model ret ?w1 s0 ?w2 pre⟩
+    correctness_proof implAt rtW H1 arg0 model ret ?w1 s0 ?w2 pre⟩
   case w1 => exact by rw [linked_eq]; exact hret
   case w2 => exact by rw [linked_eq]; exact setup
 end Witness

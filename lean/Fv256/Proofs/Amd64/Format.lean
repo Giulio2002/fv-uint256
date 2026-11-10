@@ -34,7 +34,7 @@ set_option linter.unusedSimpArgs false
 
 namespace Fv256.Amd64.Format
 
-theorem correctness (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.program impl)
+theorem correctness_proof (impl : List Janus.Amd64.Segment) (hI : ImplApart Extracted.program impl)
     (R : IfaceModel) (hl : R.Laws) (H : Janus.Contracts.RtReady)
     (hta : Janus.Contracts.IfaceAmd64.TypeAssert (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.typeAssert") R H)
@@ -187,7 +187,7 @@ namespace Witness
 open Janus.Contracts.IfaceSatAmd64 Fv256.FormatFast Fv256.Amd64.FormatFast Janus.Spec.Type
 
 /-- all hypotheses of `correctness` and its precondition `PreF` hold together: fast path, `z = 16`, `ch = 'd'` -/
-theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+theorem nonvacuous_proof : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (RW RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
     (Fv256.Amd64.FormatWitA.pinT z tab data ch ret s rt impl R H R2 RW RW RF RWr RFp RBf ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
@@ -231,11 +231,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtRea
           BigPost R2 rt 4608 7340032 7340032 RW RW RF RBf tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs⟩ := Fv256.Amd64.FormatWitB.nonvacuous_core
   exact ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs,
-    correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
+    correctness_proof impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
 
 
 /-- the same for the nil receiver (`z = 0`) -/
-theorem nil : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+theorem nil_proof : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (RW RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
     (Fv256.Amd64.FormatWitA.pinT z tab data ch ret s rt impl R H R2 RW RW RF RWr RFp RBf ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
@@ -279,12 +279,12 @@ theorem nil : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2
           BigPost R2 rt 4608 7340032 7340032 RW RW RF RBf tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs⟩ := Fv256.Amd64.FormatWitN.nil_core
   exact ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17⟩, hcs,
-    correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (0) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
+    correctness_proof impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (0) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
 
 
 
 /-- the big path is really taken: some query is answered "not plain" (verb `q`), with `R2` serving `IntoBig`'s allocations -/
-theorem big : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
+theorem big_proof : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2 : RtInv) (rt : List (Nat × Nat))
     (RW RF RWr RFp RBf : Res) (z tab data ch : BitVec 64) (ret : Nat) (s : State),
     (Fv256.Amd64.FormatWitA.pinT z tab data ch ret s rt impl R H R2 RW RW RF RWr RFp RBf ∧
     Amd64.ImplApart Extracted.program impl ∧ R.Laws ∧
@@ -329,7 +329,7 @@ theorem big : ∃ (impl : List Amd64.Segment) (R : IfaceModel) (H : RtReady) (R2
           BigPost R2 rt 4608 7340032 7340032 RW RW RF RBf tab data ch s s') := by
   obtain ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17, hp18, hp19⟩, hcs⟩ := Fv256.Amd64.FormatWitBig.nonvacuous_big_core
   exact ⟨impl, R, H, R2, rt, RW, RF, RWr, RFp, RBf, z, tab, data, ch, ret, s, ⟨h1, h2, h3, h4, h5, h6, h7⟩, ⟨h8, h9, h10, h11, h12, h13⟩, ⟨h14, h15, h16, hret, hsetup, hp17, hp18, hp19⟩, hcs,
-    correctness impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
+    correctness_proof impl h2 R h3 H h4 R2 h5 h6 h7 rt h8 h9 (7340032) (7340032) (7340032) (7340032) (4608) (1024) (16) RW RW RF RWr RFp RBf h10 z tab data ch h11 h12 h13 h14 h15 h16 ret hret s hsetup hp17⟩
 
 end Witness
 

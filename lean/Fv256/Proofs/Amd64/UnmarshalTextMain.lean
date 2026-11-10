@@ -19,7 +19,7 @@ namespace Fv256.Amd64.UnmarshalTextMain
 
 set_option maxRecDepth 200000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
+theorem correctness_proof (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (z pI nI cI : BitVec 64)
     (hif : Ifaceeq (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.ifaceeq") R2)
     (hnew : NewobjectLiveContract64 (Extracted.program.link impl)
@@ -59,7 +59,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceMod
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)])) := by
   exact Fv256.Amd64.UnmarshalText.correctness_cond impl R R2 T b L lo hi z pI nI cI hif hnew hmg hmv hwb1 hwb2 hsb (Fv256.Amd64.UnmarshalHexDisch.hhex_of impl) (Fv256.Amd64.UnmarshalTextHsfd.hsfd impl R R2 T hif hnew hmg hmv hwb1 hwb2 hcmp)
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000 in
 theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -107,7 +107,7 @@ theorem nonvacuous : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : Ifa
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, cs1, cs2, cs3, cs4, cs5, cs6, cs7, cs8, hret, hsetup, hp9, hp10⟩ := Fv256.Amd64.UtWit.nonvacuous_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, cs1, cs2, cs3, cs4, cs5, cs6, cs7, cs8, hret, hsetup, hp9, hp10,
-    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h8 h7 ret hret s hsetup ⟨hp9, hp10⟩⟩
+    correctness_proof impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h8 h7 ret hret s hsetup ⟨hp9, hp10⟩⟩
 
 set_option maxRecDepth 100000 in
 theorem hex : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
@@ -155,8 +155,8 @@ theorem hex : ∃ (impl : List Janus.Amd64.Segment) (R : RtInv) (R2 : IfaceModel
         MemFrame s.mem s'.mem (R.rt ++ R2.priv ++ [(lo, hi), (z.toNat, z.toNat + 32)]) := by
   obtain ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, cs1, cs2, cs3, cs4, cs5, cs6, cs7, cs8, hret, hsetup, hp9, hp10, hp11⟩ := Fv256.Amd64.UtWit.hex_core
   exact ⟨impl, R, R2, T, b, L, lo, hi, z, pI, nI, cI, ret, s, h1, h2, h3, h4, h5, h6, h7, h8, cs1, cs2, cs3, cs4, cs5, cs6, cs7, cs8, hret, hsetup, hp9, hp10, hp11,
-    correctness impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h8 h7 ret hret s hsetup ⟨hp9, hp10⟩⟩
+    correctness_proof impl R R2 T b L lo hi z pI nI cI h1 h2 h3 h4 h5 h6 h8 h7 ret hret s hsetup ⟨hp9, hp10⟩⟩
 
-end Witness
+end Wit
 
 end Fv256.Amd64.UnmarshalTextMain

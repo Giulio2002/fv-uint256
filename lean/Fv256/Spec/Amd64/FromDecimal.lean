@@ -36,7 +36,7 @@ def cfg : SfdCfg :=
 
 open Fv256.C in
 /-- precondition of `FromDecimal(s)` (string pointer in `RAX`, length in `RBX`): `FromDecimalSpec.PreC` plus the rodata -/
-def Pre (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
+def PreFd (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat)) (lo hi : Nat) (pS nS : BitVec 64) (s : State) : Prop :=
   Fv256.Amd64.FromDecimalSpec.PreC0 cfg R R2 T b L lo hi Extracted.dataAddr.«type:uint256.Int#33f34945» pS nS s ∧
   Extracted.program.DataLoaded s.mem
 
