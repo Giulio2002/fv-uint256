@@ -36,6 +36,36 @@ theorem correctness_proof (z x y : BitVec 64) :
   all_goals try subst h
   all_goals first | (exfalso; omega) | (janus64_run [Util.readLE_32]; all_goals (refine ⟨?_, ?_⟩; (· (try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try have := Util.readLE8_lt s.mem (y.toNat )); (try have := Util.readLE8_lt s.mem (y.toNat + 8)); (try have := Util.readLE8_lt s.mem (y.toNat + 16)); (try have := Util.readLE8_lt s.mem (y.toNat + 24)); (try simp only [Spec.add, Spec.W, Nat.reducePow]); dec_facts; omega); (· simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self])))
 
+/-- SPEED (the bound's proof; the claim is `Fv256.Amd64.Add.within`): every call meeting the precondition returns after executing at
+most 17 instructions of the model (the 16 of the four limb steps and the `RET`; instructions, not cycles). The postcondition is
+trivial here: the real one is `correctness_proof`'s, combined by `EnsuresWithin.of_ensures`. -/
+theorem within_proof (z x y : BitVec 64) :
+    EnsuresWithin (fun _ => 17) Extracted.program Extracted.entry [z, x, y]
+      (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
+        Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x ∧ Alias z y ∧ Alias x y)
+      (fun _ _ => True) := by
+  intro ret hret s hs ⟨⟨_, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hds, hzx, hzy, hxy⟩
+  janus64_intro hs
+  simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw hds
+  simp only [Disjoint, Alias] at *
+  rcases hzx with rfl | hzx <;> rcases hzy with rfl | hzy <;> rcases hxy with h | hxy
+  all_goals try subst h
+  all_goals first | (exfalso; omega) | janus64_run
+
+/-- SPEED (lower bound; the claim is `Fv256.Amd64.Add.atLeast`): every call meeting the precondition executes at least 17
+instructions: the code is straight-line (no branch), so 17 is also the exact count. -/
+theorem atLeast_proof (z x y : BitVec 64) :
+    RunsAtLeastOnCall (fun _ => 17) Extracted.program Extracted.entry [z, x, y]
+      (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s x 32 false ∧ Buffer s y 32 false ∧
+        Disjoint z 32 (s.regs regSP) 8 ∧ Alias z x ∧ Alias z y ∧ Alias x y) := by
+  intro ret hret s hs ⟨⟨_, hnw, hacc⟩, ⟨hzw, hz⟩, ⟨hxw, hx⟩, ⟨hyw, hy⟩, hds, hzx, hzy, hxy⟩
+  janus64_intro hs
+  simp only [regSP, Nat.sub_zero, Nat.zero_add] at hacc hnw hds
+  simp only [Disjoint, Alias] at *
+  rcases hzx with rfl | hzx <;> rcases hzy with rfl | hzy <;> rcases hxy with h | hxy
+  all_goals try subst h
+  all_goals first | (exfalso; omega) | janus64_run
+
 namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel

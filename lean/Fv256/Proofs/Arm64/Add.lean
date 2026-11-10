@@ -31,6 +31,28 @@ theorem correctness_proof (z x y : BitVec 64) :
   all_goals simp only [Disjoint] at *
   all_goals first | (exfalso; omega) | (janus_run; all_goals ((try have := Util.readLE8_lt s.mem (z.toNat )); (try have := Util.readLE8_lt s.mem (z.toNat + 8)); (try have := Util.readLE8_lt s.mem (z.toNat + 16)); (try have := Util.readLE8_lt s.mem (z.toNat + 24)); (try have := Util.readLE8_lt s.mem (x.toNat )); (try have := Util.readLE8_lt s.mem (x.toNat + 8)); (try have := Util.readLE8_lt s.mem (x.toNat + 16)); (try have := Util.readLE8_lt s.mem (x.toNat + 24)); (try have := Util.readLE8_lt s.mem (y.toNat )); (try have := Util.readLE8_lt s.mem (y.toNat + 8)); (try have := Util.readLE8_lt s.mem (y.toNat + 16)); (try have := Util.readLE8_lt s.mem (y.toNat + 24)); (try simp only [Spec.add, Spec.W, Nat.reducePow, Nat.reduceMod]); omega))
 
+/-- SPEED (the bound's proof; the claim is `Fv256.Arm64.Add.within`): every call meeting the precondition returns after executing at
+most 17 instructions of the model (the 16 of the four limb steps and the `RET`; instructions, not cycles). The postcondition is
+trivial here: the real one is `correctness_proof`'s, combined by `EnsuresWithin.of_ensures`. -/
+theorem within_proof (z x y : BitVec 64) :
+    EnsuresWithin (fun _ => 17) Extracted.program Extracted.entry [z, x, y]
+      (fun s => Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
+        Aliasing z x ∧ Aliasing z y ∧ Aliasing x y)
+      (fun _ _ => True) := by
+  intro ret hret s hs ⟨⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, hzx, hzy, hxy⟩
+  janus_intro hs
+  janus_run
+
+/-- SPEED (lower bound; the claim is `Fv256.Arm64.Add.atLeast`): every call meeting the precondition executes at least 17
+instructions: the code is straight-line (no branch), so 17 is also the exact count. -/
+theorem atLeast_proof (z x y : BitVec 64) :
+    RunsAtLeastOnCall (fun _ => 17) Extracted.program Extracted.entry [z, x, y]
+      (fun s => Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
+        Aliasing z x ∧ Aliasing z y ∧ Aliasing x y) := by
+  intro ret hret s hs ⟨⟨hz, hz'⟩, ⟨hx, hx'⟩, ⟨hy, hy'⟩, hzx, hzy, hxy⟩
+  janus_intro hs
+  janus_run
+
 namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
