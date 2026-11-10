@@ -36,7 +36,7 @@ namespace Fv256.Arm64.Value
 
 set_option maxHeartbeats 32000000 in
 set_option maxRecDepth 200000 in
-theorem correctness (impl : List Segment) (R : RtInv) (z : BitVec 64)
+theorem correctness_proof (impl : List Segment) (R : RtInv) (z : BitVec 64)
     (hc0 : RtLiveContract (Extracted.program.link impl) ssAddr 4096 R (slicebytetostringSpec Extracted.dataAddr.«runtime.staticuint64s») slicebytetostringLive)
     (hc2 : RtLiveContract (Extracted.program.link impl) cvAddr 4096 R convTstringSpec convTstringLive) :
     Ensures (Extracted.program.link impl) Extracted.entry [z]
@@ -189,7 +189,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (z : BitVec 64)
   · exact hMF2
 
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.Toy Janus.Contracts.LiveStub
 
@@ -435,10 +435,10 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (ret : Nat) (s : Stat
   refine ⟨implAt, RW, ret, s0, arg, hc0, hc2, ?w2, ?w3, pre, ?w5,
     ⟨csSb, rfl, csSb_pre⟩,
     ⟨csCv, rfl, csCv_pre⟩,
-    correctness implAt RW arg hc0 hc2 ret ?w2 s0 ?w3 pre⟩
+    correctness_proof implAt RW arg hc0 hc2 ret ?w2 s0 ?w3 pre⟩
   case w2 => exact by rw [linked_eq]; exact hret
   case w3 => exact by rw [linked_eq]; exact setup
   case w5 => exact by rw [hz]; decide
-end Witness
+end Wit
 
 end Fv256.Arm64.Value

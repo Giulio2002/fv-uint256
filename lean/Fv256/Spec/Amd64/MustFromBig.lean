@@ -18,7 +18,7 @@ def panicType : Nat := Extracted.dataAddr.«type:string#f88732b8»
 
 def panicData : Nat := Extracted.dataAddr.«.rodata#ee30ac37»
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 
@@ -32,6 +32,6 @@ def pinBitVec64 (_k : BitVec 64) : Prop := True
 
 open Fv256.CallSites
 
-end Witness
+end Wit
 
 end Fv256.Amd64.MustFromBig

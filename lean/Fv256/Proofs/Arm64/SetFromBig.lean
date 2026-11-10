@@ -14,7 +14,7 @@ open Janus Janus.Arm64 Janus.GoABI Janus.Tactic Janus.Spec
 
 namespace Fv256.Arm64.SetFromBig
 
-theorem correctness (z b pw len : BitVec 64) :
+theorem correctness_proof (z b pw len : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, b]
       (fun s => Ptr32 s.mem z true ∧ Ptr s.mem b 32 false ∧ s.mem.readLE b.toNat 1 < 2 ∧
         s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = len.toNat ∧
@@ -56,7 +56,7 @@ theorem correctness (z b pw len : BitVec 64) :
   all_goals ((try generalize s.mem.readLE pw.toNat 8 = x0 at *); (try generalize s.mem.readLE (pw.toNat + 8) 8 = x1 at *); (try generalize s.mem.readLE (pw.toNat + 16) 8 = x2 at *); (try generalize s.mem.readLE (pw.toNat + 24) 8 = x3 at *); first | (janus_decide_split <;> omega) | omega | (trace_state; fail "y"))
   all_goals fail "x"
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -98,14 +98,14 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw : BitVec 64), RetAddr E
             (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) (2 : BitVec 64).toNat) ∧
         OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, b, pw, hret, setup, hpre,
-    correctness z b pw (2 : BitVec 64) ret hret s0 setup hpre⟩
+    correctness_proof z b pw (2 : BitVec 64) ret hret s0 setup hpre⟩
 
 
 /-- The call returns, without overflow, and `z` holds `-(5 + 2^64)` modulo `2^256`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat = 0 ∧
       val256 s'.mem z.toNat = 2 ^ 256 - (5 + 2 ^ 64) := by
-  refine (correctness z b pw 2 ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z b pw 2 ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_, ?_⟩
   · rw [h.2.1]; decide
@@ -120,6 +120,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     simp only [Fv256.C.fromBig, Spec.neg, Spec.W]
     decide
 
-end Witness
+end Wit
 
 end Fv256.Arm64.SetFromBig

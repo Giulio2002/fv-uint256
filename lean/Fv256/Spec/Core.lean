@@ -21,6 +21,7 @@ import Fv256.Spec.Lsh
 import Fv256.Spec.Rsh
 import Fv256.Spec.SRsh
 import Fv256.Spec.ExtendSign
+import Fv256.Spec.SizeSSZ   -- `Fv256.Spec.sizeSSZ` lives in its own pure file
 
 /-! SPECIFICATION part: the definitions the final theorem statements depend on. The proofs are in the module of the same name under `Fv256.Proofs`. -/
 
@@ -82,7 +83,5 @@ def fromBE (f : Nat → Nat) : Nat → Nat
   | 0 => 0
   | n + 1 => f 0 * 256 ^ n + fromBE (fun i => f (i + 1)) n
 
-/-- `z.SizeSSZ()`: the SSZ encoding of a `uint256` has 32 bytes. -/
-def sizeSSZ : Nat := 32
 
 end Fv256.Spec

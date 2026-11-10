@@ -77,7 +77,7 @@ theorem pre_mono {R : RtInv} {b : Nat} {z bp : BitVec 64} {s : State} (h : PreC 
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 0 in
-theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
+theorem correctness_proof (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : BitVec 64)
     (hI : ImplApart Extracted.program impl)
     (hnew : NewobjectLiveContract64 (Extracted.program.ofImpl impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
@@ -181,7 +181,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : BitVe
       simp only [outside_append, outside_cons, outside_nil, and_true] at hh ⊢
       exact ⟨hh, hh.1, by omega, by omega, by omega⟩
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -371,11 +371,11 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (b : Nat) (z : 
         (z.toNat ≠ 0 → ∃ P : Nat, (s'.regs 0).toNat = P ∧ BigObj s'.mem P (val256 s.mem z.toNat)) ∧
         MemFrame s.mem s'.mem (R.rt ++ [((s.regs 4).toNat - 4168, (s.regs 4).toNat)]) := by
   refine ⟨implAt, R, 0x400, zV, ret, s0, implOK, ?w1, ?w2, ?w3, ⟨[], 0x400, csNew, csNew_rip, csNew_pre⟩, ⟨[], 0x400, csW1, csW1_rip, csW1_pre⟩, ⟨[], 0x400, csW2, csW2_rip, csW2_pre⟩, hret, setup, pre,
-    correctness implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
+    correctness_proof implAt R 0x400 zV implOK ?w1 ?w2 ?w3 ret hret s0 setup pre⟩
   case w1 => exact by rw [addr_new]; exact model_new
   case w2 => exact by rw [addr_w1]; exact model_wb1
   case w3 => exact by rw [addr_w2]; exact model_wb2
 
-end Witness
+end Wit
 
 end Fv256.Amd64.ToBig

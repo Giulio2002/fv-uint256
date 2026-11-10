@@ -56,7 +56,7 @@ fault, no panic), obeys the ABI, with `n = min len 32` the first `n` bytes of `d
 -/
 
 set_option maxHeartbeats 64000000 in
-theorem correctness (z d len cap : BitVec 64) :
+theorem correctness_proof (z d len cap : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, d, len, cap]
       (fun s => StackWritable s 8 24 ∧ Buffer s z 32 false ∧ len.toNat < 2 ^ 48 ∧ Buffer s d len.toNat true ∧
         (z.toNat + 32 ≤ d.toNat ∨ d.toNat + len.toNat ≤ z.toNat) ∧
@@ -201,7 +201,7 @@ theorem correctness (z d len cap : BitVec 64) :
       have := case31 z d cap ret hret s hs ⟨hst, hz, hd, hzd, hzs, hds, by simpa using hcap⟩
       simpa using this
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -243,14 +243,14 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z d : BitVec 64), RetAddr Extr
           valueAt s z 32 % 2 ^ (8 * min (8 : BitVec 64).toNat 32) ∧
         Util.OnlyWrites2 s.mem s'.mem d.toNat (min (8 : BitVec 64).toNat 32) ((s.regs regSP).toNat - 8) 32 :=
   ⟨ret, s0, z, d, hret, setup, hpre,
-    correctness z d (8 : BitVec 64) (8 : BitVec 64) ret hret s0 setup hpre⟩
+    correctness_proof z d (8 : BitVec 64) (8 : BitVec 64) ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 (fun s' => ABIReturn s0 s' ∧
     Spec.fromBE (fun i => s'.mem.readLE (d.toNat + i) 1) (min (8 : BitVec 64).toNat 32) =
       valueAt s0 z 32 % 2 ^ (8 * min (8 : BitVec 64).toNat 32) ∧
     Util.OnlyWrites2 s0.mem s'.mem d.toNat (min (8 : BitVec 64).toNat 32) ((s0.regs regSP).toNat - 8) 32) :=
-  correctness z d 8 8 ret hret s0 setup hpre
+  correctness_proof z d 8 8 ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.WriteToSlice

@@ -22,7 +22,7 @@ def intType : Nat :=
   adrpLdTarget (Extracted.entry + 0x30) (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 12)
     (segWord Extracted.program "github.com/holiman/uint256.MustFromBig" 13) 0
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.IfaceModel
 
@@ -34,6 +34,6 @@ def pinBitVec64 (_k : BitVec 64) : Prop := True
 
 -- CALLSITE-BLOCK lean/Fv256/Arm64/CallSites/MustFromBig.lean
 
-end Witness
+end Wit
 
 end Fv256.Arm64.MustFromBig

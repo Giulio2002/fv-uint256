@@ -9,7 +9,7 @@ namespace Fv256.Arm64.IntoBig
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 4000000 in
-theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
+theorem correctness_proof (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 64)
     (hnew : NewobjectLiveContract (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.newobject") 4096 R)
     (hwb1 : WbLiveContract (Extracted.program.link impl)
@@ -89,7 +89,7 @@ theorem correctness (impl : List Segment) (R : RtInv) (b : Nat) (z bp : BitVec 6
       | janus_frame
       | (trace_state; fail "x5")
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -260,10 +260,10 @@ theorem nonvacuous : ∃ (impl : List Segment) (R : RtInv) (b : Nat) (z bp : Bit
     ⟨csNew, rfl, csNew_pre⟩,
     ⟨csW1, rfl, csW1_pre⟩,
     ⟨csW2, rfl, csW2_pre⟩,
-    correctness implAt R 0x400 zV bpV ?w0 ?w1 ?w2 ret hret s0 setup ⟨pre, preX⟩⟩
+    correctness_proof implAt R 0x400 zV bpV ?w0 ?w1 ?w2 ret hret s0 setup ⟨pre, preX⟩⟩
   case w0 => exact by rw [addr_new]; exact model_new
   case w1 => exact by rw [addr_w1]; exact model_wb1
   case w2 => exact by rw [addr_w2]; exact model_wb2
-end Witness
+end Wit
 
 end Fv256.Arm64.IntoBig

@@ -8,9 +8,13 @@ for m in IntoBigDefs IntoBigFinF IntoBigClose IntoBigLoop IntoBigTail IntoBigSlo
   python3 - "$D/$m.lean" "$D/FM/$dst.lean" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
-if 'namespace Witness' in s:
-    i=s.index('namespace Witness'); j=s.index('end Witness')+len('end Witness')
+if 'namespace Wit' in s:
+    i=s.index('namespace Wit'); j=s.index('end Wit')+len('end Wit')
     s=s[:i]+s[j:]
+# the claim layout renamed the proof theorem `correctness` -> `correctness_proof`; the re-targeted copies keep the name their users
+# (ToBig, Format) call, so the generated modules are unchanged
+assert s.count('theorem correctness_proof')<=1
+s=s.replace('theorem correctness_proof','theorem correctness')
 s=s.replace('Extracted.entry','Fv256.Arm64.IntoBig.ibEntry')
 s=s.replace('Extracted.program.link impl','(Extracted.program.onlySegments ["github.com/holiman/uint256.(*Int).IntoBig"]).link impl')
 s=re.sub(r'import Fv256\.Arm64\.(IntoBig\w+)',r'import Fv256.Arm64.FM.\1',s)

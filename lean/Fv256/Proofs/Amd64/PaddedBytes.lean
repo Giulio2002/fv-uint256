@@ -56,7 +56,7 @@ namespace Fv256.Amd64.PaddedBytes
 
 set_option maxRecDepth 20000 in
 set_option maxHeartbeats 64000000 in
-theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z n : BitVec 64) (hn : n.toNat ≤ 2 ^ 48)
+theorem correctness_proof (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (H : RtReady) (z n : BitVec 64) (hn : n.toNat ≤ 2 ^ 48)
     (hmk : MakesliceContract64 (Extracted.program.link impl)
       (Extracted.program.contractAddr "runtime.makeslice") rt 4096 H) :
     Ensures (Extracted.program.link impl) Extracted.entry [z, n]
@@ -203,7 +203,7 @@ theorem correctness (impl : List Janus.Amd64.Segment) (rt : List (Nat × Nat)) (
       exact (case31 impl rt H z hmk ret hret s hs hpre).mono fun s' ⟨hab, ptr, a, b, c, d, e, f, g⟩ =>
         ⟨hab, ptr, a, b, c, fun _ => ⟨d, e⟩, f, g⟩
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.AllocSatAmd64 (ret_of)
 open Janus.Contracts.AllocSat (le_blockSize)
@@ -358,12 +358,12 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (rt : List (Nat × Nat)) (H
         MemFrame s.mem s'.mem (rt ++ [((s.regs 4).toNat - 4136, (s.regs 4).toNat + 24)]) :=
   ⟨impl, rt, H, ret, s0, zp, 5, hmk, hret, setup, (by decide), pre,
     ⟨csMk, rfl, csMk_pre⟩,
-    correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
+    correctness_proof impl rt H zp 5 (by decide) hmk ret hret s0 setup pre⟩
 
 
 /-- The theorem fires: for this call and this allocator, `PaddedBytes(5)` returns a fresh 5-byte slice in `rt`. -/
-example := correctness impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
+example := correctness_proof impl rt H zp 5 (by decide) hmk ret hret s0 setup pre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.PaddedBytes

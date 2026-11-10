@@ -16,7 +16,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.SetFromBig
 
 set_option maxHeartbeats 8000000 in
-theorem correctness (z b pw len : BitVec 64) :
+theorem correctness_proof (z b pw len : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, b]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 true ∧ Buffer s b 32 false ∧ s.mem.readLE b.toNat 1 < 2 ∧
         s.mem.readLE (b.toNat + 8) 8 = pw.toNat ∧ s.mem.readLE (b.toNat + 16) 8 = len.toNat ∧
@@ -58,7 +58,7 @@ theorem correctness (z b pw len : BitVec 64) :
     · repeat (refine (Janus.Spec.onlyWrites_writeLE_iff _ (by omega) (by omega)).2 ?_)
       exact Janus.Spec.onlyWrites_refl _ _ _
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -99,14 +99,14 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z b pw : BitVec 64), RetAddr E
             (Fv256.C.bigAbs (fun i => s.mem.readLE (pw.toNat + 8 * i) 8) (2 : BitVec 64).toNat) ∧
         Janus.Spec.OnlyWrites s.mem s'.mem z.toNat 32 :=
   ⟨ret, s0, z, b, pw, hret, setup, hpre,
-    correctness z b pw (2 : BitVec 64) ret hret s0 setup hpre⟩
+    correctness_proof z b pw (2 : BitVec 64) ret hret s0 setup hpre⟩
 
 
 /-- The call returns, without overflow (low byte of `RAX` is 0), and `z` holds `-(5 + 2^64)` modulo `2^256`. -/
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ (s'.regs 0).toNat % 256 = 0 ∧
       valueAt s' z 32 = 2 ^ 256 - (5 + 2 ^ 64) := by
-  refine (correctness z b pw 2 ret hret s0 setup hpre).mono ?_
+  refine (correctness_proof z b pw 2 ret hret s0 setup hpre).mono ?_
   intro s' h
   refine ⟨h.1, ?_, ?_⟩
   · rw [h.2.1]; decide
@@ -121,6 +121,6 @@ theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     simp only [Fv256.C.fromBig, Spec.neg, Spec.W]
     decide
 
-end Witness
+end Wit
 
 end Fv256.Amd64.SetFromBig

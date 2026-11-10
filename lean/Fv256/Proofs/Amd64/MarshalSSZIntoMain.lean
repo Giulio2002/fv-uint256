@@ -417,7 +417,7 @@ theorem succblk (impl : List Amd64.Segment) (z dp len cap : BitVec 64) :
   · janus_frame
 
 set_option maxHeartbeats 16000000 in
-theorem correctness (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Laws) (H : RtReady)
+theorem correctness_proof (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (hl : Ri.Laws) (H : RtReady)
     (hf : ErrorfLive (Extracted.program.link impl) (Extracted.program.contractAddr "fmt.errorf") 4096 R
       tErr iErr tInt iWrap 26 fmtNum 4294967296)
     (hconv : ConvT64 (Extracted.program.link impl) (Extracted.program.contractAddr "runtime.convT64") Ri H)
@@ -433,7 +433,7 @@ theorem correctness (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceModel) (h
 
 /-! ## Non-vacuity (error branch, `len = 5`) -/
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -704,8 +704,8 @@ theorem nonvacuous : ∃ (impl : List Amd64.Segment) (R : RtInv) (Ri : IfaceMode
   refine ⟨implAt, R0e, R0, Htrue, [], 138, evData, textAddr, 21, retA, s0, _, _, 5, 8, R0_laws, hf0, hconv0, hret0, setup, pre0, ?w6,
     ⟨csCv, csCv_rip, csCv_pre⟩,
     ⟨csEr, csEr_rip, csEr_pre⟩,
-    correctness implAt R0e R0 R0_laws Htrue hf0 hconv0 ([]) 138 evData textAddr 21 _ _ 5 8 retA hret0 s0 setup pre0⟩
+    correctness_proof implAt R0e R0 R0_laws Htrue hf0 hconv0 ([]) 138 evData textAddr 21 _ _ 5 8 retA hret0 s0 setup pre0⟩
   case w6 => exact by decide
-end Witness
+end Wit
 
 end Fv256.Amd64.MarshalSSZIntoMain

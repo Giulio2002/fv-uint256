@@ -19,7 +19,7 @@ open Janus.Amd64 Janus.Amd64.GoABI Janus.Amd64.Tactic
 namespace Fv256.Amd64.WriteToArray20
 
 set_option maxHeartbeats 8000000 in
-theorem correctness (z dest : BitVec 64) :
+theorem correctness_proof (z dest : BitVec 64) :
     Ensures Extracted.program Extracted.entry [z, dest]
       (fun s => StackWritable s 0 8 ∧ Buffer s z 32 false ∧ Buffer s dest 20 true ∧
         (z.toNat + 32 ≤ dest.toNat ∨ dest.toNat + 20 ≤ z.toNat) ∧
@@ -48,7 +48,7 @@ theorem correctness (z dest : BitVec 64) :
     omega
   · simp (disch := omega) only [Janus.Spec.onlyWrites_writeLE_iff, Janus.Spec.onlyWrites_self]
 
-namespace Witness
+namespace Wit
 
 open Janus.Contracts.EqHashModel Janus.Contracts.IfaceModel
 
@@ -82,13 +82,13 @@ theorem nonvacuous : ∃ (ret : Nat) (s : State) (z dest : BitVec 64), RetAddr E
     Returns (Extracted.program.withExit ret) s fun s' => ABIReturn s s' ∧ Spec.fromBE (fun i => s'.mem.readLE (dest.toNat + i) 1) 20 = valueAt s z 32 % 2 ^ 160 ∧
         Janus.Spec.OnlyWrites s.mem s'.mem dest.toNat 20 :=
   ⟨ret, s0, z, dest, hret, setup, hpre,
-    correctness z dest ret hret s0 setup hpre⟩
+    correctness_proof z dest ret hret s0 setup hpre⟩
 
 theorem returns : Returns (Extracted.program.withExit ret) s0 fun s' =>
     ABIReturn s0 s' ∧ Fv256.Spec.fromBE (fun i => s'.mem.readLE (dest.toNat + i) 1) 20 = valueAt s0 z 32 % 2 ^ 160 ∧
       Janus.Spec.OnlyWrites s0.mem s'.mem dest.toNat 20 :=
-  correctness z dest ret hret s0 setup hpre
+  correctness_proof z dest ret hret s0 setup hpre
 
-end Witness
+end Wit
 
 end Fv256.Amd64.WriteToArray20

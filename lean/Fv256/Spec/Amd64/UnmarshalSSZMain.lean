@@ -86,7 +86,7 @@ def Pre (R : RtInv) (Ri : IfaceModel) (H : RtReady) (L : List (Nat × Nat)) (bud
 def Post (R : RtInv) (Ri : IfaceModel) (L : List (Nat × Nat)) (bud e tp tl : Nat) (z bp len cap : BitVec 64) (s s' : State) : Prop :=
   (len.toNat = 32 → SuccPost z bp len cap s s') ∧ (len.toNat ≠ 32 → ErrPost R Ri L bud e tp tl z bp len cap s s')
 
-namespace Witness
+namespace Wit
 
 set_option maxRecDepth 100000
 
@@ -96,6 +96,6 @@ abbrev cAddrE : Nat := Extracted.program.contractAddr "fmt.errorf"
 
 abbrev cAddrC : Nat := Extracted.program.contractAddr "runtime.convT64"
 
-end Witness
+end Wit
 
 end Fv256.Amd64.UnmarshalSSZMain
