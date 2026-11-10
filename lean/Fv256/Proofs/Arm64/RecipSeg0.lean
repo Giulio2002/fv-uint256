@@ -55,7 +55,8 @@ theorem seg0 (s : State) (hpc : s.pc = BitVec.ofNat 64 recEntry) (hpre : RecPre 
       2 ^ 128 * (m2 * 2 ^ n % 2 ^ 64 + m1 / 2 ^ (64 - n)) + 2 ^ 192 * (m3 * 2 ^ n % 2 ^ 64 + m2 / 2 ^ (64 - n)) =
       Fv256.Spec.lsh (m0 + 2 ^ 64 * m1 + 2 ^ 128 * m2 + 2 ^ 192 * m3) n := by
     have := Util.lsh0_t m0 m1 m2 m3 n (by omega) b0 b1 b2 b3
-    unfold Fv256.Spec.lsh Fv256.Spec.W
+    unfold Fv256.Spec.lsh
+    try unfold Fv256.Spec.W
     simpa only [Nat.reducePow] using this
   have lt0 : m0 * 2 ^ n % 2 ^ 64 < 2 ^ 64 := Nat.mod_lt _ (by decide)
   have lt1 := Fv256.Arm64.RecipNat.word_lt m0 m1 n b0 hn63

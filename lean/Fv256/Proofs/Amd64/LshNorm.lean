@@ -79,7 +79,8 @@ theorem top_ge (x0 x1 x2 x3 n : Nat) (hx0 : x0 < 2 ^ 64) (hx1 : x1 < 2 ^ 64) (hx
       Fv256.Spec.lsh (x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 + 2 ^ 192 * x3) n) : 2 ^ 63 ≤ v3 := by
   obtain ⟨hn1, hn2⟩ := clz_norm 64 x3 hx3 h0
   rw [← hn] at hn1 hn2
-  unfold Fv256.Spec.lsh Fv256.Spec.W at hv
+  unfold Fv256.Spec.lsh at hv
+  try unfold Fv256.Spec.W at hv
   simp only [Nat.reducePow, Nat.add_sub_cancel] at hn1 hn2 hv
   have hxs : x0 + 2 ^ 64 * x1 + 2 ^ 128 * x2 < 2 ^ 192 := by
     have : 2 ^ 64 * x1 ≤ 2 ^ 64 * (2 ^ 64 - 1) := Nat.mul_le_mul_left _ (by omega)
