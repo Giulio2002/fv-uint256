@@ -47,7 +47,7 @@ claim sits a `Witness.nonvacuous` theorem showing that `Pre` can actually be met
 All 293 rows verified: 146 functions on each of arm64 and amd64, plus one amd64 `GOAMD64=v3` row. Every main theorem is paired with a kernel-checked
 non-vacuity witness, and the release lint is clean. Per-row status: [`docs/COVERAGE.md`](docs/COVERAGE.md).
 
-RESULT-LINE
+**Release run (2026-11-11):** Janus [v0.2.0](https://github.com/Giulio2002/Janus/releases/tag/v0.2.0) (`9ff22946`, release binary sha256 `0127f1e7…f8fd`), fresh cache, every row with its witness: 293/293 PASS, release lint (`make lint`) clean. 4.4 h wall with 6 rows in parallel; slowest row amd64 Scan 2008 s. Every new claim was also checked equivalent to the previously released statement (208 definitionally, 85 via a bridge proof).
 
 ## Check it yourself
 

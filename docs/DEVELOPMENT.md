@@ -104,5 +104,6 @@ A full run takes many hours; a single row takes minutes to about an hour.
 * The instruction bytes are copied by `janus extract` out of the linked executable; Lean decodes and runs them in its ISA model.
   Janus's kernel replay and audit check every theorem.
 * `scripts/check-spec-closure` proves, with Lean itself, that every final theorem statement depends only on `Spec/`, the claim files, Janus and the extraction; `Spec/` never imports `Proofs/`.
-* Release run (2026-11-09) details: fresh-cache full run 3.9 h wall (6 rows in parallel), 17.8 h summed; slowest row amd64 Scan 3443 s. Janus binary built reproducibly
+* Release run (2026-11-11, Janus v0.2.0 `9ff22946`, binary sha256 `0127f1e721ae81a85a3e5eb4726e5cb0e791849169b639bb4aab02ac7a79f8fd`, reproducible): fresh-cache full run 15,750 s (4.4 h) wall with 6 rows in parallel, 20.8 h summed (host shared with other jobs); slowest row amd64 Scan 2008 s; every row log shows `Non-vacuity: shown by`.
+* Previous release run (2026-11-09, Janus `722bf8ae`) details: fresh-cache full run 3.9 h wall (6 rows in parallel), 17.8 h summed; slowest row amd64 Scan 3443 s. Janus binary built reproducibly
   (`go build -trimpath -buildvcs=false`, Go 1.26.10), sha256 `44d314819d6f9925c90e9f6e4db8866f92dbc152010691e93877f9ad6aadad54`.
