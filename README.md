@@ -1,74 +1,90 @@
 # fv-uint256
 
-Machine-checked proofs, with [Janus](https://github.com/Giulio2002/Janus) (Lean 4), that the **compiled arm64 and amd64 machine code** of
-[holiman/uint256](https://github.com/holiman/uint256) computes what an independent mathematical specification says.
+**What this is.** [holiman/uint256](https://github.com/holiman/uint256) is the 256-bit integer library used by Ethereum clients. This repository proves,
+with [Janus](https://github.com/Giulio2002/Janus) and the Lean 4 proof checker, that every one of its 146 exported functions is correct **as compiled machine
+code**, on both arm64 and amd64. The proofs are about the bytes the CPU runs, not the Go source, so a compiler bug or a mistake in the hand-written
+assembly cannot hide. You write down what a function should do as a short mathematical spec; the proof checks that the machine code does exactly that for every input.
 
-**Result (2026-11-09):** all 293 rows verified (146 functions on arm64 and amd64, plus 1 amd64v3 row) with Janus [`722bf8ae`](https://github.com/Giulio2002/Janus/commit/722bf8ae933098c6244f3f3e514c17b840bfde38), every main theorem paired with a kernel-checked returning-run witness (no run-free or refutation rows). Fresh-cache full run: 3.9 h wall (6 rows in parallel), 17.8 h summed; slowest row amd64 Scan 3443 s. Release lint (`make lint`) clean. Janus binary built reproducibly (`go build -trimpath -buildvcs=false`, Go 1.26.10), sha256 `44d314819d6f9925c90e9f6e4db8866f92dbc152010691e93877f9ad6aadad54`.
+## A worked example: `Add`
 
-## What is verified
+**The spec** is plain math on natural numbers ([`lean/Fv256/Spec/Add.lean`](lean/Fv256/Spec/Add.lean)):
 
-* Library: `github.com/holiman/uint256` master `48f3f44` (`v1.3.3-0.20261018174624-48f3f4483d41`), built by the harness in `go/`.
-* Scope: **146 exported functions and methods**, each on **linux/arm64 and linux/amd64**, plus **one extra amd64 row** for the
-  `GOAMD64=v3` build of `BitLen`. The table with the per-row status and runtime contracts is [`docs/COVERAGE.md`](docs/COVERAGE.md).
-* For every row, `correctness` says: for every admissible call (any caller, any other register or memory content, aliasing as stated in
-  the precondition) the code returns without faulting or panicking, obeys the Go ABI, and leaves results and memory exactly as the
-  specification (`lean/Fv256/Spec/<Fn>.lean`, plain mathematics on `Nat`) says. Each main theorem is paired with a kernel-checked `Witness.nonvacuous`: a returning run from a state satisfying the precondition (and a call-site state for every runtime contract), so the statement is not empty; Janus refuses a theorem without it.
-* The instruction bytes are copied by `janus extract` out of the linked executable; Lean decodes and runs them in its ISA model.
-  Janus's kernel replay and audit check every theorem.
+```lean
+/-- `z.Add(x, y)` sets `z = x + y` with wrap-around (arithmetic modulo `2^256`) and returns `z`. No error or panic case. -/
+def add (x y : Nat) : Nat := (x + y) % 2 ^ 256
 
-**To see what a function is proven to do, open `lean/Fv256/Spec/<Fn>.lean` (the math: a short pure definition with the Go signature and the
-gist in words) and `lean/Fv256/<Isa>/<Fn>.lean` (the claim: `Pre`, `Post` and `theorem correctness`, with `<Isa>` = `Arm64` or `Amd64`).** The claim says
-that the compiled code, started from a state meeting `Pre`, returns in a state meeting `Post`, and `Post` is stated through the `Spec` definition.
-Everything else (tactics, generated modules, program lemmas) lives in `lean/Fv256/Proofs/` and need not be read to understand the result.
-
-What a reader must trust, and the known limitations, are listed in [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md).
-
-## Toolchain
-
-| component | version |
-|---|---|
-| Lean | `leanprover/lean4:v4.34.1` (`lean/lean-toolchain`) |
-| Janus | pinned in `lean/lakefile.toml` (`rev`, with `lean/lake-manifest.json`) |
-| Go | `go1.26.0` (`GOTOOLCHAIN=go1.26.0`, `CGO_ENABLED=0`, `-trimpath`); the harness hashes are pinned in `scripts/harness.sha256` |
-| Other | `python3`, GNU `time`, `memcap` (per-row memory cap used by `verify-all.sh`), `lake` |
-
-You need a built `janus` binary (`go build ./cmd/janus` in the Janus repository) and pass it as `JANUS=/path/to/janus`.
-
-## Running the checks
-
-A `Makefile` wraps the entry points (`make help` lists them):
-
-| command | what it does |
-|---|---|
-| `make build` | `lake build` of the `Fv256` library (the extraction-independent modules: specification and lemmas) |
-| `make verify` | `scripts/verify-all.sh`: build the harness, extract and `janus verify` every row (arm64, amd64, amd64v3) |
-| `make verify FN=Add` / `make verify ISA=arm64` | one function / one ISA |
-| `make audit` | audit only (`JANUS_STOP_AFTER_AUDIT=1`: the statement audit without the kernel replay of the proofs) |
-| `make lint` | `RELEASE=1 scripts/no-sorry.sh`: no `sorry`/axioms/`native_decide`, source and Lean-level lints, spec-closure check, generated-module check |
-| `make check-generated` | generated proof modules equal their generators' output |
-| `make clean` | remove `build/` |
-
-Environment: `JANUS` (path of the janus binary), `JANUS_CACHE_DIR` (must be a fresh empty directory for a release run), `ROWS`
-(rows verified in parallel, default 1), `MEMCAP` (per-row memory cap, default 24G), `PER_FN_TIMEOUT`. See the header of `scripts/verify-all.sh`.
-A full run takes many hours; a single row takes minutes to about an hour.
-
-Example: `make verify JANUS=$HOME/janus/bin/janus FN=Add ISA=arm64`.
-
-## Layout
-
-```
-README.md          this file
-Makefile           entry points
-docs/              COVERAGE.md (status table), HUMAN-REVIEW.md (what to review), DEVELOPMENT.md (tooling and proof techniques)
-go/                the harness: a program linking every exported uint256 function (its binary is pinned by hash)
-lean/              Lake package `fv256`
-  Fv256/Spec/        <Fn>.lean = the pure math of each function (reviewed by a human), plus the few shared definitions a statement needs
-  Fv256/Arm64/       <Fn>.lean = the claim for arm64 (Pre, Post, correctness, witnesses); Machine.lean = shared machine-level predicates
-  Fv256/Amd64/       likewise for amd64 (Amd64v3/ holds the one GOAMD64=v3 claim)
-  Fv256/Proofs/      proofs and proof-only definitions (tactics, generated modules): Arm64/, Amd64/, Amd64v3/, Common/
-scripts/           verify-all.sh, lints (no-sorry.sh, lint_source.py, check-spec-closure, check-lean-lint), generators, pinned data files
-WIP-SORRY.txt      allowlist of unfinished modules for `no-sorry.sh`; empty at release
+example : add (2 ^ 256 - 1) 1 = 0 := by decide   -- wrap-around: the largest word plus one is zero
+example : add 2 3 = 5 := by decide               -- small numbers add as usual
 ```
 
-`Spec/` never imports `Proofs/`; `scripts/check-spec-closure` proves, with Lean itself, that every final theorem statement depends only on
-`Spec/`, the claim files, Janus and the extraction.
+**The claim** says the compiled arm64 code does that math ([`lean/Fv256/Arm64/Add.lean`](lean/Fv256/Arm64/Add.lean), shortened):
+
+```lean
+/-- PRECONDITION: z is a writable and x, y are readable 32-byte buffers; z, x, y are pairwise equal-or-disjoint. -/
+def Pre (z x y : BitVec 64) (s : State) : Prop :=
+  Ptr32 s.mem z true ∧ Ptr32 s.mem x false ∧ Ptr32 s.mem y false ∧
+  Aliasing z x ∧ Aliasing z y ∧ Aliasing x y
+
+/-- POSTCONDITION: X0 = z; the number now at z is Spec.add of the numbers at x and y BEFORE the call; only z[0, 32) was written. -/
+def Post (z x y : BitVec 64) (s s' : State) : Prop :=
+  s'.regs 0 = z ∧
+  val256 s'.mem z.toNat = Fv256.Spec.add (val256 s.mem x.toNat) (val256 s.mem y.toNat) ∧
+  OnlyWrites s.mem s'.mem z.toNat 32
+
+/-- THE CLAIM: every call meeting Pre returns (Go ABI obeyed) in a state meeting Post. -/
+theorem correctness (z x y : BitVec 64) :
+    Ensures Extracted.program Extracted.entry [z, x, y] (Pre z x y) (Post z x y) :=
+  correctness_proof z x y
+```
+
+**How to read it.** The spec is the math: it is the only part that says what `Add` means, so it is the part to review. The claim says that the
+machine code extracted from the compiled binary (`Extracted.program`), called with any state satisfying `Pre`, returns without a fault or panic in a state satisfying
+`Post`, and `Post` is stated through the spec. The proof (`lean/Fv256/Proofs/`) is machine-checked by Lean's kernel; you do not need to read it. Next to every
+claim sits a `Witness.nonvacuous` theorem showing that `Pre` can actually be met and the code really returns, so the claim is not empty.
+
+## Result
+
+All 293 rows verified: 146 functions on each of arm64 and amd64, plus one amd64 `GOAMD64=v3` row. Every main theorem is paired with a kernel-checked
+non-vacuity witness, and the release lint is clean. Per-row status: [`docs/COVERAGE.md`](docs/COVERAGE.md).
+
+RESULT-LINE
+
+## Check it yourself
+
+You need Lean (via `elan`), Go, and a `janus` binary (a [release](https://github.com/Giulio2002/Janus/releases) or built from the Janus repository).
+
+```sh
+export JANUS=/path/to/janus JANUS_CACHE_DIR=$(mktemp -d)       # janus binary; a fresh empty proof cache
+make build                                                     # build the specs and lemmas (lake build)
+make verify FN=Add ISA=arm64                                   # extract the compiled Add and check its proof (minutes)
+make lint                                                      # no sorry/axioms, spec closure, generated files up to date
+make verify                                                    # all 293 rows (many hours; ROWS=6 runs six in parallel)
+```
+
+Other variables (`MEMCAP`, `PER_FN_TIMEOUT`) and the toolchain versions are in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+
+## What you have to trust
+
+* **The specs.** `lean/Fv256/Spec/*.lean` say what each function should do. If a spec is wrong, a correct proof of it is worthless, so these short files are what to read.
+* **The claim statements.** The `Pre`/`Post` in `lean/Fv256/{Arm64,Amd64}/*.lean` (and the runtime contracts for calls into the Go runtime, such as memory allocation).
+* **Janus.** Its models of the arm64 and amd64 instruction sets, its byte extractor, and the Lean kernel. The Go compiler is not trusted.
+* **The exact build.** The result is about the pinned harness binary in `go/` (checked by hash), not about any other compiler version or flags.
+* Known limitations (single-threaded execution model, non-moving heap, and more) are listed in [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md).
+
+## Repository map
+
+```
+docs/      COVERAGE.md (status of every row), HUMAN-REVIEW.md (what to review), DEVELOPMENT.md (toolchain, proof techniques, tooling)
+go/        the harness: a program linking every exported uint256 function, whose compiled code is verified
+lean/      the Lean package
+  Fv256/Spec/     the math for each function (read these)
+  Fv256/Arm64/    the claim per function for arm64 (Pre, Post, correctness, witness)
+  Fv256/Amd64/    the same for amd64 (Amd64v3/ holds the one GOAMD64=v3 claim)
+  Fv256/Proofs/   the machine-checked proofs and generated modules (no need to read)
+scripts/   verify-all.sh, the lints, generators and pinned data
+Makefile   entry points: make help
+```
+
+## More
+
+[`docs/COVERAGE.md`](docs/COVERAGE.md) (every function, every row) | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) (toolchain, tooling, proof techniques) | [`docs/HUMAN-REVIEW.md`](docs/HUMAN-REVIEW.md) (what a reviewer must check, and limitations)
