@@ -101,7 +101,26 @@ theorem other_tail (impl : List Janus.Segment) (R : RtInv) (L : List (Nat × Nat
     refine ⟨h.2, h.1, ?_, ?_⟩ <;> omega
 
 set_option maxRecDepth 100000 in
-set_option maxHeartbeats 1600000 in
+/-- `runtime.newobject`'s `NewobjectPre` for the `errors.errorString` descriptor at a call state `S` (the window of
+`calleeStack S 4096 1` writable, the descriptor in `.rodata`). Its own declaration, so the large context of `other_call`
+(which the closers of `janus_run` would otherwise search) does not enter. -/
+theorem other_newobject_pre (S : State) (hdl : Extracted.program.DataLoaded S.mem)
+    (h30 : S.regs 30 = 753924#64) (hsal : S.sp.toNat % 16 = 0) (hsp : 4104 ≤ S.sp.toNat)
+    (hspu : S.sp.toNat + 16 ≤ 2 ^ 48)
+    (haccW : S.mem.accessible (S.sp.toNat - 4096) 4112 true = true)
+    (hr0 : S.regs 0 = BitVec.ofNat 64 tyErr) : NewobjectPre 4096 S := by
+  have e0 : (S.regs 0).toNat = tyErr := by
+    rw [hr0]; simp only [BitVec.toNat_ofNat]; exact Nat.mod_eq_of_lt (by decide)
+  have hd16 : (Janus.Tactic.dataRead Extracted.program tyErr 16).isSome = true := by decide
+  have hd8 : (Janus.Tactic.dataRead Extracted.program tyErr 8).isSome = true := by decide
+  refine ⟨⟨?_, ?_, hsal, by omega, by omega, hspu, haccW⟩, ?_, ?_, ?_⟩
+  · rw [h30]; decide
+  · rw [h30]; decide
+  · rw [e0]; exact ⟨by decide, Janus.Tactic.accessible_of_dataRead hdl hd16⟩
+  · rw [e0]; unfold typSize; rw [Janus.Tactic.readLE_dataReadD hdl tyErr 8 hd8]; decide
+  · rw [e0]; exact outside_calleeStack_of_data hdl hd16 (by omega) haccW
+
+set_option maxRecDepth 100000 in
 set_option janus.callRegions true in
 theorem other_call (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T b : Nat) (L : List (Nat × Nat))
     (lo hi : Nat) (dst : BitVec 64) (s S : State) (hlo : lo + 4720 ≤ s.sp.toNat)
@@ -145,10 +164,11 @@ theorem other_call (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T 
     have := e18 r hr
     simp only [outside_cons, outside_nil, and_true] at this
     omega
+  -- the callee's precondition `NewobjectPre`, proved once in its own small declaration (`other_newobject_pre`): the
+  -- closer of `janus_run` then finds it by assumption instead of re-deriving it in this large context
+  have hNP : NewobjectPre 4096 S :=
+    other_newobject_pre S hdl h30 (by omega) (by omega) (by omega) haccW hr0
   janus_data hdl [haccW]
-  -- the descriptor is outside the callee's window (the contract's `Outside et 16 (calleeStack ..)`): rodata, disjoint from the writable window
-  have hty : tyErr = 874688 := rfl
-  have htyo : 874704 ≤ s.sp.toNat - 80 - 4096 ∨ s.sp.toNat - 80 - 8 ≤ 874688 := by omega
   have hsz : dataReadD Extracted.program tyErr 8 = 16 := by decide
   have hnb : (dataReadD Extracted.program (tyErr + 8) 8 == 0) = false := by decide
   have hRW : ∀ r ∈ R.rt, S.mem.accessible r.1 (r.2 - r.1) true = true := by
@@ -156,7 +176,7 @@ theorem other_call (impl : List Janus.Segment) (R : RtInv) (R2 : IfaceModel) (T 
   have hacc2 : s.mem.accessible (s.sp.toNat - 88) 120 true = true :=
     Janus.Arm64.Memory.accessible_sub _ (by have := hEnv.2.2.2.2.1; exact this) (Or.inr rfl) (by omega) (by omega)
   have hlh : S.mem.accessible lo (hi - lo) true = true := by rw [hF.accessible]; exact hEnv.2.2.2.2.1
-  janus_run [hsz, hnb, hpc, hr0, hsp, h28, h29, h30, haccW, hg4096, hok', hinv', e13', hb16, hLs, htyo] until [0xb8110] calls [hnew.pos]
+  janus_run [hsz, hnb, hpc, hr0, hsp, h28, h29, h30, haccW, hg4096, hok', hinv', e13', hb16, hLs] until [0xb8110] calls [hnew.pos]
   refine other_tail impl R L lo hi s S _ _ _ hlo hhi hsal h30a h30b hdl hRW ?hpc4 ?hsp4 ?hx0 ?hx1 ?hx2 ?hx28 ?hx18 ?hx29 (by assumption) (by assumption) (by assumption) ?hblk ?hacc e9 hacc2 hF ?hreg4 hlh hfp hlr
   case hpc4 => simp
   case hsp4 => simp
