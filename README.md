@@ -47,7 +47,7 @@ claim sits a `Witness.nonvacuous` theorem showing that `Pre` can actually be met
 All 293 rows verified: 146 functions on each of arm64 and amd64, plus one amd64 `GOAMD64=v3` row. Every main theorem is paired with a kernel-checked
 non-vacuity witness, and the release lint is clean. Per-row status: [`docs/COVERAGE.md`](docs/COVERAGE.md).
 
-**Release run (2026-11-12):** Janus [v0.3.1](https://github.com/Giulio2002/Janus/releases/tag/v0.3.1) (`1b51b4ac`, release binary sha256 `d75d7ab7…ad73`; verified on `5355cc4f`, which has the same framework and binary), fresh cache, every row with its witness: 293/293 PASS, release lint (`make lint`) clean. 6.6 h wall with 6 rows in parallel; slowest row arm64 ISMod 4500 s. v0.3.1's allocation contracts require the type descriptor outside the callee's stack window; every allocation call site here discharges it (descriptors are in `.rodata`). `Add` proves its instruction count on both ISAs: every call executes exactly 17 instructions (`within` / `atLeast`, with witnesses).
+**Release run (2026-11-13):** Janus [v0.3.2](https://github.com/Giulio2002/Janus/releases/tag/v0.3.2) (`ed896f6d`, release binary sha256 `671e9e75…52a7`, the binary this run used), fresh cache, every row with its witness: 293/293 PASS, release lint (`make lint`) clean. 8.6 h wall with 6 rows in parallel, at reduced priority on a shared host. The allocation call sites discharge v0.3.1's descriptor-outside-window conjunct (descriptors are in `.rodata`). `Add` proves its instruction count on both ISAs: every call executes exactly 17 instructions (`within` / `atLeast`, with witnesses).
 
 ## Check it yourself
 
